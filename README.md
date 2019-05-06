@@ -11,6 +11,8 @@ Cross Platform Rust Repl
 
 **:load** => load a rust script into the repl
 
+**::** => run a shell command, example `::ls`
+
 You can use arrow keys to cycle through commands history
 
 <img src="./irust.png" width="80%" height="60%">

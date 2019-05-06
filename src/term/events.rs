@@ -12,12 +12,21 @@ impl Term {
     }
 
     fn handle_enter(&mut self) -> std::io::Result<()> {
+        // create a new line
         self.write_newline()?;
         self.reset_cursors()?;
-        self.parse()?;
+
+        // ignore all parsing errors
+        let _ = self.parse();
+
+        // ensure buffer is cleaned
+        self.buffer.clear();
+
+        // write out
         self.write_out()?;
         self.write_newline()?;
         self.write_in()?;
+
         Ok(())
     }
 

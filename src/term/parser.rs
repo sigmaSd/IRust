@@ -8,6 +8,7 @@ impl Term {
         match self.buffer.as_str() {
             ":reset" => self.reset(),
             ":show" => self.show()?,
+            cmd if cmd.starts_with("::") => self.run_cmd()?,
             cmd if cmd.starts_with(":add") => self.add_dep()?,
             cmd if cmd.starts_with(":load") => self.load_script()?,
             _ => self.parse_second_order(),
@@ -42,10 +43,29 @@ impl Term {
             None => return Ok(()),
         };
 
-        let script_code = std::fs::read(script).unwrap_or_default();
+        let script_code = std::fs::read(script)?;
         if let Ok(s) = String::from_utf8(script_code) {
             self.repl.insert(s);
         }
+        Ok(())
+    }
+
+    fn run_cmd(&mut self) -> std::io::Result<()> {
+        // remove ::
+        self.buffer.remove(0);
+        self.buffer.remove(0);
+
+        let mut cmd = self.buffer.split_whitespace();
+        let out = std::process::Command::new(cmd.next().unwrap_or_default())
+            .args(&cmd.collect::<Vec<&str>>())
+            .output()?;
+        let out = if out.stderr.is_empty() {
+            out.stdout
+        } else {
+            out.stderr
+        };
+        self.output = String::from_utf8(out).unwrap_or_default();
+
         Ok(())
     }
 
