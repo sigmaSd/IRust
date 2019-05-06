@@ -35,15 +35,13 @@ impl Repl {
         Ok(())
     }
 
-    pub fn eval(&self, input: String) -> String {
+    pub fn eval(&self, input: String) -> io::Result<String> {
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut repl = self.clone();
         repl.insert(eval_statement);
 
         let code = repl.body.join("");
-        self.cargo_cmds
-            .cargo_run(code)
-            .expect("Error while evaluating expression")
+        Ok(self.cargo_cmds.cargo_run(code)?)
     }
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<()> {
         self.cargo_cmds.cargo_add(dep)?;

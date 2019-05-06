@@ -11,7 +11,7 @@ impl Term {
             cmd if cmd.starts_with("::") => self.run_cmd()?,
             cmd if cmd.starts_with(":add") => self.add_dep()?,
             cmd if cmd.starts_with(":load") => self.load_script()?,
-            _ => self.parse_second_order(),
+            _ => self.parse_second_order()?,
         }
         Ok(())
     }
@@ -69,12 +69,13 @@ impl Term {
         Ok(())
     }
 
-    fn parse_second_order(&mut self) {
+    fn parse_second_order(&mut self) -> std::io::Result<()> {
         if self.buffer.ends_with(';') {
             self.repl.insert(self.buffer.clone());
         } else {
-            self.output = self.repl.eval(self.buffer.clone())
+            self.output = self.repl.eval(self.buffer.clone())?;
         }
         self.history.push(self.buffer.drain(..).collect());
+        Ok(())
     }
 }

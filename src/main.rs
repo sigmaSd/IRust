@@ -7,5 +7,5 @@ use term::Term;
 
 fn main() {
     let mut term = Term::new();
-    term.run().expect("Error while starting IRust");
+    term.run().expect("IRust Out");
 }
