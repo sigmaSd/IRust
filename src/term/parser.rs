@@ -1,5 +1,4 @@
-use crate::term::{Term, OUT};
-use crossterm::Color;
+use crate::term::Term;
 
 impl Term {
     pub fn parse(&mut self) -> std::io::Result<()> {
@@ -8,16 +7,15 @@ impl Term {
             "show" => self.show()?,
             cmd if cmd.starts_with("add") => self.add_dep()?,
             cmd if cmd.starts_with("load") => self.load_script()?,
-            _ => self.parse_second_order()?,
+            _ => self.parse_second_order(),
         }
         Ok(())
     }
     fn reset(&mut self) {
         self.repl.reset();
     }
-    fn show(&self) -> std::io::Result<()> {
-        let current_code = self.repl.show();
-        self.terminal.write(&current_code)?;
+    fn show(&mut self) -> std::io::Result<()> {
+        self.output = self.repl.show();
         Ok(())
     }
     fn add_dep(&self) -> std::io::Result<()> {
@@ -47,16 +45,11 @@ impl Term {
         Ok(())
     }
 
-    fn parse_second_order(&mut self) -> std::io::Result<()> {
+    fn parse_second_order(&mut self) {
         if self.buffer.ends_with(';') {
             self.repl.insert(self.buffer.drain(..).collect());
         } else {
-            let output = self.repl.eval(self.buffer.drain(..).collect());
-            self.color.set_fg(Color::Red)?;
-            self.terminal.write(OUT)?;
-            self.color.reset()?;
-            self.terminal.write(output)?;
+            self.output = self.repl.eval(self.buffer.drain(..).collect())
         }
-        Ok(())
     }
 }

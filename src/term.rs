@@ -4,7 +4,9 @@ use crossterm::{
 };
 
 use crate::repl::Repl;
+mod cursor;
 mod parser;
+use cursor::Cursor;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
@@ -13,9 +15,11 @@ pub struct Term {
     cursor: TerminalCursor,
     terminal: Terminal,
     input: TerminalInput,
+    output: String,
     color: TerminalColor,
     buffer: String,
     repl: Repl,
+    internal_cursor: Cursor,
 }
 
 impl Term {
@@ -24,21 +28,25 @@ impl Term {
         let cursor = crossterm.cursor();
         let terminal = crossterm.terminal();
         let input = crossterm.input();
+        let output = String::new();
         let color = crossterm.color();
         let buffer = String::new();
         let repl = Repl::new();
+        let internal_cursor = Cursor::new(1, 4);
 
         Term {
             cursor,
             terminal,
             input,
+            output,
             color,
             buffer,
             repl,
+            internal_cursor,
         }
     }
     pub fn new_in(&self) -> std::io::Result<()> {
-        //self.cursor.goto(0, self.cursor.pos().1)?;
+        self.cursor.goto(0, self.cursor.pos().1)?;
         self.color.set_fg(Color::Yellow)?;
         self.terminal.write(IN)?;
         self.color.reset()?;
@@ -71,67 +79,67 @@ impl Term {
                         if c == '\n' {
                             self.handle_enter()?
                         } else {
-                            //let col = cursor_pos as usize - 4;
-                            self.terminal.write(c)?;
-                            //self.insert_write(c, col)?;
-                            self.buffer.push(c);
-
-                            // if !self.buffer.is_empty() && (self.cursor.pos().0 as usize) != self.buffer.len() + 4 {
-                            //     dbg!(self.buffer.len());
-                            //     dbg!(self.cursor.pos());
-                            //     self.insert_write(c)?;
-                            //     self.buffer.insert(self.cursor.pos().0 as usize - 5 , c);
-                            // } else {
-                            //     dbg!(self.buffer.len());
-                            //     dbg!(self.cursor.pos());
-                            //     self.terminal.write(c)?;
-                            // }
-
+                            self.insert_write(c)?;
+                            self.buffer.insert(self.internal_cursor.col - 5, c);
                         }
                     }
-                    // InputEvent::Keyboard(KeyEvent::Left) => {
-                    //     if self.cursor.pos().0 as usize > 4 {
-                    //         self.cursor.move_left(1);
-                    //     }
-                    // },
-                    // InputEvent::Keyboard(KeyEvent::Right) => {
-                    //     if self.cursor.pos().0 as usize <= self.buffer.len() + 3 {
-                    //         self.cursor.move_right(1);
-                    //     }
-
-                    // },
+                    InputEvent::Keyboard(KeyEvent::Left) => {
+                        if self.cursor.pos().0 as usize > 4 {
+                            self.cursor.move_left(1);
+                            self.internal_cursor.left();
+                        }
+                    }
+                    InputEvent::Keyboard(KeyEvent::Right) => {
+                        if self.cursor.pos().0 as usize <= self.buffer.len() + 3 {
+                            self.cursor.move_right(1);
+                            self.internal_cursor.right();
+                        }
+                    }
                     InputEvent::Keyboard(KeyEvent::Up) => {
                         self.cursor.move_up(1);
-                    },
+                    }
                     InputEvent::Keyboard(KeyEvent::Down) => {
                         self.cursor.move_down(1);
-                    },
+                    }
                     InputEvent::Keyboard(KeyEvent::Esc) => self.terminal.exit(),
                     _ => (),
                 }
             }
         }
-
     }
 
-    fn _insert_write(&mut self, c: char, col: usize) -> std::io::Result<()> {
+    fn insert_write(&mut self, c: char) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
         self.terminal.write(c)?;
         self.cursor.save_position()?;
-        for character in self.buffer[col ..].chars() {
-             self.terminal.write(character)?;
+
+        for character in self.buffer[self.internal_cursor.col - 4..].chars() {
+            self.terminal.write(character)?;
         }
         self.cursor.reset_position()?;
+        self.internal_cursor.col += 1;
         Ok(())
     }
 
     fn handle_enter(&mut self) -> std::io::Result<()> {
         self.terminal.write('\n')?;
+        self.internal_cursor.col = 4;
         self.cursor.goto(0, self.cursor.pos().1)?;
         self.parse()?;
+        self.write_out()?;
         self.buffer.clear();
         self.terminal.write("\n")?;
         self.new_in()?;
+        Ok(())
+    }
+    fn write_out(&mut self) -> std::io::Result<()> {
+        if !self.output.is_empty() {
+            self.color.set_fg(Color::Red)?;
+            self.terminal.write(OUT)?;
+            self.color.reset()?;
+            self.terminal
+                .write(&self.output.drain(..).collect::<String>())?;
+        }
         Ok(())
     }
 }

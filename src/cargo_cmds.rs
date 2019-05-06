@@ -35,7 +35,7 @@ impl CargoCmds {
     pub fn cargo_new(&self) -> Result<(), io::Error> {
         self.clean_toml();
         if Path::new(&self.rust_repl_playground_dir).exists() {
-           std::fs::remove_dir_all(&self.rust_repl_playground_dir)?;
+            std::fs::remove_dir_all(&self.rust_repl_playground_dir)?;
         }
         Command::new("cargo")
             .current_dir(&*self.tmp_dir)
