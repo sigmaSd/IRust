@@ -16,3 +16,9 @@ Cross Platform Rust Repl
 You can use arrow keys to cycle through commands history
 
 <img src="./irust.png" width="80%" height="60%">
+
+## Changeslog
+
+**0.1.1**
+- add **::** to execute shell cmds
+- bugfixes
