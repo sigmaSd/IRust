@@ -3,9 +3,12 @@ use crossterm::{
     TerminalInput,
 };
 
+use crate::history::History;
 use crate::repl::Repl;
 mod cursor;
+mod events;
 mod parser;
+mod writer;
 use cursor::Cursor;
 
 const IN: &str = "In: ";
@@ -20,6 +23,7 @@ pub struct Term {
     buffer: String,
     repl: Repl,
     internal_cursor: Cursor,
+    history: History,
 }
 
 impl Term {
@@ -32,7 +36,8 @@ impl Term {
         let color = crossterm.color();
         let buffer = String::new();
         let repl = Repl::new();
-        let internal_cursor = Cursor::new(1, 4);
+        let history = History::default();
+        let internal_cursor = Cursor::new(1, 0);
 
         Term {
             cursor,
@@ -42,17 +47,12 @@ impl Term {
             color,
             buffer,
             repl,
+            history,
             internal_cursor,
         }
     }
-    pub fn new_in(&self) -> std::io::Result<()> {
-        self.cursor.goto(0, self.cursor.pos().1)?;
-        self.color.set_fg(Color::Yellow)?;
-        self.terminal.write(IN)?;
-        self.color.reset()?;
-        Ok(())
-    }
-    pub fn prepare(&self) -> std::io::Result<()> {
+
+    fn prepare(&self) -> std::io::Result<()> {
         self.repl.prepare_ground()?;
         self.terminal.clear(ClearType::All)?;
 
@@ -64,9 +64,10 @@ impl Term {
             .write(format!("       {0}Welcome to IRust{0}\n", slash))?;
         self.color.reset()?;
 
-        self.new_in()?;
+        self.write_in()?;
         Ok(())
     }
+
     pub fn run(&mut self) -> std::io::Result<()> {
         self.prepare()?;
         let mut stdin = self.input.read_sync();
@@ -79,8 +80,8 @@ impl Term {
                         if c == '\n' {
                             self.handle_enter()?
                         } else {
-                            self.insert_write(c)?;
-                            self.buffer.insert(self.internal_cursor.col - 5, c);
+                            self.buffer.insert(self.internal_cursor.col, c);
+                            self.write_insert(c)?;
                         }
                     }
                     InputEvent::Keyboard(KeyEvent::Left) => {
@@ -96,50 +97,18 @@ impl Term {
                         }
                     }
                     InputEvent::Keyboard(KeyEvent::Up) => {
-                        self.cursor.move_up(1);
+                        self.handle_up()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Down) => {
-                        self.cursor.move_down(1);
+                        self.handle_down()?;
+                    }
+                    InputEvent::Keyboard(KeyEvent::Backspace) => {
+                        self.handle_backspace()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Esc) => self.terminal.exit(),
                     _ => (),
                 }
             }
         }
-    }
-
-    fn insert_write(&mut self, c: char) -> std::io::Result<()> {
-        self.terminal.clear(ClearType::UntilNewLine)?;
-        self.terminal.write(c)?;
-        self.cursor.save_position()?;
-
-        for character in self.buffer[self.internal_cursor.col - 4..].chars() {
-            self.terminal.write(character)?;
-        }
-        self.cursor.reset_position()?;
-        self.internal_cursor.col += 1;
-        Ok(())
-    }
-
-    fn handle_enter(&mut self) -> std::io::Result<()> {
-        self.terminal.write('\n')?;
-        self.internal_cursor.col = 4;
-        self.cursor.goto(0, self.cursor.pos().1)?;
-        self.parse()?;
-        self.write_out()?;
-        self.buffer.clear();
-        self.terminal.write("\n")?;
-        self.new_in()?;
-        Ok(())
-    }
-    fn write_out(&mut self) -> std::io::Result<()> {
-        if !self.output.is_empty() {
-            self.color.set_fg(Color::Red)?;
-            self.terminal.write(OUT)?;
-            self.color.reset()?;
-            self.terminal
-                .write(&self.output.drain(..).collect::<String>())?;
-        }
-        Ok(())
     }
 }

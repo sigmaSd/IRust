@@ -2,11 +2,14 @@ use crate::term::Term;
 
 impl Term {
     pub fn parse(&mut self) -> std::io::Result<()> {
+        if self.buffer.is_empty() {
+            return Ok(());
+        }
         match self.buffer.as_str() {
-            "reset" => self.reset(),
-            "show" => self.show()?,
-            cmd if cmd.starts_with("add") => self.add_dep()?,
-            cmd if cmd.starts_with("load") => self.load_script()?,
+            ":reset" => self.reset(),
+            ":show" => self.show()?,
+            cmd if cmd.starts_with(":add") => self.add_dep()?,
+            cmd if cmd.starts_with(":load") => self.load_script()?,
             _ => self.parse_second_order(),
         }
         Ok(())
@@ -38,7 +41,7 @@ impl Term {
             None => return Ok(()),
         };
 
-        let script_code = std::fs::read(script)?;
+        let script_code = std::fs::read(script).unwrap_or_default();
         if let Ok(s) = String::from_utf8(script_code) {
             self.repl.insert(s);
         }
@@ -47,9 +50,9 @@ impl Term {
 
     fn parse_second_order(&mut self) {
         if self.buffer.ends_with(';') {
-            self.repl.insert(self.buffer.drain(..).collect());
+            self.repl.insert(self.buffer.clone());
         } else {
-            self.output = self.repl.eval(self.buffer.drain(..).collect())
+            self.output = self.repl.eval(self.buffer.clone())
         }
     }
 }

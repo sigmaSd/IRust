@@ -1,4 +1,5 @@
 mod cargo_cmds;
+mod history;
 mod repl;
 mod term;
 
