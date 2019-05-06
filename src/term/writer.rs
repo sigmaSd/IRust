@@ -5,7 +5,7 @@ use crate::term::{Term, IN, OUT};
 impl Term {
     pub fn write_str(&mut self, s: &str) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
-        self.internal_cursor.col += s.len();
+        self.internal_cursor.x += s.len();
         self.terminal.write(s)?;
         Ok(())
     }
@@ -32,7 +32,7 @@ impl Term {
         self.cursor.save_position()?;
         self.internal_cursor.right();
 
-        for character in self.buffer[self.internal_cursor.col..].chars() {
+        for character in self.buffer[self.internal_cursor.x..].chars() {
             self.terminal.write(character)?;
         }
         self.cursor.reset_position()?;
@@ -46,7 +46,7 @@ impl Term {
     }
 
     pub fn reset_cursors(&mut self) -> std::io::Result<()> {
-        self.internal_cursor.col = 0;
+        self.internal_cursor.x = 0;
         self.cursor.goto(0, self.cursor.pos().1)?;
         Ok(())
     }
@@ -55,7 +55,7 @@ impl Term {
         self.terminal.clear(ClearType::UntilNewLine)?;
         self.cursor.save_position()?;
 
-        for character in self.buffer[self.internal_cursor.col..].chars() {
+        for character in self.buffer[self.internal_cursor.x..].chars() {
             self.terminal.write(character)?;
         }
         self.cursor.reset_position()?;

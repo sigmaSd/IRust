@@ -37,7 +37,7 @@ impl Term {
         let buffer = String::new();
         let repl = Repl::new();
         let history = History::default();
-        let internal_cursor = Cursor::new(1, 0);
+        let internal_cursor = Cursor::new(0);
 
         Term {
             cursor,

@@ -5,7 +5,7 @@ impl Term {
         if c == '\n' {
             self.handle_enter()?
         } else {
-            self.buffer.insert(self.internal_cursor.col, c);
+            self.buffer.insert(self.internal_cursor.x, c);
             self.write_insert(c)?;
         }
         Ok(())
@@ -57,11 +57,11 @@ impl Term {
     }
 
     pub fn handle_backspace(&mut self) -> std::io::Result<()> {
-        if self.internal_cursor.col > 0 {
+        if self.internal_cursor.x > 0 {
             self.cursor.move_left(1);
             self.internal_cursor.left();
             if !self.buffer.is_empty() {
-                self.buffer.remove(self.internal_cursor.col);
+                self.buffer.remove(self.internal_cursor.x);
             }
             self.backspace()?;
         }

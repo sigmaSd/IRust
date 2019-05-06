@@ -39,8 +39,10 @@ impl History {
         }
     }
     pub fn push(&mut self, buffer: String) {
-        self.buffer_vec.push(buffer);
-        self.go_to_last();
+        if !buffer.is_empty() {
+            self.buffer_vec.push(buffer);
+            self.go_to_last();
+        }
     }
     pub fn _reset(&mut self) {
         *self = Self::default();
