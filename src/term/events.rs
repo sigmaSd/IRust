@@ -1,7 +1,17 @@
 use crate::term::Term;
 
 impl Term {
-    pub fn handle_enter(&mut self) -> std::io::Result<()> {
+    pub fn handle_character(&mut self, c: char) -> std::io::Result<()> {
+        if c == '\n' {
+            self.handle_enter()?
+        } else {
+            self.buffer.insert(self.internal_cursor.col, c);
+            self.write_insert(c)?;
+        }
+        Ok(())
+    }
+
+    fn handle_enter(&mut self) -> std::io::Result<()> {
         self.write_newline()?;
         self.reset_cursors()?;
         self.parse()?;
@@ -30,13 +40,31 @@ impl Term {
         Ok(())
     }
 
-    pub fn handle_backspace(&mut self) -> std::io::Result<()> {
-        self.cursor.move_left(1);
-        self.internal_cursor.left();
-        if !self.buffer.is_empty() {
-            self.buffer.remove(self.internal_cursor.col);
+    pub fn handle_left(&mut self) -> std::io::Result<()> {
+        if self.cursor.pos().0 as usize > 4 {
+            self.cursor.move_left(1);
+            self.internal_cursor.left();
         }
-        self.backspace()?;
+        Ok(())
+    }
+
+    pub fn handle_right(&mut self) -> std::io::Result<()> {
+        if self.cursor.pos().0 as usize <= self.buffer.len() + 3 {
+            self.cursor.move_right(1);
+            self.internal_cursor.right();
+        }
+        Ok(())
+    }
+
+    pub fn handle_backspace(&mut self) -> std::io::Result<()> {
+        if self.internal_cursor.col > 0 {
+            self.cursor.move_left(1);
+            self.internal_cursor.left();
+            if !self.buffer.is_empty() {
+                self.buffer.remove(self.internal_cursor.col);
+            }
+            self.backspace()?;
+        }
         Ok(())
     }
 }

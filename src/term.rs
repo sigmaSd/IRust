@@ -77,24 +77,13 @@ impl Term {
             if let Some(key_event) = stdin.next() {
                 match key_event {
                     InputEvent::Keyboard(KeyEvent::Char(c)) => {
-                        if c == '\n' {
-                            self.handle_enter()?
-                        } else {
-                            self.buffer.insert(self.internal_cursor.col, c);
-                            self.write_insert(c)?;
-                        }
+                        self.handle_character(c)?;
                     }
                     InputEvent::Keyboard(KeyEvent::Left) => {
-                        if self.cursor.pos().0 as usize > 4 {
-                            self.cursor.move_left(1);
-                            self.internal_cursor.left();
-                        }
+                        self.handle_left()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Right) => {
-                        if self.cursor.pos().0 as usize <= self.buffer.len() + 3 {
-                            self.cursor.move_right(1);
-                            self.internal_cursor.right();
-                        }
+                        self.handle_right()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Up) => {
                         self.handle_up()?;
