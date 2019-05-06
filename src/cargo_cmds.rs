@@ -54,13 +54,13 @@ impl CargoCmds {
             .arg("run")
             .output()?;
 
-        let stdout = String::from_utf8(out.stdout).expect("Invalid input (Not Utf-8)");
-        let stderr = String::from_utf8(out.stderr).expect("Invalid input (Not Utf-8)");
-        if stdout.is_empty() {
-            Ok(stderr)
+        let out = if !out.stdout.is_empty() {
+            out.stdout
         } else {
-            Ok(stdout)
-        }
+            out.stderr
+        };
+
+        Ok(String::from_utf8(out).unwrap_or_default())
     }
 
     pub fn cargo_add(&self, dep: &[String]) -> io::Result<()> {

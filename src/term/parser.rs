@@ -59,7 +59,7 @@ impl Term {
         let out = std::process::Command::new(cmd.next().unwrap_or_default())
             .args(&cmd.collect::<Vec<&str>>())
             .output()?;
-        let out = if out.stderr.is_empty() {
+        let out = if !out.stdout.is_empty() {
             out.stdout
         } else {
             out.stderr
