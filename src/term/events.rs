@@ -16,7 +16,6 @@ impl Term {
         self.reset_cursors()?;
         self.parse()?;
         self.write_out()?;
-        self.history.push(self.buffer.drain(..).collect());
         self.write_newline()?;
         self.write_in()?;
         Ok(())

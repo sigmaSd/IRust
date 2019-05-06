@@ -16,6 +16,7 @@ impl Term {
     }
     fn reset(&mut self) {
         self.repl.reset();
+        self.history.reset();
     }
     fn show(&mut self) -> std::io::Result<()> {
         self.output = self.repl.show();
@@ -54,5 +55,6 @@ impl Term {
         } else {
             self.output = self.repl.eval(self.buffer.clone())
         }
+        self.history.push(self.buffer.drain(..).collect());
     }
 }
