@@ -44,7 +44,8 @@ impl Term {
         };
 
         let script_code = std::fs::read(script)?;
-        if let Ok(s) = String::from_utf8(script_code) {
+        if let Ok(mut s) = String::from_utf8(script_code) {
+            crate::cargo_cmds::CargoCmds::remove_main(&mut s);
             self.repl.insert(s);
         }
         Ok(())

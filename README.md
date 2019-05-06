@@ -19,6 +19,9 @@ You can use arrow keys to cycle through commands history
 
 ## Changeslog
 
+**0.1.2**
+- load scripts that contains main fn
+
 **0.1.1**
 - add **::** to execute shell cmds
 - bugfixes
