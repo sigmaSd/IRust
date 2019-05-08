@@ -1,4 +1,3 @@
-// associated fns
 pub fn remove_main(script: &mut String) {
     let main_start = match script.find("fn main() {") {
         Some(idx) => idx,
@@ -6,8 +5,9 @@ pub fn remove_main(script: &mut String) {
     };
 
     let open_tag = main_start + 11;
-    // script == fn main() {
-    if script.len() == 11 {
+
+    // corrupted script `..fn main() {`
+    if open_tag == script.len() - 1 {
         return;
     }
 
