@@ -1,9 +1,10 @@
 pub struct Cursor {
     pub x: usize,
+    pub y: usize,
 }
 impl Cursor {
-    pub fn new(x: usize) -> Self {
-        Self { x }
+    pub fn new(x: usize, y: usize) -> Self {
+        Self { x, y }
     }
     pub fn right(&mut self) {
         self.x += 1;

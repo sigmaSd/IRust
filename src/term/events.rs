@@ -14,7 +14,6 @@ impl Term {
     fn handle_enter(&mut self) -> std::io::Result<()> {
         // create a new line
         self.write_newline()?;
-        self.reset_cursors()?;
 
         // ignore all parsing errors
         let _ = self.parse();
