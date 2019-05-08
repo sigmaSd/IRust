@@ -18,7 +18,6 @@ impl Term {
     }
     fn reset(&mut self) {
         self.repl.reset();
-        self.history.reset();
     }
     fn show(&mut self) -> std::io::Result<()> {
         self.output = self.repl.show();

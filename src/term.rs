@@ -1,6 +1,5 @@
 use crossterm::{
-    ClearType, Color, Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalCursor,
-    TerminalInput,
+    Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalCursor, TerminalInput,
 };
 
 use crate::history::History;
@@ -55,16 +54,7 @@ impl Term {
 
     fn prepare(&mut self) -> std::io::Result<()> {
         self.repl.prepare_ground()?;
-        self.terminal.clear(ClearType::All)?;
-
-        self.color.set_fg(Color::Blue)?;
-        let slash = std::iter::repeat('-')
-            .take(self.terminal.terminal_size().0 as usize / 3)
-            .collect::<String>();
-        self.terminal
-            .write(format!("       {0}Welcome to IRust{0}\n", slash))?;
-        self.color.reset()?;
-
+        self.welcome()?;
         self.write_in()?;
         Ok(())
     }

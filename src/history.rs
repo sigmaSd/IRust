@@ -44,7 +44,7 @@ impl History {
             self.go_to_last();
         }
     }
-    pub fn reset(&mut self) {
+    pub fn _reset(&mut self) {
         *self = Self::default();
     }
 }
