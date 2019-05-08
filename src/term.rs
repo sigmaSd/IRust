@@ -8,6 +8,7 @@ use crate::repl::Repl;
 mod cursor;
 mod events;
 mod parser;
+mod utils;
 mod writer;
 use cursor::Cursor;
 
