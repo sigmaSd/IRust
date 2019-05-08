@@ -48,7 +48,7 @@ impl Term {
     }
 
     pub fn handle_left(&mut self) -> std::io::Result<()> {
-        if self.cursor.pos().0 as usize > 4 {
+        if self.internal_cursor.x > 0 {
             self.cursor.move_left(1);
             self.internal_cursor.left();
         }
@@ -56,7 +56,7 @@ impl Term {
     }
 
     pub fn handle_right(&mut self) -> std::io::Result<()> {
-        if self.cursor.pos().0 as usize <= self.buffer.len() + 3 {
+        if self.internal_cursor.x < self.buffer.len() {
             self.cursor.move_right(1);
             self.internal_cursor.right();
         }
