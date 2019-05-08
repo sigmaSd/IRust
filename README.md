@@ -19,6 +19,9 @@ You can use arrow keys to cycle through commands history
 
 ## Changeslog
 
+**0.1.3**
+- Rely on a custom cursor struct to avoid a lot of headaches
+
 **0.1.2**
 - load scripts that contains main fn
 
