@@ -38,7 +38,7 @@ impl Term {
         let buffer = String::new();
         let repl = Repl::new();
         let history = History::default();
-        let internal_cursor = Cursor::new(0);
+        let internal_cursor = Cursor::new(0, 1);
 
         Term {
             cursor,
@@ -53,7 +53,7 @@ impl Term {
         }
     }
 
-    fn prepare(&self) -> std::io::Result<()> {
+    fn prepare(&mut self) -> std::io::Result<()> {
         self.repl.prepare_ground()?;
         self.terminal.clear(ClearType::All)?;
 
