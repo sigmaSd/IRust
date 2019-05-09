@@ -18,6 +18,7 @@ You can use arrow keys to cycle through commands history
 ## Keybindings
 
 **ctrl-l** clear screen
+
 **ctrl-c** exit
 
 <img src="./irust.png" width="80%" height="60%">
