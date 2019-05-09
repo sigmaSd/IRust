@@ -85,7 +85,12 @@ impl Term {
                     InputEvent::Keyboard(KeyEvent::Backspace) => {
                         self.handle_backspace()?;
                     }
-                    InputEvent::Keyboard(KeyEvent::Esc) => self.terminal.exit(),
+                    InputEvent::Keyboard(KeyEvent::Ctrl('c')) => {
+                        self.exit()?;
+                    }
+                    InputEvent::Keyboard(KeyEvent::Ctrl('l')) => {
+                        self.clear()?;
+                    }
                     _ => (),
                 }
             }

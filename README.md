@@ -15,9 +15,18 @@ Cross Platform Rust Repl
 
 You can use arrow keys to cycle through commands history
 
+## Keybindings
+
+**ctrl-l** clear screen
+**ctrl-c** exit
+
 <img src="./irust.png" width="80%" height="60%">
 
 ## Changeslog
+
+**0.1.5**
+- add keybindings `ctrl-c` `ctr-l`
+- Fix history regression
 
 **0.1.4**
 - Handle parsing errors and output useful info

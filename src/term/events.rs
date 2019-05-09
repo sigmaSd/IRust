@@ -1,6 +1,6 @@
-use std::error::Error;
-
 use crate::term::Term;
+use crossterm::ClearType;
+use std::error::Error;
 
 impl Term {
     pub fn handle_character(&mut self, c: char) -> std::io::Result<()> {
@@ -84,6 +84,20 @@ impl Term {
             }
             self.backspace()?;
         }
+        Ok(())
+    }
+
+    pub fn exit(&self) -> std::io::Result<()> {
+        self.terminal.clear(ClearType::All)?;
+        self.terminal.exit();
+        Ok(())
+    }
+
+    pub fn clear(&mut self) -> std::io::Result<()> {
+        self.terminal.clear(ClearType::All)?;
+        self.cursors_to_origin()?;
+        self.buffer.clear();
+        self.write_in()?;
         Ok(())
     }
 }

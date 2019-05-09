@@ -58,12 +58,14 @@ impl Term {
     }
 
     fn parse_second_order(&mut self) -> std::io::Result<Option<String>> {
-        if self.buffer.ends_with(';') {
+        let output = if self.buffer.ends_with(';') {
             self.repl.insert(self.buffer.clone());
+            None
         } else {
-            return Ok(Some(self.repl.eval(self.buffer.clone())?));
-        }
+            Some(self.repl.eval(self.buffer.clone())?)
+        };
         self.history.push(self.buffer.drain(..).collect());
-        Ok(None)
+
+        Ok(output)
     }
 }

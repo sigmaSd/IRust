@@ -71,6 +71,13 @@ impl Term {
         Ok(())
     }
 
+    pub fn cursors_to_origin(&mut self) -> std::io::Result<()> {
+        self.internal_cursor.x = 0;
+        self.internal_cursor.y = 0;
+        self.go_to_cursor()?;
+        Ok(())
+    }
+
     pub fn backspace(&mut self) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
         self.cursor.save_position()?;
