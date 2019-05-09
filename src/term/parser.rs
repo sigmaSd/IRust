@@ -1,82 +1,69 @@
-use crate::term::utils::remove_main;
 use crate::term::Term;
+use crate::utils::{remove_main, stdout_and_stderr};
+
+const SUCESS: &str = "Ok!";
 
 impl Term {
-    pub fn parse(&mut self) -> std::io::Result<()> {
-        if self.buffer.is_empty() {
-            return Ok(());
-        }
+    pub fn parse(&mut self) -> std::io::Result<Option<String>> {
         match self.buffer.as_str() {
             ":reset" => self.reset(),
-            ":show" => self.show()?,
-            cmd if cmd.starts_with("::") => self.run_cmd()?,
-            cmd if cmd.starts_with(":add") => self.add_dep()?,
-            cmd if cmd.starts_with(":load") => self.load_script()?,
-            _ => self.parse_second_order()?,
+            ":show" => self.show(),
+            cmd if cmd.starts_with("::") => self.run_cmd(),
+            cmd if cmd.starts_with(":add") => self.add_dep(),
+            cmd if cmd.starts_with(":load") => self.load_script(),
+            _ => self.parse_second_order(),
         }
-        Ok(())
     }
-    fn reset(&mut self) {
+    fn reset(&mut self) -> std::io::Result<Option<String>> {
         self.repl.reset();
+        Ok(Some(SUCESS.to_string()))
     }
-    fn show(&mut self) -> std::io::Result<()> {
-        self.output = self.repl.show();
-        Ok(())
+    fn show(&mut self) -> std::io::Result<Option<String>> {
+        Ok(Some(self.repl.show()))
     }
-    fn add_dep(&self) -> std::io::Result<()> {
+    fn add_dep(&mut self) -> std::io::Result<Option<String>> {
         let dep: Vec<String> = self
             .buffer
             .split_whitespace()
             .skip(1)
             .map(ToOwned::to_owned)
             .collect();
-        if dep.is_empty() {
-            return Ok(());
-        }
-        self.repl.add_dep(&dep)?;
 
-        Ok(())
+        self.wait_add(self.repl.add_dep(&dep)?)?;
+        Ok(Some(SUCESS.to_string()))
     }
-    fn load_script(&mut self) -> std::io::Result<()> {
-        let script = match self.buffer.split_whitespace().last() {
-            Some(s) => std::path::Path::new(s),
-            None => return Ok(()),
-        };
+    fn load_script(&mut self) -> std::io::Result<Option<String>> {
+        let script = self.buffer.split_whitespace().last().unwrap();
 
         let script_code = std::fs::read(script)?;
         if let Ok(mut s) = String::from_utf8(script_code) {
             remove_main(&mut s);
             self.repl.insert(s);
         }
-        Ok(())
+        Ok(Some(SUCESS.to_string()))
     }
 
-    fn run_cmd(&mut self) -> std::io::Result<()> {
+    fn run_cmd(&mut self) -> std::io::Result<Option<String>> {
         // remove ::
         self.buffer.remove(0);
         self.buffer.remove(0);
 
         let mut cmd = self.buffer.split_whitespace();
-        let out = std::process::Command::new(cmd.next().unwrap_or_default())
-            .args(&cmd.collect::<Vec<&str>>())
-            .output()?;
-        let out = if !out.stdout.is_empty() {
-            out.stdout
-        } else {
-            out.stderr
-        };
-        self.output = String::from_utf8(out).unwrap_or_default();
 
-        Ok(())
+        Ok(Some(stdout_and_stderr(
+            std::process::Command::new(cmd.next().unwrap_or_default())
+                .args(&cmd.collect::<Vec<&str>>())
+                .output()?,
+        )))
     }
 
-    fn parse_second_order(&mut self) -> std::io::Result<()> {
+    fn parse_second_order(&mut self) -> std::io::Result<Option<String>> {
         if self.buffer.ends_with(';') {
             self.repl.insert(self.buffer.clone());
         } else {
-            self.output = self.repl.eval(self.buffer.clone())?;
+            return Ok(Some(self.repl.eval(self.buffer.clone())?));
         }
         self.history.push(self.buffer.drain(..).collect());
-        Ok(())
+        Ok(None)
     }
 }

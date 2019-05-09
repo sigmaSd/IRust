@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use crate::term::Term;
 
 impl Term {
@@ -15,8 +17,18 @@ impl Term {
         // create a new line
         self.write_newline()?;
 
-        // ignore all parsing errors
-        let _ = self.parse();
+        // parse and handle errors
+        match self.parse() {
+            Ok(Some(out)) => {
+                self.output = out;
+            }
+            Err(e) => {
+                self.output = e.description().to_string();
+            }
+            Ok(None) => {
+                self.output.clear();
+            }
+        }
 
         // ensure buffer is cleaned
         self.buffer.clear();

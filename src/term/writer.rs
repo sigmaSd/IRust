@@ -3,6 +3,18 @@ use crossterm::{ClearType, Color};
 use crate::term::{Term, IN, OUT};
 
 impl Term {
+    pub fn write_str_at(
+        &mut self,
+        s: &str,
+        x: Option<usize>,
+        y: Option<usize>,
+    ) -> std::io::Result<()> {
+        self.go_to_cursor_at(x, y)?;
+        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.internal_cursor.x += s.len();
+        self.terminal.write(s)?;
+        Ok(())
+    }
     pub fn write_str(&mut self, s: &str) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
         self.internal_cursor.x += s.len();
@@ -55,6 +67,7 @@ impl Term {
 
     pub fn reset_cursors(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 0;
+        self.go_to_cursor()?;
         Ok(())
     }
 
@@ -81,6 +94,19 @@ impl Term {
             .write(format!("       {0}Welcome to IRust{0}\n", slash))?;
 
         self.color.reset()?;
+
+        Ok(())
+    }
+
+    fn go_to_cursor_at(&mut self, x: Option<usize>, y: Option<usize>) -> std::io::Result<()> {
+        if let Some(x) = x {
+            self.internal_cursor.x = x;
+        }
+        if let Some(y) = y {
+            self.internal_cursor.y = y;
+        }
+
+        self.go_to_cursor()?;
 
         Ok(())
     }

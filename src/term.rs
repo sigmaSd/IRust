@@ -4,10 +4,10 @@ use crossterm::{
 
 use crate::history::History;
 use crate::repl::Repl;
+mod art;
 mod cursor;
 mod events;
 mod parser;
-mod utils;
 mod writer;
 use cursor::Cursor;
 

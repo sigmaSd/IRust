@@ -5,6 +5,8 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use crate::utils::stdout_and_stderr;
+
 #[derive(Clone)]
 pub struct CargoCmds {
     tmp_dir: PathBuf,
@@ -37,11 +39,10 @@ impl CargoCmds {
         if Path::new(&self.rust_repl_playground_dir).exists() {
             std::fs::remove_dir_all(&self.rust_repl_playground_dir)?;
         }
-        Command::new("cargo")
+        let _ = Command::new("cargo")
             .current_dir(&*self.tmp_dir)
             .args(&["new", "rust_repl_playground"])
-            .spawn()?
-            .wait()?;
+            .output();
         self.cargo_build()?;
         Ok(())
     }
@@ -49,44 +50,40 @@ impl CargoCmds {
     pub fn cargo_run(&self, code: String) -> Result<String, io::Error> {
         let mut main = File::create(&*self.main_file)?;
         write!(main, "{}", code)?;
-        let out = Command::new("cargo")
-            .current_dir(&*self.rust_repl_playground_dir)
-            .arg("run")
-            .output()?;
 
-        let out = if !out.stdout.is_empty() {
-            out.stdout
-        } else {
-            out.stderr
-        };
-
-        Ok(String::from_utf8(out).unwrap_or_default())
+        Ok(stdout_and_stderr(
+            Command::new("cargo")
+                .current_dir(&*self.rust_repl_playground_dir)
+                .arg("run")
+                .output()?,
+        ))
     }
 
-    pub fn cargo_add(&self, dep: &[String]) -> io::Result<()> {
+    pub fn cargo_add(&self, dep: &[String]) -> io::Result<Vec<std::process::Child>> {
         self.soft_clean()?;
 
-        Command::new("cargo")
+        let add = Command::new("cargo")
             .current_dir(&*self.rust_repl_playground_dir)
             .arg("add")
             .args(dep)
-            .spawn()?
-            .wait()?;
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()?;
 
-        Command::new("cargo")
+        let build = Command::new("cargo")
             .current_dir(&*self.rust_repl_playground_dir)
             .arg("build")
-            .spawn()?
-            .wait()?;
-        Ok(())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()?;
+        Ok(vec![add, build])
     }
 
     fn cargo_build(&self) -> Result<(), io::Error> {
-        Command::new("cargo")
+        let _ = Command::new("cargo")
             .current_dir(&*self.rust_repl_playground_dir)
             .arg("build")
-            .spawn()?
-            .wait()?;
+            .output();
         Ok(())
     }
 
