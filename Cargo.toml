@@ -10,4 +10,6 @@ license = "MIT"
 
 [dependencies]
 crossterm = "0.9.3"
+
+[target.'cfg(unix)'.dependencies]
 nix = "0.13.0"
