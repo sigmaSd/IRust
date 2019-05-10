@@ -73,9 +73,9 @@ impl Options {
         let config = "add_irust_cmd_to_history = false
 add_shell_cmd_to_history = false";
 
-        let mut config_file = std::fs::File::create(config_path).expect("world");
+        let mut config_file = std::fs::File::create(config_path)?;
 
-        write!(config_file, "{}", config).expect("hello");
+        write!(config_file, "{}", config)?;
 
         Ok(Options::default())
     }
