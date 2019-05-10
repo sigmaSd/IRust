@@ -1,8 +1,8 @@
-use crate::term::Term;
+use crate::irust::IRust;
 use crossterm::ClearType;
 use std::error::Error;
 
-impl Term {
+impl IRust {
     pub fn handle_character(&mut self, c: char) -> std::io::Result<()> {
         if c == '\n' {
             self.handle_enter()?

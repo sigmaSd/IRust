@@ -14,7 +14,7 @@ use cursor::Cursor;
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
 
-pub struct Term {
+pub struct IRust {
     cursor: TerminalCursor,
     terminal: Terminal,
     input: TerminalInput,
@@ -26,7 +26,7 @@ pub struct Term {
     history: History,
 }
 
-impl Term {
+impl IRust {
     pub fn new() -> Self {
         let crossterm = Crossterm::new();
         let cursor = crossterm.cursor();
@@ -39,7 +39,7 @@ impl Term {
         let history = History::default();
         let internal_cursor = Cursor::new(0, 1);
 
-        Term {
+        IRust {
             cursor,
             terminal,
             input,

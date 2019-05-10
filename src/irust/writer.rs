@@ -1,8 +1,8 @@
 use crossterm::{ClearType, Color};
 
-use crate::term::{Term, IN, OUT};
+use crate::irust::{IRust, IN, OUT};
 
-impl Term {
+impl IRust {
     pub fn write_str_at<P: Into<Option<usize>>, U: Into<Option<usize>>>(
         &mut self,
         s: &str,

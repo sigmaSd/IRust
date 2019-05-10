@@ -1,12 +1,12 @@
 mod cargo_cmds;
 mod history;
+mod irust;
 mod repl;
-mod term;
 mod utils;
 
-use term::Term;
+use irust::IRust;
 
 fn main() {
-    let mut term = Term::new();
-    term.run().expect("IRust Out");
+    let mut irust = IRust::new();
+    irust.run().expect("IRust Out");
 }

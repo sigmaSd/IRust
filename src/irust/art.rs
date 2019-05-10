@@ -1,7 +1,7 @@
-use crate::term::Term;
+use crate::irust::IRust;
 use crossterm::{ClearType, Color};
 
-impl Term {
+impl IRust {
     pub fn wait_add(&mut self, add_cmd: std::process::Child, msg: &str) -> std::io::Result<()> {
         self.cursor.hide()?;
         self.color.set_fg(Color::DarkGreen)?;

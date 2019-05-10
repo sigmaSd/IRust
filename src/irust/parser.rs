@@ -1,9 +1,9 @@
-use crate::term::Term;
+use crate::irust::IRust;
 use crate::utils::{remove_main, stdout_and_stderr};
 
 const SUCESS: &str = "Ok!";
 
-impl Term {
+impl IRust {
     pub fn parse(&mut self) -> std::io::Result<Option<String>> {
         match self.buffer.as_str() {
             ":reset" => self.reset(),

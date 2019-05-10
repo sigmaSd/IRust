@@ -10,25 +10,25 @@ use crate::utils::stdout_and_stderr;
 #[derive(Clone)]
 pub struct CargoCmds {
     tmp_dir: PathBuf,
-    rust_repl_playground_dir: PathBuf,
+    irust_dir: PathBuf,
     main_file: PathBuf,
 }
 impl Default for CargoCmds {
     fn default() -> Self {
         let tmp_dir = temp_dir();
-        let rust_repl_playground_dir = {
+        let irust_dir = {
             let mut dir = tmp_dir.clone();
-            dir.push("rust_repl_playground");
+            dir.push("irust");
             dir
         };
         let main_file = {
-            let mut dir = rust_repl_playground_dir.clone();
+            let mut dir = irust_dir.clone();
             dir.push("src/main.rs");
             dir
         };
         Self {
             tmp_dir,
-            rust_repl_playground_dir,
+            irust_dir,
             main_file,
         }
     }
@@ -36,12 +36,12 @@ impl Default for CargoCmds {
 impl CargoCmds {
     pub fn cargo_new(&self) -> Result<(), io::Error> {
         self.clean_toml();
-        if Path::new(&self.rust_repl_playground_dir).exists() {
-            std::fs::remove_dir_all(&self.rust_repl_playground_dir)?;
+        if Path::new(&self.irust_dir).exists() {
+            std::fs::remove_dir_all(&self.irust_dir)?;
         }
         let _ = Command::new("cargo")
             .current_dir(&*self.tmp_dir)
-            .args(&["new", "rust_repl_playground"])
+            .args(&["new", "irust"])
             .output();
         self.cargo_build()?.wait()?;
         Ok(())
@@ -53,7 +53,7 @@ impl CargoCmds {
 
         Ok(stdout_and_stderr(
             Command::new("cargo")
-                .current_dir(&*self.rust_repl_playground_dir)
+                .current_dir(&*self.irust_dir)
                 .arg("run")
                 .output()?,
         ))
@@ -63,7 +63,7 @@ impl CargoCmds {
         self.soft_clean()?;
 
         Ok(Command::new("cargo")
-            .current_dir(&*self.rust_repl_playground_dir)
+            .current_dir(&*self.irust_dir)
             .arg("add")
             .args(dep)
             .stdout(std::process::Stdio::null())
@@ -73,7 +73,7 @@ impl CargoCmds {
 
     pub fn cargo_build(&self) -> Result<std::process::Child, io::Error> {
         Ok(Command::new("cargo")
-            .current_dir(&*self.rust_repl_playground_dir)
+            .current_dir(&*self.irust_dir)
             .arg("build")
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
@@ -87,7 +87,7 @@ impl CargoCmds {
         let mut clean = String::new();
 
         let toml_file = {
-            let mut f = self.rust_repl_playground_dir.clone();
+            let mut f = self.irust_dir.clone();
             f.push("Cargo.toml");
             f
         };
