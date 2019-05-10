@@ -47,10 +47,9 @@ impl IRust {
 
     fn run_cmd(&mut self) -> std::io::Result<Option<String>> {
         // remove ::
-        self.buffer.remove(0);
-        self.buffer.remove(0);
+        let buffer = &self.buffer[2..];
 
-        let mut cmd = self.buffer.split_whitespace();
+        let mut cmd = buffer.split_whitespace();
 
         Ok(Some(stdout_and_stderr(
             std::process::Command::new(cmd.next().unwrap_or_default())
@@ -66,7 +65,6 @@ impl IRust {
         } else {
             Some(self.repl.eval(self.buffer.clone())?)
         };
-        self.history.push(self.buffer.drain(..).collect());
 
         Ok(output)
     }

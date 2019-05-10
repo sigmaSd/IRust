@@ -7,9 +7,11 @@ use crate::repl::Repl;
 mod art;
 mod cursor;
 mod events;
+mod options;
 mod parser;
 mod writer;
 use cursor::Cursor;
+use options::Options;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
@@ -24,6 +26,7 @@ pub struct IRust {
     repl: Repl,
     internal_cursor: Cursor,
     history: History,
+    options: Options,
 }
 
 impl IRust {
@@ -37,6 +40,7 @@ impl IRust {
         let buffer = String::new();
         let repl = Repl::new();
         let history = History::default();
+        let options = Options::new().unwrap_or_default();
         let internal_cursor = Cursor::new(0, 1);
 
         IRust {
@@ -48,6 +52,7 @@ impl IRust {
             buffer,
             repl,
             history,
+            options,
             internal_cursor,
         }
     }

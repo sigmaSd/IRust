@@ -20,6 +20,10 @@ impl IRust {
         // parse and handle errors
         match self.parse() {
             Ok(Some(out)) => {
+                if self.should_push_to_history(&self.buffer) {
+                    self.history.push(self.buffer.drain(..).collect());
+                }
+
                 self.output = out;
             }
             Err(e) => {
