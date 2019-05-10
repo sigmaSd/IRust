@@ -33,10 +33,17 @@ impl IRust {
             self.terminal.write(OUT)?;
             self.color.reset()?;
             let out = self.output.drain(..).collect::<String>();
-            out.split('\n').for_each(|o| {
-                let _ = self.terminal.write(o);
+
+            if out.trim().contains('\n') {
                 let _ = self.write_newline();
-            });
+                out.split('\n').for_each(|o| {
+                    let _ = self.terminal.write(o);
+                    let _ = self.write_newline();
+                });
+            } else {
+                self.terminal.write(out)?;
+                self.write_newline()?;
+            }
         }
 
         Ok(())
