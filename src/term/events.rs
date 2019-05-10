@@ -43,21 +43,19 @@ impl Term {
 
     pub fn handle_up(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 0;
-        self.move_cursor_to(4, None)?;
 
         let up = self.history.up();
         self.buffer = up.clone();
-        self.write_str(&up)?;
+        self.write_str_at(&up, 4, None)?;
         Ok(())
     }
 
     pub fn handle_down(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 0;
-        self.move_cursor_to(4, None)?;
 
         let down = self.history.down();
         self.buffer = down.clone();
-        self.write_str(&down)?;
+        self.write_str_at(&down, 4, None)?;
         Ok(())
     }
 

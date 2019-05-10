@@ -9,14 +9,11 @@ impl Term {
         x: P,
         y: U,
     ) -> std::io::Result<()> {
-        self.internal_cursor.x = 0;
         self.move_cursor_to(x, y)?;
-        self.terminal.clear(ClearType::UntilNewLine)?;
-        self.internal_cursor.x += s.len();
-        self.terminal.write(s)?;
+        self.write_str(s)?;
         Ok(())
     }
-    pub fn write_str(&mut self, s: &str) -> std::io::Result<()> {
+    fn write_str(&mut self, s: &str) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
         self.internal_cursor.x += s.len();
         self.terminal.write(s)?;
@@ -74,22 +71,6 @@ impl Term {
             self.terminal.write(character)?;
         }
         self.cursor.reset_position()?;
-        Ok(())
-    }
-
-    pub fn welcome(&mut self) -> std::io::Result<()> {
-        self.terminal.clear(ClearType::All)?;
-
-        self.color.set_fg(Color::Blue)?;
-        let slash = std::iter::repeat('-')
-            .take(self.terminal.terminal_size().0 as usize / 3)
-            .collect::<String>();
-
-        self.terminal
-            .write(format!("       {0}Welcome to IRust{0}\n", slash))?;
-
-        self.color.reset()?;
-
         Ok(())
     }
 

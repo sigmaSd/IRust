@@ -1,5 +1,5 @@
 use crate::term::Term;
-use crossterm::Color;
+use crossterm::{ClearType, Color};
 
 impl Term {
     pub fn wait_add(&mut self, add_cmd: std::process::Child, msg: &str) -> std::io::Result<()> {
@@ -51,5 +51,21 @@ impl Term {
                 Ok(Some(status)) => return Ok(status),
             }
         }
+    }
+
+    pub fn welcome(&mut self) -> std::io::Result<()> {
+        self.terminal.clear(ClearType::All)?;
+
+        self.color.set_fg(Color::Blue)?;
+        let slash = std::iter::repeat('-')
+            .take(self.terminal.terminal_size().0 as usize / 3)
+            .collect::<String>();
+
+        self.terminal
+            .write(format!("       {0}Welcome to IRust{0}\n", slash))?;
+
+        self.color.reset()?;
+
+        Ok(())
     }
 }
