@@ -91,23 +91,44 @@ impl IRust {
         Ok(())
     }
 
-    pub fn exit(&mut self) -> std::io::Result<()> {
+    fn exit(&mut self) -> std::io::Result<()> {
+        self.terminal.clear(ClearType::All)?;
+        self.terminal.exit();
+
+        Ok(())
+    }
+
+    pub fn handle_ctrl_c(&mut self) -> std::io::Result<()> {
         if self.buffer.is_empty() {
-            self.terminal.clear(ClearType::All)?;
-            self.terminal.exit();
+            self.exit()?;
+        } else {
+            self.buffer.clear();
+            self.write_newline()?;
+            self.write_in()?;
         }
 
         Ok(())
     }
 
-    pub fn stop(&mut self) -> std::io::Result<()> {
+    pub fn handle_ctrl_d(&mut self) -> std::io::Result<()> {
+        if self.buffer.is_empty() {
+            self.exit()?;
+        }
+
+        Ok(())
+    }
+
+    pub fn handle_ctrl_z(&mut self) -> std::io::Result<()> {
         #[cfg(target_family = "unix")]
         {
+            use nix::{
+                sys::signal::{kill, Signal},
+                unistd::Pid,
+            };
             self.terminal.clear(ClearType::All)?;
-            let _ = nix::sys::signal::kill(
-                nix::unistd::Pid::this(),
-                Some(nix::sys::signal::Signal::SIGTSTP),
-            );
+            let _ = kill(Pid::this(), Some(Signal::SIGTSTP));
+
+            // display empty prompt after SIGCONT
             self.clear()?;
         }
 
