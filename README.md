@@ -27,6 +27,10 @@ You can use arrow keys to cycle through commands history
 
 ## Changeslog
 
+**0.1.7**
+- IRust
+- Nicer output (handle multiline and singleline diffrently)
+
 **0.1.6**
 - Add keybindings `HOME` `END`
 - Better add_cmd animation
