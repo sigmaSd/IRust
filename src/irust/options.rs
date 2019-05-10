@@ -61,7 +61,7 @@ impl Options {
                     ("add_shell_cmd_to_history", "true") => {
                         options.add_shell_cmd_to_history = true;
                     }
-                    _ => unimplemented!(),
+                    _ => (),
                 }
             }
         }
