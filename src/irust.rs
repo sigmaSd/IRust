@@ -85,8 +85,11 @@ impl IRust {
                     InputEvent::Keyboard(KeyEvent::Backspace) => {
                         self.handle_backspace()?;
                     }
-                    InputEvent::Keyboard(KeyEvent::Ctrl('c')) => {
+                    InputEvent::Keyboard(KeyEvent::Ctrl('d')) => {
                         self.exit()?;
+                    }
+                    InputEvent::Keyboard(KeyEvent::Ctrl('z')) => {
+                        self.stop()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Ctrl('l')) => {
                         self.clear()?;

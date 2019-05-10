@@ -87,9 +87,26 @@ impl IRust {
         Ok(())
     }
 
-    pub fn exit(&self) -> std::io::Result<()> {
-        self.terminal.clear(ClearType::All)?;
-        self.terminal.exit();
+    pub fn exit(&mut self) -> std::io::Result<()> {
+        if self.buffer.is_empty() {
+            self.terminal.clear(ClearType::All)?;
+            self.terminal.exit();
+        }
+
+        Ok(())
+    }
+
+    pub fn stop(&mut self) -> std::io::Result<()> {
+        #[cfg(target_family = "unix")]
+        {
+            self.terminal.clear(ClearType::All)?;
+            let _ = nix::sys::signal::kill(
+                nix::unistd::Pid::this(),
+                Some(nix::sys::signal::Signal::SIGTSTP),
+            );
+            self.clear()?;
+        }
+
         Ok(())
     }
 

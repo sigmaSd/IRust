@@ -10,3 +10,4 @@ license = "MIT"
 
 [dependencies]
 crossterm = "0.9.3"
+nix = "0.13.0"
