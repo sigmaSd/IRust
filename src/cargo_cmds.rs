@@ -43,7 +43,7 @@ impl CargoCmds {
             .current_dir(&*self.tmp_dir)
             .args(&["new", "rust_repl_playground"])
             .output();
-        self.cargo_build()?;
+        self.cargo_build()?.wait()?;
         Ok(())
     }
 
@@ -59,32 +59,25 @@ impl CargoCmds {
         ))
     }
 
-    pub fn cargo_add(&self, dep: &[String]) -> io::Result<Vec<std::process::Child>> {
+    pub fn cargo_add(&self, dep: &[String]) -> io::Result<std::process::Child> {
         self.soft_clean()?;
 
-        let add = Command::new("cargo")
+        Ok(Command::new("cargo")
             .current_dir(&*self.rust_repl_playground_dir)
             .arg("add")
             .args(dep)
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
-            .spawn()?;
+            .spawn()?)
+    }
 
-        let build = Command::new("cargo")
+    pub fn cargo_build(&self) -> Result<std::process::Child, io::Error> {
+        Ok(Command::new("cargo")
             .current_dir(&*self.rust_repl_playground_dir)
             .arg("build")
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
-            .spawn()?;
-        Ok(vec![add, build])
-    }
-
-    fn cargo_build(&self) -> Result<(), io::Error> {
-        let _ = Command::new("cargo")
-            .current_dir(&*self.rust_repl_playground_dir)
-            .arg("build")
-            .output();
-        Ok(())
+            .spawn()?)
     }
 
     fn clean_toml(&self) {

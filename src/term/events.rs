@@ -42,8 +42,9 @@ impl Term {
     }
 
     pub fn handle_up(&mut self) -> std::io::Result<()> {
-        self.reset_cursors()?;
-        self.write_in()?;
+        self.internal_cursor.x = 0;
+        self.move_cursor_to(4, None)?;
+
         let up = self.history.up();
         self.buffer = up.clone();
         self.write_str(&up)?;
@@ -51,8 +52,9 @@ impl Term {
     }
 
     pub fn handle_down(&mut self) -> std::io::Result<()> {
-        self.reset_cursors()?;
-        self.write_in()?;
+        self.internal_cursor.x = 0;
+        self.move_cursor_to(4, None)?;
+
         let down = self.history.down();
         self.buffer = down.clone();
         self.write_str(&down)?;
@@ -62,7 +64,7 @@ impl Term {
     pub fn handle_left(&mut self) -> std::io::Result<()> {
         if self.internal_cursor.x > 0 {
             self.cursor.move_left(1);
-            self.internal_cursor.left();
+            self.internal_cursor.move_left();
         }
         Ok(())
     }
@@ -70,7 +72,7 @@ impl Term {
     pub fn handle_right(&mut self) -> std::io::Result<()> {
         if self.internal_cursor.x < self.buffer.len() {
             self.cursor.move_right(1);
-            self.internal_cursor.right();
+            self.internal_cursor.move_right();
         }
         Ok(())
     }
@@ -78,7 +80,7 @@ impl Term {
     pub fn handle_backspace(&mut self) -> std::io::Result<()> {
         if self.internal_cursor.x > 0 {
             self.cursor.move_left(1);
-            self.internal_cursor.left();
+            self.internal_cursor.move_left();
             if !self.buffer.is_empty() {
                 self.buffer.remove(self.internal_cursor.x);
             }
@@ -95,9 +97,22 @@ impl Term {
 
     pub fn clear(&mut self) -> std::io::Result<()> {
         self.terminal.clear(ClearType::All)?;
-        self.cursors_to_origin()?;
+        self.internal_cursor.reset();
+        self.move_cursor_to(0, 1)?;
         self.buffer.clear();
         self.write_in()?;
+        Ok(())
+    }
+
+    pub fn go_to_start(&mut self) -> std::io::Result<()> {
+        self.internal_cursor.x = 0;
+        self.move_cursor_to(4, None)?;
+        Ok(())
+    }
+
+    pub fn go_to_end(&mut self) -> std::io::Result<()> {
+        self.internal_cursor.x = self.buffer.len();
+        self.move_cursor_to(self.buffer.len() + 4, None)?;
         Ok(())
     }
 }

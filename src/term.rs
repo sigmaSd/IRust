@@ -91,7 +91,13 @@ impl Term {
                     InputEvent::Keyboard(KeyEvent::Ctrl('l')) => {
                         self.clear()?;
                     }
-                    _ => (),
+                    InputEvent::Keyboard(KeyEvent::Home) => {
+                        self.go_to_start()?;
+                    }
+                    InputEvent::Keyboard(KeyEvent::End) => {
+                        self.go_to_end()?;
+                    }
+                    _ => {}
                 }
             }
         }

@@ -3,13 +3,14 @@ use crossterm::{ClearType, Color};
 use crate::term::{Term, IN, OUT};
 
 impl Term {
-    pub fn write_str_at(
+    pub fn write_str_at<P: Into<Option<usize>>, U: Into<Option<usize>>>(
         &mut self,
         s: &str,
-        x: Option<usize>,
-        y: Option<usize>,
+        x: P,
+        y: U,
     ) -> std::io::Result<()> {
-        self.go_to_cursor_at(x, y)?;
+        self.internal_cursor.x = 0;
+        self.move_cursor_to(x, y)?;
         self.terminal.clear(ClearType::UntilNewLine)?;
         self.internal_cursor.x += s.len();
         self.terminal.write(s)?;
@@ -48,7 +49,7 @@ impl Term {
 
         self.terminal.write(c)?;
         self.cursor.save_position()?;
-        self.internal_cursor.right();
+        self.internal_cursor.move_right();
 
         for character in self.buffer[self.internal_cursor.x..].chars() {
             self.terminal.write(character)?;
@@ -61,19 +62,6 @@ impl Term {
         self.terminal.write('\n')?;
         self.internal_cursor.x = 0;
         self.internal_cursor.y += 1;
-        self.go_to_cursor()?;
-        Ok(())
-    }
-
-    pub fn reset_cursors(&mut self) -> std::io::Result<()> {
-        self.internal_cursor.x = 0;
-        self.go_to_cursor()?;
-        Ok(())
-    }
-
-    pub fn cursors_to_origin(&mut self) -> std::io::Result<()> {
-        self.internal_cursor.x = 0;
-        self.internal_cursor.y = 0;
         self.go_to_cursor()?;
         Ok(())
     }
@@ -105,15 +93,27 @@ impl Term {
         Ok(())
     }
 
-    fn go_to_cursor_at(&mut self, x: Option<usize>, y: Option<usize>) -> std::io::Result<()> {
-        if let Some(x) = x {
-            self.internal_cursor.x = x;
-        }
-        if let Some(y) = y {
-            self.internal_cursor.y = y;
-        }
+    pub fn move_cursor_to<P: Into<Option<usize>>, U: Into<Option<usize>>>(
+        &mut self,
+        x: P,
+        y: U,
+    ) -> std::io::Result<()> {
+        let x = x.into();
+        let y = y.into();
 
-        self.go_to_cursor()?;
+        let x = if x.is_some() {
+            x.unwrap()
+        } else {
+            self.internal_cursor.x
+        };
+
+        let y = if y.is_some() {
+            y.unwrap()
+        } else {
+            self.internal_cursor.y
+        };
+
+        self.cursor.goto(x as u16, y as u16)?;
 
         Ok(())
     }

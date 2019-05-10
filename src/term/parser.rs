@@ -29,7 +29,9 @@ impl Term {
             .map(ToOwned::to_owned)
             .collect();
 
-        self.wait_add(self.repl.add_dep(&dep)?)?;
+        self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
+        self.wait_add(self.repl.build()?, "Build")?;
+
         Ok(Some(SUCESS.to_string()))
     }
     fn load_script(&mut self) -> std::io::Result<Option<String>> {

@@ -21,12 +21,19 @@ You can use arrow keys to cycle through commands history
 
 **ctrl-c** exit
 
+**HOME/END** go to line start / line end
+
 <img src="./irust.png" width="80%" height="60%">
 
 ## Changeslog
 
+**0.1.6**
+- Add keybindings `HOME` `END`
+- Better add_cmd animation
+- Refactor code
+
 **0.1.5**
-- add keybindings `ctrl-c` `ctr-l`
+- Add keybindings `ctrl-c` `ctr-l`
 - Fix history regression
 
 **0.1.4**
@@ -37,8 +44,8 @@ You can use arrow keys to cycle through commands history
 - Rely on a custom cursor struct to avoid a lot of headaches
 
 **0.1.2**
-- load scripts that contains main fn
+- Load scripts that contains main fn
 
 **0.1.1**
-- add **::** to execute shell cmds
-- bugfixes
+- Add **::** to execute shell cmds
+- Bugfixes

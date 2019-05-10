@@ -43,7 +43,12 @@ impl Repl {
         let code = repl.body.join("");
         Ok(self.cargo_cmds.cargo_run(code)?)
     }
-    pub fn add_dep(&self, dep: &[String]) -> std::io::Result<Vec<std::process::Child>> {
+
+    pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
         Ok(self.cargo_cmds.cargo_add(dep)?)
+    }
+
+    pub fn build(&self) -> std::io::Result<std::process::Child> {
+        self.cargo_cmds.cargo_build()
     }
 }
