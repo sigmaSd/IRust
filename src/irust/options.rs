@@ -42,11 +42,18 @@ impl Options {
         };
 
         for line in config.lines() {
-            // we're looking for option = value
-            let line = line.split('=').map(str::trim).collect::<Vec<&str>>();
+            // skip comments
+            if let Some(c) = line.trim_start().chars().nth(0) {
+                if c == '#' {
+                    continue;
+                }
+            }
 
-            if line.len() == 2 {
-                let (option, value) = (line[0], line[1]);
+            // we're looking for option = value
+            let line_parts = line.split('=').map(str::trim).collect::<Vec<&str>>();
+
+            if line_parts.len() == 2 {
+                let (option, value) = (line_parts[0], line_parts[1]);
 
                 match (option, value) {
                     ("add_irust_cmd_to_history", "false") => {
@@ -61,8 +68,10 @@ impl Options {
                     ("add_shell_cmd_to_history", "true") => {
                         options.add_shell_cmd_to_history = true;
                     }
-                    _ => (),
+                    _ => eprintln!("Unknown config option: {} {}", option, value),
                 }
+            } else {
+                eprintln!("Unknown line in config: {}", line);
             }
         }
 
@@ -84,6 +93,9 @@ add_shell_cmd_to_history = false";
 impl IRust {
     pub fn should_push_to_history(&self, buffer: &str) -> bool {
         let buffer: Vec<char> = buffer.chars().collect();
+
+        if buffer.len() == 0 { return false; }
+        if buffer.len() == 1 { return buffer[0] != ':'; }
 
         let irust_cmd = buffer[0] == ':' && buffer[1] != ':';
         let shell_cmd = buffer[0] == ':' && buffer[1] == ':';
