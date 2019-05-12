@@ -46,6 +46,9 @@ Current supported options:
 
 ## Changeslog
 
+**0.2.2**
+- Handle characters like `é`, `ù`
+
 **0.2.1x**
 - Don't upload artifacts to crates.io
 
