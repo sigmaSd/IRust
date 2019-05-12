@@ -46,7 +46,7 @@ Current supported options:
 
 ## Changeslog
 
-**0.2.2**
+**0.3.0**
 - Handle characters like `é`, `ù`
 
 **0.2.1x**
