@@ -19,13 +19,39 @@ You can use arrow keys to cycle through commands history
 
 **ctrl-l** clear screen
 
-**ctrl-c** exit
+**ctrl-c** clear line, double click to exit
+
+**ctrl-d** exit if buffer is empty
+
+**ctrl-z** [unix only]  send IRust to the background
 
 **HOME/END** go to line start / line end
 
 <img src="./irust.png" width="80%" height="60%">
 
+## Configuration
+
+IRust config file is located in:
+
+**Linux**: */home/$USER/.config/irust/config*
+
+**Win**: *C:\Users\$USER\AppData\Roaming/irust/config*
+
+**Mac**: */Users/$USER/Library/Preferences/irust/config*
+
+Current supported options:
+
+    add_irust_cmd_to_history
+    add_shell_cmd_to_history
+
 ## Changeslog
+
+**0.2.0**
+
+Credits to this release goes to the awesome suggestions and contributions of @pzmarzly
+
+- add `Ctrl-Z` `Ctrl-C` `Ctrl-D` keybindings
+- add configuration file
 
 **0.1.7**
 - IRust

@@ -56,17 +56,11 @@ impl Options {
                 let (option, value) = (line_parts[0], line_parts[1]);
 
                 match (option, value) {
-                    ("add_irust_cmd_to_history", "false") => {
-                        options.add_irust_cmd_to_history = false;
+                    ("add_irust_cmd_to_history", value) => {
+                        options.add_irust_cmd_to_history = Options::str_to_bool(value);
                     }
-                    ("add_irust_cmd_to_history", "true") => {
-                        options.add_irust_cmd_to_history = true;
-                    }
-                    ("add_shell_cmd_to_history", "false") => {
-                        options.add_shell_cmd_to_history = false;
-                    }
-                    ("add_shell_cmd_to_history", "true") => {
-                        options.add_shell_cmd_to_history = true;
+                    ("add_shell_cmd_to_history", value) => {
+                        options.add_shell_cmd_to_history = Options::str_to_bool(value);;
                     }
                     _ => eprintln!("Unknown config option: {} {}", option, value),
                 }
@@ -88,14 +82,29 @@ add_shell_cmd_to_history = false";
 
         Ok(Options::default())
     }
+
+    fn str_to_bool(value: &str) -> bool {
+        match value {
+            "true" => true,
+            "false" => false,
+            value => {
+                eprintln!("Unknown option value: {}", value);
+                false
+            }
+        }
+    }
 }
 
 impl IRust {
     pub fn should_push_to_history(&self, buffer: &str) -> bool {
         let buffer: Vec<char> = buffer.chars().collect();
 
-        if buffer.len() == 0 { return false; }
-        if buffer.len() == 1 { return buffer[0] != ':'; }
+        if buffer.is_empty() {
+            return false;
+        }
+        if buffer.len() == 1 {
+            return buffer[0] != ':';
+        }
 
         let irust_cmd = buffer[0] == ':' && buffer[1] != ':';
         let shell_cmd = buffer[0] == ':' && buffer[1] == ':';

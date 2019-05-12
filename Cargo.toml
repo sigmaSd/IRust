@@ -1,6 +1,6 @@
 [package]
 name = "irust"
-version = "0.1.7"
+version = "0.2.0"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -10,7 +10,8 @@ license = "MIT"
 
 [dependencies]
 crossterm = "0.9.3"
+dirs = "1.0.5"
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.13.0"
-dirs = "1.0.5"
+
