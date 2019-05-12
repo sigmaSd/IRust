@@ -41,3 +41,23 @@ pub fn remove_main(script: &mut String) {
         script.replace_range(main_start..=open_tag, "");
     }
 }
+
+pub struct StringTools {}
+
+impl StringTools {
+    pub fn insert_at_char_idx(buffer: &mut String, idx: usize, charcter: char) {
+        let mut buffer_chars: Vec<char> = buffer.chars().collect();
+        buffer_chars.insert(idx, charcter);
+        *buffer = buffer_chars.into_iter().collect();
+    }
+
+    pub fn remove_at_char_idx(buffer: &mut String, idx: usize) {
+        let mut buffer_chars: Vec<char> = buffer.chars().collect();
+        buffer_chars.remove(idx);
+        *buffer = buffer_chars.into_iter().collect();
+    }
+
+    pub fn chars_count(buffer: &str) -> usize {
+        buffer.chars().count()
+    }
+}
