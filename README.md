@@ -46,6 +46,9 @@ Current supported options:
 
 ## Changeslog
 
+**0.3.2**
+- Format rustc errors to be way more better looking
+
 **0.3.1**
 - Fix regression: Readd expressions to history
 
