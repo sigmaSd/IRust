@@ -46,7 +46,7 @@ Current supported options:
 
 ## Changeslog
 
-**0.2.1**
+**0.2.1x**
 - Don't upload artifacts to crates.io
 
 **0.2.0**
