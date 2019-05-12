@@ -1,4 +1,5 @@
 use crate::irust::IRust;
+use crate::utils::StringTools;
 use crossterm::ClearType;
 use std::error::Error;
 
@@ -7,7 +8,7 @@ impl IRust {
         if c == '\n' {
             self.handle_enter()?
         } else {
-            self.buffer.insert(self.internal_cursor.x, c);
+            StringTools::insert_at_char_idx(&mut self.buffer, self.internal_cursor.x, c);
             self.write_insert(c)?;
         }
         Ok(())
@@ -72,7 +73,7 @@ impl IRust {
     }
 
     pub fn handle_right(&mut self) -> std::io::Result<()> {
-        if self.internal_cursor.x < self.buffer.len() {
+        if self.internal_cursor.x < StringTools::chars_count(&self.buffer) {
             self.cursor.move_right(1);
             self.internal_cursor.move_right();
         }
@@ -84,7 +85,7 @@ impl IRust {
             self.cursor.move_left(1);
             self.internal_cursor.move_left();
             if !self.buffer.is_empty() {
-                self.buffer.remove(self.internal_cursor.x);
+                StringTools::remove_at_char_idx(&mut self.buffer, self.internal_cursor.x);
             }
             self.backspace()?;
         }
@@ -151,8 +152,9 @@ impl IRust {
     }
 
     pub fn go_to_end(&mut self) -> std::io::Result<()> {
-        self.internal_cursor.x = self.buffer.len();
-        self.move_cursor_to(self.buffer.len() + 4, None)?;
+        let end_idx = StringTools::chars_count(&self.buffer);
+        self.internal_cursor.x = end_idx;
+        self.move_cursor_to(end_idx + 4, None)?;
         Ok(())
     }
 }

@@ -1,6 +1,7 @@
 use crossterm::{ClearType, Color};
 
 use crate::irust::{IRust, IN, OUT};
+use crate::utils::StringTools;
 
 impl IRust {
     pub fn write_str_at<P: Into<Option<usize>>, U: Into<Option<usize>>>(
@@ -15,7 +16,7 @@ impl IRust {
     }
     fn write_str(&mut self, s: &str) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
-        self.internal_cursor.x += s.len();
+        self.internal_cursor.x += StringTools::chars_count(s);
         self.terminal.write(s)?;
         Ok(())
     }
@@ -55,7 +56,7 @@ impl IRust {
         self.cursor.save_position()?;
         self.internal_cursor.move_right();
 
-        for character in self.buffer[self.internal_cursor.x..].chars() {
+        for character in self.buffer.chars().skip(self.internal_cursor.x) {
             self.terminal.write(character)?;
         }
         self.cursor.reset_position()?;
@@ -74,7 +75,7 @@ impl IRust {
         self.terminal.clear(ClearType::UntilNewLine)?;
         self.cursor.save_position()?;
 
-        for character in self.buffer[self.internal_cursor.x..].chars() {
+        for character in self.buffer.chars().skip(self.internal_cursor.x) {
             self.terminal.write(character)?;
         }
         self.cursor.reset_position()?;
