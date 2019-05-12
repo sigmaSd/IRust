@@ -4,6 +4,17 @@ use crate::irust::{IRust, IN, OUT};
 use crate::utils::StringTools;
 
 impl IRust {
+    pub fn _writeln(&mut self, s: &str) -> std::io::Result<()> {
+        self.write_newline()?;
+        self._write(s)?;
+        Ok(())
+    }
+
+    pub fn _write(&mut self, s: &str) -> std::io::Result<()> {
+        self.terminal.write(s)?;
+        Ok(())
+    }
+
     pub fn write_str_at<P: Into<Option<usize>>, U: Into<Option<usize>>>(
         &mut self,
         s: &str,

@@ -67,7 +67,9 @@ impl IRust {
             self.repl.insert(self.buffer.drain(..).collect());
             None
         } else {
-            Some(self.repl.eval(self.buffer.drain(..).collect())?)
+            let output = self.repl.eval(self.buffer.drain(..).collect())?;
+            let output = self.format_eval_output(&output);
+            Some(output)
         };
 
         Ok(output)
