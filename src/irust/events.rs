@@ -92,13 +92,6 @@ impl IRust {
         Ok(())
     }
 
-    fn exit(&mut self) -> std::io::Result<()> {
-        self.terminal.clear(ClearType::All)?;
-        self.terminal.exit();
-
-        Ok(())
-    }
-
     pub fn handle_ctrl_c(&mut self) -> std::io::Result<()> {
         if self.buffer.is_empty() {
             self.exit()?;
@@ -115,6 +108,13 @@ impl IRust {
         if self.buffer.is_empty() {
             self.exit()?;
         }
+
+        Ok(())
+    }
+
+    fn exit(&mut self) -> std::io::Result<()> {
+        self.terminal.clear(ClearType::All)?;
+        self.terminal.exit();
 
         Ok(())
     }

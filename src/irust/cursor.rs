@@ -1,3 +1,5 @@
+use crate::irust::IRust;
+
 pub struct Cursor {
     pub x: usize,
     pub y: usize,
@@ -28,5 +30,38 @@ impl Cursor {
             y: self.origin.1,
             origin: self.origin,
         };
+    }
+}
+
+impl IRust {
+    pub fn move_cursor_to<P: Into<Option<usize>>, U: Into<Option<usize>>>(
+        &mut self,
+        x: P,
+        y: U,
+    ) -> std::io::Result<()> {
+        let x = x.into();
+        let y = y.into();
+
+        let x = if x.is_some() {
+            x.unwrap()
+        } else {
+            self.internal_cursor.x
+        };
+
+        let y = if y.is_some() {
+            y.unwrap()
+        } else {
+            self.internal_cursor.y
+        };
+
+        self.cursor.goto(x as u16, y as u16)?;
+
+        Ok(())
+    }
+
+    pub fn go_to_cursor(&mut self) -> std::io::Result<()> {
+        self.cursor
+            .goto(self.internal_cursor.x as u16, self.internal_cursor.y as u16)?;
+        Ok(())
     }
 }

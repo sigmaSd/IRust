@@ -14,13 +14,16 @@ impl IRust {
             _ => self.parse_second_order(),
         }
     }
+
     fn reset(&mut self) -> std::io::Result<Option<String>> {
         self.repl.reset();
         Ok(Some(SUCESS.to_string()))
     }
+
     fn show(&mut self) -> std::io::Result<Option<String>> {
         Ok(Some(self.repl.show()))
     }
+
     fn add_dep(&mut self) -> std::io::Result<Option<String>> {
         let dep: Vec<String> = self
             .buffer
@@ -34,6 +37,7 @@ impl IRust {
 
         Ok(Some(SUCESS.to_string()))
     }
+
     fn load_script(&mut self) -> std::io::Result<Option<String>> {
         let script = self.buffer.split_whitespace().last().unwrap();
 

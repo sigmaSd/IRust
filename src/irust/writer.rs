@@ -14,12 +14,14 @@ impl IRust {
         self.write_str(s)?;
         Ok(())
     }
+
     fn write_str(&mut self, s: &str) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
         self.internal_cursor.x += StringTools::chars_count(s);
         self.terminal.write(s)?;
         Ok(())
     }
+
     pub fn write_in(&mut self) -> std::io::Result<()> {
         self.go_to_cursor()?;
         self.color.set_fg(Color::Yellow)?;
@@ -27,6 +29,7 @@ impl IRust {
         self.color.reset()?;
         Ok(())
     }
+
     pub fn write_out(&mut self) -> std::io::Result<()> {
         if !self.output.is_empty() {
             self.go_to_cursor()?;
@@ -49,6 +52,7 @@ impl IRust {
 
         Ok(())
     }
+
     pub fn write_insert(&mut self, c: char) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
 
@@ -79,37 +83,6 @@ impl IRust {
             self.terminal.write(character)?;
         }
         self.cursor.reset_position()?;
-        Ok(())
-    }
-
-    pub fn move_cursor_to<P: Into<Option<usize>>, U: Into<Option<usize>>>(
-        &mut self,
-        x: P,
-        y: U,
-    ) -> std::io::Result<()> {
-        let x = x.into();
-        let y = y.into();
-
-        let x = if x.is_some() {
-            x.unwrap()
-        } else {
-            self.internal_cursor.x
-        };
-
-        let y = if y.is_some() {
-            y.unwrap()
-        } else {
-            self.internal_cursor.y
-        };
-
-        self.cursor.goto(x as u16, y as u16)?;
-
-        Ok(())
-    }
-
-    fn go_to_cursor(&mut self) -> std::io::Result<()> {
-        self.cursor
-            .goto(self.internal_cursor.x as u16, self.internal_cursor.y as u16)?;
         Ok(())
     }
 }

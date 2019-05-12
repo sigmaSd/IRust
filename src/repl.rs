@@ -16,19 +16,23 @@ impl Repl {
             cargo_cmds: Default::default(),
         }
     }
+
     pub fn insert(&mut self, mut input: String) {
         input.insert(0, '\t');
         input.push('\n');
         self.body.insert(self.cursor, input);
         self.cursor += 1;
     }
+
     pub fn reset(&mut self) {
         self.prepare_ground().expect("Error while resetting Repl");
         *self = Self::new();
     }
+
     pub fn show(&self) -> String {
         format!("Current Repl Code:\n{}", self.body.join(""))
     }
+
     // prepare ground
     pub fn prepare_ground(&self) -> Result<(), io::Error> {
         self.cargo_cmds.cargo_new()?;

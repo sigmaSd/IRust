@@ -23,6 +23,7 @@ impl History {
             .unwrap_or(&self.empty)
             .clone()
     }
+
     pub fn up(&mut self) -> String {
         if self.cursor > 0 {
             self.cursor -= 1;
@@ -33,17 +34,20 @@ impl History {
             .unwrap_or(&self.empty)
             .clone()
     }
-    fn go_to_last(&mut self) {
-        if !self.buffer_vec.is_empty() {
-            self.cursor = self.buffer_vec.len();
-        }
-    }
+
     pub fn push(&mut self, buffer: String) {
         if !buffer.is_empty() {
             self.buffer_vec.push(buffer);
             self.go_to_last();
         }
     }
+
+    fn go_to_last(&mut self) {
+        if !self.buffer_vec.is_empty() {
+            self.cursor = self.buffer_vec.len();
+        }
+    }
+
     pub fn _reset(&mut self) {
         *self = Self::default();
     }
