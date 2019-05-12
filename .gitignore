@@ -5,7 +5,6 @@
 !*.rs
 !*/
 !Cargo.toml
-!Cargo.lock
 !README.md
 !LICENSE
 !.gitignore
