@@ -2,7 +2,8 @@
 *
 
 # But not these files...
-!src
+!*.rs
+!*/
 !Cargo.toml
 !Cargo.lock
 !README.md
