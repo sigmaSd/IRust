@@ -64,10 +64,10 @@ impl IRust {
 
     fn parse_second_order(&mut self) -> std::io::Result<Option<String>> {
         let output = if self.buffer.ends_with(';') {
-            self.repl.insert(self.buffer.clone());
+            self.repl.insert(self.buffer.drain(..).collect());
             None
         } else {
-            Some(self.repl.eval(self.buffer.clone())?)
+            Some(self.repl.eval(self.buffer.drain(..).collect())?)
         };
 
         Ok(output)

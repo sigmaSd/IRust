@@ -18,13 +18,14 @@ impl IRust {
         // create a new line
         self.write_newline()?;
 
+        // add commands to history
+        if self.should_push_to_history(&self.buffer) {
+            self.history.push(self.buffer.clone());
+        }
+
         // parse and handle errors
         match self.parse() {
             Ok(Some(out)) => {
-                if self.should_push_to_history(&self.buffer) {
-                    self.history.push(self.buffer.drain(..).collect());
-                }
-
                 self.output = out;
             }
             Err(e) => {

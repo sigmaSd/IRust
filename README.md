@@ -46,6 +46,9 @@ Current supported options:
 
 ## Changeslog
 
+**0.3.1**
+- Fix regression: Readd expressions to history (let x = 6;)
+
 **0.3.0**
 - Handle characters like `é`, `ù`
 
