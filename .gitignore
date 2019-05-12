@@ -1,0 +1,10 @@
+# Ignore everything
+*
+
+# But not these files...
+!src
+!Cargo.toml
+!Cargo.lock
+!README.md
+!LICENSE
+!.gitignore
