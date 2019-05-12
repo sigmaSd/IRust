@@ -26,7 +26,7 @@ impl IRust {
         // parse and handle errors
         match self.parse() {
             Ok(Some(out)) => {
-                self.output = out;
+                self.output = out.trim_end().to_string();
             }
             Err(e) => {
                 self.output = e.description().to_string();

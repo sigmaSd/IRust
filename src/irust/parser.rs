@@ -1,3 +1,4 @@
+use crate::format::warn_about_common_mistakes;
 use crate::irust::IRust;
 use crate::utils::{remove_main, stdout_and_stderr};
 
@@ -64,11 +65,21 @@ impl IRust {
 
     fn parse_second_order(&mut self) -> std::io::Result<Option<String>> {
         let output = if self.buffer.ends_with(';') {
-            self.repl.insert(self.buffer.drain(..).collect());
+            self.repl.insert(self.buffer.clone());
             None
         } else {
-            let output = self.repl.eval(self.buffer.drain(..).collect())?;
-            let output = self.format_eval_output(&output);
+            let mut output = String::new();
+            if let Some(warning) = warn_about_common_mistakes(&self.buffer) {
+                output.push_str(&warning);
+
+                let eval_output = self.repl.eval(self.buffer.clone())?;
+                if !eval_output.is_empty() {
+                    output.push('\n');
+                    output.push_str(&eval_output);
+                }
+            } else {
+                output.push_str(&self.repl.eval(self.buffer.clone())?);
+            }
             Some(output)
         };
 
