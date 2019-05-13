@@ -47,8 +47,8 @@ Current supported options:
 ## Changeslog
 
 **0.3.3**
-    - Reworked Output, now colors are everywhere and easier to add!
-    - IRust now talks to you (outputs some warning for now)
+- Reworked Output, now colors are everywhere and easier to add!
+- IRust now talks to you (outputs some warning for now)
 
 **0.3.2**
 - Format rustc errors to be way more better looking
