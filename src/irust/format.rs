@@ -1,3 +1,6 @@
+use crate::irust::output::Output;
+use crossterm::Color;
+
 pub fn format_eval_output(output: &str) -> String {
     if output.contains("Compiling irust") {
         // Consider this an error
@@ -28,11 +31,13 @@ pub fn format_eval_output(output: &str) -> String {
     }
 }
 
-pub fn warn_about_common_mistakes(input: &str) -> Option<String> {
+pub fn warn_about_common_mistakes(input: &str) -> Option<Output> {
+    let mut output = Output::new("IRust: ".to_string(), Color::DarkBlue);
+
     // if input = `x = something`
     if input.split('=').count() == 2 && input.split('=').map(str::trim).all(|s| !s.is_empty()) {
-        let warning = "Are you missing a `;` ?\n".to_string();
-        return Some(warning);
+        output.push("Are you missing a `;` ?\n".to_string(), Color::Cyan);
+        return Some(output);
     }
 
     // if there were no mistakes return None

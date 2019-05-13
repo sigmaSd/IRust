@@ -1,6 +1,6 @@
 use crossterm::{ClearType, Color};
 
-use crate::irust::{IRust, IN, OUT};
+use crate::irust::{IRust, IN};
 use crate::utils::StringTools;
 
 impl IRust {
@@ -14,7 +14,7 @@ impl IRust {
         if !out.is_empty() {
             self.go_to_cursor()?;
 
-            if out.trim().contains('\n') {
+            if StringTools::is_multiline(&out) {
                 let _ = self.write_newline();
                 out.split('\n').for_each(|o| {
                     let _ = self.terminal.write(o);
@@ -22,6 +22,9 @@ impl IRust {
                 });
             } else {
                 self.terminal.write(out)?;
+                self.move_cursor_to(out.len(), None)?;
+                self.internal_cursor
+                    .move_right(StringTools::chars_count(&out));
             }
         }
         Ok(())
@@ -40,8 +43,8 @@ impl IRust {
 
     fn write_str(&mut self, s: &str) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
-        self.internal_cursor.x += StringTools::chars_count(s);
         self.terminal.write(s)?;
+        self.internal_cursor.move_right(StringTools::chars_count(s));
         Ok(())
     }
 
@@ -58,7 +61,7 @@ impl IRust {
 
         self.terminal.write(c)?;
         self.cursor.save_position()?;
-        self.internal_cursor.move_right();
+        self.internal_cursor.move_right(1);
 
         for character in self.buffer.chars().skip(self.internal_cursor.x) {
             self.terminal.write(character)?;

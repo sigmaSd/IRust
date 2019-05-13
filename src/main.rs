@@ -1,5 +1,4 @@
 mod cargo_cmds;
-mod format;
 mod history;
 mod irust;
 mod repl;

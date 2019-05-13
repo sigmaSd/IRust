@@ -14,13 +14,13 @@ impl Cursor {
         }
     }
 
-    pub fn move_right(&mut self) {
-        self.x += 1;
+    pub fn move_right(&mut self, step: usize) {
+        self.x += step;
     }
 
-    pub fn move_left(&mut self) {
+    pub fn move_left(&mut self, step: usize) {
         if self.x != 0 {
-            self.x -= 1
+            self.x -= step
         }
     }
 

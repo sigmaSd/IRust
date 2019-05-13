@@ -60,4 +60,8 @@ impl StringTools {
     pub fn chars_count(buffer: &str) -> usize {
         buffer.chars().count()
     }
+
+    pub fn is_multiline(string: &str) -> bool {
+        string.chars().filter(|c| *c == '\n').count() > 1
+    }
 }

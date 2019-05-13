@@ -30,7 +30,8 @@ impl IRust {
                 self.output = out;
             }
             Err(e) => {
-                self.output = Output::new(e.description().to_string(), Color::White);
+                self.output = Output::new(e.description().to_string(), Color::DarkRed);
+                self.output.add_new_line();
             }
         }
 
@@ -38,8 +39,10 @@ impl IRust {
         self.buffer.clear();
 
         // write out
-        self.write_out()?;
-        self.write_newline()?;
+        if !self.output.is_empty() {
+            self.write_out()?;
+            self.write_newline()?;
+        }
         self.write_in()?;
 
         Ok(())
@@ -66,7 +69,7 @@ impl IRust {
     pub fn handle_left(&mut self) -> std::io::Result<()> {
         if self.internal_cursor.x > 0 {
             self.cursor.move_left(1);
-            self.internal_cursor.move_left();
+            self.internal_cursor.move_left(1);
         }
         Ok(())
     }
@@ -74,7 +77,7 @@ impl IRust {
     pub fn handle_right(&mut self) -> std::io::Result<()> {
         if self.internal_cursor.x < StringTools::chars_count(&self.buffer) {
             self.cursor.move_right(1);
-            self.internal_cursor.move_right();
+            self.internal_cursor.move_right(1);
         }
         Ok(())
     }
@@ -82,7 +85,7 @@ impl IRust {
     pub fn handle_backspace(&mut self) -> std::io::Result<()> {
         if self.internal_cursor.x > 0 {
             self.cursor.move_left(1);
-            self.internal_cursor.move_left();
+            self.internal_cursor.move_left(1);
             if !self.buffer.is_empty() {
                 StringTools::remove_at_char_idx(&mut self.buffer, self.internal_cursor.x);
             }

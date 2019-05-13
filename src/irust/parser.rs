@@ -1,5 +1,5 @@
-use crate::format::{format_eval_output, warn_about_common_mistakes};
-use crate::irust::{output::Output, IRust};
+use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
+use crate::irust::{output::Output, IRust, OUT};
 use crate::utils::{remove_main, stdout_and_stderr};
 use crossterm::Color;
 
@@ -19,11 +19,15 @@ impl IRust {
 
     fn reset(&mut self) -> std::io::Result<Output> {
         self.repl.reset();
-        Ok(Output::new(SUCESS.to_string(), Color::Blue))
+        Ok(Output::new(SUCESS.to_string(), Color::Blue)
+            .add_new_line()
+            .finish()
+            .add_new_line()
+            .finish())
     }
 
     fn show(&mut self) -> std::io::Result<Output> {
-        let output = Output::new(self.repl.show(), Color::Green);
+        let output = Output::new(self.repl.show(), Color::Magenta);
         Ok(output)
     }
 
@@ -38,7 +42,9 @@ impl IRust {
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build()?, "Build")?;
 
-        Ok(Output::new(SUCESS.to_string(), Color::Blue))
+        Ok(Output::new(SUCESS.to_string(), Color::Blue)
+            .add_new_line()
+            .finish())
     }
 
     fn load_script(&mut self) -> std::io::Result<Output> {
@@ -49,7 +55,9 @@ impl IRust {
             remove_main(&mut s);
             self.repl.insert(s);
         }
-        Ok(Output::new(SUCESS.to_string(), Color::Blue))
+        Ok(Output::new(SUCESS.to_string(), Color::Blue)
+            .add_new_line()
+            .finish())
     }
 
     fn run_cmd(&mut self) -> std::io::Result<Output> {
@@ -76,16 +84,20 @@ impl IRust {
             let mut output = Output::default();
 
             if let Some(warning) = warn_about_common_mistakes(&self.buffer) {
-                output.push(warning, Color::Cyan);
+                output.append(warning);
+                output.add_new_line();
 
                 let eval_output = self.repl.eval(self.buffer.clone())?;
                 if !eval_output.is_empty() {
-                    let eval_output = format_eval_output(&eval_output);
-                    output.push("\n".to_string(), None);
-                    output.push(eval_output, None);
+                    output.push(format_eval_output(&eval_output), None);
                 }
             } else {
-                output.push(self.repl.eval(self.buffer.clone())?, None);
+                output.push(OUT.to_string(), Color::Red);
+                output.push(
+                    format_eval_output(&self.repl.eval(self.buffer.clone())?),
+                    None,
+                );
+                output.add_new_line();
             }
 
             Ok(output)

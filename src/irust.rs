@@ -7,6 +7,7 @@ use crate::repl::Repl;
 mod art;
 mod cursor;
 mod events;
+mod format;
 mod options;
 mod output;
 mod parser;
