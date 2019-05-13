@@ -9,6 +9,8 @@ impl IRust {
         output.append("### Keywords / Tips & Tricks ###".to_output(Color::DarkYellow));
         output.append(
             "
+:help => print help
+
 :reset => reset repl
 
 :show => show repl current code

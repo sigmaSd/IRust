@@ -3,6 +3,8 @@ Cross Platform Rust Repl
 
 ## Keywords / Tips & Tricks
 
+**:help** => print help
+
 **:reset** => reset repl
 
 **:show** => show repl current code
@@ -45,6 +47,9 @@ Current supported options:
     add_shell_cmd_to_history
 
 ## Changeslog
+
+**0.3.4**
+- Add **:help** command
 
 **0.3.3**
 - Reworked Output, now colors are everywhere and easier to add!
