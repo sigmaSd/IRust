@@ -45,6 +45,7 @@ impl Repl {
         repl.insert(eval_statement);
 
         let code = repl.body.join("");
+
         Ok(self.cargo_cmds.cargo_run(code)?)
     }
 

@@ -1,10 +1,12 @@
-use crate::irust::IRust;
+use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
+use crate::irust::{output::Output, IRust, OUT};
 use crate::utils::{remove_main, stdout_and_stderr};
+use crossterm::Color;
 
 const SUCESS: &str = "Ok!";
 
 impl IRust {
-    pub fn parse(&mut self) -> std::io::Result<Option<String>> {
+    pub fn parse(&mut self) -> std::io::Result<Output> {
         match self.buffer.as_str() {
             ":reset" => self.reset(),
             ":show" => self.show(),
@@ -15,16 +17,21 @@ impl IRust {
         }
     }
 
-    fn reset(&mut self) -> std::io::Result<Option<String>> {
+    fn reset(&mut self) -> std::io::Result<Output> {
         self.repl.reset();
-        Ok(Some(SUCESS.to_string()))
+        Ok(Output::new(SUCESS.to_string(), Color::Blue)
+            .add_new_line()
+            .finish()
+            .add_new_line()
+            .finish())
     }
 
-    fn show(&mut self) -> std::io::Result<Option<String>> {
-        Ok(Some(self.repl.show()))
+    fn show(&mut self) -> std::io::Result<Output> {
+        let output = Output::new(self.repl.show(), Color::Magenta);
+        Ok(output)
     }
 
-    fn add_dep(&mut self) -> std::io::Result<Option<String>> {
+    fn add_dep(&mut self) -> std::io::Result<Output> {
         let dep: Vec<String> = self
             .buffer
             .split_whitespace()
@@ -35,10 +42,12 @@ impl IRust {
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build()?, "Build")?;
 
-        Ok(Some(SUCESS.to_string()))
+        Ok(Output::new(SUCESS.to_string(), Color::Blue)
+            .add_new_line()
+            .finish())
     }
 
-    fn load_script(&mut self) -> std::io::Result<Option<String>> {
+    fn load_script(&mut self) -> std::io::Result<Output> {
         let script = self.buffer.split_whitespace().last().unwrap();
 
         let script_code = std::fs::read(script)?;
@@ -46,32 +55,52 @@ impl IRust {
             remove_main(&mut s);
             self.repl.insert(s);
         }
-        Ok(Some(SUCESS.to_string()))
+        Ok(Output::new(SUCESS.to_string(), Color::Blue)
+            .add_new_line()
+            .finish())
     }
 
-    fn run_cmd(&mut self) -> std::io::Result<Option<String>> {
+    fn run_cmd(&mut self) -> std::io::Result<Output> {
         // remove ::
         let buffer = &self.buffer[2..];
 
         let mut cmd = buffer.split_whitespace();
 
-        Ok(Some(stdout_and_stderr(
+        let output = stdout_and_stderr(
             std::process::Command::new(cmd.next().unwrap_or_default())
                 .args(&cmd.collect::<Vec<&str>>())
                 .output()?,
-        )))
+        );
+
+        Ok(Output::new(output, Color::Magenta))
     }
 
-    fn parse_second_order(&mut self) -> std::io::Result<Option<String>> {
-        let output = if self.buffer.ends_with(';') {
-            self.repl.insert(self.buffer.drain(..).collect());
-            None
-        } else {
-            let output = self.repl.eval(self.buffer.drain(..).collect())?;
-            let output = self.format_eval_output(&output);
-            Some(output)
-        };
+    fn parse_second_order(&mut self) -> std::io::Result<Output> {
+        if self.buffer.ends_with(';') {
+            self.repl.insert(self.buffer.clone());
 
-        Ok(output)
+            Ok(Output::default())
+        } else {
+            let mut output = Output::default();
+
+            if let Some(warning) = warn_about_common_mistakes(&self.buffer) {
+                output.append(warning);
+                output.add_new_line();
+
+                let eval_output = self.repl.eval(self.buffer.clone())?;
+                if !eval_output.is_empty() {
+                    output.push(format_eval_output(&eval_output), None);
+                }
+            } else {
+                output.push(OUT.to_string(), Color::Red);
+                output.push(
+                    format_eval_output(&self.repl.eval(self.buffer.clone())?),
+                    None,
+                );
+                output.add_new_line();
+            }
+
+            Ok(output)
+        }
     }
 }

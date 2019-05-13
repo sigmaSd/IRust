@@ -1,17 +1,32 @@
 use crossterm::{ClearType, Color};
 
-use crate::irust::{IRust, IN, OUT};
+use crate::irust::{IRust, IN};
 use crate::utils::StringTools;
 
 impl IRust {
     pub fn _writeln(&mut self, s: &str) -> std::io::Result<()> {
         self.write_newline()?;
-        self._write(s)?;
+        self.write(s)?;
         Ok(())
     }
 
-    pub fn _write(&mut self, s: &str) -> std::io::Result<()> {
-        self.terminal.write(s)?;
+    pub fn write(&mut self, out: &str) -> std::io::Result<()> {
+        if !out.is_empty() {
+            self.go_to_cursor()?;
+
+            if StringTools::is_multiline(&out) {
+                let _ = self.write_newline();
+                out.split('\n').for_each(|o| {
+                    let _ = self.terminal.write(o);
+                    let _ = self.write_newline();
+                });
+            } else {
+                self.terminal.write(out)?;
+                self.move_cursor_to(out.len(), None)?;
+                self.internal_cursor
+                    .move_right(StringTools::chars_count(&out));
+            }
+        }
         Ok(())
     }
 
@@ -28,8 +43,8 @@ impl IRust {
 
     fn write_str(&mut self, s: &str) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
-        self.internal_cursor.x += StringTools::chars_count(s);
         self.terminal.write(s)?;
+        self.internal_cursor.move_right(StringTools::chars_count(s));
         Ok(())
     }
 
@@ -41,35 +56,12 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_out(&mut self) -> std::io::Result<()> {
-        if !self.output.is_empty() {
-            self.go_to_cursor()?;
-            self.color.set_fg(Color::Red)?;
-            self.terminal.write(OUT)?;
-            self.color.reset()?;
-            let out = self.output.drain(..).collect::<String>();
-
-            if out.trim().contains('\n') {
-                let _ = self.write_newline();
-                out.split('\n').for_each(|o| {
-                    let _ = self.terminal.write(o);
-                    let _ = self.write_newline();
-                });
-            } else {
-                self.terminal.write(out)?;
-                self.write_newline()?;
-            }
-        }
-
-        Ok(())
-    }
-
     pub fn write_insert(&mut self, c: char) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
 
         self.terminal.write(c)?;
         self.cursor.save_position()?;
-        self.internal_cursor.move_right();
+        self.internal_cursor.move_right(1);
 
         for character in self.buffer.chars().skip(self.internal_cursor.x) {
             self.terminal.write(character)?;
