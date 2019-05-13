@@ -1,6 +1,7 @@
+use crate::irust::output::Output;
 use crate::irust::IRust;
 use crate::utils::StringTools;
-use crossterm::ClearType;
+use crossterm::{ClearType, Color};
 use std::error::Error;
 
 impl IRust {
@@ -25,14 +26,11 @@ impl IRust {
 
         // parse and handle errors
         match self.parse() {
-            Ok(Some(out)) => {
-                self.output = out.trim_end().to_string();
+            Ok(out) => {
+                self.output = out;
             }
             Err(e) => {
-                self.output = e.description().to_string();
-            }
-            Ok(None) => {
-                self.output.clear();
+                self.output = Output::new(e.description().to_string(), Color::White);
             }
         }
 

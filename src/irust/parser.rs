@@ -1,11 +1,12 @@
-use crate::format::warn_about_common_mistakes;
-use crate::irust::IRust;
+use crate::format::{format_eval_output, warn_about_common_mistakes};
+use crate::irust::{output::Output, IRust};
 use crate::utils::{remove_main, stdout_and_stderr};
+use crossterm::Color;
 
 const SUCESS: &str = "Ok!";
 
 impl IRust {
-    pub fn parse(&mut self) -> std::io::Result<Option<String>> {
+    pub fn parse(&mut self) -> std::io::Result<Output> {
         match self.buffer.as_str() {
             ":reset" => self.reset(),
             ":show" => self.show(),
@@ -16,16 +17,17 @@ impl IRust {
         }
     }
 
-    fn reset(&mut self) -> std::io::Result<Option<String>> {
+    fn reset(&mut self) -> std::io::Result<Output> {
         self.repl.reset();
-        Ok(Some(SUCESS.to_string()))
+        Ok(Output::new(SUCESS.to_string(), Color::Blue))
     }
 
-    fn show(&mut self) -> std::io::Result<Option<String>> {
-        Ok(Some(self.repl.show()))
+    fn show(&mut self) -> std::io::Result<Output> {
+        let output = Output::new(self.repl.show(), Color::Green);
+        Ok(output)
     }
 
-    fn add_dep(&mut self) -> std::io::Result<Option<String>> {
+    fn add_dep(&mut self) -> std::io::Result<Output> {
         let dep: Vec<String> = self
             .buffer
             .split_whitespace()
@@ -36,10 +38,10 @@ impl IRust {
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build()?, "Build")?;
 
-        Ok(Some(SUCESS.to_string()))
+        Ok(Output::new(SUCESS.to_string(), Color::Blue))
     }
 
-    fn load_script(&mut self) -> std::io::Result<Option<String>> {
+    fn load_script(&mut self) -> std::io::Result<Output> {
         let script = self.buffer.split_whitespace().last().unwrap();
 
         let script_code = std::fs::read(script)?;
@@ -47,42 +49,46 @@ impl IRust {
             remove_main(&mut s);
             self.repl.insert(s);
         }
-        Ok(Some(SUCESS.to_string()))
+        Ok(Output::new(SUCESS.to_string(), Color::Blue))
     }
 
-    fn run_cmd(&mut self) -> std::io::Result<Option<String>> {
+    fn run_cmd(&mut self) -> std::io::Result<Output> {
         // remove ::
         let buffer = &self.buffer[2..];
 
         let mut cmd = buffer.split_whitespace();
 
-        Ok(Some(stdout_and_stderr(
+        let output = stdout_and_stderr(
             std::process::Command::new(cmd.next().unwrap_or_default())
                 .args(&cmd.collect::<Vec<&str>>())
                 .output()?,
-        )))
+        );
+
+        Ok(Output::new(output, Color::Magenta))
     }
 
-    fn parse_second_order(&mut self) -> std::io::Result<Option<String>> {
-        let output = if self.buffer.ends_with(';') {
+    fn parse_second_order(&mut self) -> std::io::Result<Output> {
+        if self.buffer.ends_with(';') {
             self.repl.insert(self.buffer.clone());
-            None
+
+            Ok(Output::default())
         } else {
-            let mut output = String::new();
+            let mut output = Output::default();
+
             if let Some(warning) = warn_about_common_mistakes(&self.buffer) {
-                output.push_str(&warning);
+                output.push(warning, Color::Cyan);
 
                 let eval_output = self.repl.eval(self.buffer.clone())?;
                 if !eval_output.is_empty() {
-                    output.push('\n');
-                    output.push_str(&eval_output);
+                    let eval_output = format_eval_output(&eval_output);
+                    output.push("\n".to_string(), None);
+                    output.push(eval_output, None);
                 }
             } else {
-                output.push_str(&self.repl.eval(self.buffer.clone())?);
+                output.push(self.repl.eval(self.buffer.clone())?, None);
             }
-            Some(output)
-        };
 
-        Ok(output)
+            Ok(output)
+        }
     }
 }

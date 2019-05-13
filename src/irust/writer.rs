@@ -6,12 +6,24 @@ use crate::utils::StringTools;
 impl IRust {
     pub fn _writeln(&mut self, s: &str) -> std::io::Result<()> {
         self.write_newline()?;
-        self._write(s)?;
+        self.write(s)?;
         Ok(())
     }
 
-    pub fn _write(&mut self, s: &str) -> std::io::Result<()> {
-        self.terminal.write(s)?;
+    pub fn write(&mut self, out: &str) -> std::io::Result<()> {
+        if !out.is_empty() {
+            self.go_to_cursor()?;
+
+            if out.trim().contains('\n') {
+                let _ = self.write_newline();
+                out.split('\n').for_each(|o| {
+                    let _ = self.terminal.write(o);
+                    let _ = self.write_newline();
+                });
+            } else {
+                self.terminal.write(out)?;
+            }
+        }
         Ok(())
     }
 
@@ -38,29 +50,6 @@ impl IRust {
         self.color.set_fg(Color::Yellow)?;
         self.terminal.write(IN)?;
         self.color.reset()?;
-        Ok(())
-    }
-
-    pub fn write_out(&mut self) -> std::io::Result<()> {
-        if !self.output.is_empty() {
-            self.go_to_cursor()?;
-            self.color.set_fg(Color::Red)?;
-            self.terminal.write(OUT)?;
-            self.color.reset()?;
-            let out = self.output.drain(..).collect::<String>();
-
-            if out.trim().contains('\n') {
-                let _ = self.write_newline();
-                out.split('\n').for_each(|o| {
-                    let _ = self.terminal.write(o);
-                    let _ = self.write_newline();
-                });
-            } else {
-                self.terminal.write(out)?;
-                self.write_newline()?;
-            }
-        }
-
         Ok(())
     }
 

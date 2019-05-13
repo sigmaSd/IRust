@@ -1,5 +1,4 @@
 use crate::cargo_cmds::CargoCmds;
-use crate::format::format_eval_output;
 use std::io;
 
 #[derive(Clone)]
@@ -47,10 +46,7 @@ impl Repl {
 
         let code = repl.body.join("");
 
-        let output = self.cargo_cmds.cargo_run(code)?;
-        let output = format_eval_output(&output);
-
-        Ok(output)
+        Ok(self.cargo_cmds.cargo_run(code)?)
     }
 
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
