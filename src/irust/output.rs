@@ -66,3 +66,13 @@ impl IRust {
         Ok(())
     }
 }
+
+pub trait ColoredOutput {
+    fn to_output(&self, color: Color) -> Output;
+}
+
+impl ColoredOutput for &str {
+    fn to_output(&self, color: Color) -> Output {
+        Output::new(self.to_string(), color)
+    }
+}

@@ -8,6 +8,7 @@ mod art;
 mod cursor;
 mod events;
 mod format;
+mod help;
 mod options;
 mod output;
 mod parser;

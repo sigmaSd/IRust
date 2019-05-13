@@ -8,6 +8,7 @@ const SUCESS: &str = "Ok!";
 impl IRust {
     pub fn parse(&mut self) -> std::io::Result<Output> {
         match self.buffer.as_str() {
+            ":help" => self.help(),
             ":reset" => self.reset(),
             ":show" => self.show(),
             cmd if cmd.starts_with("::") => self.run_cmd(),

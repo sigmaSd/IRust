@@ -1,4 +1,4 @@
-use crate::irust::output::Output;
+use crate::irust::output::{ColoredOutput, Output};
 use crossterm::Color;
 
 pub fn format_eval_output(output: &str) -> String {
@@ -32,11 +32,11 @@ pub fn format_eval_output(output: &str) -> String {
 }
 
 pub fn warn_about_common_mistakes(input: &str) -> Option<Output> {
-    let mut output = Output::new("IRust: ".to_string(), Color::DarkBlue);
+    let mut output = Output::new("IRust: ".to_string(), Color::DarkCyan);
 
     // if input = `x = something`
     if input.split('=').count() == 2 && input.split('=').map(str::trim).all(|s| !s.is_empty()) {
-        output.push("Are you missing a `;` ?\n".to_string(), Color::Cyan);
+        output.append("Are you missing a `;` ?\n".to_output(Color::Cyan));
         return Some(output);
     }
 
