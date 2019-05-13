@@ -37,7 +37,7 @@ IRust config file is located in:
 
 **Linux**: */home/$USER/.config/irust/config*
 
-**Win**: *C:\Users\$USER\AppData\Roaming/irust/config*
+**Win**: *C:\Users\\$USER\AppData\Roaming/irust/config*
 
 **Mac**: */Users/$USER/Library/Preferences/irust/config*
 
