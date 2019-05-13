@@ -49,7 +49,7 @@ Current supported options:
 ## Changeslog
 
 **0.3.4**
-- Add **:help** command
+- Add `:help` command
 
 **0.3.3**
 - Reworked Output, now colors are everywhere and easier to add!
