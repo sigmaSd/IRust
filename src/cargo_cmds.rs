@@ -54,7 +54,7 @@ impl CargoCmds {
         Ok(stdout_and_stderr(
             Command::new("cargo")
                 .current_dir(&*self.irust_dir)
-                .arg("run")
+                .args(&["run", "--color", "always"])
                 .output()?,
         ))
     }

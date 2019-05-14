@@ -1,5 +1,5 @@
 use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
-use crate::irust::{output::Output, IRust, OUT};
+use crate::irust::{output::Output, IRust};
 use crate::utils::{remove_main, stdout_and_stderr};
 use crossterm::Color;
 
@@ -90,14 +90,11 @@ impl IRust {
 
                 let eval_output = self.repl.eval(self.buffer.clone())?;
                 if !eval_output.is_empty() {
-                    output.push(format_eval_output(&eval_output), None);
+                    output.append(format_eval_output(&eval_output));
                 }
             } else {
-                output.push(OUT.to_string(), Color::Red);
-                output.push(
-                    format_eval_output(&self.repl.eval(self.buffer.clone())?),
-                    None,
-                );
+                let eval_output = format_eval_output(&self.repl.eval(self.buffer.clone())?);
+                output.append(eval_output);
                 output.add_new_line();
             }
 

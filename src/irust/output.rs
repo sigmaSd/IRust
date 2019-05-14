@@ -17,7 +17,7 @@ impl Output {
         }
     }
 
-    pub fn push<P: Into<Option<Color>>>(&mut self, string: String, color: P) {
+    pub fn _push<P: Into<Option<Color>>>(&mut self, string: String, color: P) {
         let color = color.into().unwrap_or(Color::White);
 
         self.strings_and_colors
@@ -71,7 +71,7 @@ pub trait ColoredOutput {
     fn to_output(&self, color: Color) -> Output;
 }
 
-impl ColoredOutput for &str {
+impl<T: ToString> ColoredOutput for T {
     fn to_output(&self, color: Color) -> Output {
         Output::new(self.to_string(), color)
     }

@@ -1,34 +1,29 @@
-use crate::irust::output::{ColoredOutput, Output};
+use crate::irust::{
+    output::{ColoredOutput, Output},
+    OUT,
+};
 use crossterm::Color;
 
-pub fn format_eval_output(output: &str) -> String {
-    if output.contains("Compiling irust") {
+pub fn format_eval_output(output: &str) -> Output {
+    let mut eval_output = Output::default();
+    if output.contains("irust v0.1.0 (/tmp/irust)") {
         // Consider this an error
-        let mut output_lines: Vec<&str> = output.lines().collect();
+        let lines_count = output.lines().count();
 
-        let mut actual_error = false;
+        let actual_error = output
+            .lines()
+            .skip(1)
+            .take(lines_count - 8)
+            .collect::<Vec<&str>>()
+            .join("\n");
 
-        let mut idx = 0;
-        while idx < output_lines.len() {
-            if output_lines[idx].starts_with("warning") || output_lines[idx].starts_with("error") {
-                actual_error = true;
-            }
-
-            if output_lines[idx].is_empty() {
-                actual_error = false;
-            }
-
-            if !actual_error {
-                output_lines.remove(idx);
-            } else {
-                idx += 1;
-            }
-        }
-
-        output_lines.join("\n")
+        eval_output.append(actual_error.to_output(Color::White));
     } else {
-        output.to_owned()
+        eval_output.append(OUT.to_output(Color::Red));
+        eval_output.append(output.to_output(Color::White));
     }
+
+    eval_output
 }
 
 pub fn warn_about_common_mistakes(input: &str) -> Option<Output> {
