@@ -48,6 +48,9 @@ Current supported options:
 
 ## Changeslog
 
+**0.3.5**
+- Use cargo colors
+
 **0.3.4**
 - Add `:help` command
 
