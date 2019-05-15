@@ -1,13 +1,13 @@
-use crate::irust::output::{ColoredOutput, Output};
+use crate::irust::output::{ColoredOutput, Outputs};
 use crate::irust::IRust;
 use crossterm::Color;
 
 impl IRust {
-    pub fn help(&mut self) -> std::io::Result<Output> {
-        let mut output = Output::default();
+    pub fn help(&mut self) -> std::io::Result<Outputs> {
+        let mut outputs = Outputs::default();
 
-        output.append("### Keywords / Tips & Tricks ###".to_output(Color::DarkYellow));
-        output.append(
+        outputs.push("### Keywords / Tips & Tricks ###".to_output(Color::DarkYellow));
+        outputs.push(
             "
 :help => print help
 
@@ -24,12 +24,12 @@ impl IRust {
 You can use arrow keys to cycle through commands history"
                 .to_output(Color::DarkCyan),
         );
-        output.append(
+        outputs.push(
             "
 ### Keybindings ###"
                 .to_output(Color::DarkYellow),
         );
-        output.append(
+        outputs.push(
             "
 
 ctrl-l clear screen
@@ -44,6 +44,6 @@ HOME/END go to line start / line end"
                 .to_output(Color::DarkCyan),
         );
 
-        Ok(output)
+        Ok(outputs)
     }
 }

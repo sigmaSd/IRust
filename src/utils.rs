@@ -65,3 +65,22 @@ impl StringTools {
         string.chars().filter(|c| *c == '\n').count() > 1
     }
 }
+
+pub struct VecTools {}
+
+impl VecTools {
+    pub fn index<T: std::cmp::PartialEq + std::fmt::Debug>(
+        vector: &[T],
+        items: Vec<T>,
+    ) -> Vec<usize> {
+        let mut indices = vec![];
+
+        for (idx, elem) in vector.iter().enumerate() {
+            if items.contains(elem) {
+                indices.push(idx);
+            }
+        }
+
+        indices
+    }
+}

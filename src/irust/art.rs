@@ -4,7 +4,7 @@ use crossterm::{ClearType, Color};
 impl IRust {
     pub fn wait_add(&mut self, add_cmd: std::process::Child, msg: &str) -> std::io::Result<()> {
         self.cursor.hide()?;
-        self.color.set_fg(Color::DarkGreen)?;
+        self.color.set_fg(Color::Cyan)?;
 
         match self.wait_add_inner(add_cmd, msg) {
             Ok(status) => {

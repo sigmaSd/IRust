@@ -1,9 +1,19 @@
 use crate::irust::IRust;
+use crate::utils::VecTools;
+use crossterm::Color;
 use std::io::{Read, Write};
 
 pub struct Options {
-    add_irust_cmd_to_history: bool,
-    add_shell_cmd_to_history: bool,
+    pub add_irust_cmd_to_history: bool,
+    pub add_shell_cmd_to_history: bool,
+    pub ok_color: Color,
+    pub show_color: Color,
+    pub eval_color: Color,
+    pub irust_color: Color,
+    pub warn_color: Color,
+    pub out_color: Color,
+    pub shell_color: Color,
+    pub err_color: Color,
 }
 
 impl Default for Options {
@@ -11,6 +21,14 @@ impl Default for Options {
         Self {
             add_irust_cmd_to_history: false,
             add_shell_cmd_to_history: false,
+            ok_color: Color::Blue,
+            show_color: Color::DarkCyan,
+            eval_color: Color::White,
+            irust_color: Color::DarkBlue,
+            warn_color: Color::Cyan,
+            out_color: Color::Red,
+            shell_color: Color::DarkYellow,
+            err_color: Color::DarkRed,
         }
     }
 }
@@ -41,31 +59,68 @@ impl Options {
             config
         };
 
-        for line in config.lines() {
-            // skip comments
-            if let Some(c) = line.trim_start().chars().nth(0) {
-                if c == '#' {
-                    continue;
+        let lines: Vec<String> = config
+            .to_lowercase()
+            .lines()
+            .filter(|l| !l.starts_with('#'))
+            .map(ToOwned::to_owned)
+            .collect();
+
+        for (option, value) in Options::get_section(&lines, "[history]".to_string()).into_iter() {
+            match (option.as_str(), value.clone()) {
+                ("add_irust_cmd_to_history", value) => {
+                    options.add_irust_cmd_to_history = Options::str_to_bool(&value);
                 }
+                ("add_shell_cmd_to_history", value) => {
+                    options.add_shell_cmd_to_history = Options::str_to_bool(&value);;
+                }
+                _ => eprintln!("Unknown config option: {} {}", option, value),
             }
+        }
 
-            // we're looking for option = value
-            let line_parts = line.split('=').map(str::trim).collect::<Vec<&str>>();
-
-            if line_parts.len() == 2 {
-                let (option, value) = (line_parts[0], line_parts[1]);
-
-                match (option, value) {
-                    ("add_irust_cmd_to_history", value) => {
-                        options.add_irust_cmd_to_history = Options::str_to_bool(value);
+        for (option, value) in Options::get_section(&lines, "[colors]".to_string()).into_iter() {
+            match (option.as_str(), value.clone()) {
+                ("ok_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.ok_color = value;
                     }
-                    ("add_shell_cmd_to_history", value) => {
-                        options.add_shell_cmd_to_history = Options::str_to_bool(value);;
-                    }
-                    _ => eprintln!("Unknown config option: {} {}", option, value),
                 }
-            } else {
-                eprintln!("Unknown line in config: {}", line);
+                ("show_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.show_color = value;
+                    }
+                }
+                ("eval_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.eval_color = value;
+                    }
+                }
+                ("irust_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.irust_color = value;
+                    }
+                }
+                ("warn_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.warn_color = value;
+                    }
+                }
+                ("shell_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.shell_color = value;
+                    }
+                }
+                ("err_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.err_color = value;
+                    }
+                }
+                ("out_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.out_color = value;
+                    }
+                }
+                _ => eprintln!("Unknown config option: {} {}", option, value),
             }
         }
 
@@ -82,7 +137,9 @@ add_shell_cmd_to_history = false";
 
         Ok(Options::default())
     }
+}
 
+impl Options {
     fn str_to_bool(value: &str) -> bool {
         match value {
             "true" => true,
@@ -92,6 +149,55 @@ add_shell_cmd_to_history = false";
                 false
             }
         }
+    }
+
+    fn str_to_color(value: &str) -> Result<Color, &str> {
+        match value {
+            "black" => Ok(Color::Black),
+            "red" => Ok(Color::Red),
+            "darkred" => Ok(Color::DarkRed),
+            "green" => Ok(Color::Green),
+            "darkgreen" => Ok(Color::DarkGreen),
+            "yellow" => Ok(Color::Yellow),
+            "darkyellow" => Ok(Color::DarkYellow),
+            "blue" => Ok(Color::Blue),
+            "darkblue" => Ok(Color::DarkBlue),
+            "magenta" => Ok(Color::Magenta),
+            "darkmagenta" => Ok(Color::DarkMagenta),
+            "cyan" => Ok(Color::Cyan),
+            "darkcyan" => Ok(Color::DarkCyan),
+            "grey" => Ok(Color::Grey),
+            "white" => Ok(Color::White),
+            value => {
+                eprintln!("Unknown option value: {}", value);
+                Err("Unknown option value")
+            }
+        }
+    }
+
+    fn get_section(lines: &[String], section_name: String) -> Vec<(String, String)> {
+        let sec_start = match VecTools::index(lines, vec![section_name]).get(0) {
+            Some(idx) => *idx,
+            None => return Vec::new(),
+        };
+
+        let sec_end = VecTools::index(lines, vec!["".to_string(), "[".to_string()])
+            .into_iter()
+            .find(|elem| *elem > sec_start)
+            .unwrap_or_else(|| lines.len());
+
+        lines[sec_start + 1..sec_end]
+            .iter()
+            .filter_map(|line| {
+                let lines_part = line.split('=').map(str::trim).collect::<Vec<&str>>();
+                if lines_part.len() == 2 {
+                    Some((lines_part[0].to_string(), lines_part[1].to_string()))
+                } else {
+                    eprintln!("Uknown line: {}", line);
+                    None
+                }
+            })
+            .collect()
     }
 }
 

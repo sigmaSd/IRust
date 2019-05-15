@@ -1,12 +1,12 @@
 use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
-use crate::irust::{output::Output, IRust};
+use crate::irust::output::{Output, OutputType, Outputs};
+use crate::irust::IRust;
 use crate::utils::{remove_main, stdout_and_stderr};
-use crossterm::Color;
 
-const SUCESS: &str = "Ok!";
+const SUCCESS: &str = "Ok!";
 
 impl IRust {
-    pub fn parse(&mut self) -> std::io::Result<Output> {
+    pub fn parse(&mut self) -> std::io::Result<Outputs> {
         match self.buffer.as_str() {
             ":help" => self.help(),
             ":reset" => self.reset(),
@@ -18,21 +18,21 @@ impl IRust {
         }
     }
 
-    fn reset(&mut self) -> std::io::Result<Output> {
+    fn reset(&mut self) -> std::io::Result<Outputs> {
         self.repl.reset();
-        Ok(Output::new(SUCESS.to_string(), Color::Blue)
-            .add_new_line()
-            .finish()
-            .add_new_line()
-            .finish())
+        let mut outputs = Outputs::new(Output::new(SUCCESS.to_string(), OutputType::Ok));
+        outputs.add_new_line(2);
+
+        Ok(outputs)
     }
 
-    fn show(&mut self) -> std::io::Result<Output> {
-        let output = Output::new(self.repl.show(), Color::Magenta);
-        Ok(output)
+    fn show(&mut self) -> std::io::Result<Outputs> {
+        let outputs = Outputs::new(Output::new(self.repl.show(), OutputType::Show));
+
+        Ok(outputs)
     }
 
-    fn add_dep(&mut self) -> std::io::Result<Output> {
+    fn add_dep(&mut self) -> std::io::Result<Outputs> {
         let dep: Vec<String> = self
             .buffer
             .split_whitespace()
@@ -43,12 +43,13 @@ impl IRust {
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build()?, "Build")?;
 
-        Ok(Output::new(SUCESS.to_string(), Color::Blue)
-            .add_new_line()
-            .finish())
+        let mut outputs = Outputs::new(Output::new(SUCCESS.to_string(), OutputType::Ok));
+        outputs.add_new_line(1);
+
+        Ok(outputs)
     }
 
-    fn load_script(&mut self) -> std::io::Result<Output> {
+    fn load_script(&mut self) -> std::io::Result<Outputs> {
         let script = self.buffer.split_whitespace().last().unwrap();
 
         let script_code = std::fs::read(script)?;
@@ -56,12 +57,14 @@ impl IRust {
             remove_main(&mut s);
             self.repl.insert(s);
         }
-        Ok(Output::new(SUCESS.to_string(), Color::Blue)
-            .add_new_line()
-            .finish())
+
+        let mut outputs = Outputs::new(Output::new(SUCCESS.to_string(), OutputType::Ok));
+        outputs.add_new_line(1);
+
+        Ok(outputs)
     }
 
-    fn run_cmd(&mut self) -> std::io::Result<Output> {
+    fn run_cmd(&mut self) -> std::io::Result<Outputs> {
         // remove ::
         let buffer = &self.buffer[2..];
 
@@ -73,32 +76,32 @@ impl IRust {
                 .output()?,
         );
 
-        Ok(Output::new(output, Color::Magenta))
+        Ok(Outputs::new(Output::new(output, OutputType::Shell)))
     }
 
-    fn parse_second_order(&mut self) -> std::io::Result<Output> {
+    fn parse_second_order(&mut self) -> std::io::Result<Outputs> {
         if self.buffer.ends_with(';') {
             self.repl.insert(self.buffer.clone());
 
-            Ok(Output::default())
+            Ok(Outputs::default())
         } else {
-            let mut output = Output::default();
+            let mut outputs = Outputs::default();
 
-            if let Some(warning) = warn_about_common_mistakes(&self.buffer) {
-                output.append(warning);
-                output.add_new_line();
+            if let Some(mut warning) = warn_about_common_mistakes(&self.buffer) {
+                outputs.append(&mut warning);
+                outputs.add_new_line(1);
 
                 let eval_output = self.repl.eval(self.buffer.clone())?;
                 if !eval_output.is_empty() {
-                    output.append(format_eval_output(&eval_output));
+                    outputs.append(&mut format_eval_output(&eval_output));
                 }
             } else {
-                let eval_output = format_eval_output(&self.repl.eval(self.buffer.clone())?);
-                output.append(eval_output);
-                output.add_new_line();
+                let mut eval_output = format_eval_output(&self.repl.eval(self.buffer.clone())?);
+                outputs.append(&mut eval_output);
+                outputs.add_new_line(1);
             }
 
-            Ok(output)
+            Ok(outputs)
         }
     }
 }

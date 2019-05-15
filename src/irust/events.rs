@@ -1,7 +1,7 @@
-use crate::irust::output::Output;
+use crate::irust::output::{Output, OutputType, Outputs};
 use crate::irust::IRust;
 use crate::utils::StringTools;
-use crossterm::{ClearType, Color};
+use crossterm::ClearType;
 use std::error::Error;
 
 impl IRust {
@@ -30,8 +30,9 @@ impl IRust {
                 self.output = out;
             }
             Err(e) => {
-                self.output = Output::new(e.description().to_string(), Color::DarkRed);
-                self.output.add_new_line();
+                self.output =
+                    Outputs::new(Output::new(e.description().to_string(), OutputType::Err));
+                self.output.add_new_line(1);
             }
         }
 

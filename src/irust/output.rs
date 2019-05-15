@@ -1,66 +1,110 @@
 use crate::irust::IRust;
 use crossterm::Color;
 
-#[derive(Default, Clone)]
-pub struct Output {
-    strings_and_colors: Vec<(String, Color)>,
-    new_lines_idx: Vec<usize>,
+#[derive(Clone)]
+pub enum OutputType {
+    Eval,
+    Ok,
+    Show,
+    IRust,
+    Warn,
+    Out,
+    Shell,
+    Err,
+    Help,
+    Empty,
 }
 
-impl Output {
-    pub fn new<P: Into<Option<Color>>>(string: String, color: P) -> Self {
-        let color = color.into().unwrap_or(Color::White);
+impl Default for OutputType {
+    fn default() -> Self {
+        OutputType::Empty
+    }
+}
 
+#[derive(Default, Clone)]
+pub struct Outputs {
+    inner: Vec<Output>,
+}
+impl Outputs {
+    pub fn new(output: Output) -> Self {
         Self {
-            strings_and_colors: vec![(string.trim_end_matches('\n').to_string(), color)],
-            new_lines_idx: vec![],
+            inner: vec![output],
         }
     }
 
-    pub fn _push<P: Into<Option<Color>>>(&mut self, string: String, color: P) {
-        let color = color.into().unwrap_or(Color::White);
-
-        self.strings_and_colors
-            .push((string.trim_end_matches('\n').to_string(), color));
+    pub fn add_new_line(&mut self, num: usize) {
+        for _ in 0..num {
+            self.inner.push(Output::default());
+        }
     }
 
-    pub fn add_new_line(&mut self) -> &mut Self {
-        self.new_lines_idx.push(self.strings_and_colors.len());
-        self
+    pub fn push(&mut self, output: Output) {
+        self.inner.push(output);
     }
 
-    pub fn finish(&mut self) -> Output {
-        self.clone()
-    }
-
-    pub fn append(&mut self, mut other: Self) {
-        self.strings_and_colors
-            .append(&mut other.strings_and_colors);
-        self.new_lines_idx.append(&mut other.new_lines_idx);
+    pub fn append(&mut self, other: &mut Self) {
+        self.inner.append(&mut other.inner);
     }
 
     pub fn is_empty(&self) -> bool {
-        self.strings_and_colors.is_empty()
+        self.inner.is_empty()
+    }
+}
+
+impl Iterator for Outputs {
+    type Item = Output;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if !self.inner.is_empty() {
+            Some(self.inner.remove(0))
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct Output {
+    string: String,
+    out_type: OutputType,
+}
+
+impl Default for Output {
+    fn default() -> Self {
+        Self {
+            string: String::new(),
+            out_type: OutputType::Empty,
+        }
+    }
+}
+
+impl Output {
+    pub fn new(string: String, out_type: OutputType) -> Self {
+        Self { string, out_type }
     }
 }
 
 impl IRust {
     pub fn write_out(&mut self) -> std::io::Result<()> {
-        for (idx, (string, color)) in self.output.strings_and_colors.clone().iter().enumerate() {
-            if self.output.new_lines_idx.contains(&idx) {
-                self.write_newline()?;
-            }
-            self.color.set_fg(*color)?;
-            self.write(&string)?;
+        for output in self.output.clone() {
+            let color = match output.out_type {
+                OutputType::Eval => self.options.eval_color,
+                OutputType::Ok => self.options.ok_color,
+                OutputType::Show => self.options.show_color,
+                OutputType::IRust => self.options.irust_color,
+                OutputType::Warn => self.options.warn_color,
+                OutputType::Out => self.options.out_color,
+                OutputType::Shell => self.options.shell_color,
+                OutputType::Err => self.options.err_color,
+                OutputType::Help => Color::White,
+                OutputType::Empty => {
+                    self.write_newline()?;
+                    continue;
+                }
+            };
+            self.color.set_fg(color)?;
+            self.write(&output.string)?;
             self.color.reset()?;
-        }
-        // check for a final new line
-        if self
-            .output
-            .new_lines_idx
-            .contains(&self.output.strings_and_colors.len())
-        {
-            self.write_newline()?;
         }
 
         Ok(())
@@ -68,11 +112,11 @@ impl IRust {
 }
 
 pub trait ColoredOutput {
-    fn to_output(&self, color: Color) -> Output;
+    fn to_output(&self, _color: Color) -> Output;
 }
 
 impl<T: ToString> ColoredOutput for T {
-    fn to_output(&self, color: Color) -> Output {
-        Output::new(self.to_string(), color)
+    fn to_output(&self, _color: Color) -> Output {
+        Output::new(self.to_string(), OutputType::Help)
     }
 }
