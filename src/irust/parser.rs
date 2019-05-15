@@ -1,5 +1,5 @@
 use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
-use crate::irust::output::{Output, OutputType, OutputPrinter};
+use crate::irust::output::{Output, OutputPrinter, OutputType};
 use crate::irust::IRust;
 use crate::utils::{remove_main, stdout_and_stderr};
 

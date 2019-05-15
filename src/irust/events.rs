@@ -1,4 +1,4 @@
-use crate::irust::output::{Output, OutputType, OutputPrinter};
+use crate::irust::output::{Output, OutputPrinter, OutputType};
 use crate::irust::IRust;
 use crate::utils::StringTools;
 use crossterm::ClearType;

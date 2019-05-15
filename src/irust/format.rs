@@ -1,5 +1,5 @@
 use crate::irust::{
-    output::{Output, OutputType, OutputPrinter},
+    output::{Output, OutputPrinter, OutputType},
     OUT,
 };
 
