@@ -31,6 +31,12 @@ You can use arrow keys to cycle through commands history
 
 <img src="./irust.png" width="80%" height="60%">
 
+## Cli commands
+
+**--help** prints help message
+
+**--reset-config** reset IRust configuration to default
+
 ## Configuration
 
 IRust config file is located in:
@@ -64,6 +70,9 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+
+**0.3.8**
+- Add cli commands `--help` `--reset-config`
 
 **0.3.7**
 - Add the abilty to configure welcome message and color
@@ -126,3 +135,4 @@ Credits to this release goes to the awesome suggestions and contributions of @pz
 **0.1.1**
 - Add **::** to execute shell cmds
 - Bugfixes
+
