@@ -1,10 +1,10 @@
-use crate::irust::output::{ColoredOutput, OutputPrinter};
+use crate::irust::printer::{ColoredPrinterItem, Printer};
 use crate::irust::IRust;
 use crossterm::Color;
 
 impl IRust {
-    pub fn help(&mut self) -> std::io::Result<OutputPrinter> {
-        let mut outputs = OutputPrinter::default();
+    pub fn help(&mut self) -> std::io::Result<Printer> {
+        let mut outputs = Printer::default();
 
         outputs.push("### Keywords / Tips & Tricks ###".to_output(Color::DarkYellow));
         outputs.push(

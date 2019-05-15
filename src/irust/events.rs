@@ -1,4 +1,4 @@
-use crate::irust::output::{Output, OutputPrinter, OutputType};
+use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::IRust;
 use crate::utils::StringTools;
 use crossterm::ClearType;
@@ -27,12 +27,14 @@ impl IRust {
         // parse and handle errors
         match self.parse() {
             Ok(out) => {
-                self.output = out;
+                self.printer = out;
             }
             Err(e) => {
-                self.output =
-                    OutputPrinter::new(Output::new(e.description().to_string(), OutputType::Err));
-                self.output.add_new_line(1);
+                self.printer = Printer::new(PrinterItem::new(
+                    e.description().to_string(),
+                    PrinterItemType::Err,
+                ));
+                self.printer.add_new_line(1);
             }
         }
 
@@ -40,7 +42,7 @@ impl IRust {
         self.buffer.clear();
 
         // write out
-        if !self.output.is_empty() {
+        if !self.printer.is_empty() {
             self.write_out()?;
             self.write_newline()?;
         }
@@ -51,19 +53,21 @@ impl IRust {
 
     pub fn handle_up(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 0;
-
+        self.move_cursor_to(4, None)?;
+        self.terminal.clear(ClearType::UntilNewLine)?;
         let up = self.history.up();
         self.buffer = up.clone();
-        self.write_str_at(&up, 4, None)?;
+        self.write(&up)?;
         Ok(())
     }
 
     pub fn handle_down(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 0;
-
+        self.move_cursor_to(4, None)?;
+        self.terminal.clear(ClearType::UntilNewLine)?;
         let down = self.history.down();
         self.buffer = down.clone();
-        self.write_str_at(&down, 4, None)?;
+        self.write(&down)?;
         Ok(())
     }
 

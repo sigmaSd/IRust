@@ -1,8 +1,8 @@
-use crate::irust::IRust;
-use crossterm::Color;
+use crate::irust::{IRust, IN};
+use crossterm::{ClearType, Color};
 
 #[derive(Clone)]
-pub enum OutputType {
+pub enum PrinterItemType {
     Eval,
     Ok,
     Show,
@@ -15,18 +15,18 @@ pub enum OutputType {
     Empty,
 }
 
-impl Default for OutputType {
+impl Default for PrinterItemType {
     fn default() -> Self {
-        OutputType::Empty
+        PrinterItemType::Empty
     }
 }
 
 #[derive(Default, Clone)]
-pub struct OutputPrinter {
-    inner: Vec<Output>,
+pub struct Printer {
+    inner: Vec<PrinterItem>,
 }
-impl OutputPrinter {
-    pub fn new(output: Output) -> Self {
+impl Printer {
+    pub fn new(output: PrinterItem) -> Self {
         Self {
             inner: vec![output],
         }
@@ -34,11 +34,11 @@ impl OutputPrinter {
 
     pub fn add_new_line(&mut self, num: usize) {
         for _ in 0..num {
-            self.inner.push(Output::default());
+            self.inner.push(PrinterItem::default());
         }
     }
 
-    pub fn push(&mut self, output: Output) {
+    pub fn push(&mut self, output: PrinterItem) {
         self.inner.push(output);
     }
 
@@ -51,8 +51,8 @@ impl OutputPrinter {
     }
 }
 
-impl Iterator for OutputPrinter {
-    type Item = Output;
+impl Iterator for Printer {
+    type Item = PrinterItem;
 
     fn next(&mut self) -> Option<Self::Item> {
         if !self.inner.is_empty() {
@@ -64,40 +64,40 @@ impl Iterator for OutputPrinter {
 }
 
 #[derive(Clone)]
-pub struct Output {
+pub struct PrinterItem {
     string: String,
-    out_type: OutputType,
+    out_type: PrinterItemType,
 }
 
-impl Default for Output {
+impl Default for PrinterItem {
     fn default() -> Self {
         Self {
             string: String::new(),
-            out_type: OutputType::Empty,
+            out_type: PrinterItemType::Empty,
         }
     }
 }
 
-impl Output {
-    pub fn new(string: String, out_type: OutputType) -> Self {
+impl PrinterItem {
+    pub fn new(string: String, out_type: PrinterItemType) -> Self {
         Self { string, out_type }
     }
 }
 
 impl IRust {
     pub fn write_out(&mut self) -> std::io::Result<()> {
-        for output in self.output.clone() {
+        for output in self.printer.clone() {
             let color = match output.out_type {
-                OutputType::Eval => self.options.eval_color,
-                OutputType::Ok => self.options.ok_color,
-                OutputType::Show => self.options.show_color,
-                OutputType::IRust => self.options.irust_color,
-                OutputType::Warn => self.options.warn_color,
-                OutputType::Out => self.options.out_color,
-                OutputType::Shell => self.options.shell_color,
-                OutputType::Err => self.options.err_color,
-                OutputType::Help => Color::White,
-                OutputType::Empty => {
+                PrinterItemType::Eval => self.options.eval_color,
+                PrinterItemType::Ok => self.options.ok_color,
+                PrinterItemType::Show => self.options.show_color,
+                PrinterItemType::IRust => self.options.irust_color,
+                PrinterItemType::Warn => self.options.irust_warn_color,
+                PrinterItemType::Out => self.options.out_color,
+                PrinterItemType::Shell => self.options.shell_color,
+                PrinterItemType::Err => self.options.err_color,
+                PrinterItemType::Help => Color::Cyan,
+                PrinterItemType::Empty => {
                     self.write_newline()?;
                     continue;
                 }
@@ -109,14 +109,62 @@ impl IRust {
 
         Ok(())
     }
+
+    pub fn write_in(&mut self) -> std::io::Result<()> {
+        self.internal_cursor.x = 0;
+        self.move_cursor_to(0, None)?;
+        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.color.set_fg(self.options.input_color)?;
+        self.terminal.write(IN)?;
+        self.color.reset()?;
+        Ok(())
+    }
+
+    pub fn write_insert(&mut self, c: char) -> std::io::Result<()> {
+        let c = c.to_string();
+        self.terminal.clear(ClearType::UntilNewLine)?;
+
+        self.color.set_fg(self.options.insert_color)?;
+
+        self.write(&c)?;
+        self.cursor.save_position()?;
+
+        for character in self
+            .buffer
+            .chars()
+            .skip(self.internal_cursor.x)
+            .collect::<Vec<char>>()
+            .iter()
+        {
+            self.terminal.write(&character.to_string())?;
+        }
+        self.cursor.reset_position()?;
+        self.color.reset()?;
+        Ok(())
+    }
+
+    pub fn backspace(&mut self) -> std::io::Result<()> {
+        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.cursor.save_position()?;
+        self.color.set_fg(self.options.insert_color)?;
+
+        for character in self.buffer.chars().skip(self.internal_cursor.x) {
+            self.terminal.write(character)?;
+        }
+
+        self.cursor.reset_position()?;
+        self.color.reset()?;
+
+        Ok(())
+    }
 }
 
-pub trait ColoredOutput {
-    fn to_output(&self, _color: Color) -> Output;
+pub trait ColoredPrinterItem {
+    fn to_output(&self, _color: Color) -> PrinterItem;
 }
 
-impl<T: ToString> ColoredOutput for T {
-    fn to_output(&self, _color: Color) -> Output {
-        Output::new(self.to_string(), OutputType::Help)
+impl<T: ToString> ColoredPrinterItem for T {
+    fn to_output(&self, _color: Color) -> PrinterItem {
+        PrinterItem::new(self.to_string(), PrinterItemType::Help)
     }
 }

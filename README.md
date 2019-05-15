@@ -41,12 +41,28 @@ IRust config file is located in:
 
 **Mac**: */Users/$USER/Library/Preferences/irust/config*
 
-Current supported options:
+*default config:*
 
-    add_irust_cmd_to_history
-    add_shell_cmd_to_history
+    [History]
+    add_irust_cmd_to_history = false
+    add_shell_cmd_to_history = false
+
+    [Colors]
+    insert_color = White
+    input_color = Yellow
+    out_color = Red
+    ok_color = Blue
+    show_color = DarkCyan
+    eval_color = White
+    irust_color = DarkBlue
+    warn_color = Cyan
+    shell_color = DarkYellow
+    err_color = DarkRed
 
 ## Changeslog
+
+**0.3.6**
+- Add colors to config, now you can modify all of IRust colors!
 
 **0.3.5**
 - Use cargo colors

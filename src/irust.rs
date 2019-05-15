@@ -10,12 +10,12 @@ mod events;
 mod format;
 mod help;
 mod options;
-mod output;
 mod parser;
+mod printer;
 mod writer;
 use cursor::Cursor;
 use options::Options;
-use output::OutputPrinter;
+use printer::Printer;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
@@ -24,7 +24,7 @@ pub struct IRust {
     cursor: TerminalCursor,
     terminal: Terminal,
     input: TerminalInput,
-    output: OutputPrinter,
+    printer: Printer,
     color: TerminalColor,
     buffer: String,
     repl: Repl,
@@ -39,7 +39,7 @@ impl IRust {
         let cursor = crossterm.cursor();
         let terminal = crossterm.terminal();
         let input = crossterm.input();
-        let output = OutputPrinter::default();
+        let printer = Printer::default();
         let color = crossterm.color();
         let buffer = String::new();
         let repl = Repl::new();
@@ -51,7 +51,7 @@ impl IRust {
             cursor,
             terminal,
             input,
-            output,
+            printer,
             color,
             buffer,
             repl,

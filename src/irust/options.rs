@@ -10,10 +10,12 @@ pub struct Options {
     pub show_color: Color,
     pub eval_color: Color,
     pub irust_color: Color,
-    pub warn_color: Color,
+    pub irust_warn_color: Color,
     pub out_color: Color,
     pub shell_color: Color,
     pub err_color: Color,
+    pub input_color: Color,
+    pub insert_color: Color,
 }
 
 impl Default for Options {
@@ -25,10 +27,12 @@ impl Default for Options {
             show_color: Color::DarkCyan,
             eval_color: Color::White,
             irust_color: Color::DarkBlue,
-            warn_color: Color::Cyan,
+            irust_warn_color: Color::Cyan,
             out_color: Color::Red,
             shell_color: Color::DarkYellow,
             err_color: Color::DarkRed,
+            input_color: Color::Yellow,
+            insert_color: Color::White,
         }
     }
 }
@@ -100,9 +104,9 @@ impl Options {
                         options.irust_color = value;
                     }
                 }
-                ("warn_color", value) => {
+                ("irust_warn_color", value) => {
                     if let Ok(value) = Options::str_to_color(&value) {
-                        options.warn_color = value;
+                        options.irust_warn_color = value;
                     }
                 }
                 ("shell_color", value) => {
@@ -120,6 +124,16 @@ impl Options {
                         options.out_color = value;
                     }
                 }
+                ("input_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.input_color = value;
+                    }
+                }
+                ("insert_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.insert_color = value;
+                    }
+                }
                 _ => eprintln!("Unknown config option: {} {}", option, value),
             }
         }
@@ -128,14 +142,34 @@ impl Options {
     }
 
     fn create_config(config_path: std::path::PathBuf) -> std::io::Result<Options> {
-        let config = "add_irust_cmd_to_history = false
-add_shell_cmd_to_history = false";
+        let config = Options::default_config();
 
         let mut config_file = std::fs::File::create(config_path)?;
 
         write!(config_file, "{}", config)?;
 
         Ok(Options::default())
+    }
+
+    fn default_config() -> String {
+        "\
+[History]
+add_irust_cmd_to_history = false
+add_shell_cmd_to_history = false
+
+[Colors]
+insert_color = White
+input_color = Yellow
+out_color = Red
+ok_color = Blue
+show_color = DarkCyan
+eval_color = White
+irust_color = DarkBlue
+irust_warn_color = Cyan
+shell_color = DarkYellow
+err_color = DarkRed
+"
+        .into()
     }
 }
 
