@@ -16,6 +16,8 @@ pub struct Options {
     pub err_color: Color,
     pub input_color: Color,
     pub insert_color: Color,
+    pub welcome_msg: String,
+    pub welcome_color: Color,
 }
 
 impl Default for Options {
@@ -33,6 +35,8 @@ impl Default for Options {
             err_color: Color::DarkRed,
             input_color: Color::Yellow,
             insert_color: Color::White,
+            welcome_msg: String::new(),
+            welcome_color: Color::DarkBlue,
         }
     }
 }
@@ -64,14 +68,13 @@ impl Options {
         };
 
         let lines: Vec<String> = config
-            .to_lowercase()
             .lines()
-            .filter(|l| !l.starts_with('#'))
+            .filter(|l| !l.starts_with('#') && !l.is_empty())
             .map(ToOwned::to_owned)
             .collect();
 
-        for (option, value) in Options::get_section(&lines, "[history]".to_string()).into_iter() {
-            match (option.as_str(), value.clone()) {
+        for (option, value) in Options::get_section(&lines, "[History]".to_string()).into_iter() {
+            match (option.to_lowercase().as_str(), value.clone()) {
                 ("add_irust_cmd_to_history", value) => {
                     options.add_irust_cmd_to_history = Options::str_to_bool(&value);
                 }
@@ -82,8 +85,8 @@ impl Options {
             }
         }
 
-        for (option, value) in Options::get_section(&lines, "[colors]".to_string()).into_iter() {
-            match (option.as_str(), value.clone()) {
+        for (option, value) in Options::get_section(&lines, "[Colors]".to_string()).into_iter() {
+            match (option.to_lowercase().as_ref(), value.clone()) {
                 ("ok_color", value) => {
                     if let Ok(value) = Options::str_to_color(&value) {
                         options.ok_color = value;
@@ -138,6 +141,22 @@ impl Options {
             }
         }
 
+        for (option, value) in Options::get_section(&lines, "[Welcome]".to_string()).into_iter() {
+            match (option.to_lowercase().as_str(), value.clone()) {
+                ("welcome_msg", value) => {
+                    if !value.is_empty() {
+                        options.welcome_msg = value;
+                    }
+                }
+                ("welcome_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.welcome_color = value;
+                    }
+                }
+                _ => eprintln!("Unknown config option: {} {}", option, value),
+            }
+        }
+
         Ok(options)
     }
 
@@ -168,6 +187,10 @@ irust_color = DarkBlue
 irust_warn_color = Cyan
 shell_color = DarkYellow
 err_color = DarkRed
+
+[Welcome]
+welcome_msg = Welcome to IRust
+welcome_color = DarkBlue
 "
         .into()
     }
@@ -186,7 +209,7 @@ impl Options {
     }
 
     fn str_to_color(value: &str) -> Result<Color, &str> {
-        match value {
+        match value.to_lowercase().as_ref() {
             "black" => Ok(Color::Black),
             "red" => Ok(Color::Red),
             "darkred" => Ok(Color::DarkRed),
@@ -210,12 +233,15 @@ impl Options {
     }
 
     fn get_section(lines: &[String], section_name: String) -> Vec<(String, String)> {
-        let sec_start = match VecTools::index(lines, vec![section_name]).get(0) {
+        let sec_start = match VecTools::index(lines, &section_name).get(0) {
             Some(idx) => *idx,
-            None => return Vec::new(),
+            None => {
+                eprintln!("Section {} not found", section_name);
+                return Vec::new();
+            }
         };
 
-        let sec_end = VecTools::index(lines, vec!["".to_string(), "[".to_string()])
+        let sec_end = VecTools::index(lines, "[")
             .into_iter()
             .find(|elem| *elem > sec_start)
             .unwrap_or_else(|| lines.len());

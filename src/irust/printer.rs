@@ -13,6 +13,7 @@ pub enum PrinterItemType {
     Err,
     Help,
     Empty,
+    Welcome,
 }
 
 impl Default for PrinterItemType {
@@ -97,6 +98,16 @@ impl IRust {
                 PrinterItemType::Shell => self.options.shell_color,
                 PrinterItemType::Err => self.options.err_color,
                 PrinterItemType::Help => Color::Cyan,
+                PrinterItemType::Welcome => {
+                    self.color.set_fg(self.options.welcome_color)?;
+                    let msg = if !self.options.welcome_msg.is_empty() {
+                        self.fit_msg(&self.options.welcome_msg.clone())
+                    } else {
+                        self.fit_msg(&output.string)
+                    };
+                    self.write(&msg)?;
+                    continue;
+                }
                 PrinterItemType::Empty => {
                     self.write_newline()?;
                     continue;
@@ -104,7 +115,6 @@ impl IRust {
             };
             self.color.set_fg(color)?;
             self.write(&output.string)?;
-            self.color.reset()?;
         }
 
         Ok(())

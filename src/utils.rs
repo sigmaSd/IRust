@@ -69,14 +69,11 @@ impl StringTools {
 pub struct VecTools {}
 
 impl VecTools {
-    pub fn index<T: std::cmp::PartialEq + std::fmt::Debug>(
-        vector: &[T],
-        items: Vec<T>,
-    ) -> Vec<usize> {
+    pub fn index(vector: &[String], item: &str) -> Vec<usize> {
         let mut indices = vec![];
 
         for (idx, elem) in vector.iter().enumerate() {
-            if items.contains(elem) {
+            if elem.starts_with(item) {
                 indices.push(idx);
             }
         }

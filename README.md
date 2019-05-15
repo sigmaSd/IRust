@@ -55,11 +55,18 @@ IRust config file is located in:
     show_color = DarkCyan
     eval_color = White
     irust_color = DarkBlue
-    warn_color = Cyan
+    irust_warn_color = Cyan
     shell_color = DarkYellow
     err_color = DarkRed
 
+    [Welcome]
+    welcome_msg = Welcome to IRust
+    welcome_color = DarkBlue
+
 ## Changeslog
+
+**0.3.7**
+- Add the abilty to configure welcome message and color
 
 **0.3.6**
 - Add colors to config, now you can modify all of IRust colors!

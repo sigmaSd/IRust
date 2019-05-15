@@ -1,3 +1,4 @@
+use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::IRust;
 use crossterm::{ClearType, Color};
 
@@ -56,16 +57,21 @@ impl IRust {
     pub fn welcome(&mut self) -> std::io::Result<()> {
         self.terminal.clear(ClearType::All)?;
 
-        self.color.set_fg(Color::Blue)?;
-        let slash = std::iter::repeat('-')
-            .take(self.terminal.terminal_size().0 as usize / 3)
-            .collect::<String>();
+        let default_msg = "Welcome to IRust".to_string();
+        self.printer = Printer::new(PrinterItem::new(default_msg, PrinterItemType::Welcome));
+        self.printer.add_new_line(1);
 
-        self.terminal
-            .write(format!("       {0}Welcome to IRust{0}\n", slash))?;
-
-        self.color.reset()?;
+        self.write_out()?;
 
         Ok(())
+    }
+
+    pub fn fit_msg(&mut self, msg: &str) -> String {
+        let slash_num = self.terminal.terminal_size().0 as usize - msg.len();
+        let slash = std::iter::repeat('-')
+            .take(slash_num / 2)
+            .collect::<String>();
+
+        format!("{0}{1}{0}", slash, msg)
     }
 }
