@@ -1,12 +1,12 @@
 use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
-use crate::irust::output::{Output, OutputType, Outputs};
+use crate::irust::output::{Output, OutputType, OutputPrinter};
 use crate::irust::IRust;
 use crate::utils::{remove_main, stdout_and_stderr};
 
 const SUCCESS: &str = "Ok!";
 
 impl IRust {
-    pub fn parse(&mut self) -> std::io::Result<Outputs> {
+    pub fn parse(&mut self) -> std::io::Result<OutputPrinter> {
         match self.buffer.as_str() {
             ":help" => self.help(),
             ":reset" => self.reset(),
@@ -18,21 +18,21 @@ impl IRust {
         }
     }
 
-    fn reset(&mut self) -> std::io::Result<Outputs> {
+    fn reset(&mut self) -> std::io::Result<OutputPrinter> {
         self.repl.reset();
-        let mut outputs = Outputs::new(Output::new(SUCCESS.to_string(), OutputType::Ok));
+        let mut outputs = OutputPrinter::new(Output::new(SUCCESS.to_string(), OutputType::Ok));
         outputs.add_new_line(2);
 
         Ok(outputs)
     }
 
-    fn show(&mut self) -> std::io::Result<Outputs> {
-        let outputs = Outputs::new(Output::new(self.repl.show(), OutputType::Show));
+    fn show(&mut self) -> std::io::Result<OutputPrinter> {
+        let outputs = OutputPrinter::new(Output::new(self.repl.show(), OutputType::Show));
 
         Ok(outputs)
     }
 
-    fn add_dep(&mut self) -> std::io::Result<Outputs> {
+    fn add_dep(&mut self) -> std::io::Result<OutputPrinter> {
         let dep: Vec<String> = self
             .buffer
             .split_whitespace()
@@ -43,13 +43,13 @@ impl IRust {
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build()?, "Build")?;
 
-        let mut outputs = Outputs::new(Output::new(SUCCESS.to_string(), OutputType::Ok));
+        let mut outputs = OutputPrinter::new(Output::new(SUCCESS.to_string(), OutputType::Ok));
         outputs.add_new_line(1);
 
         Ok(outputs)
     }
 
-    fn load_script(&mut self) -> std::io::Result<Outputs> {
+    fn load_script(&mut self) -> std::io::Result<OutputPrinter> {
         let script = self.buffer.split_whitespace().last().unwrap();
 
         let script_code = std::fs::read(script)?;
@@ -58,13 +58,13 @@ impl IRust {
             self.repl.insert(s);
         }
 
-        let mut outputs = Outputs::new(Output::new(SUCCESS.to_string(), OutputType::Ok));
+        let mut outputs = OutputPrinter::new(Output::new(SUCCESS.to_string(), OutputType::Ok));
         outputs.add_new_line(1);
 
         Ok(outputs)
     }
 
-    fn run_cmd(&mut self) -> std::io::Result<Outputs> {
+    fn run_cmd(&mut self) -> std::io::Result<OutputPrinter> {
         // remove ::
         let buffer = &self.buffer[2..];
 
@@ -76,16 +76,16 @@ impl IRust {
                 .output()?,
         );
 
-        Ok(Outputs::new(Output::new(output, OutputType::Shell)))
+        Ok(OutputPrinter::new(Output::new(output, OutputType::Shell)))
     }
 
-    fn parse_second_order(&mut self) -> std::io::Result<Outputs> {
+    fn parse_second_order(&mut self) -> std::io::Result<OutputPrinter> {
         if self.buffer.ends_with(';') {
             self.repl.insert(self.buffer.clone());
 
-            Ok(Outputs::default())
+            Ok(OutputPrinter::default())
         } else {
-            let mut outputs = Outputs::default();
+            let mut outputs = OutputPrinter::default();
 
             if let Some(mut warning) = warn_about_common_mistakes(&self.buffer) {
                 outputs.append(&mut warning);

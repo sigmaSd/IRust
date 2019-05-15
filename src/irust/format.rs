@@ -1,10 +1,10 @@
 use crate::irust::{
-    output::{Output, OutputType, Outputs},
+    output::{Output, OutputType, OutputPrinter},
     OUT,
 };
 
-pub fn format_eval_output(output: &str) -> Outputs {
-    let mut eval_output = Outputs::default();
+pub fn format_eval_output(output: &str) -> OutputPrinter {
+    let mut eval_output = OutputPrinter::default();
     if output.contains("irust v0.1.0 (/tmp/irust)") {
         // Consider this an error
         let lines_count = output.lines().count();
@@ -25,8 +25,8 @@ pub fn format_eval_output(output: &str) -> Outputs {
     eval_output
 }
 
-pub fn warn_about_common_mistakes(input: &str) -> Option<Outputs> {
-    let mut outputs = Outputs::new(Output::new("IRust: ".into(), OutputType::IRust));
+pub fn warn_about_common_mistakes(input: &str) -> Option<OutputPrinter> {
+    let mut outputs = OutputPrinter::new(Output::new("IRust: ".into(), OutputType::IRust));
 
     // if input = `x = something`
     if input.split('=').count() == 2 && input.split('=').map(str::trim).all(|s| !s.is_empty()) {

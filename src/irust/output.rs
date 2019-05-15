@@ -22,10 +22,10 @@ impl Default for OutputType {
 }
 
 #[derive(Default, Clone)]
-pub struct Outputs {
+pub struct OutputPrinter {
     inner: Vec<Output>,
 }
-impl Outputs {
+impl OutputPrinter {
     pub fn new(output: Output) -> Self {
         Self {
             inner: vec![output],
@@ -51,7 +51,7 @@ impl Outputs {
     }
 }
 
-impl Iterator for Outputs {
+impl Iterator for OutputPrinter {
     type Item = Output;
 
     fn next(&mut self) -> Option<Self::Item> {

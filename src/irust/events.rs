@@ -1,4 +1,4 @@
-use crate::irust::output::{Output, OutputType, Outputs};
+use crate::irust::output::{Output, OutputType, OutputPrinter};
 use crate::irust::IRust;
 use crate::utils::StringTools;
 use crossterm::ClearType;
@@ -31,7 +31,7 @@ impl IRust {
             }
             Err(e) => {
                 self.output =
-                    Outputs::new(Output::new(e.description().to_string(), OutputType::Err));
+                    OutputPrinter::new(Output::new(e.description().to_string(), OutputType::Err));
                 self.output.add_new_line(1);
             }
         }
