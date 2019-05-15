@@ -9,7 +9,7 @@ mod cursor;
 mod events;
 mod format;
 mod help;
-mod options;
+pub mod options;
 mod parser;
 mod printer;
 mod writer;
@@ -30,7 +30,7 @@ pub struct IRust {
     repl: Repl,
     internal_cursor: Cursor,
     history: History,
-    options: Options,
+    pub options: Options,
 }
 
 impl IRust {

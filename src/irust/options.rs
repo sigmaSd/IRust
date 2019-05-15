@@ -3,6 +3,7 @@ use crate::utils::VecTools;
 use crossterm::Color;
 use std::io::{Read, Write};
 
+#[derive(Clone)]
 pub struct Options {
     pub add_irust_cmd_to_history: bool,
     pub add_shell_cmd_to_history: bool,
@@ -43,18 +44,13 @@ impl Default for Options {
 
 impl Options {
     pub fn new() -> std::io::Result<Self> {
-        let config_dir = match dirs::config_dir() {
-            Some(dir) => dir.join("irust"),
-            None => return Ok(Options::default()),
-        };
-
-        let _ = std::fs::create_dir(&config_dir);
-
-        let config_path = config_dir.join("config");
-
-        match std::fs::File::open(&config_path) {
-            Ok(config_file) => Options::parse(config_file),
-            Err(_) => Options::create_config(config_path),
+        if let Some(config_path) = Options::config_path() {
+            match std::fs::File::open(&config_path) {
+                Ok(config_file) => Options::parse(config_file),
+                Err(_) => Options::create_config(config_path),
+            }
+        } else {
+            Ok(Options::default())
         }
     }
 
@@ -160,10 +156,26 @@ impl Options {
         Ok(options)
     }
 
+    pub fn reset_config(config_path: std::path::PathBuf) {
+        let _ = Options::create_config(config_path);
+    }
+
+    pub fn config_path() -> Option<std::path::PathBuf> {
+        let config_dir = match dirs::config_dir() {
+            Some(dir) => dir.join("irust"),
+            None => return None,
+        };
+
+        let _ = std::fs::create_dir(&config_dir);
+        let config_path = config_dir.join("config");
+
+        Some(config_path)
+    }
+
     fn create_config(config_path: std::path::PathBuf) -> std::io::Result<Options> {
         let config = Options::default_config();
 
-        let mut config_file = std::fs::File::create(config_path)?;
+        let mut config_file = std::fs::File::create(&config_path)?;
 
         write!(config_file, "{}", config)?;
 
