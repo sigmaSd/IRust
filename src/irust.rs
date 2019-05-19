@@ -81,9 +81,11 @@ impl IRust {
         loop {
             if let Some(key_event) = stdin.next() {
                 match key_event {
-                    InputEvent::Keyboard(KeyEvent::Char(c)) => {
-                        self.handle_character(c)?;
-                    }
+                    InputEvent::Keyboard(KeyEvent::Char(c)) => match c {
+                        '\n' => self.handle_enter()?,
+                        '\t' => self.handle_tab()?,
+                        c => self.handle_character(c)?,
+                    },
                     InputEvent::Keyboard(KeyEvent::Left) => {
                         self.handle_left()?;
                     }
@@ -116,9 +118,6 @@ impl IRust {
                     }
                     InputEvent::Keyboard(KeyEvent::End) => {
                         self.go_to_end()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::BackTab) => {
-                        self.handle_backtab()?;
                     }
                     _ => {}
                 }

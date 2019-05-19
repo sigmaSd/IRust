@@ -29,7 +29,7 @@ You can use arrow keys to cycle through commands history
 
 **HOME/END** go to line start / line end
 
-**BackTab**
+**Tab**
 - cycle through auto-completion suggestions (requires [racer](https://github.com/racer-rust/racer))
 - when cursor is at line end and right arrow key is pressed, shown suggestion will be used
 
@@ -75,6 +75,9 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.4.0**
+- Use Tab instead of BackTab
+
 **0.3.10**
 - Hotfix to workaround a tab bug for now
 

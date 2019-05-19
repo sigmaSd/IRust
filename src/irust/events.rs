@@ -6,16 +6,12 @@ use std::error::Error;
 
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> std::io::Result<()> {
-        if c == '\n' {
-            self.handle_enter()?
-        } else {
-            StringTools::insert_at_char_idx(&mut self.buffer, self.internal_cursor.x, c);
-            self.write_insert(c)?;
-        }
+        StringTools::insert_at_char_idx(&mut self.buffer, self.internal_cursor.x, c);
+        self.write_insert(c)?;
         Ok(())
     }
 
-    fn handle_enter(&mut self) -> std::io::Result<()> {
+    pub fn handle_enter(&mut self) -> std::io::Result<()> {
         // clear suggestion
         self.clear_from(self.buffer.len() + 4, None)?;
 
@@ -51,6 +47,11 @@ impl IRust {
         }
         self.write_in()?;
 
+        Ok(())
+    }
+
+    pub fn handle_tab(&mut self) -> std::io::Result<()> {
+        self.show_suggestions()?;
         Ok(())
     }
 
@@ -176,17 +177,6 @@ impl IRust {
         let end_idx = StringTools::chars_count(&self.buffer);
         self.internal_cursor.x = end_idx;
         self.move_cursor_to(end_idx + 4, None)?;
-        Ok(())
-    }
-
-    pub fn handle_backtab(&mut self) -> std::io::Result<()> {
-        // if one suggestion remains use it
-        // if self.racer.suggestions.len() == 1 {
-        //     self.handle_right()?;
-        // } else {
-        //     self.show_suggestions()?;
-        // }
-        self.show_suggestions()?;
         Ok(())
     }
 }
