@@ -1,5 +1,4 @@
 use std::env::temp_dir;
-use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
@@ -11,7 +10,7 @@ use crate::utils::stdout_and_stderr;
 pub struct CargoCmds {
     tmp_dir: PathBuf,
     irust_dir: PathBuf,
-    main_file: PathBuf,
+    pub main_file: PathBuf,
 }
 impl Default for CargoCmds {
     fn default() -> Self {
@@ -47,10 +46,7 @@ impl CargoCmds {
         Ok(())
     }
 
-    pub fn cargo_run(&self, code: String) -> Result<String, io::Error> {
-        let mut main = File::create(&*self.main_file)?;
-        write!(main, "{}", code)?;
-
+    pub fn cargo_run(&self) -> Result<String, io::Error> {
         Ok(stdout_and_stderr(
             Command::new("cargo")
                 .current_dir(&*self.irust_dir)

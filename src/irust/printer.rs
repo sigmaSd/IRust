@@ -150,6 +150,11 @@ impl IRust {
         }
         self.cursor.reset_position()?;
         self.color.reset()?;
+
+        if c.chars().next().unwrap().is_alphanumeric() {
+            self.show_suggestions()?;
+        }
+
         Ok(())
     }
 

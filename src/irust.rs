@@ -3,6 +3,7 @@ use crossterm::{
 };
 
 use crate::history::History;
+use crate::racer::Racer;
 use crate::repl::Repl;
 mod art;
 mod cursor;
@@ -31,6 +32,7 @@ pub struct IRust {
     internal_cursor: Cursor,
     history: History,
     pub options: Options,
+    racer: Racer,
 }
 
 impl IRust {
@@ -46,6 +48,7 @@ impl IRust {
         let history = History::default();
         let options = Options::new().unwrap_or_default();
         let internal_cursor = Cursor::new(0, 1);
+        let racer = Racer::start().unwrap();
 
         IRust {
             cursor,
@@ -58,6 +61,7 @@ impl IRust {
             history,
             options,
             internal_cursor,
+            racer,
         }
     }
 
@@ -111,6 +115,9 @@ impl IRust {
                     }
                     InputEvent::Keyboard(KeyEvent::End) => {
                         self.go_to_end()?;
+                    }
+                    InputEvent::Keyboard(KeyEvent::BackTab) => {
+                        self.show_suggestions()?;
                     }
                     _ => {}
                 }

@@ -1,7 +1,7 @@
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::IRust;
 use crate::utils::StringTools;
-use crossterm::ClearType;
+use crossterm::{ClearType, Color};
 use std::error::Error;
 
 impl IRust {
@@ -10,6 +10,9 @@ impl IRust {
             self.handle_enter()?
         } else {
             StringTools::insert_at_char_idx(&mut self.buffer, self.internal_cursor.x, c);
+
+            //self.racer.complete();
+
             self.write_insert(c)?;
         }
         Ok(())
@@ -162,6 +165,48 @@ impl IRust {
         let end_idx = StringTools::chars_count(&self.buffer);
         self.internal_cursor.x = end_idx;
         self.move_cursor_to(end_idx + 4, None)?;
+        Ok(())
+    }
+
+    pub fn show_suggestions(&mut self) -> std::io::Result<()> {
+        let mut tmp_repl = self.repl.clone();
+        let y_pos = tmp_repl.body.len();
+        tmp_repl.insert(self.buffer.clone());
+        tmp_repl.write()?;
+
+        self.racer.cursor.0 = y_pos;
+        self.racer.cursor.1 = self.buffer.len() + 1;
+        //dbg!(&self.racer);
+
+        self.racer.complete()?;
+
+        if let Some(suggestion) = self.racer.next_suggestion() {
+            self.color.set_fg(Color::Cyan)?;
+            self.cursor.save_position()?;
+            self.terminal.clear(ClearType::UntilNewLine)?;
+
+            let mut idx = suggestion.len();
+            let mut suggestion = suggestion.to_string();
+            loop {
+                if self.buffer.ends_with(&suggestion[..idx]) {
+                    for _ in 0..idx {
+                        suggestion.remove(0);
+                    }
+
+                    break;
+                }
+                if idx == 0 {
+                    break;
+                }
+
+                idx -= 1;
+            }
+
+            self.terminal.write(&suggestion)?;
+            self.cursor.reset_position()?;
+            self.color.reset()?;
+        }
+
         Ok(())
     }
 }

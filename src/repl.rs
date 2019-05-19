@@ -1,5 +1,5 @@
 use crate::cargo_cmds::CargoCmds;
-use std::io;
+use std::io::{self, Write};
 
 #[derive(Clone)]
 pub struct Repl {
@@ -44,9 +44,9 @@ impl Repl {
         let mut repl = self.clone();
         repl.insert(eval_statement);
 
-        let code = repl.body.join("");
+        repl.write()?;
 
-        Ok(self.cargo_cmds.cargo_run(code)?)
+        Ok(self.cargo_cmds.cargo_run()?)
     }
 
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
@@ -55,5 +55,12 @@ impl Repl {
 
     pub fn build(&self) -> std::io::Result<std::process::Child> {
         self.cargo_cmds.cargo_build()
+    }
+
+    pub fn write(&self) -> io::Result<()> {
+        let mut main_file = std::fs::File::create(&*self.cargo_cmds.main_file)?;
+        write!(main_file, "{}", self.body.join(""))?;
+
+        Ok(())
     }
 }
