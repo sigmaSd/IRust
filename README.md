@@ -31,7 +31,6 @@ You can use arrow keys to cycle through commands history
 
 **BackTab**
 - cycle through auto-completion suggestions (requires [racer](https://github.com/racer-rust/racer))
-- when one suggestions remains backtab will use it
 - when cursor is at line end and right arrow key is pressed, shown suggestion will be used
 
 <img src="./irust.png" width="80%" height="60%">
