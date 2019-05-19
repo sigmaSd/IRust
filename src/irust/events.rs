@@ -181,12 +181,12 @@ impl IRust {
 
     pub fn handle_backtab(&mut self) -> std::io::Result<()> {
         // if one suggestion remains use it
-        if self.racer.suggestions.len() == 1 {
-            self.handle_right()?;
-        } else {
-            self.show_suggestions()?;
-        }
-
+        // if self.racer.suggestions.len() == 1 {
+        //     self.handle_right()?;
+        // } else {
+        //     self.show_suggestions()?;
+        // }
+        self.show_suggestions()?;
         Ok(())
     }
 }

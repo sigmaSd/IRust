@@ -76,6 +76,9 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.3.10**
+- Hotfix to workaround a tab bug for now
+
 **0.3.9**
 - Add Autocompletion support! (via racer)
 
