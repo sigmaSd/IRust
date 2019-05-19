@@ -1,16 +1,14 @@
-use crate::irust::IRust;
-use crate::utils::StringTools;
-use crossterm::ClearType;
 use std::env::temp_dir;
 use std::io::{self, Read, Write};
 use std::process::{Child, Command, Stdio};
+use crate::irust::IRust;
 
 #[derive(Debug)]
 pub struct Racer {
     process: Child,
     main_file: String,
     pub cursor: (usize, usize),
-    pub suggestions: Vec<String>,
+    suggestions: Vec<String>,
     suggestion_idx: usize,
     pub needs_update: bool,
 }

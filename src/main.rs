@@ -2,7 +2,6 @@ mod args;
 mod cargo_cmds;
 mod history;
 mod irust;
-mod racer;
 mod repl;
 mod utils;
 

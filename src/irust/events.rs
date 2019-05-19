@@ -114,6 +114,9 @@ impl IRust {
         if self.buffer.is_empty() {
             self.exit()?;
         } else {
+            // clear suggestion
+            self.clear_from(self.buffer.len() + 4, None)?;
+
             self.buffer.clear();
             self.write_newline()?;
             self.write_in()?;
@@ -176,34 +179,12 @@ impl IRust {
         Ok(())
     }
 
-    pub fn show_suggestions(&mut self) -> std::io::Result<()> {
-        // return if we're not at the end of the line
-        if self.buffer.len() != self.internal_cursor.x {
-            return Ok(());
-        }
-
-        let mut tmp_repl = self.repl.clone();
-        let y_pos = tmp_repl.body.len();
-        tmp_repl.insert(self.buffer.clone());
-        tmp_repl.write()?;
-
-        if self.racer.needs_update {
-            self.racer.cursor.0 = y_pos;
-            self.racer.cursor.1 = self.buffer.len() + 1;
-            self.racer.complete()?;
-        }
-
-        if let Some(suggestion) = self.racer.next_suggestion() {
-            self.color.set_fg(self.options.racer_color)?;
-            self.cursor.save_position()?;
-            self.terminal.clear(ClearType::UntilNewLine)?;
-
-            let mut suggestion = suggestion.to_string();
-            StringTools::strings_unique(&self.buffer, &mut suggestion);
-
-            self.terminal.write(suggestion)?;
-            self.cursor.reset_position()?;
-            self.color.reset()?;
+    pub fn handle_backtab(&mut self) -> std::io::Result<()> {
+        // if one suggestion remains use it
+        if self.racer.suggestions.len() == 1 {
+            self.handle_right()?;
+        } else {
+            self.show_suggestions()?;
         }
 
         Ok(())

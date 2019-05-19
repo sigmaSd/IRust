@@ -3,7 +3,6 @@ use crossterm::{
 };
 
 use crate::history::History;
-use crate::racer::Racer;
 use crate::repl::Repl;
 mod art;
 mod cursor;
@@ -13,10 +12,12 @@ mod help;
 pub mod options;
 mod parser;
 mod printer;
+mod racer;
 mod writer;
 use cursor::Cursor;
 use options::Options;
 use printer::Printer;
+use racer::Racer;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
@@ -117,7 +118,7 @@ impl IRust {
                         self.go_to_end()?;
                     }
                     InputEvent::Keyboard(KeyEvent::BackTab) => {
-                        self.show_suggestions()?;
+                        self.handle_backtab()?;
                     }
                     _ => {}
                 }
