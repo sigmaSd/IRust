@@ -29,6 +29,11 @@ You can use arrow keys to cycle through commands history
 
 **HOME/END** go to line start / line end
 
+**BackTab**
+- cycle through auto-completion suggestions (requires [racer](https://github.com/racer-rust/racer))
+- when one suggestions remains backtab will use it
+- when cursor is at line end and right arrow key is pressed, shown suggestion will be used
+
 <img src="./irust.png" width="80%" height="60%">
 
 ## Cli commands
@@ -64,12 +69,15 @@ IRust config file is located in:
     irust_warn_color = Cyan
     shell_color = DarkYellow
     err_color = DarkRed
+    racer_color = DarkYellow
 
     [Welcome]
     welcome_msg = Welcome to IRust
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.3.9**
+- Add Autocompletion support! (via racer)
 
 **0.3.8**
 - Add cli commands `--help` `--reset-config`
