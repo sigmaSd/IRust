@@ -98,4 +98,12 @@ impl Racer {
 
         Some(suggestion)
     }
+
+    pub fn current_suggestion(&self) -> Option<&String> {
+        if self.suggestion_idx > 1 {
+            self.suggestions.get(self.suggestion_idx - 1)
+        } else {
+            self.suggestions.get(0)
+        }
+    }
 }

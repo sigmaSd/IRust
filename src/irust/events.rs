@@ -1,7 +1,7 @@
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::IRust;
 use crate::utils::StringTools;
-use crossterm::{ClearType, Color};
+use crossterm::ClearType;
 use std::error::Error;
 
 impl IRust {
@@ -16,6 +16,9 @@ impl IRust {
     }
 
     fn handle_enter(&mut self) -> std::io::Result<()> {
+        // clear suggestion
+        self.clear_from(self.buffer.len() + 4, None)?;
+
         // create a new line
         self.write_newline()?;
 
@@ -72,6 +75,9 @@ impl IRust {
     }
 
     pub fn handle_left(&mut self) -> std::io::Result<()> {
+        // clear suggestion
+        self.clear_from(self.buffer.len() + 4, None)?;
+
         if self.internal_cursor.x > 0 {
             self.cursor.move_left(1);
             self.internal_cursor.move_left(1);
@@ -83,6 +89,11 @@ impl IRust {
         if self.internal_cursor.x < StringTools::chars_count(&self.buffer) {
             self.cursor.move_right(1);
             self.internal_cursor.move_right(1);
+        } else if let Some(suggestion) = self.racer.current_suggestion() {
+            let mut suggestion = suggestion.to_string();
+            StringTools::strings_unique(&self.buffer, &mut suggestion);
+            self.write(&suggestion)?;
+            self.buffer.push_str(&suggestion);
         }
         Ok(())
     }
@@ -166,6 +177,11 @@ impl IRust {
     }
 
     pub fn show_suggestions(&mut self) -> std::io::Result<()> {
+        // return if we're not at the end of the line
+        if self.buffer.len() != self.internal_cursor.x {
+            return Ok(());
+        }
+
         let mut tmp_repl = self.repl.clone();
         let y_pos = tmp_repl.body.len();
         tmp_repl.insert(self.buffer.clone());
@@ -174,36 +190,16 @@ impl IRust {
         if self.racer.needs_update {
             self.racer.cursor.0 = y_pos;
             self.racer.cursor.1 = self.buffer.len() + 1;
-
             self.racer.complete()?;
         }
 
         if let Some(suggestion) = self.racer.next_suggestion() {
-            self.color.set_fg(Color::Cyan)?;
+            self.color.set_fg(self.options.racer_color)?;
             self.cursor.save_position()?;
             self.terminal.clear(ClearType::UntilNewLine)?;
 
-            let mut idx = suggestion.len();
             let mut suggestion = suggestion.to_string();
-
-            loop {
-                if !suggestion[..idx].is_empty() && self.buffer.ends_with(&suggestion[..idx]) {
-                    for _ in 0..idx {
-                        suggestion.remove(0);
-                    }
-                    break;
-                }
-                if idx == 0 {
-                    if let Some(last_char) = self.buffer.chars().last() {
-                        if last_char.is_alphanumeric() {
-                            suggestion.clear();
-                        }
-                    }
-                    break;
-                }
-
-                idx -= 1;
-            }
+            StringTools::strings_unique(&self.buffer, &mut suggestion);
 
             self.terminal.write(suggestion)?;
             self.cursor.reset_position()?;

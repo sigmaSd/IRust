@@ -83,7 +83,7 @@ impl IRust {
     }
 
     fn parse_second_order(&mut self) -> std::io::Result<Printer> {
-        if self.buffer.ends_with(';') {
+        if self.buffer.trim_end().ends_with(';') {
             self.repl.insert(self.buffer.clone());
 
             Ok(Printer::default())

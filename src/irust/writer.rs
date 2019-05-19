@@ -51,4 +51,17 @@ impl IRust {
         self.go_to_cursor()?;
         Ok(())
     }
+
+    pub fn clear_from<P: Into<Option<usize>>, U: Into<Option<usize>>>(
+        &mut self,
+        x: P,
+        y: U,
+    ) -> std::io::Result<()> {
+        self.cursor.save_position()?;
+        self.move_cursor_to(x, y)?;
+        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.cursor.reset_position()?;
+
+        Ok(())
+    }
 }

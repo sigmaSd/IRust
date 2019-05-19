@@ -19,6 +19,7 @@ pub struct Options {
     pub insert_color: Color,
     pub welcome_msg: String,
     pub welcome_color: Color,
+    pub racer_color: Color,
 }
 
 impl Default for Options {
@@ -38,6 +39,7 @@ impl Default for Options {
             insert_color: Color::White,
             welcome_msg: String::new(),
             welcome_color: Color::DarkBlue,
+            racer_color: Color::DarkYellow,
         }
     }
 }
@@ -133,6 +135,11 @@ impl Options {
                         options.insert_color = value;
                     }
                 }
+                ("racer_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.racer_color = value;
+                    }
+                }
                 _ => eprintln!("Unknown config option: {} {}", option, value),
             }
         }
@@ -199,6 +206,7 @@ irust_color = DarkBlue
 irust_warn_color = Cyan
 shell_color = DarkYellow
 err_color = DarkRed
+racer_color = DarkYellow
 
 [Welcome]
 welcome_msg = Welcome to IRust
