@@ -10,9 +10,6 @@ impl IRust {
             self.handle_enter()?
         } else {
             StringTools::insert_at_char_idx(&mut self.buffer, self.internal_cursor.x, c);
-
-            //self.racer.complete();
-
             self.write_insert(c)?;
         }
         Ok(())
@@ -174,11 +171,12 @@ impl IRust {
         tmp_repl.insert(self.buffer.clone());
         tmp_repl.write()?;
 
-        self.racer.cursor.0 = y_pos;
-        self.racer.cursor.1 = self.buffer.len() + 1;
-        //dbg!(&self.racer);
+        if self.racer.needs_update {
+            self.racer.cursor.0 = y_pos;
+            self.racer.cursor.1 = self.buffer.len() + 1;
 
-        self.racer.complete()?;
+            self.racer.complete()?;
+        }
 
         if let Some(suggestion) = self.racer.next_suggestion() {
             self.color.set_fg(Color::Cyan)?;
@@ -187,22 +185,27 @@ impl IRust {
 
             let mut idx = suggestion.len();
             let mut suggestion = suggestion.to_string();
+
             loop {
-                if self.buffer.ends_with(&suggestion[..idx]) {
+                if !suggestion[..idx].is_empty() && self.buffer.ends_with(&suggestion[..idx]) {
                     for _ in 0..idx {
                         suggestion.remove(0);
                     }
-
                     break;
                 }
                 if idx == 0 {
+                    if let Some(last_char) = self.buffer.chars().last() {
+                        if last_char.is_alphanumeric() {
+                            suggestion.clear();
+                        }
+                    }
                     break;
                 }
 
                 idx -= 1;
             }
 
-            self.terminal.write(&suggestion)?;
+            self.terminal.write(suggestion)?;
             self.cursor.reset_position()?;
             self.color.reset()?;
         }

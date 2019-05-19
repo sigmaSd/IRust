@@ -151,6 +151,7 @@ impl IRust {
         self.cursor.reset_position()?;
         self.color.reset()?;
 
+        self.racer.needs_update = true;
         if c.chars().next().unwrap().is_alphanumeric() {
             self.show_suggestions()?;
         }
@@ -169,6 +170,8 @@ impl IRust {
 
         self.cursor.reset_position()?;
         self.color.reset()?;
+
+        self.racer.needs_update = true;
 
         Ok(())
     }
