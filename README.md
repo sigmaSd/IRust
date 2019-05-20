@@ -57,6 +57,10 @@ IRust config file is located in:
     add_irust_cmd_to_history = false
     add_shell_cmd_to_history = false
 
+    [Racer]
+    enable_racer = true
+    racer_color = DarkCyan
+
     [Colors]
     insert_color = White
     input_color = Yellow
@@ -68,13 +72,15 @@ IRust config file is located in:
     irust_warn_color = Cyan
     shell_color = DarkYellow
     err_color = DarkRed
-    racer_color = DarkYellow
 
     [Welcome]
     welcome_msg = Welcome to IRust
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.4.1**
+- Racer is now optional
+
 **0.4.0**
 - Use Tab instead of BackTab
 
