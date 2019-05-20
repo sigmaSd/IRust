@@ -1,7 +1,8 @@
 use crate::irust::IRust;
 use crate::utils::VecTools;
 use crossterm::Color;
-use std::io::{Read, Write};
+use std::io::Write;
+mod parser;
 
 #[derive(Clone)]
 pub struct Options {
@@ -19,6 +20,7 @@ pub struct Options {
     pub insert_color: Color,
     pub welcome_msg: String,
     pub welcome_color: Color,
+    pub enable_racer: bool,
     pub racer_color: Color,
 }
 
@@ -39,6 +41,11 @@ impl Default for Options {
             insert_color: Color::White,
             welcome_msg: String::new(),
             welcome_color: Color::DarkBlue,
+
+            #[cfg(unix)]
+            enable_racer: true,
+            #[cfg(windows)]
+            enable_racer: false,
             racer_color: Color::DarkYellow,
         }
     }
@@ -54,113 +61,6 @@ impl Options {
         } else {
             Ok(Options::default())
         }
-    }
-
-    fn parse(mut config_path: std::fs::File) -> std::io::Result<Options> {
-        let mut options = Options::default();
-
-        let config = {
-            let mut config = String::new();
-            config_path.read_to_string(&mut config)?;
-            config
-        };
-
-        let lines: Vec<String> = config
-            .lines()
-            .filter(|l| !l.starts_with('#') && !l.is_empty())
-            .map(ToOwned::to_owned)
-            .collect();
-
-        for (option, value) in Options::get_section(&lines, "[History]".to_string()).into_iter() {
-            match (option.to_lowercase().as_str(), value.clone()) {
-                ("add_irust_cmd_to_history", value) => {
-                    options.add_irust_cmd_to_history = Options::str_to_bool(&value);
-                }
-                ("add_shell_cmd_to_history", value) => {
-                    options.add_shell_cmd_to_history = Options::str_to_bool(&value);;
-                }
-                _ => eprintln!("Unknown config option: {} {}", option, value),
-            }
-        }
-
-        for (option, value) in Options::get_section(&lines, "[Colors]".to_string()).into_iter() {
-            match (option.to_lowercase().as_ref(), value.clone()) {
-                ("ok_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.ok_color = value;
-                    }
-                }
-                ("show_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.show_color = value;
-                    }
-                }
-                ("eval_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.eval_color = value;
-                    }
-                }
-                ("irust_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.irust_color = value;
-                    }
-                }
-                ("irust_warn_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.irust_warn_color = value;
-                    }
-                }
-                ("shell_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.shell_color = value;
-                    }
-                }
-                ("err_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.err_color = value;
-                    }
-                }
-                ("out_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.out_color = value;
-                    }
-                }
-                ("input_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.input_color = value;
-                    }
-                }
-                ("insert_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.insert_color = value;
-                    }
-                }
-                ("racer_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.racer_color = value;
-                    }
-                }
-                _ => eprintln!("Unknown config option: {} {}", option, value),
-            }
-        }
-
-        for (option, value) in Options::get_section(&lines, "[Welcome]".to_string()).into_iter() {
-            match (option.to_lowercase().as_str(), value.clone()) {
-                ("welcome_msg", value) => {
-                    if !value.is_empty() {
-                        options.welcome_msg = value;
-                    }
-                }
-                ("welcome_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.welcome_color = value;
-                    }
-                }
-                _ => eprintln!("Unknown config option: {} {}", option, value),
-            }
-        }
-
-        Ok(options)
     }
 
     pub fn reset_config(config_path: std::path::PathBuf) {
@@ -187,32 +87,6 @@ impl Options {
         write!(config_file, "{}", config)?;
 
         Ok(Options::default())
-    }
-
-    fn default_config() -> String {
-        "\
-[History]
-add_irust_cmd_to_history = false
-add_shell_cmd_to_history = false
-
-[Colors]
-insert_color = White
-input_color = Yellow
-out_color = Red
-ok_color = Blue
-show_color = DarkCyan
-eval_color = White
-irust_color = DarkBlue
-irust_warn_color = Cyan
-shell_color = DarkYellow
-err_color = DarkRed
-racer_color = DarkYellow
-
-[Welcome]
-welcome_msg = Welcome to IRust
-welcome_color = DarkBlue
-"
-        .into()
     }
 }
 

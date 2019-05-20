@@ -33,7 +33,7 @@ pub struct IRust {
     internal_cursor: Cursor,
     history: History,
     pub options: Options,
-    racer: Racer,
+    racer: Option<Racer>,
 }
 
 impl IRust {
@@ -47,9 +47,20 @@ impl IRust {
         let buffer = String::new();
         let repl = Repl::new();
         let history = History::default();
-        let options = Options::new().unwrap_or_default();
         let internal_cursor = Cursor::new(0, 1);
-        let racer = Racer::start().unwrap();
+        let options = Options::new().unwrap_or_default();
+
+        let racer = if options.enable_racer {
+            match Racer::start() {
+                Ok(r) => Some(r),
+                Err(e) => {
+                    eprintln!("Error while starting racer: {}", e);
+                    None
+                }
+            }
+        } else {
+            None
+        };
 
         IRust {
             cursor,

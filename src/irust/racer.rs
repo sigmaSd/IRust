@@ -102,17 +102,29 @@ impl Racer {
         Some(suggestion)
     }
 
-    pub fn current_suggestion(&self) -> Option<&String> {
+    pub fn current_suggestion(&self) -> Option<String> {
         if self.suggestion_idx > 1 {
-            self.suggestions.get(self.suggestion_idx - 1)
+            self.suggestions
+                .get(self.suggestion_idx - 1)
+                .map(ToOwned::to_owned)
         } else {
-            self.suggestions.get(0)
+            self.suggestions.get(0).map(ToOwned::to_owned)
         }
     }
 }
 
 impl IRust {
-    pub fn show_suggestions(&mut self) -> std::io::Result<()> {
+    pub fn show_suggestions(&mut self) {
+        let racer = self.racer.take();
+        if let Some(mut racer) = racer {
+            if self.show_suggestions_inner(&mut racer).is_err() {
+                eprintln!("Something happened while fetching suggestions");
+            }
+            self.racer = Some(racer);
+        }
+    }
+
+    fn show_suggestions_inner(&mut self, mut racer: &mut Racer) -> std::io::Result<()> {
         // return if we're not at the end of the line
         if self.buffer.len() != self.internal_cursor.x {
             return Ok(());
@@ -123,13 +135,13 @@ impl IRust {
         tmp_repl.insert(self.buffer.clone());
         tmp_repl.write()?;
 
-        if self.racer.needs_update {
-            self.racer.cursor.0 = y_pos;
-            self.racer.cursor.1 = self.buffer.len() + 1;
-            self.racer.complete()?;
+        if racer.needs_update {
+            racer.cursor.0 = y_pos;
+            racer.cursor.1 = self.buffer.len() + 1;
+            racer.complete()?;
         }
 
-        if let Some(suggestion) = self.racer.next_suggestion() {
+        if let Some(suggestion) = racer.next_suggestion() {
             self.color.set_fg(self.options.racer_color)?;
             self.cursor.save_position()?;
             self.terminal.clear(ClearType::UntilNewLine)?;
@@ -143,5 +155,13 @@ impl IRust {
         }
 
         Ok(())
+    }
+
+    pub fn racer_needs_update(&mut self, value: bool) {
+        let racer = self.racer.take();
+        if let Some(mut racer) = racer {
+            racer.needs_update = value;
+            self.racer = Some(racer);
+        }
     }
 }
