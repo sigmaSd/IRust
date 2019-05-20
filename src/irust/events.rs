@@ -17,7 +17,7 @@ impl IRust {
         self.racer_needs_update(true);
 
         // clear suggestion
-        self.clear_from(self.buffer.len() + 4, None)?;
+        self.clear_suggestion()?;
 
         // create a new line
         self.write_newline()?;
@@ -83,7 +83,7 @@ impl IRust {
 
     pub fn handle_left(&mut self) -> std::io::Result<()> {
         // clear suggestion
-        self.clear_from(self.buffer.len() + 4, None)?;
+        self.clear_suggestion()?;
 
         if self.internal_cursor.x > 0 {
             self.cursor.move_left(1);
@@ -124,7 +124,7 @@ impl IRust {
             self.exit()?;
         } else {
             // clear suggestion and unvalidate racer cahce
-            self.clear_from(self.buffer.len() + 4, None)?;
+            self.clear_suggestion()?;
             self.racer_needs_update(true);
 
             self.buffer.clear();
@@ -177,7 +177,7 @@ impl IRust {
     }
 
     pub fn go_to_start(&mut self) -> std::io::Result<()> {
-        self.clear_from(self.buffer.len() + 4, None)?;
+        self.clear_suggestion()?;
         self.internal_cursor.x = 0;
         self.move_cursor_to(4, None)?;
         Ok(())

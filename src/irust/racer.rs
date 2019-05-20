@@ -114,6 +114,20 @@ impl Racer {
 }
 
 impl IRust {
+    pub fn start_racer(&mut self) {
+        self.racer = if self.options.enable_racer {
+            match Racer::start() {
+                Ok(r) => Some(r),
+                Err(e) => {
+                    eprintln!("Error while starting racer: {}", e);
+                    None
+                }
+            }
+        } else {
+            None
+        };
+    }
+
     pub fn show_suggestions(&mut self) {
         let racer = self.racer.take();
         if let Some(mut racer) = racer {

@@ -49,18 +49,7 @@ impl IRust {
         let history = History::default();
         let internal_cursor = Cursor::new(0, 1);
         let options = Options::new().unwrap_or_default();
-
-        let racer = if options.enable_racer {
-            match Racer::start() {
-                Ok(r) => Some(r),
-                Err(e) => {
-                    eprintln!("Error while starting racer: {}", e);
-                    None
-                }
-            }
-        } else {
-            None
-        };
+        let racer = None;
 
         IRust {
             cursor,
@@ -79,6 +68,7 @@ impl IRust {
 
     fn prepare(&mut self) -> std::io::Result<()> {
         self.repl.prepare_ground()?;
+        self.start_racer();
         self.welcome()?;
         self.write_in()?;
         Ok(())

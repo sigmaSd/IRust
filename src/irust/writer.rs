@@ -52,7 +52,12 @@ impl IRust {
         Ok(())
     }
 
-    pub fn clear_from<P: Into<Option<usize>>, U: Into<Option<usize>>>(
+    pub fn clear_suggestion(&mut self) -> std::io::Result<()> {
+        self.clear_from(self.buffer.len() + 4, None)?;
+        Ok(())
+    }
+
+    fn clear_from<P: Into<Option<usize>>, U: Into<Option<usize>>>(
         &mut self,
         x: P,
         y: U,
