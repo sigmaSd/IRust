@@ -12,7 +12,6 @@ pub struct Racer {
     pub cursor: (usize, usize),
     pub suggestions: Vec<String>,
     suggestion_idx: usize,
-    pub needs_update: bool,
     cmds: [String; 7],
 }
 
@@ -29,7 +28,7 @@ impl Racer {
             .to_str()
             .unwrap()
             .to_owned();
-        let cursor = (2, 5);
+        let cursor = (2, 0);
         let cmds = [
             "show".to_string(),
             "help".to_string(),
@@ -40,15 +39,17 @@ impl Racer {
             "load".to_string(),
         ];
 
-        Ok(Racer {
+        let mut racer = Racer {
             process,
             main_file,
             cursor,
             suggestions: vec![],
             suggestion_idx: 0,
-            needs_update: true,
             cmds,
-        })
+        };
+        racer.complete_code()?;
+
+        Ok(racer)
     }
 
     pub fn complete_code(&mut self) -> io::Result<()> {
@@ -92,7 +93,6 @@ impl Racer {
             raw_output = raw_output[comman_idx..].to_string();
         }
         self.suggestions = completions;
-        self.needs_update = false;
 
         Ok(())
     }
@@ -139,17 +139,7 @@ impl IRust {
         };
     }
 
-    pub fn show_suggestions(&mut self) {
-        let racer = self.racer.take();
-        if let Some(mut racer) = racer {
-            if self.show_suggestions_inner(&mut racer).is_err() {
-                eprintln!("Something happened while fetching suggestions");
-            }
-            self.racer = Some(racer);
-        }
-    }
-
-    fn show_suggestions_inner(&mut self, mut racer: &mut Racer) -> std::io::Result<()> {
+    pub fn update_suggestions(&mut self) -> std::io::Result<()> {
         // return if we're not at the end of the line
         if self.buffer.len() != self.internal_cursor.x {
             return Ok(());
@@ -160,33 +150,31 @@ impl IRust {
             return Ok(());
         }
 
-        let mut tmp_repl = self.repl.clone();
-        let y_pos = tmp_repl.body.len();
-        tmp_repl.insert(self.buffer.clone());
-        tmp_repl.write()?;
-
-        if racer.needs_update {
-            racer.cursor.0 = y_pos;
-            racer.cursor.1 = self.buffer.len() + 1;
-            self.update_racer(&mut racer)?;
-        }
-
-        if let Some(suggestion) = racer.next_suggestion() {
-            self.write_suggestion(suggestion.to_string())?;
+        let racer = self.racer.take();
+        if let Some(mut racer) = racer {
+            if self.show_suggestions_inner(&mut racer).is_err() {
+                eprintln!("Something happened while fetching suggestions");
+            }
+            self.racer = Some(racer);
         }
 
         Ok(())
     }
 
-    pub fn racer_needs_update(&mut self, value: bool) {
-        let racer = self.racer.take();
-        if let Some(mut racer) = racer {
-            racer.needs_update = value;
-            self.racer = Some(racer);
-        }
+    fn show_suggestions_inner(&mut self, mut racer: &mut Racer) -> std::io::Result<()> {
+        let mut tmp_repl = self.repl.clone();
+        let y_pos = tmp_repl.body.len();
+        tmp_repl.insert(self.buffer.clone());
+        tmp_repl.write()?;
+
+        racer.cursor.0 = y_pos;
+        racer.cursor.1 = self.buffer.len() + 1;
+        self.update_racer(&mut racer)?;
+
+        Ok(())
     }
 
-    pub fn update_racer(&mut self, racer: &mut Racer) -> std::io::Result<()> {
+    fn update_racer(&mut self, racer: &mut Racer) -> std::io::Result<()> {
         if self.buffer.starts_with(':') {
             // Auto complete IRust commands
             racer.suggestions = racer
@@ -203,16 +191,36 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_suggestion(&mut self, mut suggestion: String) -> std::io::Result<()> {
-        self.color.set_fg(self.options.racer_color)?;
-        self.cursor.save_position()?;
-        self.terminal.clear(ClearType::UntilNewLine)?;
+    pub fn write_next_suggestion(&mut self) -> std::io::Result<()> {
+        if self.at_line_end() {
+            if let Some(mut racer) = self.racer.take() {
+                if let Some(suggestion) = racer.next_suggestion() {
+                    let mut suggestion = suggestion.to_string();
+                    self.color.set_fg(self.options.racer_color)?;
+                    self.cursor.save_position()?;
+                    self.terminal.clear(ClearType::UntilNewLine)?;
 
-        StringTools::strings_unique(&self.buffer, &mut suggestion);
+                    StringTools::strings_unique(&self.buffer, &mut suggestion);
+                    self.terminal.write(suggestion)?;
+                    self.cursor.reset_position()?;
+                    self.color.reset()?;
+                }
+                self.racer = Some(racer);
+            }
+        }
 
-        self.terminal.write(suggestion)?;
-        self.cursor.reset_position()?;
-        self.color.reset()?;
+        Ok(())
+    }
+
+    pub fn use_suggestion(&mut self) -> std::io::Result<()> {
+        if let Some(racer) = self.racer.take() {
+            if let Some(mut suggestion) = racer.current_suggestion() {
+                StringTools::strings_unique(&self.buffer, &mut suggestion);
+                self.write(&suggestion)?;
+                self.buffer.push_str(&suggestion);
+                self.racer = Some(racer);
+            }
+        }
 
         Ok(())
     }

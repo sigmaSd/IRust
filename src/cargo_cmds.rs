@@ -42,6 +42,7 @@ impl CargoCmds {
             .current_dir(&*self.tmp_dir)
             .args(&["new", "irust"])
             .output();
+        self.clean_main_file()?;
         self.cargo_build()?.wait()?;
         Ok(())
     }
@@ -56,7 +57,7 @@ impl CargoCmds {
     }
 
     pub fn cargo_add(&self, dep: &[String]) -> io::Result<std::process::Child> {
-        self.soft_clean()?;
+        self.clean_main_file()?;
 
         Ok(Command::new("cargo")
             .current_dir(&*self.irust_dir)
@@ -112,9 +113,9 @@ impl CargoCmds {
         write!(toml_write, "{}", clean).unwrap();
     }
 
-    fn soft_clean(&self) -> io::Result<()> {
+    fn clean_main_file(&self) -> io::Result<()> {
         let mut main = std::fs::File::create(&self.main_file)?;
-        let main_src = "fn main() {}";
+        let main_src = "fn main() {\n\n}";
         write!(main, "{}", main_src)?;
         Ok(())
     }

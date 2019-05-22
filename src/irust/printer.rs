@@ -130,13 +130,15 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_insert(&mut self, c: char) -> std::io::Result<()> {
-        let c = c.to_string();
+    pub fn write_insert(&mut self, c: Option<&str>) -> std::io::Result<()> {
         self.terminal.clear(ClearType::UntilNewLine)?;
 
         self.color.set_fg(self.options.insert_color)?;
 
-        self.write(&c)?;
+        if let Some(c) = c {
+            self.write(c)?;
+        }
+
         self.cursor.save_position()?;
 
         for character in self
@@ -151,24 +153,12 @@ impl IRust {
         self.cursor.reset_position()?;
         self.color.reset()?;
 
-        if c.chars().next().unwrap().is_alphanumeric() {
-            self.show_suggestions();
+        self.update_suggestions()?;
+        if let Some(character) = self.buffer.chars().last() {
+            if character.is_alphanumeric() {
+                self.write_next_suggestion()?;
+            }
         }
-
-        Ok(())
-    }
-
-    pub fn backspace(&mut self) -> std::io::Result<()> {
-        self.terminal.clear(ClearType::UntilNewLine)?;
-        self.cursor.save_position()?;
-        self.color.set_fg(self.options.insert_color)?;
-
-        for character in self.buffer.chars().skip(self.internal_cursor.x) {
-            self.terminal.write(character)?;
-        }
-
-        self.cursor.reset_position()?;
-        self.color.reset()?;
 
         Ok(())
     }

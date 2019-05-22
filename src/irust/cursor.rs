@@ -1,4 +1,5 @@
 use crate::irust::IRust;
+use crate::utils::StringTools;
 
 pub struct Cursor {
     pub x: usize,
@@ -63,5 +64,9 @@ impl IRust {
         self.cursor
             .goto(self.internal_cursor.x as u16, self.internal_cursor.y as u16)?;
         Ok(())
+    }
+
+    pub fn at_line_end(&self) -> bool {
+        self.internal_cursor.x == StringTools::chars_count(&self.buffer)
     }
 }

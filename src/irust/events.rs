@@ -5,16 +5,12 @@ use crossterm::ClearType;
 
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> std::io::Result<()> {
-        self.racer_needs_update(true);
         StringTools::insert_at_char_idx(&mut self.buffer, self.internal_cursor.x, c);
-        self.write_insert(c)?;
+        self.write_insert(Some(&c.to_string()))?;
         Ok(())
     }
 
     pub fn handle_enter(&mut self) -> std::io::Result<()> {
-        // unvalidate racer cache
-        self.racer_needs_update(true);
-
         // clear suggestion
         self.clear_suggestion()?;
 
@@ -32,10 +28,7 @@ impl IRust {
                 self.printer = out;
             }
             Err(e) => {
-                self.printer = Printer::new(PrinterItem::new(
-                    e.to_string(),
-                    PrinterItemType::Err,
-                ));
+                self.printer = Printer::new(PrinterItem::new(e.to_string(), PrinterItemType::Err));
                 self.printer.add_new_line(1);
             }
         }
@@ -54,12 +47,11 @@ impl IRust {
     }
 
     pub fn handle_tab(&mut self) -> std::io::Result<()> {
-        self.show_suggestions();
+        self.write_next_suggestion()?;
         Ok(())
     }
 
     pub fn handle_up(&mut self) -> std::io::Result<()> {
-        self.racer_needs_update(true);
         self.internal_cursor.x = 0;
         self.move_cursor_to(4, None)?;
         self.terminal.clear(ClearType::UntilNewLine)?;
@@ -70,7 +62,6 @@ impl IRust {
     }
 
     pub fn handle_down(&mut self) -> std::io::Result<()> {
-        self.racer_needs_update(true);
         self.internal_cursor.x = 0;
         self.move_cursor_to(4, None)?;
         self.terminal.clear(ClearType::UntilNewLine)?;
@@ -92,16 +83,11 @@ impl IRust {
     }
 
     pub fn handle_right(&mut self) -> std::io::Result<()> {
-        if self.internal_cursor.x < StringTools::chars_count(&self.buffer) {
+        if !self.at_line_end() {
             self.cursor.move_right(1);
             self.internal_cursor.move_right(1);
-        } else if let Some(racer) = self.racer.take() {
-            if let Some(mut suggestion) = racer.current_suggestion() {
-                StringTools::strings_unique(&self.buffer, &mut suggestion);
-                self.write(&suggestion)?;
-                self.buffer.push_str(&suggestion);
-                self.racer = Some(racer);
-            }
+        } else {
+            self.use_suggestion()?;
         }
         Ok(())
     }
@@ -113,7 +99,7 @@ impl IRust {
             if !self.buffer.is_empty() {
                 StringTools::remove_at_char_idx(&mut self.buffer, self.internal_cursor.x);
             }
-            self.backspace()?;
+            self.write_insert(None)?;
         }
         Ok(())
     }
@@ -124,7 +110,6 @@ impl IRust {
         } else {
             // clear suggestion and unvalidate racer cahce
             self.clear_suggestion()?;
-            self.racer_needs_update(true);
 
             self.buffer.clear();
             self.write_newline()?;
@@ -184,8 +169,14 @@ impl IRust {
 
     pub fn go_to_end(&mut self) -> std::io::Result<()> {
         let end_idx = StringTools::chars_count(&self.buffer);
-        self.internal_cursor.x = end_idx;
-        self.move_cursor_to(end_idx + 4, None)?;
+        // Already at the end of the line
+        if self.internal_cursor.x == end_idx {
+            self.use_suggestion()?;
+        } else {
+            self.internal_cursor.x = end_idx;
+            self.move_cursor_to(end_idx + 4, None)?;
+        }
+
         Ok(())
     }
 }
