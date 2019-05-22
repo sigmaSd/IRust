@@ -63,4 +63,20 @@ impl Repl {
 
         Ok(())
     }
+
+    pub fn pop(&mut self) {
+        if self.body.len() > 2 {
+            self.body.remove(self.cursor - 1);
+            self.cursor -= 1;
+        }
+    }
+
+    pub fn del(&mut self, line_num: &str) {
+        if let Ok(line_num) = line_num.parse::<usize>() {
+            if line_num != 0 && line_num + 1 < self.body.len() {
+                self.body.remove(line_num);
+                self.cursor -= 1;
+            }
+        }
+    }
 }

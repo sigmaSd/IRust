@@ -11,15 +11,36 @@ impl IRust {
             ":help" => self.help(),
             ":reset" => self.reset(),
             ":show" => self.show(),
+            ":pop" => self.pop(),
             cmd if cmd.starts_with("::") => self.run_cmd(),
             cmd if cmd.starts_with(":add") => self.add_dep(),
             cmd if cmd.starts_with(":load") => self.load_script(),
+            cmd if cmd.starts_with(":del") => self.del(),
             _ => self.parse_second_order(),
         }
     }
 
     fn reset(&mut self) -> std::io::Result<Printer> {
         self.repl.reset();
+        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+        outputs.add_new_line(2);
+
+        Ok(outputs)
+    }
+
+    fn pop(&mut self) -> std::io::Result<Printer> {
+        self.repl.pop();
+        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+        outputs.add_new_line(2);
+
+        Ok(outputs)
+    }
+
+    fn del(&mut self) -> std::io::Result<Printer> {
+        if let Some(line_num) = self.buffer.split_whitespace().last() {
+            self.repl.del(line_num);
+        }
+
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
         outputs.add_new_line(2);
 
