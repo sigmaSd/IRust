@@ -147,7 +147,7 @@ impl Options {
                 if lines_part.len() == 2 {
                     Some((lines_part[0].to_string(), lines_part[1].to_string()))
                 } else {
-                    eprintln!("Uknown line: {}", line);
+                    eprintln!("Unknown line: {}", line);
                     None
                 }
             })
