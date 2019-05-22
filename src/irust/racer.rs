@@ -172,7 +172,7 @@ impl IRust {
         }
 
         if let Some(suggestion) = racer.next_suggestion() {
-            self.write_sggestion(suggestion.to_string())?;
+            self.write_suggestion(suggestion.to_string())?;
         }
 
         Ok(())
@@ -203,7 +203,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_sggestion(&mut self, mut suggestion: String) -> std::io::Result<()> {
+    pub fn write_suggestion(&mut self, mut suggestion: String) -> std::io::Result<()> {
         self.color.set_fg(self.options.racer_color)?;
         self.cursor.save_position()?;
         self.terminal.clear(ClearType::UntilNewLine)?;

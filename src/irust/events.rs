@@ -2,7 +2,6 @@ use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::IRust;
 use crate::utils::StringTools;
 use crossterm::ClearType;
-use std::error::Error;
 
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> std::io::Result<()> {
