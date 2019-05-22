@@ -13,6 +13,10 @@ Cross Platform Rust Repl
 
 **:load** => load a rust script into the repl
 
+**:pop** => remove last repl code line
+
+**:del** *<line_num>* => remove a specific line from repl code (line count starts at 1 from the first expression statement)
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history
@@ -78,6 +82,9 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.4.2**
+- Add `:pop` `:del` commands
+
 **0.4.1**
 - Racer is now optional
 
