@@ -13,6 +13,7 @@ pub struct Racer {
     pub suggestions: Vec<String>,
     suggestion_idx: usize,
     pub needs_update: bool,
+    cmds: [String; 7],
 }
 
 impl Racer {
@@ -29,6 +30,15 @@ impl Racer {
             .unwrap()
             .to_owned();
         let cursor = (2, 5);
+        let cmds = [
+            "show".to_string(),
+            "help".to_string(),
+            "pop".to_string(),
+            "del".to_string(),
+            "add".to_string(),
+            "reset".to_string(),
+            "load".to_string(),
+        ];
 
         Ok(Racer {
             process,
@@ -37,10 +47,11 @@ impl Racer {
             suggestions: vec![],
             suggestion_idx: 0,
             needs_update: true,
+            cmds,
         })
     }
 
-    pub fn complete(&mut self) -> io::Result<()> {
+    pub fn complete_code(&mut self) -> io::Result<()> {
         let stdin = self.process.stdin.as_mut().unwrap();
         let stdout = self.process.stdout.as_mut().unwrap();
 
@@ -144,6 +155,11 @@ impl IRust {
             return Ok(());
         }
 
+        // dont autocomlete shell commands
+        if self.buffer.starts_with("::") {
+            return Ok(());
+        }
+
         let mut tmp_repl = self.repl.clone();
         let y_pos = tmp_repl.body.len();
         tmp_repl.insert(self.buffer.clone());
@@ -152,20 +168,11 @@ impl IRust {
         if racer.needs_update {
             racer.cursor.0 = y_pos;
             racer.cursor.1 = self.buffer.len() + 1;
-            racer.complete()?;
+            self.update_racer(&mut racer)?;
         }
 
         if let Some(suggestion) = racer.next_suggestion() {
-            self.color.set_fg(self.options.racer_color)?;
-            self.cursor.save_position()?;
-            self.terminal.clear(ClearType::UntilNewLine)?;
-
-            let mut suggestion = suggestion.to_string();
-            StringTools::strings_unique(&self.buffer, &mut suggestion);
-
-            self.terminal.write(suggestion)?;
-            self.cursor.reset_position()?;
-            self.color.reset()?;
+            self.write_sggestion(suggestion.to_string())?;
         }
 
         Ok(())
@@ -177,5 +184,36 @@ impl IRust {
             racer.needs_update = value;
             self.racer = Some(racer);
         }
+    }
+
+    pub fn update_racer(&mut self, racer: &mut Racer) -> std::io::Result<()> {
+        if self.buffer.starts_with(':') {
+            // Auto complete IRust commands
+            racer.suggestions = racer
+                .cmds
+                .iter()
+                .filter(|c| c.starts_with(&self.buffer[1..]))
+                .map(ToOwned::to_owned)
+                .collect();
+        } else {
+            // Auto complete rust code
+            racer.complete_code()?;
+        }
+
+        Ok(())
+    }
+
+    pub fn write_sggestion(&mut self, mut suggestion: String) -> std::io::Result<()> {
+        self.color.set_fg(self.options.racer_color)?;
+        self.cursor.save_position()?;
+        self.terminal.clear(ClearType::UntilNewLine)?;
+
+        StringTools::strings_unique(&self.buffer, &mut suggestion);
+
+        self.terminal.write(suggestion)?;
+        self.cursor.reset_position()?;
+        self.color.reset()?;
+
+        Ok(())
     }
 }
