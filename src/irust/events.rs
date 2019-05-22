@@ -34,7 +34,7 @@ impl IRust {
             }
             Err(e) => {
                 self.printer = Printer::new(PrinterItem::new(
-                    e.description().to_string(),
+                    e.to_string(),
                     PrinterItemType::Err,
                 ));
                 self.printer.add_new_line(1);
