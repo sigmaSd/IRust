@@ -38,7 +38,7 @@ impl IRust {
 
     fn del(&mut self) -> std::io::Result<Printer> {
         if let Some(line_num) = self.buffer.split_whitespace().last() {
-            self.repl.del(line_num);
+            self.repl.del(line_num)?;
         }
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));

@@ -71,12 +71,18 @@ impl Repl {
         }
     }
 
-    pub fn del(&mut self, line_num: &str) {
+    pub fn del(&mut self, line_num: &str) -> std::io::Result<()> {
         if let Ok(line_num) = line_num.parse::<usize>() {
             if line_num != 0 && line_num + 1 < self.body.len() {
                 self.body.remove(line_num);
                 self.cursor -= 1;
+                return Ok(());
             }
         }
+
+        Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "Incorrect line number",
+        ))
     }
 }
