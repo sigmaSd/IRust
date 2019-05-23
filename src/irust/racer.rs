@@ -185,7 +185,7 @@ impl IRust {
                 .collect();
         } else {
             // Auto complete rust code
-            racer.complete_code()?;
+            self.debouncer.run(|| racer.complete_code());
         }
 
         Ok(())
