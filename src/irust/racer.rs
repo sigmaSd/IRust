@@ -87,10 +87,10 @@ impl Racer {
         let mut completions = vec![];
 
         while let Some(match_idx) = raw_output.find("H ") {
-            // if MATCH exists than , exists we can unwrap safly
-            let comman_idx = raw_output[match_idx..].find(',').unwrap() + match_idx;
-            completions.push(raw_output[match_idx + 2..comman_idx].to_owned());
-            raw_output = raw_output[comman_idx..].to_string();
+            // if MATCH exists than , exists we can unwrap safely
+            let command_idx = raw_output[match_idx..].find(',').unwrap() + match_idx;
+            completions.push(raw_output[match_idx + 2..command_idx].to_owned());
+            raw_output = raw_output[command_idx..].to_string();
         }
         self.suggestions = completions;
 
@@ -145,7 +145,7 @@ impl IRust {
             return Ok(());
         }
 
-        // dont autocomlete shell commands
+        // don't autocomplete shell commands
         if self.buffer.starts_with("::") {
             return Ok(());
         }
