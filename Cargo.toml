@@ -9,7 +9,7 @@ repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
 [dependencies]
-crossterm = "0.9.5"
+crossterm = {git = "https://github.com/sigmaSd/crossterm"}
 dirs = "1.0.5"
 
 [target.'cfg(unix)'.dependencies]

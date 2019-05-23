@@ -6,7 +6,6 @@ use crate::history::History;
 use crate::repl::Repl;
 mod art;
 mod cursor;
-mod debouncer;
 mod events;
 mod format;
 mod help;
@@ -16,7 +15,6 @@ mod printer;
 mod racer;
 mod writer;
 use cursor::Cursor;
-use debouncer::Debouncer;
 use options::Options;
 use printer::Printer;
 use racer::Racer;
@@ -36,7 +34,6 @@ pub struct IRust {
     history: History,
     pub options: Options,
     racer: Option<Racer>,
-    debouncer: Debouncer,
 }
 
 impl IRust {
@@ -52,7 +49,6 @@ impl IRust {
         let history = History::default();
         let internal_cursor = Cursor::new(0, 1);
         let options = Options::new().unwrap_or_default();
-        let debouncer = Debouncer::new();
         let racer = None;
 
         IRust {
@@ -67,7 +63,6 @@ impl IRust {
             options,
             internal_cursor,
             racer,
-            debouncer,
         }
     }
 
@@ -124,12 +119,6 @@ impl IRust {
                     }
                     InputEvent::Keyboard(KeyEvent::End) => {
                         self.go_to_end()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::CtrlLeft) => {
-                        self.handle_ctrl_left();
-                    }
-                    InputEvent::Keyboard(KeyEvent::CtrlRight) => {
-                        self.handle_ctrl_right();
                     }
                     _ => {}
                 }
