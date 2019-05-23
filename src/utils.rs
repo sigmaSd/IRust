@@ -45,9 +45,9 @@ pub fn remove_main(script: &mut String) {
 pub struct StringTools {}
 
 impl StringTools {
-    pub fn insert_at_char_idx(buffer: &mut String, idx: usize, charcter: char) {
+    pub fn insert_at_char_idx(buffer: &mut String, idx: usize, character: char) {
         let mut buffer_chars: Vec<char> = buffer.chars().collect();
-        buffer_chars.insert(idx, charcter);
+        buffer_chars.insert(idx, character);
         *buffer = buffer_chars.into_iter().collect();
     }
 

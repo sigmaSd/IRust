@@ -108,7 +108,7 @@ impl IRust {
         if self.buffer.is_empty() {
             self.exit()?;
         } else {
-            // clear suggestion and unvalidate racer cahce
+            // clear suggestion and invalidate racer cache
             self.clear_suggestion()?;
 
             self.buffer.clear();

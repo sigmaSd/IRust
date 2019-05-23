@@ -79,7 +79,6 @@ impl CargoCmds {
 
     fn clean_toml(&self) {
         use std::fs::File;
-        use std::io::Read;
 
         let mut clean = String::new();
 
