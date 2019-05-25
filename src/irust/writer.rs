@@ -13,12 +13,10 @@ impl IRust {
                     let _ = self.write_newline();
                 });
             } else {
-                out.chars().for_each(|c|{
-                    self.terminal.write(c);
-                self.internal_cursor
-                    .move_right();
+                out.chars().for_each(|c| {
+                    let _ = self.terminal.write(c);
+                    let _ = self.move_internal_cursor_right();
                 });
-
             }
         }
         Ok(())

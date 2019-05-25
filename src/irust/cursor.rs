@@ -5,6 +5,7 @@ pub struct Cursor {
     pub y: usize,
     x_offset: usize,
     origin: (usize, usize),
+    pub wrapped_lines: usize,
 }
 impl Cursor {
     pub fn new(x: usize, y: usize, x_offset: usize) -> Self {
@@ -13,6 +14,7 @@ impl Cursor {
             y,
             x_offset,
             origin: (x, y),
+            wrapped_lines: 0,
         }
     }
 
@@ -34,12 +36,17 @@ impl Cursor {
         }
     }
 
+    pub fn get_y(&self) -> usize {
+        self.y + self.wrapped_lines
+    }
+
     pub fn reset(&mut self) {
         *self = Self {
             x: self.origin.0,
             y: self.origin.1,
             x_offset: self.x_offset,
             origin: self.origin,
+            wrapped_lines: 0,
         };
     }
 }
@@ -78,5 +85,29 @@ impl IRust {
 
     pub fn at_line_end(&self) -> bool {
         (self.internal_cursor.x + self.size.0) % self.size.0 == 0
+    }
+
+    pub fn move_internal_cursor_left(&mut self) -> std::io::Result<()> {
+        self.internal_cursor.move_left();
+        if self.at_line_end() {
+            self.internal_cursor.wrapped_lines = self
+                .internal_cursor
+                .wrapped_lines
+                .checked_sub(1)
+                .unwrap_or(0);
+            self.move_cursor_to(self.size.0, self.internal_cursor.get_y())?;
+        }
+
+        Ok(())
+    }
+
+    pub fn move_internal_cursor_right(&mut self) -> std::io::Result<()> {
+        self.internal_cursor.move_right();
+        if self.at_line_end() {
+            self.internal_cursor.wrapped_lines += 1;
+            self.move_cursor_to(0, self.internal_cursor.get_y())?;
+        }
+
+        Ok(())
     }
 }

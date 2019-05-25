@@ -138,14 +138,6 @@ impl IRust {
         if let Some(c) = c {
             // insert
             self.write(c)?;
-        } else {
-            // backspace
-            //dbg!(crate::utils::StringTools::chars_count(&self.buffer));
-            if self.at_line_end() {
-                //dbg!(4);
-                self.internal_cursor.y = self.internal_cursor.y.checked_sub(1).unwrap_or(0);
-                self.move_cursor_to(self.size.0, self.internal_cursor.y)?;
-            }
         }
 
         let mut reset = true;
@@ -169,9 +161,6 @@ impl IRust {
             if reset {
                 self.cursor.reset_position()?;
             }
-        } else if c.is_some() && self.at_line_end() {
-            self.internal_cursor.y += 1;
-            self.move_cursor_to(0, self.internal_cursor.y)?;
         }
         self.color.reset()?;
 

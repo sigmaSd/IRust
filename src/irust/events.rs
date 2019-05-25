@@ -77,7 +77,7 @@ impl IRust {
 
         if self.internal_cursor.get_x() > 0 {
             self.cursor.move_left(1);
-            self.internal_cursor.move_left();
+            self.move_internal_cursor_left()?;
         }
         Ok(())
     }
@@ -85,7 +85,7 @@ impl IRust {
     pub fn handle_right(&mut self) -> std::io::Result<()> {
         if self.buffer.len() != self.internal_cursor.get_x() {
             self.cursor.move_right(1);
-            self.internal_cursor.move_right();
+            self.move_internal_cursor_right()?;
         } else {
             self.use_suggestion()?;
         }
@@ -95,7 +95,7 @@ impl IRust {
     pub fn handle_backspace(&mut self) -> std::io::Result<()> {
         if self.internal_cursor.get_x() > 0 {
             self.cursor.move_left(1);
-            self.internal_cursor.move_left();
+            self.move_internal_cursor_left()?;
             if !self.buffer.is_empty() {
                 StringTools::remove_at_char_idx(&mut self.buffer, self.internal_cursor.get_x());
             }
@@ -163,7 +163,7 @@ impl IRust {
     pub fn go_to_start(&mut self) -> std::io::Result<()> {
         self.clear_suggestion()?;
         self.internal_cursor.x = 4;
-        self.move_cursor_to(4, None)?;
+        self.move_cursor_to(4, self.internal_cursor.y)?;
         Ok(())
     }
 
@@ -174,7 +174,10 @@ impl IRust {
             self.use_suggestion()?;
         } else {
             self.internal_cursor.x = end_idx + 4;
-            self.move_cursor_to(end_idx + 4, None)?;
+            self.move_cursor_to(
+                self.internal_cursor.x % self.size.0,
+                self.internal_cursor.get_y(),
+            )?;
         }
 
         Ok(())
@@ -188,19 +191,19 @@ impl IRust {
         let buffer = self.buffer.chars().collect::<Vec<char>>();
 
         self.cursor.move_left(1);
-        self.internal_cursor.move_left();
+        let _ = self.move_internal_cursor_left();
         if let Some(current_char) = buffer.get(self.internal_cursor.get_x().checked_sub(1)?) {
             match *current_char {
                 ' ' => {
                     while buffer[self.internal_cursor.get_x()] == ' ' {
                         self.cursor.move_left(1);
-                        self.internal_cursor.move_left();
+                        let _ = self.move_internal_cursor_left();
                     }
                 }
                 c if c.is_alphanumeric() => {
                     while buffer[self.internal_cursor.get_x().checked_sub(1)?].is_alphanumeric() {
                         self.cursor.move_left(1);
-                        self.internal_cursor.move_left();
+                        let _ = self.move_internal_cursor_left();
                     }
                 }
 
@@ -209,7 +212,7 @@ impl IRust {
                         && buffer[self.internal_cursor.get_x().checked_sub(1)?] != ' '
                     {
                         self.cursor.move_left(1);
-                        self.internal_cursor.move_left();
+                        let _ = self.move_internal_cursor_left();
                     }
                 }
             }
@@ -221,7 +224,7 @@ impl IRust {
         let buffer = self.buffer.chars().collect::<Vec<char>>();
         if buffer.len() != self.internal_cursor.get_x() {
             self.cursor.move_right(1);
-            self.internal_cursor.move_right();
+            let _ = self.move_internal_cursor_right();
         } else {
             let _ = self.use_suggestion();
         }
@@ -230,10 +233,10 @@ impl IRust {
                 ' ' => {
                     while buffer.get(self.internal_cursor.get_x() + 1) == Some(&' ') {
                         self.cursor.move_right(1);
-                        self.internal_cursor.move_right();
+                        let _ = self.move_internal_cursor_right();
                     }
                     self.cursor.move_right(1);
-                    self.internal_cursor.move_right();
+                    let _ = self.move_internal_cursor_right();
                 }
                 c if c.is_alphanumeric() => {
                     while let Some(character) = buffer.get(self.internal_cursor.get_x()) {
@@ -241,7 +244,7 @@ impl IRust {
                             break;
                         }
                         self.cursor.move_right(1);
-                        self.internal_cursor.move_right();
+                        let _ = self.move_internal_cursor_right();
                     }
                 }
 
@@ -251,7 +254,7 @@ impl IRust {
                             break;
                         }
                         self.cursor.move_right(1);
-                        self.internal_cursor.move_right();
+                        let _ = self.move_internal_cursor_right();
                     }
                 }
             }
