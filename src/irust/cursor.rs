@@ -66,7 +66,12 @@ impl IRust {
         Ok(())
     }
 
-    pub fn at_line_end(&self) -> bool {
-        self.internal_cursor.x == StringTools::chars_count(&self.buffer)
+    pub fn at_line_start(&self) -> bool {
+        (self.internal_cursor.x + self.size.0) % self.size.0 == 1
     }
+
+    pub fn at_line_end(&self) -> bool {
+        (self.internal_cursor.x + self.size.0) % self.size.0 == 0
+    }
+
 }

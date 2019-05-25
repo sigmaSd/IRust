@@ -37,6 +37,7 @@ pub struct IRust {
     pub options: Options,
     racer: Option<Racer>,
     debouncer: Debouncer,
+    size: (usize, usize),
 }
 
 impl IRust {
@@ -54,6 +55,10 @@ impl IRust {
         let options = Options::new().unwrap_or_default();
         let debouncer = Debouncer::new();
         let racer = None;
+        let size = {
+            let (width, height) = terminal.terminal_size();
+            (width as usize, height as usize)
+        };
 
         IRust {
             cursor,
@@ -68,6 +73,7 @@ impl IRust {
             internal_cursor,
             racer,
             debouncer,
+            size,
         }
     }
 

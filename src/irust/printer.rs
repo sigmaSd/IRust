@@ -125,7 +125,8 @@ impl IRust {
         self.move_cursor_to(0, None)?;
         self.terminal.clear(ClearType::UntilNewLine)?;
         self.color.set_fg(self.options.input_color)?;
-        self.terminal.write(IN)?;
+        self.buffer.push_str(IN);
+        self.write(IN)?;
         self.color.reset()?;
         Ok(())
     }
@@ -136,22 +137,50 @@ impl IRust {
         self.color.set_fg(self.options.insert_color)?;
 
         if let Some(c) = c {
+            // insert
             self.write(c)?;
+        } else {
+            // backspace
+            //dbg!(crate::utils::StringTools::chars_count(&self.buffer));
+            if self.at_line_end() {
+                //dbg!(4);
+                self.internal_cursor.y = self.internal_cursor.y.checked_sub(1).unwrap_or(0);
+                self.move_cursor_to(self.size.0, self.internal_cursor.y)?;
+
+            }
         }
 
-        self.cursor.save_position()?;
+        let mut reset = true;
+        if !self.at_line_end() {
+            self.cursor.save_position()?;
 
-        for character in self
-            .buffer
-            .chars()
-            .skip(self.internal_cursor.x)
-            .collect::<Vec<char>>()
-            .iter()
-        {
-            self.terminal.write(&character.to_string())?;
+            for (idx, character) in self
+                .buffer
+                .chars()
+                .skip(self.internal_cursor.x)
+                .collect::<Vec<char>>()
+                .iter()
+                .enumerate()
+            {
+                self.terminal.write(&character.to_string())?;
+                if self.at_line_end() {
+                    reset = false;
+                    self.internal_cursor.y += 1;
+                    self.move_cursor_to(0, self.internal_cursor.y)?;
+                }
+            }
+            if reset {
+                self.cursor.reset_position()?;
+            }
+
+            self.color.reset()?;
+        } else {
+            if self.at_line_end() && c.is_some() {
+                    self.internal_cursor.y += 1;
+                    self.move_cursor_to(0, self.internal_cursor.y)?;
+            }
         }
-        self.cursor.reset_position()?;
-        self.color.reset()?;
+
 
         self.update_suggestions()?;
         if let Some(character) = self.buffer.chars().last() {

@@ -9,7 +9,7 @@ repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
 [dependencies]
-crossterm = {git = "https://github.com/sigmaSd/crossterm"}
+crossterm = {path = "../crossterm_fork"}
 dirs = "1.0.5"
 
 [target.'cfg(unix)'.dependencies]
