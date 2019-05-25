@@ -187,8 +187,8 @@ impl IRust {
 
         let buffer = self.buffer.chars().collect::<Vec<char>>();
 
-        self.cursor.move_left(1);
-        self.internal_cursor.move_left(1);
+        self.cursor.move_left(2);
+        self.internal_cursor.move_left(2);
         if let Some(current_char) = buffer.get(self.internal_cursor.x) {
             match *current_char {
                 ' ' => {
@@ -219,6 +219,10 @@ impl IRust {
 
     pub fn handle_ctrl_right(&mut self) {
         let buffer = self.buffer.chars().collect::<Vec<char>>();
+        if !self.at_line_end() {
+            self.cursor.move_right(1);
+            self.internal_cursor.move_right(1);
+        }
         if let Some(current_char) = buffer.get(self.internal_cursor.x) {
             match *current_char {
                 ' ' => {
