@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-const WAIT_TIMEOUT: u64 = 50;
+const WAIT_TIMEOUT: u64 = 110;
 
 pub struct Debouncer {
     timer: Instant,
@@ -13,10 +13,17 @@ impl Debouncer {
         }
     }
 
-    pub fn run(&mut self, mut function: impl FnMut() -> std::io::Result<()>) {
+    pub fn check(&mut self) -> Result<(), ()> {
         if self.timer.elapsed() >= Duration::from_millis(WAIT_TIMEOUT) {
-            let _ = function();
+            self.reset_timer();
+            Ok(())
+        } else {
+            self.reset_timer();
+            Err(())
         }
+    }
+
+    pub fn reset_timer(&mut self) {
         self.timer = Instant::now();
     }
 }

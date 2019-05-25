@@ -47,6 +47,8 @@ impl IRust {
     }
 
     pub fn handle_tab(&mut self) -> std::io::Result<()> {
+        self.update_suggestions()?;
+        self.lock_racer_update();
         self.write_next_suggestion()?;
         Ok(())
     }

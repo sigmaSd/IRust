@@ -153,6 +153,11 @@ impl IRust {
         self.cursor.reset_position()?;
         self.color.reset()?;
 
+        // debounce from update calls
+        if self.debouncer.check().is_err() {
+            return Ok(());
+        }
+        self.unlock_racer_update();
         self.update_suggestions()?;
         if let Some(character) = self.buffer.chars().last() {
             if character.is_alphanumeric() {

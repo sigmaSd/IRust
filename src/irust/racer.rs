@@ -13,6 +13,7 @@ pub struct Racer {
     pub suggestions: Vec<String>,
     suggestion_idx: usize,
     cmds: [String; 7],
+    update_lock: bool,
 }
 
 impl Racer {
@@ -46,6 +47,7 @@ impl Racer {
             suggestions: vec![],
             suggestion_idx: 0,
             cmds,
+            update_lock: false,
         };
         racer.complete_code()?;
 
@@ -53,6 +55,10 @@ impl Racer {
     }
 
     pub fn complete_code(&mut self) -> io::Result<()> {
+        if self.update_lock {
+            return Ok(());
+        }
+
         let stdin = self.process.stdin.as_mut().unwrap();
         let stdout = self.process.stdout.as_mut().unwrap();
 
@@ -185,7 +191,7 @@ impl IRust {
                 .collect();
         } else {
             // Auto complete rust code
-            self.debouncer.run(|| racer.complete_code());
+            racer.complete_code()?;
         }
 
         Ok(())
@@ -223,5 +229,19 @@ impl IRust {
         }
 
         Ok(())
+    }
+
+    pub fn lock_racer_update(&mut self) {
+        if let Some(mut racer) = self.racer.take() {
+            racer.update_lock = true;
+            self.racer = Some(racer);
+        }
+    }
+
+    pub fn unlock_racer_update(&mut self) {
+        if let Some(mut racer) = self.racer.take() {
+            racer.update_lock = false;
+            self.racer = Some(racer);
+        }
     }
 }
