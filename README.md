@@ -82,6 +82,9 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.4.4**
+- Some improvement to autocompletion
+
 **0.4.3**
 - Autocomplete IRust commands
 - Debounce from Racer calls
