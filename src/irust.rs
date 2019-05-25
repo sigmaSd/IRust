@@ -51,7 +51,7 @@ impl IRust {
         let buffer = String::new();
         let repl = Repl::new();
         let history = History::default();
-        let internal_cursor = Cursor::new(0, 1);
+        let internal_cursor = Cursor::new(0, 1, 4);
         let options = Options::new().unwrap_or_default();
         let debouncer = Debouncer::new();
         let racer = None;

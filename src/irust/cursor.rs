@@ -1,27 +1,36 @@
 use crate::irust::IRust;
-use crate::utils::StringTools;
 
 pub struct Cursor {
     pub x: usize,
     pub y: usize,
+    x_offset: usize,
     origin: (usize, usize),
 }
 impl Cursor {
-    pub fn new(x: usize, y: usize) -> Self {
+    pub fn new(x: usize, y: usize, x_offset: usize) -> Self {
         Self {
             x,
             y,
+            x_offset,
             origin: (x, y),
         }
     }
 
-    pub fn move_right(&mut self, step: usize) {
-        self.x += step;
+    pub fn move_right(&mut self) {
+        self.x += 1;
     }
 
-    pub fn move_left(&mut self, step: usize) {
+    pub fn move_left(&mut self) {
         if self.x != 0 {
-            self.x -= step
+            self.x -= 1
+        }
+    }
+
+    pub fn get_x(&self) -> usize {
+        if self.x >= self.x_offset {
+            self.x - self.x_offset
+        } else {
+            0
         }
     }
 
@@ -29,6 +38,7 @@ impl Cursor {
         *self = Self {
             x: self.origin.0,
             y: self.origin.1,
+            x_offset: self.x_offset,
             origin: self.origin,
         };
     }
@@ -66,12 +76,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn at_line_start(&self) -> bool {
-        (self.internal_cursor.x + self.size.0) % self.size.0 == 1
-    }
-
     pub fn at_line_end(&self) -> bool {
         (self.internal_cursor.x + self.size.0) % self.size.0 == 0
     }
-
 }

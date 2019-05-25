@@ -13,9 +13,12 @@ impl IRust {
                     let _ = self.write_newline();
                 });
             } else {
-                self.terminal.write(out)?;
+                out.chars().for_each(|c|{
+                    self.terminal.write(c);
                 self.internal_cursor
-                    .move_right(StringTools::chars_count(&out));
+                    .move_right();
+                });
+
             }
         }
         Ok(())
@@ -39,7 +42,6 @@ impl IRust {
     }
 
     fn write_str(&mut self, s: &str) -> std::io::Result<()> {
-        self.terminal.clear(ClearType::UntilNewLine)?;
         self.write(s)?;
         Ok(())
     }
@@ -53,7 +55,7 @@ impl IRust {
     }
 
     pub fn clear_suggestion(&mut self) -> std::io::Result<()> {
-        self.clear_from(self.buffer.len() + 4, None)?;
+        self.clear_from(StringTools::chars_count(&self.buffer) + 4, None)?;
         Ok(())
     }
 

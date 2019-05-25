@@ -125,7 +125,6 @@ impl IRust {
         self.move_cursor_to(0, None)?;
         self.terminal.clear(ClearType::UntilNewLine)?;
         self.color.set_fg(self.options.input_color)?;
-        self.buffer.push_str(IN);
         self.write(IN)?;
         self.color.reset()?;
         Ok(())
@@ -146,7 +145,6 @@ impl IRust {
                 //dbg!(4);
                 self.internal_cursor.y = self.internal_cursor.y.checked_sub(1).unwrap_or(0);
                 self.move_cursor_to(self.size.0, self.internal_cursor.y)?;
-
             }
         }
 
@@ -154,13 +152,12 @@ impl IRust {
         if !self.at_line_end() {
             self.cursor.save_position()?;
 
-            for (idx, character) in self
+            for character in self
                 .buffer
                 .chars()
                 .skip(self.internal_cursor.x)
                 .collect::<Vec<char>>()
                 .iter()
-                .enumerate()
             {
                 self.terminal.write(&character.to_string())?;
                 if self.at_line_end() {
@@ -172,15 +169,11 @@ impl IRust {
             if reset {
                 self.cursor.reset_position()?;
             }
-
-            self.color.reset()?;
-        } else {
-            if self.at_line_end() && c.is_some() {
-                    self.internal_cursor.y += 1;
-                    self.move_cursor_to(0, self.internal_cursor.y)?;
-            }
+        } else if c.is_some() && self.at_line_end() {
+            self.internal_cursor.y += 1;
+            self.move_cursor_to(0, self.internal_cursor.y)?;
         }
-
+        self.color.reset()?;
 
         self.update_suggestions()?;
         if let Some(character) = self.buffer.chars().last() {

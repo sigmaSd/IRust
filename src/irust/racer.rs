@@ -141,7 +141,7 @@ impl IRust {
 
     pub fn update_suggestions(&mut self) -> std::io::Result<()> {
         // return if we're not at the end of the line
-        if self.buffer.len() != self.internal_cursor.x {
+        if self.buffer.len() != self.internal_cursor.get_x() {
             return Ok(());
         }
 
@@ -192,7 +192,7 @@ impl IRust {
     }
 
     pub fn write_next_suggestion(&mut self) -> std::io::Result<()> {
-        if self.at_line_end() {
+        if self.buffer.len() == self.internal_cursor.get_x() {
             if let Some(mut racer) = self.racer.take() {
                 if let Some(suggestion) = racer.next_suggestion() {
                     let mut suggestion = suggestion.to_string();

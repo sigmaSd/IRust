@@ -33,17 +33,18 @@ impl IRust {
         mut add_cmd: std::process::Child,
         msg: &str,
     ) -> std::io::Result<std::process::ExitStatus> {
+        self.write_str_at(&format!(" {}ing dep [\\]", msg), 0, None)?;
         loop {
             match add_cmd.try_wait() {
                 Ok(None) => {
-                    self.write_str_at(&format!(" {}ing dep [\\]", msg), 0, None)?;
-                    self.write_str_at(&format!(" {}ing dep [|]", msg), 0, None)?;
-                    self.write_str_at(&format!(" {}ing dep [/]", msg), 0, None)?;
-                    self.write_str_at(&format!(" {}ing dep [-]", msg), 0, None)?;
-                    self.write_str_at(&format!(" {}ing dep [\\]", msg), 0, None)?;
-                    self.write_str_at(&format!(" {}ing dep [|]", msg), 0, None)?;
-                    self.write_str_at(&format!(" {}ing dep [/]", msg), 0, None)?;
-                    self.write_str_at(&format!(" {}ing dep [-]", msg), 0, None)?;
+                    self.write_str_at("\\", msg.len() + 10, None)?;
+                    self.write_str_at("|", msg.len() + 10, None)?;
+                    self.write_str_at("/", msg.len() + 10, None)?;
+                    self.write_str_at("-", msg.len() + 10, None)?;
+                    self.write_str_at("\\", msg.len() + 10, None)?;
+                    self.write_str_at("|", msg.len() + 10, None)?;
+                    self.write_str_at("/", msg.len() + 10, None)?;
+                    self.write_str_at("-", msg.len() + 10, None)?;
                     continue;
                 }
                 Err(e) => {

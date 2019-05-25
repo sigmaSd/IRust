@@ -5,7 +5,7 @@ use crossterm::ClearType;
 
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> std::io::Result<()> {
-        StringTools::insert_at_char_idx(&mut self.buffer, self.internal_cursor.x, c);
+        StringTools::insert_at_char_idx(&mut self.buffer, self.internal_cursor.get_x(), c);
         self.write_insert(Some(&c.to_string()))?;
         Ok(())
     }
@@ -75,17 +75,17 @@ impl IRust {
         // clear suggestion
         self.clear_suggestion()?;
 
-        if self.internal_cursor.x > 0 {
+        if self.internal_cursor.get_x() > 0 {
             self.cursor.move_left(1);
-            self.internal_cursor.move_left(1);
+            self.internal_cursor.move_left();
         }
         Ok(())
     }
 
     pub fn handle_right(&mut self) -> std::io::Result<()> {
-        if !self.at_line_end() {
+        if self.buffer.len() != self.internal_cursor.get_x() {
             self.cursor.move_right(1);
-            self.internal_cursor.move_right(1);
+            self.internal_cursor.move_right();
         } else {
             self.use_suggestion()?;
         }
@@ -93,11 +93,11 @@ impl IRust {
     }
 
     pub fn handle_backspace(&mut self) -> std::io::Result<()> {
-        if self.internal_cursor.x > 0 {
+        if self.internal_cursor.get_x() > 0 {
             self.cursor.move_left(1);
-            self.internal_cursor.move_left(1);
+            self.internal_cursor.move_left();
             if !self.buffer.is_empty() {
-                StringTools::remove_at_char_idx(&mut self.buffer, self.internal_cursor.x);
+                StringTools::remove_at_char_idx(&mut self.buffer, self.internal_cursor.get_x());
             }
             self.write_insert(None)?;
         }
@@ -162,7 +162,7 @@ impl IRust {
 
     pub fn go_to_start(&mut self) -> std::io::Result<()> {
         self.clear_suggestion()?;
-        self.internal_cursor.x = 0;
+        self.internal_cursor.x = 4;
         self.move_cursor_to(4, None)?;
         Ok(())
     }
@@ -170,10 +170,10 @@ impl IRust {
     pub fn go_to_end(&mut self) -> std::io::Result<()> {
         let end_idx = StringTools::chars_count(&self.buffer);
         // Already at the end of the line
-        if self.internal_cursor.x == end_idx {
+        if self.internal_cursor.get_x() == end_idx {
             self.use_suggestion()?;
         } else {
-            self.internal_cursor.x = end_idx;
+            self.internal_cursor.x = end_idx + 4;
             self.move_cursor_to(end_idx + 4, None)?;
         }
 
@@ -181,35 +181,35 @@ impl IRust {
     }
 
     pub fn handle_ctrl_left(&mut self) -> Option<()> {
-        if self.internal_cursor.x < 1 {
+        if self.internal_cursor.get_x() < 1 {
             return Some(());
         }
 
         let buffer = self.buffer.chars().collect::<Vec<char>>();
 
-        self.cursor.move_left(2);
-        self.internal_cursor.move_left(2);
-        if let Some(current_char) = buffer.get(self.internal_cursor.x) {
+        self.cursor.move_left(1);
+        self.internal_cursor.move_left();
+        if let Some(current_char) = buffer.get(self.internal_cursor.get_x().checked_sub(1)?) {
             match *current_char {
                 ' ' => {
-                    while buffer[self.internal_cursor.x.checked_sub(1)?] == ' ' {
+                    while buffer[self.internal_cursor.get_x()] == ' ' {
                         self.cursor.move_left(1);
-                        self.internal_cursor.move_left(1);
+                        self.internal_cursor.move_left();
                     }
                 }
                 c if c.is_alphanumeric() => {
-                    while buffer[self.internal_cursor.x.checked_sub(1)?].is_alphanumeric() {
+                    while buffer[self.internal_cursor.get_x().checked_sub(1)?].is_alphanumeric() {
                         self.cursor.move_left(1);
-                        self.internal_cursor.move_left(1);
+                        self.internal_cursor.move_left();
                     }
                 }
 
                 _ => {
-                    while !buffer[self.internal_cursor.x.checked_sub(1)?].is_alphanumeric()
-                        && buffer[self.internal_cursor.x.checked_sub(1)?] != ' '
+                    while !buffer[self.internal_cursor.get_x().checked_sub(1)?].is_alphanumeric()
+                        && buffer[self.internal_cursor.get_x().checked_sub(1)?] != ' '
                     {
                         self.cursor.move_left(1);
-                        self.internal_cursor.move_left(1);
+                        self.internal_cursor.move_left();
                     }
                 }
             }
@@ -219,37 +219,39 @@ impl IRust {
 
     pub fn handle_ctrl_right(&mut self) {
         let buffer = self.buffer.chars().collect::<Vec<char>>();
-        if !self.at_line_end() {
+        if buffer.len() != self.internal_cursor.get_x() {
             self.cursor.move_right(1);
-            self.internal_cursor.move_right(1);
+            self.internal_cursor.move_right();
+        } else {
+            let _ = self.use_suggestion();
         }
-        if let Some(current_char) = buffer.get(self.internal_cursor.x) {
+        if let Some(current_char) = buffer.get(self.internal_cursor.get_x()) {
             match *current_char {
                 ' ' => {
-                    while buffer.get(self.internal_cursor.x + 1) == Some(&' ') {
+                    while buffer.get(self.internal_cursor.get_x() + 1) == Some(&' ') {
                         self.cursor.move_right(1);
-                        self.internal_cursor.move_right(1);
+                        self.internal_cursor.move_right();
                     }
                     self.cursor.move_right(1);
-                    self.internal_cursor.move_right(1);
+                    self.internal_cursor.move_right();
                 }
                 c if c.is_alphanumeric() => {
-                    while let Some(character) = buffer.get(self.internal_cursor.x) {
+                    while let Some(character) = buffer.get(self.internal_cursor.get_x()) {
                         if !character.is_alphanumeric() {
                             break;
                         }
                         self.cursor.move_right(1);
-                        self.internal_cursor.move_right(1);
+                        self.internal_cursor.move_right();
                     }
                 }
 
                 _ => {
-                    while let Some(character) = buffer.get(self.internal_cursor.x) {
+                    while let Some(character) = buffer.get(self.internal_cursor.get_x()) {
                         if character.is_alphanumeric() || *character == ' ' {
                             break;
                         }
                         self.cursor.move_right(1);
-                        self.internal_cursor.move_right(1);
+                        self.internal_cursor.move_right();
                     }
                 }
             }
