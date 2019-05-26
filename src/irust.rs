@@ -37,6 +37,7 @@ pub struct IRust {
     pub options: Options,
     racer: Option<Racer>,
     debouncer: Debouncer,
+    size: (usize, usize),
 }
 
 impl IRust {
@@ -50,10 +51,14 @@ impl IRust {
         let buffer = String::new();
         let repl = Repl::new();
         let history = History::default();
-        let internal_cursor = Cursor::new(0, 1);
+        let internal_cursor = Cursor::new(0, 1, 4);
         let options = Options::new().unwrap_or_default();
         let debouncer = Debouncer::new();
         let racer = None;
+        let size = {
+            let (width, height) = terminal.terminal_size();
+            (width as usize, height as usize)
+        };
 
         IRust {
             cursor,
@@ -68,6 +73,7 @@ impl IRust {
             internal_cursor,
             racer,
             debouncer,
+            size,
         }
     }
 
@@ -117,13 +123,19 @@ impl IRust {
                         self.handle_ctrl_z()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Ctrl('l')) => {
-                        self.clear()?;
+                        self.handle_ctrl_l()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Home) => {
                         self.go_to_start()?;
                     }
                     InputEvent::Keyboard(KeyEvent::End) => {
                         self.go_to_end()?;
+                    }
+                    InputEvent::Keyboard(KeyEvent::CtrlLeft) => {
+                        self.handle_ctrl_left();
+                    }
+                    InputEvent::Keyboard(KeyEvent::CtrlRight) => {
+                        self.handle_ctrl_right();
                     }
                     _ => {}
                 }

@@ -13,9 +13,10 @@ impl IRust {
                     let _ = self.write_newline();
                 });
             } else {
-                self.terminal.write(out)?;
-                self.internal_cursor
-                    .move_right(StringTools::chars_count(&out));
+                out.chars().for_each(|c| {
+                    let _ = self.terminal.write(c);
+                    let _ = self.move_internal_cursor_right();
+                });
             }
         }
         Ok(())
@@ -34,12 +35,6 @@ impl IRust {
         y: U,
     ) -> std::io::Result<()> {
         self.move_cursor_to(x, y)?;
-        self.write_str(s)?;
-        Ok(())
-    }
-
-    fn write_str(&mut self, s: &str) -> std::io::Result<()> {
-        self.terminal.clear(ClearType::UntilNewLine)?;
         self.write(s)?;
         Ok(())
     }
@@ -53,7 +48,13 @@ impl IRust {
     }
 
     pub fn clear_suggestion(&mut self) -> std::io::Result<()> {
-        self.clear_from(self.buffer.len() + 4, None)?;
+        if self.at_line_end() {
+            self.clear_from(
+                self.internal_cursor.x,
+                self.internal_cursor.get_corrected_y(),
+            )?;
+        }
+
         Ok(())
     }
 
@@ -64,8 +65,23 @@ impl IRust {
     ) -> std::io::Result<()> {
         self.cursor.save_position()?;
         self.move_cursor_to(x, y)?;
-        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.terminal.clear(ClearType::FromCursorDown)?;
         self.cursor.reset_position()?;
+
+        Ok(())
+    }
+
+    pub fn clear(&mut self) -> std::io::Result<()> {
+        self.terminal.clear(ClearType::All)?;
+        self.internal_cursor.reset();
+        self.internal_cursor.y = 0;
+        self.go_to_cursor()?;
+
+        if !self.buffer.is_empty() {
+            // Input phase
+            self.write_in()?;
+            self.write(&self.buffer.clone())?;
+        }
 
         Ok(())
     }

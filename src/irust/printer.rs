@@ -114,7 +114,17 @@ impl IRust {
                 }
             };
             self.color.set_fg(color)?;
-            self.write(&output.string)?;
+            if !output.string.is_empty() {
+                if crate::utils::StringTools::is_multiline(&output.string) {
+                    let _ = self.write_newline();
+                    output.string.split('\n').for_each(|o| {
+                        let _ = self.terminal.write(o);
+                        let _ = self.write_newline();
+                    });
+                } else {
+                    self.terminal.write(&output.string)?;
+                }
+            }
         }
 
         Ok(())
@@ -123,34 +133,38 @@ impl IRust {
     pub fn write_in(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 0;
         self.move_cursor_to(0, None)?;
-        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.terminal.clear(ClearType::FromCursorDown)?;
         self.color.set_fg(self.options.input_color)?;
         self.terminal.write(IN)?;
+        self.internal_cursor.x = 4;
         self.color.reset()?;
         Ok(())
     }
 
     pub fn write_insert(&mut self, c: Option<&str>) -> std::io::Result<()> {
-        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.terminal.clear(ClearType::FromCursorDown)?;
 
         self.color.set_fg(self.options.insert_color)?;
 
         if let Some(c) = c {
+            // insert
             self.write(c)?;
         }
 
-        self.cursor.save_position()?;
+        if !self.at_line_end() {
+            self.cursor.save_position()?;
 
-        for character in self
-            .buffer
-            .chars()
-            .skip(self.internal_cursor.x)
-            .collect::<Vec<char>>()
-            .iter()
-        {
-            self.terminal.write(&character.to_string())?;
+            for character in self
+                .buffer
+                .chars()
+                .skip(self.internal_cursor.get_corrected_x())
+                .collect::<Vec<char>>()
+                .iter()
+            {
+                self.terminal.write(&character.to_string())?;
+            }
+            self.cursor.reset_position()?;
         }
-        self.cursor.reset_position()?;
         self.color.reset()?;
 
         // debounce from update calls
