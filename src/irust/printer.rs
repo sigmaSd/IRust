@@ -142,6 +142,7 @@ impl IRust {
     }
 
     pub fn write_insert(&mut self, c: Option<&str>) -> std::io::Result<()> {
+        self.update_total_wrapped_lines();
         self.terminal.clear(ClearType::FromCursorDown)?;
 
         self.color.set_fg(self.options.insert_color)?;
@@ -153,7 +154,7 @@ impl IRust {
 
         if !self.at_line_end() {
             self.cursor.save_position()?;
-
+            let last_cursor_pos = self.internal_cursor.clone();
             for character in self
                 .buffer
                 .chars()
@@ -161,8 +162,9 @@ impl IRust {
                 .collect::<Vec<char>>()
                 .iter()
             {
-                self.terminal.write(&character.to_string())?;
+                self.write(&character.to_string())?;
             }
+            self.internal_cursor = last_cursor_pos;
             self.cursor.reset_position()?;
         }
         self.color.reset()?;

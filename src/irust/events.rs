@@ -194,22 +194,15 @@ impl IRust {
     }
 
     pub fn go_to_end(&mut self) -> std::io::Result<()> {
-        let end_idx = StringTools::chars_count(&self.buffer);
         // Already at the end of the line
-        if self.internal_cursor.get_corrected_x() == end_idx {
+        if self.at_line_end() {
             self.use_suggestion()?;
         } else {
-            self.internal_cursor.x = end_idx + 4;
+            self.internal_cursor.x =
+                StringTools::chars_count(&self.buffer) + self.internal_cursor.x_offset;
             self.internal_cursor.current_wrapped_lines = self.internal_cursor.total_wrapped_lines;
             self.move_cursor_to(
-                {
-                    let x = self.internal_cursor.x % self.size.0;
-                    if self.internal_cursor.x <= self.size.0 {
-                        x
-                    } else {
-                        x - 1
-                    }
-                },
+                { self.internal_cursor.x % self.size.0 },
                 self.internal_cursor.y + self.internal_cursor.total_wrapped_lines,
             )?;
         }
