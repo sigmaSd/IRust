@@ -35,6 +35,11 @@ impl IRust {
         y: U,
     ) -> std::io::Result<()> {
         self.move_cursor_to(x, y)?;
+        self.write_str(s)?;
+        Ok(())
+    }
+
+    fn write_str(&mut self, s: &str) -> std::io::Result<()> {
         self.write(s)?;
         Ok(())
     }
@@ -43,6 +48,8 @@ impl IRust {
         self.terminal.write('\n')?;
         self.internal_cursor.x = 0;
         self.internal_cursor.y += 1;
+        // reset wrapped line counter
+        self.internal_cursor.wrapped_lines = 0;
         self.go_to_cursor()?;
         Ok(())
     }
