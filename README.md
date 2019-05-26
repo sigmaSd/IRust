@@ -31,6 +31,8 @@ You can use arrow keys to cycle through commands history
 
 **ctrl-z** [unix only]  send IRust to the background
 
+**ctrl-left/right** jump through words
+
 **HOME/END** go to line start / line end
 
 **Tab**
@@ -82,6 +84,10 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.4.5**
+- Handle `CtrlLeft` `CtrlRight`
+- Handle lines overflow
+
 **0.4.4**
 - Some improvement to autocompletion
 
