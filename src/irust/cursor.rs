@@ -123,6 +123,7 @@ impl IRust {
                 .current_wrapped_lines
                 .checked_sub(1)
                 .unwrap_or(0);
+
             self.move_cursor_to(self.size.0, self.internal_cursor.get_corrected_y())?;
         }
 
@@ -139,10 +140,15 @@ impl IRust {
             );
             self.move_cursor_to(0, self.internal_cursor.get_corrected_y())?;
         }
-        if self.internal_cursor.get_corrected_y() > self.size.1 {
+        if self.internal_cursor.get_corrected_y() >= self.size.1 {
             self.clear()?;
         }
 
         Ok(())
+    }
+
+    pub fn will_overflow_screen_height(&self, out: &str) -> bool {
+        let new_lines_count = (out.len() + (self.internal_cursor.x % self.size.0)) / self.size.0;
+        new_lines_count + self.internal_cursor.get_corrected_y() >= self.size.1
     }
 }

@@ -216,8 +216,13 @@ impl IRust {
         if let Some(racer) = self.racer.take() {
             if let Some(mut suggestion) = racer.current_suggestion() {
                 StringTools::strings_unique(&self.buffer, &mut suggestion);
-                self.write(&suggestion)?;
                 self.buffer.push_str(&suggestion);
+
+                if self.will_overflow_screen_height(&suggestion) {
+                    self.clear()?;
+                } else {
+                    self.write(&suggestion)?;
+                }
                 self.racer = Some(racer);
             }
         }

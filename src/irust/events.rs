@@ -61,21 +61,33 @@ impl IRust {
 
     pub fn handle_up(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 4;
-        self.move_cursor_to(4, None)?;
+        self.move_cursor_to(None, self.internal_cursor.y)?;
+        self.internal_cursor.reset_wrapped_lines();
         self.terminal.clear(ClearType::FromCursorDown)?;
         let up = self.history.up();
         self.buffer = up.clone();
-        self.write(&up)?;
+        if self.will_overflow_screen_height(&self.buffer) {
+            self.clear()?;
+        } else {
+            self.write(&up)?;
+        }
+
         Ok(())
     }
 
     pub fn handle_down(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 4;
-        self.move_cursor_to(4, None)?;
+        self.move_cursor_to(None, self.internal_cursor.y)?;
+        self.internal_cursor.reset_wrapped_lines();
         self.terminal.clear(ClearType::FromCursorDown)?;
         let down = self.history.down();
         self.buffer = down.clone();
-        self.write(&down)?;
+        if self.will_overflow_screen_height(&self.buffer) {
+            self.clear()?;
+        } else {
+            self.write(&down)?;
+        }
+
         Ok(())
     }
 
