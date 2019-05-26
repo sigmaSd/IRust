@@ -123,7 +123,7 @@ impl IRust {
             self.internal_cursor.wrapped_lines += 1;
             self.move_cursor_to(0, self.internal_cursor.get_y())?;
         }
-        if self.internal_cursor.get_y() >= self.size.1 {
+        if self.internal_cursor.get_y() > self.size.1 {
             self.clear()?;
         }
 

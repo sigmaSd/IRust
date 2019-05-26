@@ -114,7 +114,17 @@ impl IRust {
                 }
             };
             self.color.set_fg(color)?;
-            self.write(&output.string)?;
+            if !output.string.is_empty() {
+                if crate::utils::StringTools::is_multiline(&output.string) {
+                    let _ = self.write_newline();
+                    output.string.split('\n').for_each(|o| {
+                        let _ = self.terminal.write(o);
+                        let _ = self.write_newline();
+                    });
+                } else {
+                    self.terminal.write(&output.string)?;
+                }
+            }
         }
 
         Ok(())
@@ -125,11 +135,8 @@ impl IRust {
         self.move_cursor_to(0, None)?;
         self.terminal.clear(ClearType::FromCursorDown)?;
         self.color.set_fg(self.options.input_color)?;
-        self.write(IN)?;
-
-        // Why do I need this line??
+        self.terminal.write(IN)?;
         self.internal_cursor.x = 4;
-
         self.color.reset()?;
         Ok(())
     }

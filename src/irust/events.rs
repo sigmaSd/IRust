@@ -56,7 +56,7 @@ impl IRust {
     }
 
     pub fn handle_up(&mut self) -> std::io::Result<()> {
-        self.internal_cursor.x = 0;
+        self.internal_cursor.x = 4;
         self.move_cursor_to(4, None)?;
         self.terminal.clear(ClearType::FromCursorDown)?;
         let up = self.history.up();
@@ -66,7 +66,7 @@ impl IRust {
     }
 
     pub fn handle_down(&mut self) -> std::io::Result<()> {
-        self.internal_cursor.x = 0;
+        self.internal_cursor.x = 4;
         self.move_cursor_to(4, None)?;
         self.terminal.clear(ClearType::FromCursorDown)?;
         let down = self.history.down();
@@ -155,17 +155,9 @@ impl IRust {
         Ok(())
     }
 
-    pub fn clear(&mut self) -> std::io::Result<()> {
-        self.terminal.clear(ClearType::All)?;
-        self.internal_cursor.reset();
-        self.go_to_cursor()?;
-
-        if !self.buffer.is_empty() {
-            // Input phase
-            self.write_in()?;
-            self.write(&self.buffer.clone())?;
-        }
-
+    pub fn handle_ctrl_l(&mut self) -> std::io::Result<()> {
+        self.clear()?;
+        self.write_in()?;
         Ok(())
     }
 

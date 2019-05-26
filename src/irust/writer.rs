@@ -14,8 +14,8 @@ impl IRust {
                 });
             } else {
                 out.chars().for_each(|c| {
-                    let _ = self.move_internal_cursor_right();
                     let _ = self.terminal.write(c);
+                    let _ = self.move_internal_cursor_right();
                 });
             }
         }
@@ -40,9 +40,9 @@ impl IRust {
     }
 
     pub fn write_newline(&mut self) -> std::io::Result<()> {
+        self.terminal.write('\n')?;
         self.internal_cursor.x = 0;
         self.internal_cursor.y += 1;
-
         self.go_to_cursor()?;
         Ok(())
     }
@@ -64,6 +64,21 @@ impl IRust {
         self.move_cursor_to(x, y)?;
         self.terminal.clear(ClearType::FromCursorDown)?;
         self.cursor.reset_position()?;
+
+        Ok(())
+    }
+
+    pub fn clear(&mut self) -> std::io::Result<()> {
+        self.terminal.clear(ClearType::All)?;
+        self.internal_cursor.reset();
+        self.internal_cursor.y = 0;
+        self.go_to_cursor()?;
+
+        if !self.buffer.is_empty() {
+            // Input phase
+            self.write_in()?;
+            self.write(&self.buffer.clone())?;
+        }
 
         Ok(())
     }

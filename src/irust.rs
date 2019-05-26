@@ -123,7 +123,7 @@ impl IRust {
                         self.handle_ctrl_z()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Ctrl('l')) => {
-                        self.clear()?;
+                        self.handle_ctrl_l()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Home) => {
                         self.go_to_start()?;
