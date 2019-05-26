@@ -123,15 +123,19 @@ impl IRust {
     pub fn write_in(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 0;
         self.move_cursor_to(0, None)?;
-        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.terminal.clear(ClearType::FromCursorDown)?;
         self.color.set_fg(self.options.input_color)?;
         self.write(IN)?;
+
+        // Why do I need this line??
+        self.internal_cursor.x = 4;
+
         self.color.reset()?;
         Ok(())
     }
 
     pub fn write_insert(&mut self, c: Option<&str>) -> std::io::Result<()> {
-        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.terminal.clear(ClearType::FromCursorDown)?;
 
         self.color.set_fg(self.options.insert_color)?;
 
@@ -140,27 +144,19 @@ impl IRust {
             self.write(c)?;
         }
 
-        let mut reset = true;
         if !self.at_line_end() {
             self.cursor.save_position()?;
 
             for character in self
                 .buffer
                 .chars()
-                .skip(self.internal_cursor.x)
+                .skip(self.internal_cursor.get_x())
                 .collect::<Vec<char>>()
                 .iter()
             {
                 self.terminal.write(&character.to_string())?;
-                if self.at_line_end() {
-                    reset = false;
-                    self.internal_cursor.y += 1;
-                    self.move_cursor_to(0, self.internal_cursor.y)?;
-                }
             }
-            if reset {
-                self.cursor.reset_position()?;
-            }
+            self.cursor.reset_position()?;
         }
         self.color.reset()?;
 

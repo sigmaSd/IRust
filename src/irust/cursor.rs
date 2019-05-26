@@ -1,4 +1,5 @@
 use crate::irust::IRust;
+use crate::utils::StringTools;
 
 pub struct Cursor {
     pub x: usize,
@@ -78,18 +79,33 @@ impl IRust {
     }
 
     pub fn go_to_cursor(&mut self) -> std::io::Result<()> {
-        self.cursor
-            .goto(self.internal_cursor.x as u16, self.internal_cursor.y as u16)?;
+        self.cursor.goto(
+            self.internal_cursor.x as u16,
+            self.internal_cursor.get_y() as u16,
+        )?;
         Ok(())
     }
 
-    pub fn at_line_end(&self) -> bool {
+    pub fn at_screen_end(&self) -> bool {
         (self.internal_cursor.x + self.size.0) % self.size.0 == 0
+    }
+
+    pub fn at_line_end(&self) -> bool {
+        if self.internal_cursor.get_x() == 0 && !self.buffer.is_empty() {
+            false
+        } else {
+            let chars_count = StringTools::chars_count(&self.buffer);
+
+            (self.internal_cursor.get_x() + chars_count)
+                .checked_rem(chars_count)
+                .unwrap_or(0)
+                == 0
+        }
     }
 
     pub fn move_internal_cursor_left(&mut self) -> std::io::Result<()> {
         self.internal_cursor.move_left();
-        if self.at_line_end() {
+        if self.at_screen_end() {
             self.internal_cursor.wrapped_lines = self
                 .internal_cursor
                 .wrapped_lines
@@ -103,7 +119,7 @@ impl IRust {
 
     pub fn move_internal_cursor_right(&mut self) -> std::io::Result<()> {
         self.internal_cursor.move_right();
-        if self.at_line_end() {
+        if self.at_screen_end() {
             self.internal_cursor.wrapped_lines += 1;
             self.move_cursor_to(0, self.internal_cursor.get_y())?;
         }

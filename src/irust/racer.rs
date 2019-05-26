@@ -141,7 +141,7 @@ impl IRust {
 
     pub fn update_suggestions(&mut self) -> std::io::Result<()> {
         // return if we're not at the end of the line
-        if self.buffer.len() != self.internal_cursor.get_x() {
+        if !self.at_line_end() {
             return Ok(());
         }
 
@@ -168,7 +168,7 @@ impl IRust {
         tmp_repl.write()?;
 
         racer.cursor.0 = y_pos;
-        racer.cursor.1 = self.buffer.len() + 1;
+        racer.cursor.1 = StringTools::chars_count(&self.buffer) + 1;
         self.update_racer(&mut racer)?;
 
         Ok(())
@@ -192,13 +192,13 @@ impl IRust {
     }
 
     pub fn write_next_suggestion(&mut self) -> std::io::Result<()> {
-        if self.buffer.len() == self.internal_cursor.get_x() {
+        if self.at_line_end() {
             if let Some(mut racer) = self.racer.take() {
                 if let Some(suggestion) = racer.next_suggestion() {
                     let mut suggestion = suggestion.to_string();
                     self.color.set_fg(self.options.racer_color)?;
                     self.cursor.save_position()?;
-                    self.terminal.clear(ClearType::UntilNewLine)?;
+                    self.terminal.clear(ClearType::FromCursorDown)?;
 
                     StringTools::strings_unique(&self.buffer, &mut suggestion);
                     self.terminal.write(suggestion)?;

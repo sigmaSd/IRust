@@ -41,8 +41,12 @@ impl IRust {
             self.write_out()?;
             self.write_newline()?;
         }
-        self.write_in()?;
 
+        // reset wrapped line counter
+        self.internal_cursor.wrapped_lines = 0;
+
+        // new input
+        self.write_in()?;
         Ok(())
     }
 
@@ -54,7 +58,7 @@ impl IRust {
     pub fn handle_up(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 0;
         self.move_cursor_to(4, None)?;
-        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.terminal.clear(ClearType::FromCursorDown)?;
         let up = self.history.up();
         self.buffer = up.clone();
         self.write(&up)?;
@@ -64,7 +68,7 @@ impl IRust {
     pub fn handle_down(&mut self) -> std::io::Result<()> {
         self.internal_cursor.x = 0;
         self.move_cursor_to(4, None)?;
-        self.terminal.clear(ClearType::UntilNewLine)?;
+        self.terminal.clear(ClearType::FromCursorDown)?;
         let down = self.history.down();
         self.buffer = down.clone();
         self.write(&down)?;
@@ -83,7 +87,7 @@ impl IRust {
     }
 
     pub fn handle_right(&mut self) -> std::io::Result<()> {
-        if self.buffer.len() != self.internal_cursor.get_x() {
+        if !self.at_line_end() {
             self.cursor.move_right(1);
             self.move_internal_cursor_right()?;
         } else {
@@ -154,9 +158,14 @@ impl IRust {
     pub fn clear(&mut self) -> std::io::Result<()> {
         self.terminal.clear(ClearType::All)?;
         self.internal_cursor.reset();
-        self.move_cursor_to(0, 1)?;
-        self.write_in()?;
-        self.write(&self.buffer.clone())?;
+        self.go_to_cursor()?;
+
+        if !self.buffer.is_empty() {
+            // Input phase
+            self.write_in()?;
+            self.write(&self.buffer.clone())?;
+        }
+
         Ok(())
     }
 
@@ -184,6 +193,9 @@ impl IRust {
     }
 
     pub fn handle_ctrl_left(&mut self) -> Option<()> {
+        // clear suggestion
+        let _ = self.clear_suggestion();
+
         if self.internal_cursor.get_x() < 1 {
             return Some(());
         }
@@ -222,7 +234,7 @@ impl IRust {
 
     pub fn handle_ctrl_right(&mut self) {
         let buffer = self.buffer.chars().collect::<Vec<char>>();
-        if buffer.len() != self.internal_cursor.get_x() {
+        if !self.at_line_end() {
             self.cursor.move_right(1);
             let _ = self.move_internal_cursor_right();
         } else {
