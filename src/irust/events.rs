@@ -11,6 +11,9 @@ impl IRust {
     }
 
     pub fn handle_enter(&mut self) -> std::io::Result<()> {
+        // reset wrapped line counter
+        self.internal_cursor.wrapped_lines = 0;
+
         // clear suggestion
         self.clear_suggestion()?;
 
@@ -155,8 +158,8 @@ impl IRust {
         self.terminal.clear(ClearType::All)?;
         self.internal_cursor.reset();
         self.move_cursor_to(0, 1)?;
-        self.buffer.clear();
         self.write_in()?;
+        self.write(&self.buffer.clone())?;
         Ok(())
     }
 

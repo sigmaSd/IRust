@@ -35,11 +35,6 @@ impl IRust {
         y: U,
     ) -> std::io::Result<()> {
         self.move_cursor_to(x, y)?;
-        self.write_str(s)?;
-        Ok(())
-    }
-
-    fn write_str(&mut self, s: &str) -> std::io::Result<()> {
         self.write(s)?;
         Ok(())
     }
