@@ -85,7 +85,7 @@ IRust config file is located in:
 
 ## Changeslog
 **0.4.5**
-- Handle `CtrlLeft` `CtrlRight`
+- Handle `CtrlLeft` `CtrlRight` (Only on master branch)
 - Handle lines overflow
 
 **0.4.4**
