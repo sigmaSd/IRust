@@ -6,7 +6,8 @@ pub struct Cursor {
     pub y: usize,
     x_offset: usize,
     origin: (usize, usize),
-    pub wrapped_lines: usize,
+    pub current_wrapped_lines: usize,
+    pub total_wrapped_lines: usize,
 }
 impl Cursor {
     pub fn new(x: usize, y: usize, x_offset: usize) -> Self {
@@ -15,7 +16,8 @@ impl Cursor {
             y,
             x_offset,
             origin: (x, y),
-            wrapped_lines: 0,
+            current_wrapped_lines: 0,
+            total_wrapped_lines: 0,
         }
     }
 
@@ -29,7 +31,7 @@ impl Cursor {
         }
     }
 
-    pub fn get_x(&self) -> usize {
+    pub fn get_corrected_x(&self) -> usize {
         if self.x >= self.x_offset {
             self.x - self.x_offset
         } else {
@@ -37,8 +39,8 @@ impl Cursor {
         }
     }
 
-    pub fn get_y(&self) -> usize {
-        self.y + self.wrapped_lines
+    pub fn get_corrected_y(&self) -> usize {
+        self.y + self.current_wrapped_lines
     }
 
     pub fn reset(&mut self) {
@@ -47,8 +49,14 @@ impl Cursor {
             y: self.origin.1,
             x_offset: self.x_offset,
             origin: self.origin,
-            wrapped_lines: 0,
+            current_wrapped_lines: 0,
+            total_wrapped_lines: 0,
         };
+    }
+
+    pub fn reset_wrapped_lines(&mut self) {
+        self.current_wrapped_lines = 0;
+        self.total_wrapped_lines = 0;
     }
 }
 
@@ -81,22 +89,26 @@ impl IRust {
     pub fn go_to_cursor(&mut self) -> std::io::Result<()> {
         self.cursor.goto(
             self.internal_cursor.x as u16,
-            self.internal_cursor.get_y() as u16,
+            self.internal_cursor.get_corrected_y() as u16,
         )?;
         Ok(())
     }
 
-    pub fn at_screen_end(&self) -> bool {
+    pub fn at_screen_start(&self) -> bool {
         (self.internal_cursor.x + self.size.0) % self.size.0 == 0
     }
 
+    pub fn at_screen_end(&self) -> bool {
+        !self.buffer.is_empty() && (self.internal_cursor.x + self.size.0) % self.size.0 == 1
+    }
+
     pub fn at_line_end(&self) -> bool {
-        if self.internal_cursor.get_x() == 0 && !self.buffer.is_empty() {
+        if self.internal_cursor.get_corrected_x() == 0 && !self.buffer.is_empty() {
             false
         } else {
             let chars_count = StringTools::chars_count(&self.buffer);
 
-            (self.internal_cursor.get_x() + chars_count)
+            (self.internal_cursor.get_corrected_x() + chars_count)
                 .checked_rem(chars_count)
                 .unwrap_or(0)
                 == 0
@@ -105,13 +117,13 @@ impl IRust {
 
     pub fn move_internal_cursor_left(&mut self) -> std::io::Result<()> {
         self.internal_cursor.move_left();
-        if self.at_screen_end() {
-            self.internal_cursor.wrapped_lines = self
+        if self.at_screen_start() {
+            self.internal_cursor.current_wrapped_lines = self
                 .internal_cursor
-                .wrapped_lines
+                .current_wrapped_lines
                 .checked_sub(1)
                 .unwrap_or(0);
-            self.move_cursor_to(self.size.0, self.internal_cursor.get_y())?;
+            self.move_cursor_to(self.size.0, self.internal_cursor.get_corrected_y())?;
         }
 
         Ok(())
@@ -120,10 +132,14 @@ impl IRust {
     pub fn move_internal_cursor_right(&mut self) -> std::io::Result<()> {
         self.internal_cursor.move_right();
         if self.at_screen_end() {
-            self.internal_cursor.wrapped_lines += 1;
-            self.move_cursor_to(0, self.internal_cursor.get_y())?;
+            self.internal_cursor.current_wrapped_lines += 1;
+            self.internal_cursor.total_wrapped_lines = std::cmp::max(
+                self.internal_cursor.total_wrapped_lines,
+                self.internal_cursor.current_wrapped_lines,
+            );
+            self.move_cursor_to(0, self.internal_cursor.get_corrected_y())?;
         }
-        if self.internal_cursor.get_y() > self.size.1 {
+        if self.internal_cursor.get_corrected_y() > self.size.1 {
             self.clear()?;
         }
 

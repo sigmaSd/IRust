@@ -49,7 +49,10 @@ impl IRust {
 
     pub fn clear_suggestion(&mut self) -> std::io::Result<()> {
         if self.at_line_end() {
-            self.clear_from(self.internal_cursor.x, self.internal_cursor.get_y())?;
+            self.clear_from(
+                self.internal_cursor.x,
+                self.internal_cursor.get_corrected_y(),
+            )?;
         }
 
         Ok(())

@@ -157,7 +157,7 @@ impl IRust {
             for character in self
                 .buffer
                 .chars()
-                .skip(self.internal_cursor.get_x())
+                .skip(self.internal_cursor.get_corrected_x())
                 .collect::<Vec<char>>()
                 .iter()
             {
