@@ -245,7 +245,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_left(&mut self) -> Option<()> {
+    pub fn _handle_ctrl_left(&mut self) -> Option<()> {
         // clear suggestion
         let _ = self.clear_suggestion();
 
@@ -286,7 +286,7 @@ impl IRust {
         Some(())
     }
 
-    pub fn handle_ctrl_right(&mut self) {
+    pub fn _handle_ctrl_right(&mut self) {
         let buffer = self.buffer.chars().collect::<Vec<char>>();
         if !self.at_line_end() {
             let _ = self.move_cursor_right();
