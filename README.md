@@ -82,24 +82,6 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
-<<<<<<< HEAD
-**0.5.0**
-- auto-complete `(` `{` `[`
-
-**0.4.9**
-- Reworked Racer, now it shows suggestions table + the inline suggestion
-
-**0.4.8**
-- Use scrolling instead of clearing at screen end
-
-**0.4.7**
-- Bug fixes (lines overflow)
-
-**0.4.6**
-- More lines overflow handling
-
-=======
->>>>>>> 0.4.6
 **0.4.5**
 - Handle `CtrlLeft` `CtrlRight` (Only on master branch)
 - Handle lines overflow
