@@ -84,6 +84,9 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.4.7**
+- Bug fixes (lines overflow)
+
 **0.4.6**
 - More lines overflow handling
 

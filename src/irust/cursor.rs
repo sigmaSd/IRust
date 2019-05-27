@@ -112,7 +112,7 @@ impl IRust {
         (self.internal_cursor.x + 1) % self.size.0 == 1
     }
 
-    pub fn _at_screen_end(&self) -> bool {
+    pub fn at_screen_end(&self) -> bool {
         !self.buffer.is_empty() && (self.internal_cursor.x + 1) % self.size.0 == 0
     }
 
@@ -134,6 +134,8 @@ impl IRust {
                 .unwrap_or(0);
 
             self.move_cursor_to(self.size.0, self.internal_cursor.get_corrected_y())?;
+        } else if self.at_screen_end() {
+            self.move_cursor_to(self.size.0 - 1, self.internal_cursor.get_corrected_y())?;
         }
 
         Ok(())

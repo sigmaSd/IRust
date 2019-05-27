@@ -208,7 +208,11 @@ impl IRust {
                     self.terminal.clear(ClearType::FromCursorDown)?;
 
                     StringTools::strings_unique(&self.buffer, &mut suggestion);
-                    self.write(&suggestion)?;
+                    if self.will_overflow_screen_height(&suggestion) {
+                        self.clear()?;
+                    } else {
+                        self.write(&suggestion)?;
+                    }
                     self.cursor.reset_position()?;
                     self.internal_cursor.reset_position();
                     self.color.reset()?;
