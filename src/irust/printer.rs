@@ -154,7 +154,7 @@ impl IRust {
 
         if !self.at_line_end() {
             self.cursor.save_position()?;
-            let last_cursor_pos = self.internal_cursor.clone();
+            self.internal_cursor.save_position();
             for character in self
                 .buffer
                 .chars()
@@ -164,7 +164,7 @@ impl IRust {
             {
                 self.write(&character.to_string())?;
             }
-            self.internal_cursor = last_cursor_pos;
+            self.internal_cursor.reset_position();
             self.cursor.reset_position()?;
         }
         self.color.reset()?;

@@ -9,6 +9,7 @@ pub struct Cursor {
     origin: (usize, usize),
     pub current_wrapped_lines: usize,
     pub total_wrapped_lines: usize,
+    copy: Option<Box<Cursor>>,
 }
 impl Cursor {
     pub fn new(x: usize, y: usize, x_offset: usize) -> Self {
@@ -19,6 +20,17 @@ impl Cursor {
             origin: (x, y),
             current_wrapped_lines: 0,
             total_wrapped_lines: 0,
+            copy: None,
+        }
+    }
+
+    pub fn save_position(&mut self) {
+        self.copy = Some(Box::new(self.clone()));
+    }
+
+    pub fn reset_position(&mut self) {
+        if let Some(copy) = self.copy.take() {
+            *self = *copy;
         }
     }
 
@@ -52,6 +64,7 @@ impl Cursor {
             origin: self.origin,
             current_wrapped_lines: 0,
             total_wrapped_lines: 0,
+            copy: None,
         };
     }
 

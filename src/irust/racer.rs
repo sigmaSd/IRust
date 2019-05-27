@@ -204,11 +204,13 @@ impl IRust {
                     let mut suggestion = suggestion.to_string();
                     self.color.set_fg(self.options.racer_color)?;
                     self.cursor.save_position()?;
+                    self.internal_cursor.save_position();
                     self.terminal.clear(ClearType::FromCursorDown)?;
 
                     StringTools::strings_unique(&self.buffer, &mut suggestion);
-                    self.terminal.write(suggestion)?;
+                    self.write(&suggestion)?;
                     self.cursor.reset_position()?;
+                    self.internal_cursor.reset_position();
                     self.color.reset()?;
                 }
                 self.racer = Some(racer);
@@ -222,7 +224,9 @@ impl IRust {
         if let Some(racer) = self.racer.take() {
             if let Some(mut suggestion) = racer.current_suggestion() {
                 StringTools::strings_unique(&self.buffer, &mut suggestion);
+                // update total wrapped lines count each time we touch the buffer
                 self.buffer.push_str(&suggestion);
+                self.update_total_wrapped_lines();
 
                 if self.will_overflow_screen_height(&suggestion) {
                     self.clear()?;
