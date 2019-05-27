@@ -63,10 +63,7 @@ IRust config file is located in:
 
     [Racer]
     enable_racer = true
-    racer_inline_suggestion_color = Cyan
-    racer_suggestions_table_color = Green
-    racer_selected_suggestion_color = DarkRed
-    racer_max_suggestions = 5
+    racer_color = DarkCyan
 
     [Colors]
     insert_color = White
@@ -85,18 +82,6 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
-**0.4.9**
-- Reworked Racer, now it shows suggestions table + the inline suggestion
-
-**0.4.8**
-- Use scrolling instead of clearing at screen end
-
-**0.4.7**
-- Bug fixes (lines overflow)
-
-**0.4.6**
-- More lines overflow handling
-
 **0.4.5**
 - Handle `CtrlLeft` `CtrlRight` (Only on master branch)
 - Handle lines overflow
