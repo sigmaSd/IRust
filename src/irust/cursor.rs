@@ -30,7 +30,8 @@ impl Cursor {
 
     pub fn reset_position(&mut self) {
         if let Some(copy) = self.copy.take() {
-            *self = *copy;
+            *self = *copy.clone();
+            self.copy = Some(copy);
         }
     }
 

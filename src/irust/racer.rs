@@ -89,21 +89,27 @@ impl Racer {
             }
         }
 
-        let mut raw_output = String::from_utf8(raw_output.to_vec()).unwrap();
-        let mut completions = vec![];
+        let raw_output = String::from_utf8(raw_output.to_vec()).unwrap();
 
-        while let Some(match_idx) = raw_output.find("H ") {
-            // if MATCH exists than , exists we can unwrap safely
-            let command_idx = raw_output[match_idx..].find(',').unwrap() + match_idx;
-            completions.push(raw_output[match_idx + 2..command_idx].to_owned());
-            raw_output = raw_output[command_idx..].to_string();
+        self.suggestions.clear();
+        for suggestion in raw_output
+            .lines()
+            .skip(1)
+            .filter(|l| !l.chars().all(|c| c == '\u{0}'))
+        {
+            if suggestion == "END" {
+                break;
+            }
+            let name = suggestion[5..suggestion.find(',').unwrap_or(0)].to_owned();
+            let definition = suggestion[suggestion.rfind(',').unwrap()..].to_owned();
+            self.suggestions.push(name + ": " + &definition[1..]);
         }
         self.suggestions = completions;
 
         Ok(())
     }
 
-    pub fn next_suggestion(&mut self) -> Option<&String> {
+    pub fn _next_suggestion(&mut self) -> Option<&String> {
         if self.suggestion_idx >= self.suggestions.len() {
             self.suggestion_idx = 0
         }
@@ -208,17 +214,13 @@ impl IRust {
                     self.terminal.clear(ClearType::FromCursorDown)?;
 
                     StringTools::strings_unique(&self.buffer, &mut suggestion);
-                    let overflow = self.screen_height_overflow(&suggestion);
-                    if overflow != 0 {
-                        self.internal_cursor.total_wrapped_lines += overflow;
+                    if self.will_overflow_screen_height(&suggestion) {
+                        self.clear()?;
+                    } else {
+                        self.write(&suggestion)?;
                     }
-                    self.write(&suggestion)?;
                     self.cursor.reset_position()?;
                     self.internal_cursor.reset_position();
-                    if overflow != 0 {
-                        self.cursor.move_up(overflow as u16);
-                        self.internal_cursor.y -= overflow;
-                    }
                     self.color.reset()?;
                 }
                 self.racer = Some(racer);
@@ -236,7 +238,11 @@ impl IRust {
                 self.buffer.push_str(&suggestion);
                 self.update_total_wrapped_lines();
 
-                self.write(&suggestion)?;
+                if self.will_overflow_screen_height(&suggestion) {
+                    self.clear()?;
+                } else {
+                    self.write(&suggestion)?;
+                }
                 self.racer = Some(racer);
             }
         }
