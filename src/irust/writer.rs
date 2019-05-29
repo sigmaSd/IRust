@@ -14,6 +14,14 @@ impl IRust {
                 });
             } else {
                 out.chars().for_each(|c| {
+                    if self.internal_cursor.y + self.internal_cursor.total_wrapped_lines
+                        > self.size.1
+                    {
+                        let _ = self.terminal.scroll_up(1);
+                        self.internal_cursor.y -= 1;
+                        self.cursor.move_up(1);
+                        //self.internal_cursor.total_wrapped_lines +=1;
+                    }
                     let _ = self.terminal.write(c);
                     let _ = self.move_internal_cursor_right();
                 });
@@ -43,6 +51,10 @@ impl IRust {
         self.terminal.write('\n')?;
         self.internal_cursor.x = 0;
         self.internal_cursor.y += 1;
+        // y should never exceed screen height
+        if self.internal_cursor.y > self.size.1 {
+            self.internal_cursor.y = self.size.1;
+        }
         self.go_to_cursor()?;
         Ok(())
     }

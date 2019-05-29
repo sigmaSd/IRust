@@ -147,17 +147,17 @@ impl IRust {
             self.internal_cursor.current_wrapped_lines += 1;
             self.move_cursor_to(0, self.internal_cursor.get_corrected_y())?;
         }
-        if self.internal_cursor.get_corrected_y() >= self.size.1 {
-            self.clear()?;
-        }
 
         Ok(())
     }
 
-    pub fn will_overflow_screen_height(&self, out: &str) -> bool {
+    pub fn screen_height_overflow(&self, out: &str) -> usize {
         let new_lines_count =
             (StringTools::chars_count(out) + (self.internal_cursor.x % self.size.0)) / self.size.0;
-        new_lines_count + self.internal_cursor.get_corrected_y() >= self.size.1
+        // if corrected y  + new lines < self.size.1 there is no overflow so unwrap to 0
+        (new_lines_count + self.internal_cursor.get_corrected_y())
+            .checked_sub(self.size.1)
+            .unwrap_or(0)
     }
 
     pub fn update_total_wrapped_lines(&mut self) {

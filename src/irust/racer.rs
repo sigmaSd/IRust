@@ -208,13 +208,17 @@ impl IRust {
                     self.terminal.clear(ClearType::FromCursorDown)?;
 
                     StringTools::strings_unique(&self.buffer, &mut suggestion);
-                    if self.will_overflow_screen_height(&suggestion) {
-                        self.clear()?;
-                    } else {
-                        self.write(&suggestion)?;
+                    let overflow = self.screen_height_overflow(&suggestion);
+                    if overflow != 0 {
+                        self.internal_cursor.total_wrapped_lines += overflow;
                     }
+                    self.write(&suggestion)?;
                     self.cursor.reset_position()?;
                     self.internal_cursor.reset_position();
+                    if overflow != 0 {
+                        self.cursor.move_up(overflow as u16);
+                        self.internal_cursor.y -= overflow;
+                    }
                     self.color.reset()?;
                 }
                 self.racer = Some(racer);
@@ -232,11 +236,7 @@ impl IRust {
                 self.buffer.push_str(&suggestion);
                 self.update_total_wrapped_lines();
 
-                if self.will_overflow_screen_height(&suggestion) {
-                    self.clear()?;
-                } else {
-                    self.write(&suggestion)?;
-                }
+                self.write(&suggestion)?;
                 self.racer = Some(racer);
             }
         }

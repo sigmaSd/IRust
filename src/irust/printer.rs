@@ -143,6 +143,7 @@ impl IRust {
 
     pub fn write_insert(&mut self, c: Option<&str>) -> std::io::Result<()> {
         self.update_total_wrapped_lines();
+
         self.terminal.clear(ClearType::FromCursorDown)?;
 
         self.color.set_fg(self.options.insert_color)?;

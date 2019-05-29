@@ -68,11 +68,17 @@ impl IRust {
         self.terminal.clear(ClearType::FromCursorDown)?;
         let up = self.history.up();
         self.buffer = up.clone();
-        if self.will_overflow_screen_height(&self.buffer) {
-            self.clear()?;
-        } else {
-            self.write(&up)?;
+
+        let overflow = self.screen_height_overflow(&up);
+
+        if overflow != 0 {
+            self.terminal.scroll_up(overflow as i16)?;
+            self.internal_cursor.y -= overflow;
+            self.internal_cursor.total_wrapped_lines += overflow;
+            self.cursor.move_up(overflow as u16);
         }
+
+        self.write(&up)?;
 
         Ok(())
     }
@@ -84,11 +90,17 @@ impl IRust {
         self.terminal.clear(ClearType::FromCursorDown)?;
         let down = self.history.down();
         self.buffer = down.clone();
-        if self.will_overflow_screen_height(&self.buffer) {
-            self.clear()?;
-        } else {
-            self.write(&down)?;
+
+        let overflow = self.screen_height_overflow(&down);
+
+        if overflow != 0 {
+            self.terminal.scroll_up(overflow as i16)?;
+            self.internal_cursor.y -= overflow;
+            self.internal_cursor.total_wrapped_lines += overflow;
+            self.cursor.move_up(overflow as u16);
         }
+
+        self.write(&down)?;
 
         Ok(())
     }
