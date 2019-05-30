@@ -183,4 +183,3 @@ Credits to this release goes to the awesome suggestions and contributions of @pz
 **0.1.1**
 - Add **::** to execute shell cmds
 - Bugfixes
-
