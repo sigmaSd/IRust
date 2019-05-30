@@ -240,16 +240,67 @@ impl IRust {
             if let Some(mut racer) = self.racer.take() {
                 self.terminal.clear(ClearType::FromCursorDown)?;
                 self.write_next_suggestion(racer.next_suggestion())?;
-                self.color.set_fg(self.options.racer_color)?;
+
+                let suggestions_num = std::cmp::min(racer.suggestions.len(), 5);
+                if self.internal_cursor.get_corrected_y() + suggestions_num > self.size.1 {
+                    self.terminal.scroll_up(
+                        (self.internal_cursor.get_corrected_y() + suggestions_num - self.size.1)
+                            as i16,
+                    )?;
+                    self.cursor.move_up(
+                        (self.internal_cursor.get_corrected_y() + suggestions_num - self.size.1)
+                            as u16,
+                    );
+                }
+
+                let mut max_width = self.size.0 - self.internal_cursor.x % self.size.0;
+
                 self.cursor.save_position()?;
                 self.internal_cursor.save_position();
-                for (idx, suggestion) in racer.suggestions.iter().enumerate() {
-                    self.cursor.move_down(idx as u16 + 1);
-                    self.terminal.write(suggestion)?;
-                    self.cursor.reset_position()?;
+
+                // write from screen start if a suggestion will be truncated
+                if racer.suggestions.iter().any(|s| s.len() > max_width) {
+                    self.move_cursor_to(0, None)?;
+                    self.cursor
+                        .move_down(self.internal_cursor.get_corrected_y() as u16 + 1);
+                    self.internal_cursor.x = 0;
+
+                    if self.internal_cursor.get_corrected_y() + suggestions_num > self.size.1 {
+                        self.cursor.move_up(
+                            (self.internal_cursor.get_corrected_y() + suggestions_num - self.size.1)
+                                as u16,
+                        );
+                    }
+
+                    max_width = self.size.0 - self.internal_cursor.x % self.size.0;
                 }
+                for (idx, suggestion) in racer
+                    .suggestions
+                    .iter()
+                    .skip((racer.suggestion_idx / (suggestions_num + 1)) * (suggestions_num + 1))
+                    .take(suggestions_num)
+                    .enumerate()
+                {
+                    let mut suggestion = suggestion.to_owned();
+                    self.color.set_fg(crossterm::Color::Cyan)?;
+                    if Some(suggestion.clone()) == racer.current_suggestion() {
+                        self.color.set_bg(crossterm::Color::Red)?;
+                    }
+                    if suggestion.len() > max_width {
+                        suggestion = suggestion[..max_width - 3].to_owned();
+                        suggestion.push_str("...");
+                    }
+                    self.cursor.move_down(idx as u16 + 1);
+                    self.terminal.write(&suggestion)?;
+                    self.cursor.move_up(idx as u16 + 1);
+                    self.cursor.move_left(suggestion.len() as u16);
+                    self.color.reset()?;
+                }
+                self.cursor.reset_position()?;
                 self.internal_cursor.reset_position();
-                self.color.reset()?;
+                if self.internal_cursor.get_corrected_y() + suggestions_num > self.size.1 {
+                    self.internal_cursor.y -= suggestions_num;
+                }
 
                 self.racer = Some(racer);
             }
