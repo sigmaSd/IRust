@@ -35,9 +35,7 @@ You can use arrow keys to cycle through commands history
 
 **HOME/END** go to line start / line end
 
-**Tab**
-- cycle through auto-completion suggestions (requires [racer](https://github.com/racer-rust/racer))
-- when cursor is at line end and right arrow key is pressed, shown suggestion will be used
+**Tab** cycle through auto-completion suggestions (requires [racer](https://github.com/racer-rust/racer))
 
 <img src="./irust.png" width="80%" height="60%">
 
@@ -65,7 +63,10 @@ IRust config file is located in:
 
     [Racer]
     enable_racer = true
-    racer_color = DarkCyan
+    racer_inline_suggestion_color = Cyan
+    racer_suggestions_table_color = Green
+    racer_selected_suggestion_color = DarkRed
+    racer_max_suggestions = 5
 
     [Colors]
     insert_color = White
@@ -84,6 +85,9 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.4.9**
+- Reworked Racer, now it shows suggestions table + the inline suggestion
+
 **0.4.8**
 - Use scrolling instead of clearing at screen end
 
