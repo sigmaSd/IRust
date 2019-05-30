@@ -56,9 +56,9 @@ impl Default for Options {
             #[cfg(windows)]
             enable_racer: false,
 
-            racer_inline_suggestion_color: Color::DarkCyan,
-            racer_suggestions_table_color: Color::Cyan,
-            racer_selected_suggestion_color: Color::Red,
+            racer_inline_suggestion_color: Color::Cyan,
+            racer_suggestions_table_color: Color::Green,
+            racer_selected_suggestion_color: Color::DarkRed,
             racer_max_suggestions: 5,
         }
     }

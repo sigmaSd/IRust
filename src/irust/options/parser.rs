@@ -148,9 +148,9 @@ add_shell_cmd_to_history = false";
             "\
 [Racer]
 {}
-racer_inline_suggestion_color = DarkCyan
-racer_suggestions_table_color = Cyan
-racer_selected_suggestion_color = Red
+racer_inline_suggestion_color = Cyan
+racer_suggestions_table_color = Green
+racer_selected_suggestion_color = DarkRed
 racer_max_suggestions = 5",
             racer
         );
