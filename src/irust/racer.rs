@@ -217,7 +217,8 @@ impl IRust {
             if self.at_line_end() {
                 let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
 
-                self.color.set_fg(self.options.racer_color)?;
+                self.color
+                    .set_fg(self.options.racer_inline_suggestion_color)?;
                 self.cursor.save_position()?;
                 self.internal_cursor.save_position();
                 self.terminal.clear(ClearType::FromCursorDown)?;
@@ -260,7 +261,8 @@ impl IRust {
                 self.write_next_suggestion(racer.next_suggestion())?;
 
                 // Max suggestions number to show
-                let suggestions_num = std::cmp::min(racer.suggestions.len(), 5);
+                let suggestions_num =
+                    std::cmp::min(racer.suggestions.len(), self.options.racer_max_suggestions);
 
                 // Handle screen height overflow
                 let height_overflow = self.screen_height_overflow_by_new_lines(suggestions_num);
@@ -293,7 +295,8 @@ impl IRust {
                 }
 
                 // Write the suggestions
-                self.color.set_fg(crossterm::Color::Cyan)?;
+                self.color
+                    .set_fg(self.options.racer_suggestions_table_color)?;
                 let current_suggestion = racer.current_suggestion().map(|s| s.to_string());
 
                 for (idx, suggestion) in racer
@@ -305,7 +308,8 @@ impl IRust {
                 {
                     // color selected suggestion
                     if Some(suggestion) == current_suggestion.as_ref() {
-                        self.color.set_bg(crossterm::Color::Red)?;
+                        self.color
+                            .set_bg(self.options.racer_selected_suggestion_color)?;
                     }
                     // trancuate long suggestions
                     let mut suggestion = suggestion.to_owned();

@@ -21,14 +21,20 @@ pub struct Options {
     pub welcome_msg: String,
     pub welcome_color: Color,
     pub enable_racer: bool,
-    pub racer_color: Color,
+    pub racer_inline_suggestion_color: Color,
+    pub racer_suggestions_table_color: Color,
+    pub racer_selected_suggestion_color: Color,
+    pub racer_max_suggestions: usize,
 }
 
 impl Default for Options {
     fn default() -> Self {
         Self {
+            // [Histroy]
             add_irust_cmd_to_history: false,
             add_shell_cmd_to_history: false,
+
+            // [Colors]
             ok_color: Color::Blue,
             show_color: Color::DarkCyan,
             eval_color: Color::White,
@@ -39,14 +45,21 @@ impl Default for Options {
             err_color: Color::DarkRed,
             input_color: Color::Yellow,
             insert_color: Color::White,
+
+            // [Welcome]
             welcome_msg: String::new(),
             welcome_color: Color::DarkBlue,
 
+            // [Racer]
             #[cfg(unix)]
             enable_racer: true,
             #[cfg(windows)]
             enable_racer: false,
-            racer_color: Color::DarkYellow,
+
+            racer_inline_suggestion_color: Color::DarkCyan,
+            racer_suggestions_table_color: Color::Cyan,
+            racer_selected_suggestion_color: Color::Red,
+            racer_max_suggestions: 5,
         }
     }
 }

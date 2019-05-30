@@ -106,9 +106,24 @@ impl Options {
                 ("enable_racer", value) => {
                     options.enable_racer = Options::str_to_bool(&value);
                 }
-                ("racer_color", value) => {
+                ("racer_inline_suggestion_color", value) => {
                     if let Ok(value) = Options::str_to_color(&value) {
-                        options.racer_color = value;
+                        options.racer_inline_suggestion_color = value;
+                    }
+                }
+                ("racer_suggestions_table_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.racer_suggestions_table_color = value;
+                    }
+                }
+                ("racer_selected_suggestion_color", value) => {
+                    if let Ok(value) = Options::str_to_color(&value) {
+                        options.racer_selected_suggestion_color = value;
+                    }
+                }
+                ("racer_max_suggestions", value) => {
+                    if let Ok(value) = value.parse() {
+                        options.racer_max_suggestions = value;
                     }
                 }
                 _ => eprintln!("Unknown config option: {} {}", option, value),
@@ -125,15 +140,20 @@ add_irust_cmd_to_history = false
 add_shell_cmd_to_history = false";
 
         #[cfg(unix)]
-        let racer = "\
-[Racer]
-enable_racer = true
-racer_color = DarkYellow";
+        let racer = "enable_racer = true";
         #[cfg(windows)]
-        let racer = "\
+        let racer = "enable_racer = false";
+
+        let racer = format!(
+            "\
 [Racer]
-enable_racer = false
-racer_color = DarkYellow";
+{}
+racer_inline_suggestion_color = DarkCyan
+racer_suggestions_table_color = Cyan
+racer_selected_suggestion_color = Red
+racer_max_suggestions = 5",
+            racer
+        );
 
         let colors = "\
 [Colors]
