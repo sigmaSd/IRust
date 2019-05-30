@@ -57,7 +57,7 @@ impl IRust {
     pub fn handle_tab(&mut self) -> std::io::Result<()> {
         self.update_suggestions()?;
         self.lock_racer_update();
-        self.write_next_suggestion()?;
+        self.cycle_suggestions()?;
         Ok(())
     }
 
@@ -69,7 +69,7 @@ impl IRust {
         let up = self.history.up();
         self.buffer = up.clone();
 
-        let overflow = self.screen_height_overflow(&up);
+        let overflow = self.screen_height_overflow_by_str(&up);
 
         if overflow != 0 {
             self.terminal.scroll_up(overflow as i16)?;
@@ -91,7 +91,7 @@ impl IRust {
         let down = self.history.down();
         self.buffer = down.clone();
 
-        let overflow = self.screen_height_overflow(&down);
+        let overflow = self.screen_height_overflow_by_str(&down);
 
         if overflow != 0 {
             self.terminal.scroll_up(overflow as i16)?;

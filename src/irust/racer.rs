@@ -89,16 +89,31 @@ impl Racer {
             }
         }
 
-        let mut raw_output = String::from_utf8(raw_output.to_vec()).unwrap();
-        let mut completions = vec![];
+        let raw_output = String::from_utf8(raw_output.to_vec()).unwrap();
 
-        while let Some(match_idx) = raw_output.find("H ") {
-            // if MATCH exists than , exists we can unwrap safely
-            let command_idx = raw_output[match_idx..].find(',').unwrap() + match_idx;
-            completions.push(raw_output[match_idx + 2..command_idx].to_owned());
-            raw_output = raw_output[command_idx..].to_string();
+        self.suggestions.clear();
+        for suggestion in raw_output
+            .lines()
+            .skip(1)
+            .filter(|l| !l.chars().all(|c| c == '\u{0}'))
+        {
+            if suggestion == "END" {
+                break;
+            }
+            let mut try_parse = || -> Option<()> {
+                let start_idx = suggestion.find("H ")? + 2;
+                let name = suggestion[start_idx..suggestion.find(',')?].to_owned();
+                let definition = suggestion[suggestion.rfind(',')?..].to_owned();
+                self.suggestions.push(name + ": " + &definition[1..]);
+                Some(())
+            };
+
+            try_parse();
         }
-        self.suggestions = completions;
+
+        // remove duplicates
+        self.suggestions.sort();
+        self.suggestions.dedup();
 
         Ok(())
     }
@@ -197,30 +212,131 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_next_suggestion(&mut self) -> std::io::Result<()> {
+    pub fn write_next_suggestion(&mut self, suggestion: Option<&String>) -> std::io::Result<()> {
+        if let Some(suggestion) = suggestion {
+            if self.at_line_end() {
+                let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
+
+                self.color
+                    .set_fg(self.options.racer_inline_suggestion_color)?;
+                self.cursor.save_position()?;
+                self.internal_cursor.save_position();
+                self.terminal.clear(ClearType::FromCursorDown)?;
+
+                StringTools::strings_unique(&self.buffer, &mut suggestion);
+
+                let overflow = self.screen_height_overflow_by_str(&suggestion);
+                if overflow != 0 {
+                    self.internal_cursor.total_wrapped_lines += overflow;
+                }
+
+                self.write(&suggestion)?;
+
+                self.cursor.reset_position()?;
+                self.internal_cursor.reset_position();
+
+                if overflow != 0 {
+                    self.cursor.move_up(overflow as u16);
+                    self.internal_cursor.y -= overflow;
+                }
+
+                self.color.reset()?;
+            }
+        }
+
+        Ok(())
+    }
+    pub fn cycle_suggestions(&mut self) -> std::io::Result<()> {
         if self.at_line_end() {
             if let Some(mut racer) = self.racer.take() {
-                if let Some(suggestion) = racer.next_suggestion() {
-                    let mut suggestion = suggestion.to_string();
-                    self.color.set_fg(self.options.racer_color)?;
-                    self.cursor.save_position()?;
-                    self.internal_cursor.save_position();
-                    self.terminal.clear(ClearType::FromCursorDown)?;
+                // Clear screen from cursor down
+                self.terminal.clear(ClearType::FromCursorDown)?;
 
-                    StringTools::strings_unique(&self.buffer, &mut suggestion);
-                    let overflow = self.screen_height_overflow(&suggestion);
-                    if overflow != 0 {
-                        self.internal_cursor.total_wrapped_lines += overflow;
-                    }
-                    self.write(&suggestion)?;
-                    self.cursor.reset_position()?;
-                    self.internal_cursor.reset_position();
-                    if overflow != 0 {
-                        self.cursor.move_up(overflow as u16);
-                        self.internal_cursor.y -= overflow;
-                    }
-                    self.color.reset()?;
+                // No suggestions to show
+                if racer.suggestions.is_empty() {
+                    return Ok(());
                 }
+
+                // Write inline suggestion
+                self.write_next_suggestion(racer.next_suggestion())?;
+
+                // Max suggestions number to show
+                let suggestions_num =
+                    std::cmp::min(racer.suggestions.len(), self.options.racer_max_suggestions);
+
+                // Handle screen height overflow
+                let height_overflow = self.screen_height_overflow_by_new_lines(suggestions_num);
+                if height_overflow != 0 {
+                    self.terminal.scroll_up(
+                        (self.internal_cursor.get_corrected_y() + suggestions_num + 1 - self.size.1)
+                            as i16,
+                    )?;
+                    self.cursor.move_up(
+                        (self.internal_cursor.get_corrected_y() + suggestions_num + 1 - self.size.1)
+                            as u16,
+                    );
+                    self.internal_cursor.y -= suggestions_num + 1;
+                }
+
+                // Save cursors postions from this point (Input position)
+                self.cursor.save_position()?;
+                self.internal_cursor.save_position();
+
+                // Write from screen start if a suggestion will be truncated
+                let mut max_width = self.size.0 - self.internal_cursor.x % self.size.0;
+                if racer.suggestions.iter().any(|s| s.len() > max_width) {
+                    self.internal_cursor.x = 0;
+                    self.go_to_cursor()?;
+
+                    self.cursor
+                        .move_down(self.internal_cursor.current_wrapped_lines as u16);
+
+                    max_width = self.size.0 - self.internal_cursor.x % self.size.0;
+                }
+
+                // Write the suggestions
+                self.color
+                    .set_fg(self.options.racer_suggestions_table_color)?;
+                let current_suggestion = racer.current_suggestion().map(|s| s.to_string());
+
+                for (idx, suggestion) in racer
+                    .suggestions
+                    .iter()
+                    .skip(((racer.suggestion_idx - 1) / suggestions_num) * suggestions_num)
+                    .take(suggestions_num)
+                    .enumerate()
+                {
+                    // color selected suggestion
+                    if Some(suggestion) == current_suggestion.as_ref() {
+                        self.color
+                            .set_bg(self.options.racer_selected_suggestion_color)?;
+                    }
+                    // trancuate long suggestions
+                    let mut suggestion = suggestion.to_owned();
+                    if suggestion.len() > max_width {
+                        suggestion.truncate(max_width - 3);
+                        suggestion.push_str("...");
+                    }
+                    // move one + idx row down
+                    self.cursor.move_down(idx as u16 + 1);
+
+                    // write suggestion
+                    self.terminal.write(&suggestion)?;
+
+                    // move back to initial position
+                    self.cursor.move_up(idx as u16 + 1);
+                    self.cursor.move_left(suggestion.len() as u16);
+
+                    // reset color in case of current suggestion
+                    self.color.set_bg(crossterm::Color::Reset)?;
+                }
+
+                // reset to input position and color
+                self.color.reset()?;
+                self.cursor.reset_position()?;
+                self.internal_cursor.reset_position();
+
+                // done
                 self.racer = Some(racer);
             }
         }
@@ -230,8 +346,10 @@ impl IRust {
 
     pub fn use_suggestion(&mut self) -> std::io::Result<()> {
         if let Some(racer) = self.racer.take() {
-            if let Some(mut suggestion) = racer.current_suggestion() {
+            if let Some(suggestion) = racer.current_suggestion() {
+                let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
                 StringTools::strings_unique(&self.buffer, &mut suggestion);
+
                 // update total wrapped lines count each time we touch the buffer
                 self.buffer.push_str(&suggestion);
                 self.update_total_wrapped_lines();

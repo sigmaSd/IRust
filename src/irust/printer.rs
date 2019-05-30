@@ -178,7 +178,10 @@ impl IRust {
         self.update_suggestions()?;
         if let Some(character) = self.buffer.chars().last() {
             if character.is_alphanumeric() {
-                self.write_next_suggestion()?;
+                if let Some(mut racer) = self.racer.take() {
+                    self.write_next_suggestion(racer.next_suggestion())?;
+                    self.racer = Some(racer);
+                }
             }
         }
 
