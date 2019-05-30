@@ -152,11 +152,16 @@ impl IRust {
         Ok(())
     }
 
-    pub fn screen_height_overflow(&self, out: &str) -> usize {
-        let new_lines_count =
+    pub fn screen_height_overflow_by_str(&self, out: &str) -> usize {
+        let new_lines =
             (StringTools::chars_count(out) + (self.internal_cursor.x % self.size.0)) / self.size.0;
+
+        self.screen_height_overflow_by_new_lines(new_lines)
+    }
+
+    pub fn screen_height_overflow_by_new_lines(&self, new_lines: usize) -> usize {
         // if corrected y  + new lines < self.size.1 there is no overflow so unwrap to 0
-        (new_lines_count + self.internal_cursor.get_corrected_y())
+        (new_lines + self.internal_cursor.get_corrected_y())
             .checked_sub(self.size.1)
             .unwrap_or(0)
     }
