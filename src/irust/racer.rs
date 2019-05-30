@@ -239,6 +239,11 @@ impl IRust {
         if self.at_line_end() {
             if let Some(mut racer) = self.racer.take() {
                 self.terminal.clear(ClearType::FromCursorDown)?;
+                // No suggestions to show
+                if racer.suggestions.is_empty() {
+                    return Ok(());
+                }
+
                 self.write_next_suggestion(racer.next_suggestion())?;
 
                 let suggestions_num = std::cmp::min(racer.suggestions.len(), 5);
@@ -277,7 +282,7 @@ impl IRust {
                 for (idx, suggestion) in racer
                     .suggestions
                     .iter()
-                    .skip((racer.suggestion_idx / (suggestions_num + 1)) * (suggestions_num + 1))
+                    .skip(((racer.suggestion_idx - 1) / suggestions_num) * suggestions_num)
                     .take(suggestions_num)
                     .enumerate()
                 {
