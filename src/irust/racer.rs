@@ -262,7 +262,7 @@ impl IRust {
                 if racer.suggestions.iter().any(|s| s.len() > max_width) {
                     self.move_cursor_to(0, None)?;
                     self.cursor
-                        .move_down(self.internal_cursor.get_corrected_y() as u16 + 1);
+                        .move_down(self.internal_cursor.current_wrapped_lines as u16 + 1);
                     self.internal_cursor.x = 0;
 
                     if self.internal_cursor.get_corrected_y() + suggestions_num > self.size.1 {
