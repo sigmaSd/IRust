@@ -217,7 +217,6 @@ impl IRust {
 
     pub fn handle_ctrl_l(&mut self) -> std::io::Result<()> {
         self.clear()?;
-        self.write_in()?;
         Ok(())
     }
 

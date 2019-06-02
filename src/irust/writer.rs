@@ -88,11 +88,8 @@ impl IRust {
         self.internal_cursor.y = 0;
         self.go_to_cursor()?;
 
-        if !self.buffer.is_empty() {
-            // Input phase
-            self.write_in()?;
-            self.write(&self.buffer.clone())?;
-        }
+        self.write_in()?;
+        self.write(&self.buffer.clone())?;
 
         Ok(())
     }
