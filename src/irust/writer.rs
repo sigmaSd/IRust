@@ -20,10 +20,9 @@ impl IRust {
                         let _ = self.terminal.scroll_up(1);
                         self.internal_cursor.y -= 1;
                         self.cursor.move_up(1);
-                        //self.internal_cursor.total_wrapped_lines +=1;
                     }
                     let _ = self.terminal.write(c);
-                    let _ = self.move_internal_cursor_right();
+                    let _ = self.move_cursor_right();
                 });
             }
         }

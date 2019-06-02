@@ -103,7 +103,7 @@ impl IRust {
 
     pub fn go_to_cursor(&mut self) -> std::io::Result<()> {
         self.cursor.goto(
-            self.internal_cursor.x as u16,
+            (self.internal_cursor.x % self.size.0) as u16,
             self.internal_cursor.get_corrected_y() as u16,
         )?;
         Ok(())
@@ -125,25 +125,25 @@ impl IRust {
         }
     }
 
-    pub fn move_internal_cursor_left(&mut self) -> std::io::Result<()> {
+    pub fn move_cursor_left(&mut self) -> std::io::Result<()> {
         self.internal_cursor.move_left();
-        if self.at_screen_start() {
+        self.go_to_cursor()?;
+        if self.at_screen_end() {
             self.internal_cursor.current_wrapped_lines = self
                 .internal_cursor
                 .current_wrapped_lines
                 .checked_sub(1)
                 .unwrap_or(0);
 
-            self.move_cursor_to(self.size.0, self.internal_cursor.get_corrected_y())?;
-        } else if self.at_screen_end() {
             self.move_cursor_to(self.size.0 - 1, self.internal_cursor.get_corrected_y())?;
         }
 
         Ok(())
     }
 
-    pub fn move_internal_cursor_right(&mut self) -> std::io::Result<()> {
+    pub fn move_cursor_right(&mut self) -> std::io::Result<()> {
         self.internal_cursor.move_right();
+        self.go_to_cursor()?;
         if self.at_screen_start() {
             self.internal_cursor.current_wrapped_lines += 1;
             self.move_cursor_to(0, self.internal_cursor.get_corrected_y())?;
