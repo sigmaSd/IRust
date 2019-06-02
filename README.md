@@ -85,6 +85,9 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.5.0**
+- auto-complete `(` `{` `[`
+
 **0.4.9**
 - Reworked Racer, now it shows suggestions table + the inline suggestion
 
