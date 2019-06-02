@@ -5,14 +5,24 @@ use crossterm::ClearType;
 
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> std::io::Result<()> {
+        // Insert input char in buffer
         StringTools::insert_at_char_idx(
             &mut self.buffer,
             self.internal_cursor.get_corrected_x(),
             c,
         );
+
+        // Dont trigger racer if we're going to autocomplete
+        if ['(', '[', '{'].contains(&c) {
+            self.debouncer.reset_timer();
+        }
+
+        // Write input char
         self.write_insert(Some(&c.to_string()))?;
 
+        // Auto complete ( [ {
         self.smart_complete(c)?;
+
         Ok(())
     }
 
