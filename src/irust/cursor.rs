@@ -170,4 +170,16 @@ impl IRust {
         self.internal_cursor.total_wrapped_lines =
             (4 + StringTools::chars_count(&self.buffer)) / self.size.0;
     }
+
+    pub fn save_cursor_position(&mut self) -> std::io::Result<()> {
+        self.cursor.save_position()?;
+        self.internal_cursor.save_position();
+        Ok(())
+    }
+
+    pub fn reset_cursor_position(&mut self) -> std::io::Result<()> {
+        self.cursor.reset_position()?;
+        self.internal_cursor.reset_position();
+        Ok(())
+    }
 }

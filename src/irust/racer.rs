@@ -219,8 +219,7 @@ impl IRust {
 
                 self.color
                     .set_fg(self.options.racer_inline_suggestion_color)?;
-                self.cursor.save_position()?;
-                self.internal_cursor.save_position();
+                self.save_cursor_position()?;
                 self.terminal.clear(ClearType::FromCursorDown)?;
 
                 StringTools::strings_unique(&self.buffer, &mut suggestion);
@@ -232,8 +231,7 @@ impl IRust {
 
                 self.write(&suggestion)?;
 
-                self.cursor.reset_position()?;
-                self.internal_cursor.reset_position();
+                self.reset_cursor_position()?;
 
                 if overflow != 0 {
                     self.cursor.move_up(overflow as u16);
@@ -279,8 +277,7 @@ impl IRust {
                 }
 
                 // Save cursors postions from this point (Input position)
-                self.cursor.save_position()?;
-                self.internal_cursor.save_position();
+                self.save_cursor_position()?;
 
                 // Write from screen start if a suggestion will be truncated
                 let mut max_width = self.size.0 - self.internal_cursor.x % self.size.0;
@@ -333,8 +330,7 @@ impl IRust {
 
                 // reset to input position and color
                 self.color.reset()?;
-                self.cursor.reset_position()?;
-                self.internal_cursor.reset_position();
+                self.reset_cursor_position()?;
 
                 // done
                 self.racer = Some(racer);
