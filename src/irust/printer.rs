@@ -127,6 +127,9 @@ impl IRust {
             }
         }
 
+        // reset wrapped lines counter after each output
+        self.internal_cursor.reset_wrapped_lines();
+
         Ok(())
     }
 

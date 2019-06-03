@@ -144,6 +144,7 @@ impl IRust {
     pub fn move_cursor_right(&mut self) -> std::io::Result<()> {
         self.internal_cursor.move_right();
         self.go_to_cursor()?;
+
         if self.at_screen_start() {
             self.internal_cursor.current_wrapped_lines += 1;
             self.move_cursor_to(0, self.internal_cursor.get_corrected_y())?;

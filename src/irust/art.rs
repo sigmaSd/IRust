@@ -60,7 +60,7 @@ impl IRust {
 
         let default_msg = "Welcome to IRust".to_string();
         self.printer = Printer::new(PrinterItem::new(default_msg, PrinterItemType::Welcome));
-        self.printer.add_new_line(1);
+        self.printer.add_new_line(2);
 
         self.write_out()?;
 
