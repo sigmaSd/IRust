@@ -127,6 +127,9 @@ impl IRust {
             }
         }
 
+        // reset wrapped lines counter after each output
+        self.internal_cursor.reset_wrapped_lines();
+
         Ok(())
     }
 
@@ -142,17 +145,23 @@ impl IRust {
     }
 
     pub fn write_insert(&mut self, c: Option<&str>) -> std::io::Result<()> {
+        // We modified the buffer we need to update total wrapped lines
         self.update_total_wrapped_lines();
 
+        // Clear from cursor down
         self.terminal.clear(ClearType::FromCursorDown)?;
 
+        // Set input color
         self.color.set_fg(self.options.insert_color)?;
 
+        // Write the new input character
         if let Some(c) = c {
             // insert
             self.write(c)?;
         }
 
+        // If the new character is not in the last position
+        // rewrite the buffer from the character and on
         if !self.at_line_end() {
             self.save_cursor_position()?;
             for character in self
@@ -166,22 +175,15 @@ impl IRust {
             }
             self.reset_cursor_position()?;
         }
+
+        // Reset color
         self.color.reset()?;
 
-        // debounce from update calls
-        if self.debouncer.check().is_err() {
-            return Ok(());
-        }
+        // Unlock racer suggestions update
         self.unlock_racer_update();
-        self.update_suggestions()?;
-        if let Some(character) = self.buffer.chars().last() {
-            if character.is_alphanumeric() {
-                if let Some(mut racer) = self.racer.take() {
-                    self.write_next_suggestion(racer.next_suggestion())?;
-                    self.racer = Some(racer);
-                }
-            }
-        }
+
+        // reset debouncer
+        self.debouncer.reset_timer();
 
         Ok(())
     }

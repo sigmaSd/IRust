@@ -50,9 +50,6 @@ impl IRust {
             self.write_newline()?;
         }
 
-        // reset wrapped lines counter
-        self.internal_cursor.reset_wrapped_lines();
-
         // new input
         self.write_in()?;
         Ok(())
