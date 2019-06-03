@@ -168,12 +168,11 @@ impl IRust {
         }
         self.color.reset()?;
 
-        // debounce from update calls
-        if self.debouncer.check().is_err() {
-            return Ok(());
-        }
         self.unlock_racer_update();
-        self.update_suggestions()?;
+        self.debouncer.lock = false;
+
+        self.debouncer.reset_timer();
+        /*self.update_suggestions()?;
         if let Some(character) = self.buffer.chars().last() {
             if character.is_alphanumeric() {
                 if let Some(mut racer) = self.racer.take() {
@@ -181,7 +180,7 @@ impl IRust {
                     self.racer = Some(racer);
                 }
             }
-        }
+        }*/
 
         Ok(())
     }
