@@ -265,15 +265,9 @@ impl IRust {
                 // Handle screen height overflow
                 let height_overflow = self.screen_height_overflow_by_new_lines(suggestions_num);
                 if height_overflow != 0 {
-                    self.terminal.scroll_up(
-                        (self.internal_cursor.get_corrected_y() + suggestions_num + 1 - self.size.1)
-                            as i16,
-                    )?;
-                    self.cursor.move_up(
-                        (self.internal_cursor.get_corrected_y() + suggestions_num + 1 - self.size.1)
-                            as u16,
-                    );
-                    self.internal_cursor.y -= suggestions_num + 1;
+                    self.terminal.scroll_up((height_overflow) as i16)?;
+                    self.cursor.move_up((height_overflow) as u16);
+                    self.internal_cursor.y -= height_overflow;
                 }
 
                 // Save cursors postions from this point (Input position)
@@ -372,9 +366,11 @@ impl IRust {
         }
     }
 
-    pub fn _racer_update_locked(&mut self) -> bool {
+    pub fn racer_update_locked(&mut self) -> bool {
         if let Some(racer) = self.racer.take() {
-            racer.update_lock
+            let lock = racer.update_lock;
+            self.racer = Some(racer);
+            lock
         } else {
             true
         }
@@ -383,7 +379,7 @@ impl IRust {
     pub fn check_racer_callback(&mut self) -> std::io::Result<()> {
         if let Some(character) = self.buffer.chars().last() {
             if character.is_alphanumeric() {
-                if self.debouncer.recv.try_recv().is_ok() {
+                if !self.racer_update_locked() && self.debouncer.recv.try_recv().is_ok() {
                     self.update_suggestions()?;
                     self.lock_racer_update();
                     if let Some(mut racer) = self.racer.take() {
