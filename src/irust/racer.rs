@@ -383,8 +383,7 @@ impl IRust {
     pub fn check_racer_callback(&mut self) -> std::io::Result<()> {
         if let Some(character) = self.buffer.chars().last() {
             if character.is_alphanumeric() {
-                if !self.debouncer.lock && self.debouncer.recv.try_recv().is_ok() {
-                    self.debouncer.lock = true;
+                if self.debouncer.recv.try_recv().is_ok() {
                     self.update_suggestions()?;
                     self.lock_racer_update();
                     if let Some(mut racer) = self.racer.take() {

@@ -180,7 +180,6 @@ impl IRust {
         self.unlock_racer_update();
 
         // reset debouncer
-        self.debouncer.lock = false;
         self.debouncer.reset_timer();
 
         Ok(())

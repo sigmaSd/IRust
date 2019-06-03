@@ -8,7 +8,6 @@ pub struct Debouncer {
     timer: Arc<Mutex<Instant>>,
     send: mpsc::Sender<usize>,
     pub recv: mpsc::Receiver<usize>,
-    pub lock: bool,
 }
 
 impl Debouncer {
@@ -18,7 +17,6 @@ impl Debouncer {
             timer: Arc::new(Mutex::new(Instant::now())),
             send,
             recv,
-            lock: false,
         }
     }
 
