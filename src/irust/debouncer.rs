@@ -1,29 +1,37 @@
+use std::sync::{mpsc, Arc, Mutex};
 use std::time::{Duration, Instant};
 
-const WAIT_TIMEOUT: u64 = 110;
+const WAIT_TIMEOUT: u64 = 10;
+const SLEEP_TIME: u64 = 300;
 
 pub struct Debouncer {
-    timer: Instant,
+    timer: Arc<Mutex<Instant>>,
+    send: mpsc::Sender<usize>,
+    pub recv: mpsc::Receiver<usize>,
 }
 
 impl Debouncer {
     pub fn new() -> Self {
+        let (send, recv) = mpsc::channel();
         Self {
-            timer: Instant::now(),
+            timer: Arc::new(Mutex::new(Instant::now())),
+            send,
+            recv,
         }
     }
 
-    pub fn check(&mut self) -> Result<(), ()> {
-        if self.timer.elapsed() >= Duration::from_millis(WAIT_TIMEOUT) {
-            self.reset_timer();
-            Ok(())
-        } else {
-            self.reset_timer();
-            Err(())
-        }
+    pub fn run(&mut self) {
+        let send = self.send.clone();
+        let timer = self.timer.clone();
+        std::thread::spawn(move || loop {
+            if timer.lock().unwrap().elapsed() >= Duration::from_millis(WAIT_TIMEOUT) {
+                send.send(1).unwrap();
+            }
+            std::thread::sleep(std::time::Duration::from_millis(SLEEP_TIME));
+        });
     }
 
     pub fn reset_timer(&mut self) {
-        self.timer = Instant::now();
+        *self.timer.lock().unwrap() = Instant::now();
     }
 }

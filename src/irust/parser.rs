@@ -61,8 +61,11 @@ impl IRust {
             .map(ToOwned::to_owned)
             .collect();
 
+        self.save_cursor_position()?;
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
+        self.reset_cursor_position()?;
         self.wait_add(self.repl.build()?, "Build")?;
+        self.reset_cursor_position()?;
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
         outputs.add_new_line(1);

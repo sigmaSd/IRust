@@ -80,6 +80,7 @@ impl IRust {
     fn prepare(&mut self) -> std::io::Result<()> {
         self.repl.prepare_ground()?;
         self.start_racer();
+        self.debouncer.run();
         self.welcome()?;
         self.write_in()?;
         Ok(())
@@ -91,6 +92,7 @@ impl IRust {
         let _screen = crossterm::RawScreen::into_raw_mode()?;
 
         loop {
+            self.check_racer_callback()?;
             if let Some(key_event) = stdin.next() {
                 match key_event {
                     InputEvent::Keyboard(KeyEvent::Char(c)) => match c {
