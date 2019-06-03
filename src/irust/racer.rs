@@ -171,8 +171,7 @@ impl IRust {
             return Ok(());
         }
 
-        let racer = self.racer.take();
-        if let Some(mut racer) = racer {
+        if let Some(mut racer) = self.racer.take() {
             if self.show_suggestions_inner(&mut racer).is_err() {
                 eprintln!("Something happened while fetching suggestions");
             }
@@ -252,6 +251,7 @@ impl IRust {
 
                 // No suggestions to show
                 if racer.suggestions.is_empty() {
+                    self.racer = Some(racer);
                     return Ok(());
                 }
 
@@ -351,8 +351,8 @@ impl IRust {
                 self.update_total_wrapped_lines();
 
                 self.write(&suggestion)?;
-                self.racer = Some(racer);
             }
+            self.racer = Some(racer);
         }
 
         Ok(())
@@ -381,21 +381,23 @@ impl IRust {
     }
 
     pub fn check_racer_callback(&mut self) -> std::io::Result<()> {
-        if !self.debouncer.lock && self.debouncer.recv.try_recv().is_ok() {
-            self.debouncer.lock = true;
-            self.update_suggestions()?;
-            self.lock_racer_update();
-            if let Some(character) = self.buffer.chars().last() {
-                if character.is_alphanumeric() {
+        if let Some(character) = self.buffer.chars().last() {
+            if character.is_alphanumeric() {
+                if !self.debouncer.lock && self.debouncer.recv.try_recv().is_ok() {
+                    self.debouncer.lock = true;
+                    self.update_suggestions()?;
+                    self.lock_racer_update();
                     if let Some(mut racer) = self.racer.take() {
                         self.write_next_suggestion(racer.next_suggestion())?;
                         self.racer = Some(racer);
                     }
+                    self.debouncer.reset_timer();
                 }
+            } else {
+                self.unlock_racer_update();
             }
-            self.debouncer.reset_timer();
-            //self.function;
         }
+
         Ok(())
     }
 }

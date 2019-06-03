@@ -88,7 +88,7 @@ impl IRust {
 
     pub fn run(&mut self) -> std::io::Result<()> {
         self.prepare()?;
-        let mut stdin = self.input.read_async();
+        let mut stdin = self.input.read_sync();
         let _screen = crossterm::RawScreen::into_raw_mode()?;
 
         loop {
