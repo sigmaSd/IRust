@@ -12,41 +12,8 @@ impl IRust {
             c,
         );
 
-        // Dont trigger racer if we're going to autocomplete
-        if ['(', '[', '{'].contains(&c) {
-            self.debouncer.reset_timer();
-        }
-
         // Write input char
         self.write_insert(Some(&c.to_string()))?;
-
-        // Auto complete ( [ {
-        self.smart_complete(c)?;
-
-        Ok(())
-    }
-
-    fn smart_complete(&mut self, c: char) -> std::io::Result<()> {
-        let mut hit = false;
-        match c {
-            '(' => {
-                self.handle_character(')')?;
-                hit = true;
-            }
-            '{' => {
-                self.handle_character('}')?;
-                hit = true;
-            }
-            '[' => {
-                self.handle_character(']')?;
-                hit = true;
-            }
-            _ => (),
-        };
-
-        if hit {
-            self.move_cursor_left()?;
-        }
 
         Ok(())
     }

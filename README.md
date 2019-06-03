@@ -85,6 +85,9 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.5.3**
+- Revert auto-complete (issues with pasting)
+
 **0.5.2**
 - More bug fixes
 
