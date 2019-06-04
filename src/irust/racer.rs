@@ -351,13 +351,23 @@ impl IRust {
 
     pub fn use_suggestion(&mut self) -> Result<(), IRustError> {
         if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
+            // suggestion => `name: definition`
+            // suggestion example => `assert!: macro_rules! assert {`
+
+            // get the name
             let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
+
+            // get the unique part of the name
             StringTools::strings_unique(&self.buffer, &mut suggestion);
 
             // update total wrapped lines count each time we touch the buffer
             self.buffer.push_str(&suggestion);
             self.update_total_wrapped_lines();
 
+            // clear screen from cursor down
+            self.terminal.clear(ClearType::FromCursorDown)?;
+
+            // write the suggestion
             self.write(&suggestion)?;
         }
 
