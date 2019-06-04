@@ -1,10 +1,10 @@
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
-use crate::irust::IRust;
+use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
 use crossterm::ClearType;
 
 impl IRust {
-    pub fn handle_character(&mut self, c: char) -> std::io::Result<()> {
+    pub fn handle_character(&mut self, c: char) -> Result<(), IRustError> {
         // Insert input char in buffer
         StringTools::insert_at_char_idx(
             &mut self.buffer,
@@ -18,7 +18,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_enter(&mut self) -> std::io::Result<()> {
+    pub fn handle_enter(&mut self) -> Result<(), IRustError> {
         // clear suggestion
         self.clear_suggestion()?;
 
@@ -55,7 +55,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_tab(&mut self) -> std::io::Result<()> {
+    pub fn handle_tab(&mut self) -> Result<(), IRustError> {
         self.debouncer.reset_timer();
         self.update_suggestions()?;
         self.lock_racer_update()?;
@@ -63,7 +63,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_up(&mut self) -> std::io::Result<()> {
+    pub fn handle_up(&mut self) -> Result<(), IRustError> {
         self.internal_cursor.x = 4;
         self.move_cursor_to(None, self.internal_cursor.y)?;
         self.internal_cursor.reset_wrapped_lines();
@@ -85,7 +85,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_down(&mut self) -> std::io::Result<()> {
+    pub fn handle_down(&mut self) -> Result<(), IRustError> {
         self.internal_cursor.x = 4;
         self.move_cursor_to(None, self.internal_cursor.y)?;
         self.internal_cursor.reset_wrapped_lines();
@@ -107,7 +107,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_left(&mut self) -> std::io::Result<()> {
+    pub fn handle_left(&mut self) -> Result<(), IRustError> {
         // clear suggestion
         self.clear_suggestion()?;
 
@@ -117,7 +117,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_right(&mut self) -> std::io::Result<()> {
+    pub fn handle_right(&mut self) -> Result<(), IRustError> {
         if !self.at_line_end() {
             self.move_cursor_right()?;
         } else {
@@ -126,7 +126,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_backspace(&mut self) -> std::io::Result<()> {
+    pub fn handle_backspace(&mut self) -> Result<(), IRustError> {
         if self.internal_cursor.get_corrected_x() > 0 {
             self.move_cursor_left()?;
             if !self.buffer.is_empty() {
@@ -140,7 +140,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_c(&mut self) -> std::io::Result<()> {
+    pub fn handle_ctrl_c(&mut self) -> Result<(), IRustError> {
         // reset wrapped lines counter
         self.internal_cursor.reset_wrapped_lines();
 
@@ -158,7 +158,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_d(&mut self) -> std::io::Result<()> {
+    pub fn handle_ctrl_d(&mut self) -> Result<(), IRustError> {
         if self.buffer.is_empty() {
             self.exit()?;
         }
@@ -166,14 +166,14 @@ impl IRust {
         Ok(())
     }
 
-    fn exit(&mut self) -> std::io::Result<()> {
+    fn exit(&mut self) -> Result<(), IRustError> {
         self.terminal.clear(ClearType::All)?;
         self.terminal.exit();
 
         Ok(())
     }
 
-    pub fn handle_ctrl_z(&mut self) -> std::io::Result<()> {
+    pub fn handle_ctrl_z(&mut self) -> Result<(), IRustError> {
         #[cfg(unix)]
         {
             use nix::{
@@ -190,12 +190,12 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_l(&mut self) -> std::io::Result<()> {
+    pub fn handle_ctrl_l(&mut self) -> Result<(), IRustError> {
         self.clear()?;
         Ok(())
     }
 
-    pub fn go_to_start(&mut self) -> std::io::Result<()> {
+    pub fn go_to_start(&mut self) -> Result<(), IRustError> {
         self.clear_suggestion()?;
         self.internal_cursor.x = 4;
         self.move_cursor_to(4, self.internal_cursor.y)?;
@@ -203,7 +203,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn go_to_end(&mut self) -> std::io::Result<()> {
+    pub fn go_to_end(&mut self) -> Result<(), IRustError> {
         // Already at the end of the line
         if self.at_line_end() {
             self.use_suggestion()?;

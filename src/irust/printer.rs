@@ -1,4 +1,4 @@
-use crate::irust::{IRust, IN};
+use crate::irust::{IRust, IRustError, IN};
 use crossterm::{ClearType, Color};
 
 #[derive(Clone)]
@@ -86,7 +86,7 @@ impl PrinterItem {
 }
 
 impl IRust {
-    pub fn write_out(&mut self) -> std::io::Result<()> {
+    pub fn write_out(&mut self) -> Result<(), IRustError> {
         for output in self.printer.clone() {
             let color = match output.out_type {
                 PrinterItemType::Eval => self.options.eval_color,
@@ -133,7 +133,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_in(&mut self) -> std::io::Result<()> {
+    pub fn write_in(&mut self) -> Result<(), IRustError> {
         self.internal_cursor.x = 0;
         self.move_cursor_to(0, None)?;
         self.terminal.clear(ClearType::FromCursorDown)?;
@@ -144,7 +144,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_insert(&mut self, c: Option<&str>) -> std::io::Result<()> {
+    pub fn write_insert(&mut self, c: Option<&str>) -> Result<(), IRustError> {
         // We modified the buffer we need to update total wrapped lines
         self.update_total_wrapped_lines();
 

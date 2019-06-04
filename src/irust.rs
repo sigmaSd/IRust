@@ -15,11 +15,13 @@ mod parser;
 mod printer;
 mod racer;
 mod writer;
+mod irust_error;
 use cursor::Cursor;
 use debouncer::Debouncer;
 use options::Options;
 use printer::Printer;
 use racer::Racer;
+pub use irust_error::IRustError;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
