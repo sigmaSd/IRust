@@ -123,7 +123,7 @@ pub fn read_until_bytes<R: std::io::BufRead + ?Sized>(
                     buf.extend_from_slice(&available[..=i]);
 
                     count += 1;
-                    if count == 3 {
+                    if count == delim.len() {
                         (true, i + 1)
                     } else {
                         (false, i + 1)
