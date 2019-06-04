@@ -36,7 +36,7 @@ impl History {
     }
 
     pub fn push(&mut self, buffer: String) {
-        if !buffer.is_empty() {
+        if !buffer.is_empty() && Some(&buffer) != self.buffer_vec.last() {
             self.buffer_vec.push(buffer);
             self.go_to_last();
         }
