@@ -1,10 +1,10 @@
+use super::IRustError;
 use crate::irust::IRust;
 use crate::utils::StringTools;
 use crossterm::ClearType;
 use std::env::temp_dir;
 use std::io::{self, Read, Write};
 use std::process::{Child, Command, Stdio};
-use super::IRustError;
 
 #[derive(Debug)]
 pub struct Racer {
@@ -147,7 +147,7 @@ impl Racer {
 }
 
 impl IRust {
-    pub fn update_suggestions(&mut self) -> std::io::Result<()> {
+    pub fn update_suggestions(&mut self) -> Result<(), IRustError> {
         // return if we're not at the end of the line
         if !self.at_line_end() {
             return Ok(());
@@ -169,15 +169,8 @@ impl IRust {
         tmp_repl.insert(self.buffer.clone());
         tmp_repl.write()?;
 
-        self.racer
-            .as_mut()?
-            .cursor
-            .0 = y_pos;
-        self.racer
-            .as_mut()
-            ?
-            .cursor
-            .1 = StringTools::chars_count(&self.buffer) + 1;
+        self.racer.as_mut()?.cursor.0 = y_pos;
+        self.racer.as_mut()?.cursor.1 = StringTools::chars_count(&self.buffer) + 1;
         self.update_racer()?;
 
         Ok(())
@@ -186,13 +179,9 @@ impl IRust {
     fn update_racer(&mut self) -> Result<(), IRustError> {
         if self.buffer.starts_with(':') {
             // Auto complete IRust commands
-            self.racer
-                .as_mut()
-                ?
-                .suggestions = self
+            self.racer.as_mut()?.suggestions = self
                 .racer
-                .as_ref()
-                ?
+                .as_ref()?
                 .cmds
                 .iter()
                 .filter(|c| c.starts_with(&self.buffer[1..]))
@@ -200,22 +189,14 @@ impl IRust {
                 .collect();
         } else {
             // Auto complete rust code
-            self.racer
-                .as_mut()
-                ?
-                .complete_code()?;
+            self.racer.as_mut()?.complete_code()?;
         }
 
         Ok(())
     }
 
     pub fn write_next_suggestion(&mut self) -> Result<(), IRustError> {
-        let suggestion = self
-            .racer
-            .as_mut()
-            ?
-            .next_suggestion()
-            .cloned();
+        let suggestion = self.racer.as_mut()?.next_suggestion().cloned();
         if let Some(suggestion) = suggestion {
             if self.at_line_end() {
                 let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
@@ -249,12 +230,7 @@ impl IRust {
     }
 
     pub fn write_first_suggestion(&mut self) -> Result<(), IRustError> {
-        let suggestion = self
-            .racer
-            .as_ref()
-            ?
-            .suggestions
-            .get(0);
+        let suggestion = self.racer.as_ref()?.suggestions.get(0);
 
         if let Some(suggestion) = suggestion {
             if self.at_line_end() {
@@ -294,13 +270,7 @@ impl IRust {
             self.terminal.clear(ClearType::FromCursorDown)?;
 
             // No suggestions to show
-            if self
-                .racer
-                .as_ref()
-                ?
-                .suggestions
-                .is_empty()
-            {
+            if self.racer.as_ref()?.suggestions.is_empty() {
                 return Ok(());
             }
 
@@ -309,11 +279,7 @@ impl IRust {
 
             // Max suggestions number to show
             let suggestions_num = std::cmp::min(
-                self.racer
-                    .as_ref()
-                    ?
-                    .suggestions
-                    .len(),
+                self.racer.as_ref()?.suggestions.len(),
                 self.options.racer_max_suggestions,
             );
 
@@ -332,8 +298,7 @@ impl IRust {
             let mut max_width = self.size.0 - self.internal_cursor.x % self.size.0;
             if self
                 .racer
-                .as_ref()
-                ?
+                .as_ref()?
                 .suggestions
                 .iter()
                 .any(|s| s.len() > max_width)
@@ -352,26 +317,17 @@ impl IRust {
                 .set_fg(self.options.racer_suggestions_table_color)?;
             let current_suggestion = self
                 .racer
-                .as_ref()
-                ?
+                .as_ref()?
                 .current_suggestion()
                 .map(|s| s.to_string());
 
             for (idx, suggestion) in self
                 .racer
-                .as_ref()
-                ?
+                .as_ref()?
                 .suggestions
                 .iter()
                 .skip(
-                    ((self
-                        .racer
-                        .as_ref()
-                        ?
-                        .suggestion_idx
-                        - 1)
-                        / suggestions_num)
-                        * suggestions_num,
+                    ((self.racer.as_ref()?.suggestion_idx - 1) / suggestions_num) * suggestions_num,
                 )
                 .take(suggestions_num)
                 .enumerate()
@@ -410,12 +366,7 @@ impl IRust {
     }
 
     pub fn use_suggestion(&mut self) -> Result<(), IRustError> {
-        if let Some(suggestion) = self
-            .racer
-            .as_ref()
-            ?
-            .current_suggestion()
-        {
+        if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
             let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
             StringTools::strings_unique(&self.buffer, &mut suggestion);
 
@@ -430,27 +381,17 @@ impl IRust {
     }
 
     pub fn lock_racer_update(&mut self) -> Result<(), IRustError> {
-        self.racer
-            .as_mut()
-            ?
-            .update_lock = true;
+        self.racer.as_mut()?.update_lock = true;
         Ok(())
     }
 
     pub fn unlock_racer_update(&mut self) -> Result<(), IRustError> {
-        self.racer
-            .as_mut()
-            ?
-            .update_lock = false;
+        self.racer.as_mut()?.update_lock = false;
         Ok(())
     }
 
     pub fn racer_update_locked(&mut self) -> Result<bool, IRustError> {
-        Ok(self
-            .racer
-            .as_ref()
-            ?
-            .update_lock)
+        Ok(self.racer.as_ref()?.update_lock)
     }
 
     pub fn check_racer_callback(&mut self) -> Result<(), IRustError> {

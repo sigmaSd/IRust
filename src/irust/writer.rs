@@ -1,10 +1,10 @@
 use crossterm::ClearType;
 
-use crate::irust::IRust;
+use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
 
 impl IRust {
-    pub fn write(&mut self, out: &str) -> std::io::Result<()> {
+    pub fn write(&mut self, out: &str) -> Result<(), IRustError> {
         if !out.is_empty() {
             if StringTools::is_multiline(&out) {
                 let _ = self.write_newline();
@@ -29,7 +29,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn _writeln(&mut self, s: &str) -> std::io::Result<()> {
+    pub fn _writeln(&mut self, s: &str) -> Result<(), IRustError> {
         self.write_newline()?;
         self.write(s)?;
         Ok(())
@@ -40,13 +40,13 @@ impl IRust {
         s: &str,
         x: P,
         y: U,
-    ) -> std::io::Result<()> {
+    ) -> Result<(), IRustError> {
         self.move_cursor_to(x, y)?;
         self.write(s)?;
         Ok(())
     }
 
-    pub fn write_newline(&mut self) -> std::io::Result<()> {
+    pub fn write_newline(&mut self) -> Result<(), IRustError> {
         self.terminal.write('\n')?;
         self.internal_cursor.x = 0;
         self.internal_cursor.y += 1;
@@ -58,7 +58,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn clear_suggestion(&mut self) -> std::io::Result<()> {
+    pub fn clear_suggestion(&mut self) -> Result<(), IRustError> {
         if self.at_line_end() {
             self.clear_from(
                 self.internal_cursor.x,
@@ -73,7 +73,7 @@ impl IRust {
         &mut self,
         x: P,
         y: U,
-    ) -> std::io::Result<()> {
+    ) -> Result<(), IRustError> {
         self.cursor.save_position()?;
         self.move_cursor_to(x, y)?;
         self.terminal.clear(ClearType::FromCursorDown)?;
@@ -82,7 +82,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn clear(&mut self) -> std::io::Result<()> {
+    pub fn clear(&mut self) -> Result<(), IRustError> {
         self.terminal.clear(ClearType::All)?;
         self.internal_cursor.reset();
         self.internal_cursor.y = 0;

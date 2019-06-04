@@ -1,7 +1,6 @@
-mod cargo_cmds;
-use super::IRustError;
-use cargo_cmds::CargoCmds;
+use crate::cargo_cmds::CargoCmds;
 use std::io::{self, Write};
+use crate::irust::irust_error::IRustError;
 
 #[derive(Clone)]
 pub struct Repl {
@@ -82,6 +81,9 @@ impl Repl {
             }
         }
 
-        Err(IRustError::Custom("Incorrect line number".into()))
+        Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "Incorrect line number",
+        ))
     }
 }

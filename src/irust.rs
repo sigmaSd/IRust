@@ -2,26 +2,28 @@ use crossterm::{
     Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalCursor, TerminalInput,
 };
 
-use crate::history::History;
-use crate::repl::Repl;
 mod art;
 mod cursor;
 mod debouncer;
 mod events;
 mod format;
 mod help;
+mod history;
+mod irust_error;
 pub mod options;
 mod parser;
 mod printer;
 mod racer;
+mod repl;
 mod writer;
-mod irust_error;
 use cursor::Cursor;
 use debouncer::Debouncer;
+use history::History;
+pub use irust_error::IRustError;
 use options::Options;
 use printer::Printer;
 use racer::Racer;
-pub use irust_error::IRustError;
+use repl::Repl;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
@@ -79,7 +81,7 @@ impl IRust {
         }
     }
 
-    fn prepare(&mut self) -> std::io::Result<()> {
+    fn prepare(&mut self) -> Result<(), IRustError> {
         self.repl.prepare_ground()?;
         self.debouncer.run();
         self.welcome()?;
@@ -87,7 +89,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn run(&mut self) -> std::io::Result<()> {
+    pub fn run(&mut self) -> Result<(), IRustError> {
         self.prepare()?;
         let mut stdin = self.input.read_sync();
         let _screen = crossterm::RawScreen::into_raw_mode()?;

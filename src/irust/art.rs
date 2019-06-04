@@ -1,9 +1,9 @@
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
-use crate::irust::IRust;
+use crate::irust::{IRust, IRustError};
 use crossterm::{ClearType, Color};
 
 impl IRust {
-    pub fn wait_add(&mut self, add_cmd: std::process::Child, msg: &str) -> std::io::Result<()> {
+    pub fn wait_add(&mut self, add_cmd: std::process::Child, msg: &str) -> Result<(), IRustError> {
         self.cursor.hide()?;
         self.color.set_fg(Color::Cyan)?;
 
@@ -16,7 +16,7 @@ impl IRust {
                 if status.success() {
                     Ok(())
                 } else {
-                    Err(std::io::Error::last_os_error())
+                    Err(IRustError::Ignore)
                 }
             }
             Err(e) => {
@@ -32,7 +32,7 @@ impl IRust {
         &mut self,
         mut add_cmd: std::process::Child,
         msg: &str,
-    ) -> std::io::Result<std::process::ExitStatus> {
+    ) -> Result<std::process::ExitStatus, IRustError> {
         self.write_str_at(&format!(" {}ing dep [\\]", msg), 0, None)?;
         loop {
             match add_cmd.try_wait() {
@@ -48,14 +48,14 @@ impl IRust {
                     continue;
                 }
                 Err(e) => {
-                    return Err(e);
+                    return Err(e.into());
                 }
                 Ok(Some(status)) => return Ok(status),
             }
         }
     }
 
-    pub fn welcome(&mut self) -> std::io::Result<()> {
+    pub fn welcome(&mut self) -> Result<(), IRustError> {
         self.terminal.clear(ClearType::All)?;
 
         let default_msg = "Welcome to IRust".to_string();
