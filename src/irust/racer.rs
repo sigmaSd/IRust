@@ -1,12 +1,11 @@
 use super::IRustError;
 use crate::irust::IRust;
-use crate::utils::StringTools;
+use crate::utils::{read_until_bytes, StringTools};
 use crossterm::ClearType;
 use std::env::temp_dir;
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 use std::process::{Child, Command, Stdio};
 
-#[derive(Debug)]
 pub struct Racer {
     process: Child,
     main_file: String,
@@ -70,26 +69,12 @@ impl Racer {
         )?;
 
         // read till END
-        let mut raw_output = [0; 100_000];
-        'outer: loop {
-            let _ = stdout.read(&mut raw_output)?;
-            let mut count = 0;
-            for e in raw_output.iter().rev() {
-                if *e == b"D"[0] {
-                    count += 1;
-                    continue;
-                }
-                if count == 1 && *e == b"N"[0] {
-                    count += 1;
-                    continue;
-                }
-                if count == 2 && *e == b"E"[0] {
-                    break 'outer;
-                }
-                count = 0;
-            }
-        }
-
+        let mut raw_output = vec![0; 100_000];
+        read_until_bytes(
+            &mut std::io::BufReader::new(stdout),
+            b"END",
+            &mut raw_output,
+        )?;
         let raw_output = String::from_utf8(raw_output.to_vec()).unwrap();
 
         self.suggestions.clear();
@@ -158,7 +143,7 @@ impl IRust {
             return Ok(());
         }
 
-        let _ = self.show_suggestions_inner();
+        self.show_suggestions_inner()?;
 
         Ok(())
     }
