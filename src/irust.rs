@@ -35,7 +35,7 @@ pub struct IRust {
     internal_cursor: Cursor,
     history: History,
     pub options: Options,
-    racer: Option<Racer>,
+    racer: std::io::Result<Racer>,
     debouncer: Debouncer,
     size: (usize, usize),
 }
@@ -54,7 +54,7 @@ impl IRust {
         let internal_cursor = Cursor::new(0, 0, 4);
         let options = Options::new().unwrap_or_default();
         let debouncer = Debouncer::new();
-        let racer = None;
+        let racer = Racer::start();
         let size = {
             let (width, height) = terminal.terminal_size();
             (width as usize, height as usize)
@@ -79,7 +79,6 @@ impl IRust {
 
     fn prepare(&mut self) -> std::io::Result<()> {
         self.repl.prepare_ground()?;
-        self.start_racer();
         self.debouncer.run();
         self.welcome()?;
         self.write_in()?;

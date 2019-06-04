@@ -56,8 +56,9 @@ impl IRust {
     }
 
     pub fn handle_tab(&mut self) -> std::io::Result<()> {
+        self.debouncer.reset_timer();
         self.update_suggestions()?;
-        self.lock_racer_update();
+        self.lock_racer_update()?;
         self.cycle_suggestions()?;
         Ok(())
     }
