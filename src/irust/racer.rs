@@ -215,9 +215,8 @@ impl IRust {
     }
 
     pub fn write_first_suggestion(&mut self) -> Result<(), IRustError> {
-        let suggestion = self.racer.as_ref()?.suggestions.get(0);
-
-        if let Some(suggestion) = suggestion {
+        self.racer.as_mut()?.suggestion_idx = 0;
+        if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
             if self.at_line_end() {
                 let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
 
