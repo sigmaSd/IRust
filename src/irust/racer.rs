@@ -78,16 +78,12 @@ impl Racer {
         let raw_output = String::from_utf8(raw_output.to_vec()).unwrap();
 
         self.suggestions.clear();
-        for suggestion in raw_output
-            .lines()
-            .skip(1)
-            .filter(|l| !l.chars().all(|c| c == '\u{0}'))
-        {
+        for suggestion in raw_output.lines().skip(1) {
             if suggestion == "END" {
                 break;
             }
             let mut try_parse = || -> Option<()> {
-                let start_idx = suggestion.find("H ")? + 2;
+                let start_idx = suggestion.find("MATCH ")? + 6;
                 let name = suggestion[start_idx..suggestion.find(',')?].to_owned();
                 let definition = suggestion[suggestion.rfind(',')?..].to_owned();
                 self.suggestions.push(name + ": " + &definition[1..]);
@@ -104,20 +100,11 @@ impl Racer {
         Ok(())
     }
 
-    pub fn next_suggestion(&mut self) -> Option<&String> {
+    pub fn goto_next_suggestion(&mut self) {
         if self.suggestion_idx >= self.suggestions.len() {
             self.suggestion_idx = 0
         }
-
-        if self.suggestions.is_empty() {
-            return None;
-        }
-
-        let suggestion = &self.suggestions[self.suggestion_idx];
-
         self.suggestion_idx += 1;
-
-        Some(suggestion)
     }
 
     pub fn current_suggestion(&self) -> Option<String> {
@@ -128,6 +115,10 @@ impl Racer {
         } else {
             self.suggestions.get(0).map(ToOwned::to_owned)
         }
+    }
+
+    fn goto_first_suggestion(&mut self) {
+        self.suggestion_idx = 0;
     }
 }
 
@@ -155,6 +146,7 @@ impl IRust {
         tmp_repl.write()?;
 
         self.racer.as_mut()?.cursor.0 = y_pos;
+        // add +1 for the \t
         self.racer.as_mut()?.cursor.1 = StringTools::chars_count(&self.buffer) + 1;
         self.update_racer()?;
 
@@ -181,41 +173,19 @@ impl IRust {
     }
 
     pub fn write_next_suggestion(&mut self) -> Result<(), IRustError> {
-        let suggestion = self.racer.as_mut()?.next_suggestion().cloned();
-        if let Some(suggestion) = suggestion {
-            if self.at_line_end() {
-                let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
-
-                self.color
-                    .set_fg(self.options.racer_inline_suggestion_color)?;
-                self.save_cursor_position()?;
-                self.terminal.clear(ClearType::FromCursorDown)?;
-
-                StringTools::strings_unique(&self.buffer, &mut suggestion);
-
-                let overflow = self.screen_height_overflow_by_str(&suggestion);
-                if overflow != 0 {
-                    self.internal_cursor.total_wrapped_lines += overflow;
-                }
-
-                self.write(&suggestion)?;
-
-                self.reset_cursor_position()?;
-
-                if overflow != 0 {
-                    self.cursor.move_up(overflow as u16);
-                    self.internal_cursor.y -= overflow;
-                }
-
-                self.color.reset()?;
-            }
-        }
+        self.racer.as_mut()?.goto_next_suggestion();
+        self.write_current_suggestion()?;
 
         Ok(())
     }
 
     pub fn write_first_suggestion(&mut self) -> Result<(), IRustError> {
-        self.racer.as_mut()?.suggestion_idx = 0;
+        self.racer.as_mut()?.goto_first_suggestion();
+        self.write_current_suggestion()?;
+        Ok(())
+    }
+
+    fn write_current_suggestion(&mut self) -> Result<(), IRustError> {
         if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
             if self.at_line_end() {
                 let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
@@ -396,7 +366,6 @@ impl IRust {
                     && self.debouncer.recv.try_recv().is_ok()
                 {
                     self.update_suggestions()?;
-                    self.lock_racer_update()?;
                     self.write_first_suggestion()?;
                     self.debouncer.reset_timer();
                 }
