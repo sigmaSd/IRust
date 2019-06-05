@@ -57,10 +57,18 @@ impl IRust {
 
     pub fn handle_tab(&mut self) -> Result<(), IRustError> {
         self.debouncer.reset_timer();
-        self.update_suggestions()?;
-        self.lock_racer_update()?;
-        self.cycle_suggestions()?;
-        Ok(())
+
+        let mut inner = || -> Result<(), IRustError> {
+            self.update_suggestions()?;
+            self.lock_racer_update()?;
+            self.cycle_suggestions()?;
+            Ok(())
+        };
+
+        match inner() {
+            Ok(_) | Err(IRustError::RacerDisabled) => Ok(()),
+            Err(e) => Err(e),
+        }
     }
 
     pub fn handle_up(&mut self) -> Result<(), IRustError> {

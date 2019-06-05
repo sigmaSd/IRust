@@ -17,7 +17,7 @@ pub struct Racer {
 }
 
 impl Racer {
-    pub fn start() -> io::Result<Racer> {
+    pub fn start() -> Result<Racer, IRustError> {
         let process = Command::new("racer")
             .arg("daemon")
             .stdin(Stdio::piped())
@@ -69,7 +69,7 @@ impl Racer {
         )?;
 
         // read till END
-        let mut raw_output = vec![0; 100_000];
+        let mut raw_output = vec![];
         read_until_bytes(
             &mut std::io::BufReader::new(stdout),
             b"END",
@@ -389,18 +389,24 @@ impl IRust {
     }
 
     pub fn check_racer_callback(&mut self) -> Result<(), IRustError> {
-        if let Some(character) = self.buffer.chars().last() {
-            if character.is_alphanumeric()
-                && !self.racer_update_locked()?
-                && self.debouncer.recv.try_recv().is_ok()
-            {
-                self.update_suggestions()?;
-                self.lock_racer_update()?;
-                self.write_first_suggestion()?;
-                self.debouncer.reset_timer();
+        let mut inner = || -> Result<(), IRustError> {
+            if let Some(character) = self.buffer.chars().last() {
+                if character.is_alphanumeric()
+                    && !self.racer_update_locked()?
+                    && self.debouncer.recv.try_recv().is_ok()
+                {
+                    self.update_suggestions()?;
+                    self.lock_racer_update()?;
+                    self.write_first_suggestion()?;
+                    self.debouncer.reset_timer();
+                }
             }
-        }
+            Ok(())
+        };
 
-        Ok(())
+        match inner() {
+            Ok(_) | Err(IRustError::RacerDisabled) => Ok(()),
+            Err(e) => Err(e),
+        }
     }
 }

@@ -39,7 +39,7 @@ pub struct IRust {
     internal_cursor: Cursor,
     history: History,
     pub options: Options,
-    racer: std::io::Result<Racer>,
+    racer: Result<Racer, IRustError>,
     debouncer: Debouncer,
     size: (usize, usize),
 }
@@ -58,7 +58,11 @@ impl IRust {
         let internal_cursor = Cursor::new(0, 0, 4);
         let options = Options::new().unwrap_or_default();
         let debouncer = Debouncer::new();
-        let racer = Racer::start();
+        let racer = if options.enable_racer {
+            Racer::start()
+        } else {
+            Err(IRustError::RacerDisabled)
+        };
         let size = {
             let (width, height) = terminal.terminal_size();
             (width as usize, height as usize)
