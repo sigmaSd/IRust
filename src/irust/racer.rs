@@ -339,6 +339,12 @@ impl IRust {
 
             // write the suggestion
             self.write(&suggestion)?;
+
+            // Unlock racer suggestions update
+            let _ = self.unlock_racer_update();
+
+            // reset debouncer
+            self.debouncer.reset_timer();
         }
 
         Ok(())
