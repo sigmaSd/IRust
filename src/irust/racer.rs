@@ -55,9 +55,14 @@ impl Racer {
     }
 
     pub fn complete_code(&mut self) -> io::Result<()> {
+        // check for lock
         if self.update_lock {
             return Ok(());
         }
+
+        // reset suggestions
+        self.suggestions.clear();
+        self.goto_first_suggestion();
 
         let stdin = self.process.stdin.as_mut().unwrap();
         let stdout = self.process.stdout.as_mut().unwrap();
@@ -77,7 +82,6 @@ impl Racer {
         )?;
         let raw_output = String::from_utf8(raw_output.to_vec()).unwrap();
 
-        self.suggestions.clear();
         for suggestion in raw_output.lines().skip(1) {
             if suggestion == "END" {
                 break;
@@ -167,6 +171,9 @@ impl IRust {
         } else {
             // Auto complete rust code
             self.racer.as_mut()?.complete_code()?;
+
+            // reset debouncer
+            self.debouncer.reset_timer();
         }
 
         Ok(())
@@ -342,9 +349,6 @@ impl IRust {
 
             // Unlock racer suggestions update
             let _ = self.unlock_racer_update();
-
-            // reset debouncer
-            self.debouncer.reset_timer();
         }
 
         Ok(())
@@ -373,7 +377,6 @@ impl IRust {
                 {
                     self.update_suggestions()?;
                     self.write_first_suggestion()?;
-                    self.debouncer.reset_timer();
                 }
             }
             Ok(())

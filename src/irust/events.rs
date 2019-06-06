@@ -56,8 +56,6 @@ impl IRust {
     }
 
     pub fn handle_tab(&mut self) -> Result<(), IRustError> {
-        self.debouncer.reset_timer();
-
         let mut inner = || -> Result<(), IRustError> {
             self.update_suggestions()?;
             self.lock_racer_update()?;

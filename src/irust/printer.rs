@@ -182,9 +182,6 @@ impl IRust {
         // Unlock racer suggestions update
         let _ = self.unlock_racer_update();
 
-        // reset debouncer
-        self.debouncer.reset_timer();
-
         Ok(())
     }
 }
