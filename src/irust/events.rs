@@ -127,7 +127,7 @@ impl IRust {
         if !self.at_line_end() {
             self.move_cursor_right()?;
         } else {
-            self.use_suggestion()?;
+            let _ = self.use_suggestion();
         }
         Ok(())
     }
@@ -212,7 +212,7 @@ impl IRust {
     pub fn go_to_end(&mut self) -> Result<(), IRustError> {
         // Already at the end of the line
         if self.at_line_end() {
-            self.use_suggestion()?;
+            let _ = self.use_suggestion();
         } else {
             self.internal_cursor.x =
                 StringTools::chars_count(&self.buffer) + self.internal_cursor.x_offset;
