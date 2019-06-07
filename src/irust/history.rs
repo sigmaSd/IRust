@@ -1,5 +1,5 @@
 pub struct History {
-    pub buffer_vec: Vec<String>,
+    buffer_vec: Vec<String>,
     cursor: usize,
     empty: String,
 }
@@ -48,7 +48,7 @@ impl History {
         }
     }
 
-    pub fn _reset(&mut self) {
+    fn _reset(&mut self) {
         *self = Self::default();
     }
 }

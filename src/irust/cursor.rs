@@ -24,22 +24,22 @@ impl Cursor {
         }
     }
 
-    pub fn save_position(&mut self) {
+    fn save_position(&mut self) {
         self.copy = Some(Box::new(self.clone()));
     }
 
-    pub fn reset_position(&mut self) {
+    fn reset_position(&mut self) {
         if let Some(copy) = self.copy.take() {
             *self = *copy.clone();
             self.copy = Some(copy);
         }
     }
 
-    pub fn move_right(&mut self) {
+    fn move_right(&mut self) {
         self.x += 1;
     }
 
-    pub fn move_left(&mut self) {
+    fn move_left(&mut self) {
         if self.x != 0 {
             self.x -= 1
         }
@@ -109,11 +109,11 @@ impl IRust {
         Ok(())
     }
 
-    pub fn at_screen_start(&self) -> bool {
+    fn at_screen_start(&self) -> bool {
         (self.internal_cursor.x + 1) % self.size.0 == 1
     }
 
-    pub fn at_screen_end(&self) -> bool {
+    fn at_screen_end(&self) -> bool {
         !self.buffer.is_empty() && (self.internal_cursor.x + 1) % self.size.0 == 0
     }
 
