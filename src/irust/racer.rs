@@ -9,8 +9,8 @@ use std::process::{Child, Command, Stdio};
 pub struct Racer {
     process: Child,
     main_file: String,
-    pub cursor: (usize, usize),
-    pub suggestions: Vec<String>,
+    cursor: (usize, usize),
+    suggestions: Vec<String>,
     suggestion_idx: usize,
     cmds: [String; 7],
     update_lock: bool,
@@ -54,7 +54,7 @@ impl Racer {
         Ok(racer)
     }
 
-    pub fn complete_code(&mut self) -> io::Result<()> {
+    fn complete_code(&mut self) -> io::Result<()> {
         // check for lock
         if self.update_lock {
             return Ok(());
@@ -104,14 +104,14 @@ impl Racer {
         Ok(())
     }
 
-    pub fn goto_next_suggestion(&mut self) {
+    fn goto_next_suggestion(&mut self) {
         if self.suggestion_idx >= self.suggestions.len() {
             self.suggestion_idx = 0
         }
         self.suggestion_idx += 1;
     }
 
-    pub fn current_suggestion(&self) -> Option<String> {
+    fn current_suggestion(&self) -> Option<String> {
         if self.suggestion_idx > 1 {
             self.suggestions
                 .get(self.suggestion_idx - 1)
@@ -179,14 +179,14 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_next_suggestion(&mut self) -> Result<(), IRustError> {
+    fn write_next_suggestion(&mut self) -> Result<(), IRustError> {
         self.racer.as_mut()?.goto_next_suggestion();
         self.write_current_suggestion()?;
 
         Ok(())
     }
 
-    pub fn write_first_suggestion(&mut self) -> Result<(), IRustError> {
+    fn write_first_suggestion(&mut self) -> Result<(), IRustError> {
         self.racer.as_mut()?.goto_first_suggestion();
         self.write_current_suggestion()?;
         Ok(())
@@ -364,7 +364,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn racer_update_locked(&mut self) -> Result<bool, IRustError> {
+    fn racer_update_locked(&mut self) -> Result<bool, IRustError> {
         Ok(self.racer.as_ref()?.update_lock)
     }
 

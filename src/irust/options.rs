@@ -6,8 +6,8 @@ mod parser;
 
 #[derive(Clone)]
 pub struct Options {
-    pub add_irust_cmd_to_history: bool,
-    pub add_shell_cmd_to_history: bool,
+    add_irust_cmd_to_history: bool,
+    add_shell_cmd_to_history: bool,
     pub ok_color: Color,
     pub show_color: Color,
     pub eval_color: Color,

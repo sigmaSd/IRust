@@ -19,7 +19,7 @@ mod writer;
 use cursor::Cursor;
 use debouncer::Debouncer;
 use history::History;
-pub use irust_error::IRustError;
+use irust_error::IRustError;
 use options::Options;
 use printer::Printer;
 use racer::Racer;
@@ -38,7 +38,7 @@ pub struct IRust {
     repl: Repl,
     internal_cursor: Cursor,
     history: History,
-    pub options: Options,
+    options: Options,
     racer: Result<Racer, IRustError>,
     debouncer: Debouncer,
     size: (usize, usize),

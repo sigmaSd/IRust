@@ -29,7 +29,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn _writeln(&mut self, s: &str) -> Result<(), IRustError> {
+    fn _writeln(&mut self, s: &str) -> Result<(), IRustError> {
         self.write_newline()?;
         self.write(s)?;
         Ok(())
