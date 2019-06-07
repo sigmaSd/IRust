@@ -1,4 +1,6 @@
-use crate::cargo_cmds::CargoCmds;
+mod cargo_cmds;
+use super::IRustError;
+use cargo_cmds::CargoCmds;
 use std::io::{self, Write};
 
 #[derive(Clone)]
@@ -71,7 +73,7 @@ impl Repl {
         }
     }
 
-    pub fn del(&mut self, line_num: &str) -> std::io::Result<()> {
+    pub fn del(&mut self, line_num: &str) -> Result<(), IRustError> {
         if let Ok(line_num) = line_num.parse::<usize>() {
             if line_num != 0 && line_num + 1 < self.body.len() {
                 self.body.remove(line_num);
@@ -80,9 +82,6 @@ impl Repl {
             }
         }
 
-        Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "Incorrect line number",
-        ))
+        Err(IRustError::Custom("Incorrect line number".into()))
     }
 }

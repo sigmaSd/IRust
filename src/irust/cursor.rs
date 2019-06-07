@@ -1,4 +1,4 @@
-use crate::irust::IRust;
+use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
 
 #[derive(Clone)]
@@ -80,7 +80,7 @@ impl IRust {
         &mut self,
         x: P,
         y: U,
-    ) -> std::io::Result<()> {
+    ) -> Result<(), IRustError> {
         let x = x.into();
         let y = y.into();
 
@@ -101,7 +101,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn go_to_cursor(&mut self) -> std::io::Result<()> {
+    pub fn go_to_cursor(&mut self) -> Result<(), IRustError> {
         self.cursor.goto(
             (self.internal_cursor.x % self.size.0) as u16,
             self.internal_cursor.get_corrected_y() as u16,
@@ -125,7 +125,7 @@ impl IRust {
         }
     }
 
-    pub fn move_cursor_left(&mut self) -> std::io::Result<()> {
+    pub fn move_cursor_left(&mut self) -> Result<(), IRustError> {
         self.internal_cursor.move_left();
         self.go_to_cursor()?;
         if self.at_screen_end() {
@@ -141,7 +141,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn move_cursor_right(&mut self) -> std::io::Result<()> {
+    pub fn move_cursor_right(&mut self) -> Result<(), IRustError> {
         self.internal_cursor.move_right();
         self.go_to_cursor()?;
 
@@ -172,13 +172,13 @@ impl IRust {
             (4 + StringTools::chars_count(&self.buffer)) / self.size.0;
     }
 
-    pub fn save_cursor_position(&mut self) -> std::io::Result<()> {
+    pub fn save_cursor_position(&mut self) -> Result<(), IRustError> {
         self.cursor.save_position()?;
         self.internal_cursor.save_position();
         Ok(())
     }
 
-    pub fn reset_cursor_position(&mut self) -> std::io::Result<()> {
+    pub fn reset_cursor_position(&mut self) -> Result<(), IRustError> {
         self.cursor.reset_position()?;
         self.internal_cursor.reset_position();
         Ok(())

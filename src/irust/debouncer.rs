@@ -1,7 +1,7 @@
 use std::sync::{mpsc, Arc, Mutex};
 use std::time::{Duration, Instant};
 
-const WAIT_TIMEOUT: u64 = 10;
+const WAIT_TIMEOUT: u64 = 50;
 const SLEEP_TIME: u64 = 300;
 
 pub struct Debouncer {

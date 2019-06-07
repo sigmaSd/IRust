@@ -85,6 +85,11 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.5.5**
+- Racer rework
+- Better Errors handling
+- Internal code refactor
+
 **0.5.4**
 - Use a real debouncer method
 - Fix diffrent bugs in racer

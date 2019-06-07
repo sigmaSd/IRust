@@ -2,24 +2,28 @@ use crossterm::{
     Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalCursor, TerminalInput,
 };
 
-use crate::history::History;
-use crate::repl::Repl;
 mod art;
 mod cursor;
 mod debouncer;
 mod events;
 mod format;
 mod help;
+mod history;
+mod irust_error;
 pub mod options;
 mod parser;
 mod printer;
 mod racer;
+mod repl;
 mod writer;
 use cursor::Cursor;
 use debouncer::Debouncer;
+use history::History;
+pub use irust_error::IRustError;
 use options::Options;
 use printer::Printer;
 use racer::Racer;
+use repl::Repl;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
@@ -35,7 +39,7 @@ pub struct IRust {
     internal_cursor: Cursor,
     history: History,
     pub options: Options,
-    racer: Option<Racer>,
+    racer: Result<Racer, IRustError>,
     debouncer: Debouncer,
     size: (usize, usize),
 }
@@ -54,7 +58,11 @@ impl IRust {
         let internal_cursor = Cursor::new(0, 0, 4);
         let options = Options::new().unwrap_or_default();
         let debouncer = Debouncer::new();
-        let racer = None;
+        let racer = if options.enable_racer {
+            Racer::start()
+        } else {
+            Err(IRustError::RacerDisabled)
+        };
         let size = {
             let (width, height) = terminal.terminal_size();
             (width as usize, height as usize)
@@ -77,16 +85,15 @@ impl IRust {
         }
     }
 
-    fn prepare(&mut self) -> std::io::Result<()> {
+    fn prepare(&mut self) -> Result<(), IRustError> {
         self.repl.prepare_ground()?;
-        self.start_racer();
         self.debouncer.run();
         self.welcome()?;
         self.write_in()?;
         Ok(())
     }
 
-    pub fn run(&mut self) -> std::io::Result<()> {
+    pub fn run(&mut self) -> Result<(), IRustError> {
         self.prepare()?;
         let mut stdin = self.input.read_sync();
         let _screen = crossterm::RawScreen::into_raw_mode()?;
