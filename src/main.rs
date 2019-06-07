@@ -1,8 +1,5 @@
 mod args;
-mod cargo_cmds;
-mod history;
 mod irust;
-mod repl;
 mod utils;
 
 use crate::args::handle_args;
