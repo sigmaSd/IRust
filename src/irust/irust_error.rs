@@ -8,7 +8,6 @@ pub enum IRustError {
     CrosstermError(crossterm::ErrorKind),
     Custom(String),
     RacerDisabled,
-    Ignore,
 }
 
 impl From<io::Error> for IRustError {
@@ -21,7 +20,6 @@ impl From<&Self> for IRustError {
     fn from(error: &Self) -> Self {
         match error {
             RacerDisabled => RacerDisabled,
-            Ignore => Ignore,
             _ => Custom(error.to_string()),
         }
     }
@@ -31,7 +29,6 @@ impl From<&mut Self> for IRustError {
     fn from(error: &mut Self) -> Self {
         match error {
             RacerDisabled => RacerDisabled,
-            Ignore => Ignore,
             _ => Custom(error.to_string()),
         }
     }
@@ -50,7 +47,6 @@ impl ToString for IRustError {
             CrosstermError(e) => e.to_string(),
             Custom(e) => e.to_string(),
             RacerDisabled => "Racer is disabled".to_string(),
-            Ignore => "".to_string(),
         }
     }
 }

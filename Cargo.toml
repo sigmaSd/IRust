@@ -9,12 +9,12 @@ repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
 [dependencies]
-dirs = "1.0.5"
+dirs = "2.0.1"
 
 [dependencies.crossterm]
 git = "https://github.com/sigmaSd/crossterm"
 branch = "fork"
 
 [target.'cfg(unix)'.dependencies]
-nix = "0.13.0"
+nix = "0.14.1"
 
