@@ -63,9 +63,8 @@ impl IRust {
 
         self.save_cursor_position()?;
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
-        self.reset_cursor_position()?;
         self.wait_add(self.repl.build()?, "Build")?;
-        self.reset_cursor_position()?;
+        self.write_newline()?;
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
         outputs.add_new_line(1);

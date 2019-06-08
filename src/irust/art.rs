@@ -1,28 +1,32 @@
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crossterm::{ClearType, Color};
+use std::io::Read;
 
 impl IRust {
-    pub fn wait_add(&mut self, add_cmd: std::process::Child, msg: &str) -> Result<(), IRustError> {
+    pub fn wait_add(
+        &mut self,
+        mut add_cmd: std::process::Child,
+        msg: &str,
+    ) -> Result<(), IRustError> {
         self.cursor.hide()?;
         self.color.set_fg(Color::Cyan)?;
 
-        match self.wait_add_inner(add_cmd, msg) {
-            Ok(status) => {
-                self.write_newline()?;
-                self.cursor.show()?;
-                self.color.reset()?;
+        match self.wait_add_inner(&mut add_cmd, msg) {
+            Ok(()) => {
+                self.clean_art()?;
 
-                if status.success() {
-                    Ok(())
-                } else {
-                    Err(IRustError::Ignore)
+                if let Some(stderr) = add_cmd.stderr.as_mut() {
+                    let mut error = String::new();
+                    stderr.read_to_string(&mut error)?;
+                    if !error.is_empty() {
+                        return Err(IRustError::Custom(error));
+                    }
                 }
+                Ok(())
             }
             Err(e) => {
-                self.write_newline()?;
-                self.cursor.show()?;
-                self.color.reset()?;
+                self.clean_art()?;
                 Err(e)
             }
         }
@@ -30,9 +34,9 @@ impl IRust {
 
     fn wait_add_inner(
         &mut self,
-        mut add_cmd: std::process::Child,
+        add_cmd: &mut std::process::Child,
         msg: &str,
-    ) -> Result<std::process::ExitStatus, IRustError> {
+    ) -> Result<(), IRustError> {
         self.write_str_at(&format!(" {}ing dep [\\]", msg), 0, None)?;
         loop {
             match add_cmd.try_wait() {
@@ -50,9 +54,17 @@ impl IRust {
                 Err(e) => {
                     return Err(e.into());
                 }
-                Ok(Some(status)) => return Ok(status),
+                Ok(Some(_)) => return Ok(()),
             }
         }
+    }
+
+    fn clean_art(&mut self) -> Result<(), IRustError> {
+        self.reset_cursor_position()?;
+        self.write_newline()?;
+        self.cursor.show()?;
+        self.color.reset()?;
+        Ok(())
     }
 
     pub fn welcome(&mut self) -> Result<(), IRustError> {
