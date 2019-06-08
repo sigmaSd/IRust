@@ -10,7 +10,8 @@ pub struct Racer {
     process: Child,
     main_file: String,
     cursor: (usize, usize),
-    suggestions: Vec<String>,
+    // suggestions: (Name, definition)
+    suggestions: Vec<(String, String)>,
     suggestion_idx: usize,
     cmds: [String; 7],
     update_lock: bool,
@@ -92,7 +93,7 @@ impl Racer {
                 let start_idx = suggestion.find("MATCH ")? + 6;
                 let name = suggestion[start_idx..suggestion.find(',')?].to_owned();
                 let definition = suggestion[suggestion.rfind(',')?..].to_owned();
-                self.suggestions.push(name + ": " + &definition[1..]);
+                self.suggestions.push((name, definition[1..].to_owned()));
                 Some(())
             };
 
@@ -113,7 +114,7 @@ impl Racer {
         self.suggestion_idx += 1;
     }
 
-    fn current_suggestion(&self) -> Option<String> {
+    fn current_suggestion(&self) -> Option<(String, String)> {
         if self.suggestion_idx > 1 {
             self.suggestions
                 .get(self.suggestion_idx - 1)
@@ -125,6 +126,14 @@ impl Racer {
 
     fn goto_first_suggestion(&mut self) {
         self.suggestion_idx = 0;
+    }
+
+    fn full_suggestion(s: &(String, String)) -> String {
+        if !s.1.is_empty() {
+            s.0.to_owned() + ": " + &s.1
+        } else {
+            s.0.to_owned()
+        }
     }
 }
 
@@ -168,7 +177,8 @@ impl IRust {
                 .cmds
                 .iter()
                 .filter(|c| c.starts_with(&self.buffer[1..]))
-                .map(ToOwned::to_owned)
+                // place holder for IRust command definitions
+                .map(|c| (c.to_owned(), String::new()))
                 .collect();
         } else {
             // Auto complete rust code
@@ -197,7 +207,7 @@ impl IRust {
     fn write_current_suggestion(&mut self) -> Result<(), IRustError> {
         if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
             if self.at_line_end() {
-                let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
+                let mut suggestion = suggestion.0;
 
                 self.color
                     .set_fg(self.options.racer_inline_suggestion_color)?;
@@ -264,7 +274,7 @@ impl IRust {
                 .as_ref()?
                 .suggestions
                 .iter()
-                .any(|s| s.len() > max_width)
+                .any(|s| Racer::full_suggestion(s).len() > max_width)
             {
                 self.internal_cursor.x = 0;
                 self.go_to_cursor()?;
@@ -278,11 +288,7 @@ impl IRust {
             // Write the suggestions
             self.color
                 .set_fg(self.options.racer_suggestions_table_color)?;
-            let current_suggestion = self
-                .racer
-                .as_ref()?
-                .current_suggestion()
-                .map(|s| s.to_string());
+            let current_suggestion = self.racer.as_ref()?.current_suggestion();
 
             for (idx, suggestion) in self
                 .racer
@@ -301,7 +307,7 @@ impl IRust {
                         .set_bg(self.options.racer_selected_suggestion_color)?;
                 }
                 // trancuate long suggestions
-                let mut suggestion = suggestion.to_owned();
+                let mut suggestion = Racer::full_suggestion(suggestion);
                 if suggestion.len() > max_width {
                     suggestion.truncate(max_width - 3);
                     suggestion.push_str("...");
@@ -334,7 +340,7 @@ impl IRust {
             // suggestion example => `assert!: macro_rules! assert {`
 
             // get the name
-            let mut suggestion = suggestion[..suggestion.find(':').unwrap_or(0)].to_owned();
+            let mut suggestion = suggestion.0;
 
             // get the unique part of the name
             StringTools::strings_unique(&self.buffer, &mut suggestion);
