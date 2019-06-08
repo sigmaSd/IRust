@@ -59,9 +59,8 @@ impl CargoCmds {
     pub fn cargo_add(&self, dep: &[String]) -> io::Result<std::process::Child> {
         self.clean_main_file()?;
 
-        Ok(Command::new("cargo")
+        Ok(Command::new("cargo-add")
             .current_dir(&*self.irust_dir)
-            .arg("add")
             .args(dep)
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
