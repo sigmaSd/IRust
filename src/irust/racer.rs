@@ -23,7 +23,9 @@ impl Racer {
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
-            .spawn()?;
+            .spawn()
+            // Disable Racer if unable to start it
+            .map_err(|_| IRustError::RacerDisabled)?;
         let main_file = temp_dir()
             .join("irust/src/main.rs")
             .to_str()
