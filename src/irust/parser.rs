@@ -1,3 +1,4 @@
+use super::highlight::highlight;
 use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
@@ -48,9 +49,7 @@ impl IRust {
     }
 
     fn show(&mut self) -> Result<Printer, IRustError> {
-        let outputs = Printer::new(PrinterItem::new(self.repl.show(), PrinterItemType::Show));
-
-        Ok(outputs)
+        Ok(highlight(&self.repl.show()))
     }
 
     fn add_dep(&mut self) -> Result<Printer, IRustError> {

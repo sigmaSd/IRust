@@ -1,11 +1,11 @@
 use crate::irust::{IRust, IRustError, IN};
 use crossterm::{ClearType, Color};
+use std::iter::FromIterator;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum PrinterItemType {
     Eval,
     Ok,
-    Show,
     IRust,
     Warn,
     Out,
@@ -14,6 +14,7 @@ pub enum PrinterItemType {
     Help,
     Empty,
     Welcome,
+    Custom(Color),
 }
 
 impl Default for PrinterItemType {
@@ -22,7 +23,7 @@ impl Default for PrinterItemType {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct Printer {
     inner: Vec<PrinterItem>,
 }
@@ -64,7 +65,17 @@ impl Iterator for Printer {
     }
 }
 
-#[derive(Clone)]
+impl FromIterator<PrinterItem> for Printer {
+    fn from_iter<I: IntoIterator<Item = PrinterItem>>(printer_items: I) -> Self {
+        let mut printer = Printer::default();
+        for printer_item in printer_items {
+            printer.push(printer_item);
+        }
+        printer
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct PrinterItem {
     string: String,
     out_type: PrinterItemType,
@@ -91,7 +102,6 @@ impl IRust {
             let color = match output.out_type {
                 PrinterItemType::Eval => self.options.eval_color,
                 PrinterItemType::Ok => self.options.ok_color,
-                PrinterItemType::Show => self.options.show_color,
                 PrinterItemType::IRust => self.options.irust_color,
                 PrinterItemType::Warn => self.options.irust_warn_color,
                 PrinterItemType::Out => self.options.out_color,
@@ -112,6 +122,7 @@ impl IRust {
                     self.write_newline()?;
                     continue;
                 }
+                PrinterItemType::Custom(color) => color,
             };
             self.color.set_fg(color)?;
             if !output.string.is_empty() {

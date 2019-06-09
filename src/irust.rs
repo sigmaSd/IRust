@@ -8,6 +8,7 @@ mod debouncer;
 mod events;
 mod format;
 mod help;
+mod highlight;
 mod history;
 mod irust_error;
 pub mod options;
