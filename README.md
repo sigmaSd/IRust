@@ -73,7 +73,6 @@ IRust config file is located in:
     input_color = Yellow
     out_color = Red
     ok_color = Blue
-    show_color = DarkCyan
     eval_color = White
     irust_color = DarkBlue
     irust_warn_color = Cyan
