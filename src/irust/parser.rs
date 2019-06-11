@@ -53,7 +53,8 @@ impl IRust {
         #[cfg(feature = "highlight")]
         let code = highlight(&self.repl.show());
 
-        // a default show method for debugging builds (less compile time)
+        // a default show method for dev builds (less compile time)
+        // via cargo b --no-default-features
         #[cfg(not(feature = "highlight"))]
         let code = Printer::new(PrinterItem::new(
             self.repl.show(),
