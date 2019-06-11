@@ -85,6 +85,9 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.5.10**
+- Enable the highlight feature by default for published build
+
 **0.5.9**
 - Improve `show` command:
     - highlight rust_code via [syntect](https://github.com/trishume/syntect)

@@ -1,6 +1,6 @@
 [package]
 name = "irust"
-version = "0.5.9"
+version = "0.5.10"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -17,5 +17,6 @@ syntect = { version = "3.2.0", optional = true }
 nix = "0.14.1"
 
 [features]
+default = ["highlight"]
 highlight = ["syntect"]
 
