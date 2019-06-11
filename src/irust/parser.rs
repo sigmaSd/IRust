@@ -77,7 +77,9 @@ impl IRust {
         let script_code = std::fs::read(script)?;
         if let Ok(mut s) = String::from_utf8(script_code) {
             remove_main(&mut s);
-            self.repl.insert(s);
+            for line in s.lines() {
+                self.repl.insert(line.to_owned());
+            }
         }
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));

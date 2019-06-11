@@ -2,7 +2,7 @@ use crate::irust::{IRust, IRustError, IN};
 use crossterm::{ClearType, Color};
 use std::iter::FromIterator;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum PrinterItemType {
     Eval,
     Ok,
@@ -23,7 +23,7 @@ impl Default for PrinterItemType {
     }
 }
 
-#[derive(Default, Clone, Debug)]
+#[derive(Default, Clone)]
 pub struct Printer {
     inner: Vec<PrinterItem>,
 }
@@ -75,7 +75,7 @@ impl FromIterator<PrinterItem> for Printer {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct PrinterItem {
     string: String,
     out_type: PrinterItemType,

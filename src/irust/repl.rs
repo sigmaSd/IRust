@@ -33,8 +33,10 @@ impl Repl {
 
     pub fn show(&self) -> String {
         let mut current_code = self.body.join("");
-        // ignore rustfmt errors
-        let _ = self.cargo_cmds.format(&mut current_code);
+        // If cargo fmt is present foramt output else ignore
+        if let Ok(fmt_code) = self.cargo_cmds.cargo_fmt(&current_code) {
+            current_code = fmt_code;
+        }
         format!("Current Repl Code:\n{}", current_code)
     }
 

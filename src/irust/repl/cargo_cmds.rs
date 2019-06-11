@@ -116,11 +116,12 @@ impl CargoCmds {
         Ok(())
     }
 
-    pub fn format(&self, c: &mut String) -> std::io::Result<()> {
+    pub fn cargo_fmt(&self, c: &str) -> std::io::Result<String> {
         let fmt_path = self.irust_dir.join("fmt_file");
         let _ = fs::remove_file(&fmt_path);
 
         let mut fmt_file = fs::OpenOptions::new()
+            .create(true)
             .read(true)
             .write(true)
             .open(&fmt_path)?;
@@ -132,7 +133,10 @@ impl CargoCmds {
             .spawn()?
             .wait()?;
 
-        fmt_file.read_to_string(c)?;
-        Ok(())
+        let mut fmt_c = String::new();
+        fmt_file.seek(std::io::SeekFrom::Start(0))?;
+        fmt_file.read_to_string(&mut fmt_c)?;
+
+        Ok(fmt_c)
     }
 }
