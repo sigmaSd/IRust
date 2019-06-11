@@ -142,12 +142,12 @@ impl IRust {
                     InputEvent::Keyboard(KeyEvent::End) => {
                         self.go_to_end()?;
                     }
-                    InputEvent::Keyboard(KeyEvent::CtrlLeft) => {
+                    /*InputEvent::Keyboard(KeyEvent::CtrlLeft) => {
                         self.handle_ctrl_left();
                     }
                     InputEvent::Keyboard(KeyEvent::CtrlRight) => {
                         self.handle_ctrl_right();
-                    }
+                    }*/
                     _ => {}
                 }
             }
