@@ -121,7 +121,7 @@ impl IRust {
             self.repl.insert(self.buffer.clone());
 
             let mut printer = Printer::default();
-            printer.add_new_line(self.internal_cursor.current_wrapped_lines);
+            printer.add_new_line(self.internal_cursor.total_wrapped_lines);
 
             Ok(printer)
         } else {

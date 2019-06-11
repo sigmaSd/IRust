@@ -89,7 +89,7 @@ impl IRust {
         self.go_to_cursor()?;
 
         self.write_in()?;
-        self.write(&self.buffer.clone())?;
+        self.write(&StringTools::nl_to_space(&self.buffer))?;
 
         Ok(())
     }
