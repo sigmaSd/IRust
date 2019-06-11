@@ -36,11 +36,6 @@ impl Options {
                         options.ok_color = value;
                     }
                 }
-                ("show_color", value) => {
-                    if let Ok(value) = Options::str_to_color(&value) {
-                        options.show_color = value;
-                    }
-                }
                 ("eval_color", value) => {
                     if let Ok(value) = Options::str_to_color(&value) {
                         options.eval_color = value;
@@ -161,7 +156,6 @@ insert_color = White
 input_color = Yellow
 out_color = Red
 ok_color = Blue
-show_color = DarkCyan
 eval_color = White
 irust_color = DarkBlue
 irust_warn_color = Cyan

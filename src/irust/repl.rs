@@ -32,7 +32,12 @@ impl Repl {
     }
 
     pub fn show(&self) -> String {
-        format!("Current Repl Code:\n{}", self.body.join(""))
+        let mut current_code = self.body.join("");
+        // If cargo fmt is present foramt output else ignore
+        if let Ok(fmt_code) = self.cargo_cmds.cargo_fmt(&current_code) {
+            current_code = fmt_code;
+        }
+        format!("Current Repl Code:\n{}", current_code)
     }
 
     // prepare ground

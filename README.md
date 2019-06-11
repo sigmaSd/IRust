@@ -7,7 +7,7 @@ Cross Platform Rust Repl
 
 **:reset** => reset repl
 
-**:show** => show repl current code
+**:show** => show repl current code (optionally depends on [rustfmt](https://github.com/rust-lang/rustfmt) to format output)
 
 **:add** *<dep_list>* => add dependencies (requires [cargo-edit](https://github.com/killercup/cargo-edit))
 
@@ -85,6 +85,12 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.5.9**
+- Improve `show` command:
+    - highlight rust_code via [syntect](https://github.com/trishume/syntect)
+    - format output if [rustfmt](https://github.com/rust-lang/rustfmt) is preset on the system
+- Fix `load` command bug
+
 **0.5.8**
 - Improve `add` command
 

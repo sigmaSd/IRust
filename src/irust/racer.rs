@@ -155,20 +155,6 @@ impl IRust {
     }
 
     fn show_suggestions_inner(&mut self) -> Result<(), IRustError> {
-        let mut tmp_repl = self.repl.clone();
-        let y_pos = tmp_repl.body.len();
-        tmp_repl.insert(self.buffer.clone());
-        tmp_repl.write()?;
-
-        self.racer.as_mut()?.cursor.0 = y_pos;
-        // add +1 for the \t
-        self.racer.as_mut()?.cursor.1 = StringTools::chars_count(&self.buffer) + 1;
-        self.update_racer()?;
-
-        Ok(())
-    }
-
-    fn update_racer(&mut self) -> Result<(), IRustError> {
         if self.buffer.starts_with(':') {
             // Auto complete IRust commands
             self.racer.as_mut()?.suggestions = self
@@ -181,6 +167,15 @@ impl IRust {
                 .map(|c| (c.to_owned(), String::new()))
                 .collect();
         } else {
+            // Auto complete rust code
+            let mut tmp_repl = self.repl.clone();
+            let y_pos = tmp_repl.body.len();
+            tmp_repl.insert(self.buffer.clone());
+            tmp_repl.write()?;
+
+            self.racer.as_mut()?.cursor.0 = y_pos;
+            // add +1 for the \t
+            self.racer.as_mut()?.cursor.1 = StringTools::chars_count(&self.buffer) + 1;
             // Auto complete rust code
             self.racer.as_mut()?.complete_code()?;
 

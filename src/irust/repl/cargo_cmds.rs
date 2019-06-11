@@ -1,10 +1,10 @@
+use crate::utils::stdout_and_stderr;
 use std::env::temp_dir;
+use std::fs;
 use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-
-use crate::utils::stdout_and_stderr;
 
 #[derive(Clone)]
 pub struct CargoCmds {
@@ -77,8 +77,6 @@ impl CargoCmds {
     }
 
     fn clean_toml(&self) {
-        use std::fs::File;
-
         let mut clean = String::new();
 
         let toml_file = {
@@ -91,7 +89,7 @@ impl CargoCmds {
             return;
         }
 
-        let mut toml_read = File::open(&toml_file).unwrap();
+        let mut toml_read = fs::File::open(&toml_file).unwrap();
 
         let toml_contents = {
             let mut c = String::new();
@@ -107,14 +105,38 @@ impl CargoCmds {
             clean.push('\n')
         }
 
-        let mut toml_write = File::create(&toml_file).unwrap();
+        let mut toml_write = fs::File::create(&toml_file).unwrap();
         write!(toml_write, "{}", clean).unwrap();
     }
 
     fn clean_main_file(&self) -> io::Result<()> {
-        let mut main = std::fs::File::create(&self.main_file)?;
+        let mut main = fs::File::create(&self.main_file)?;
         let main_src = "fn main() {\n\n}";
         write!(main, "{}", main_src)?;
         Ok(())
+    }
+
+    pub fn cargo_fmt(&self, c: &str) -> std::io::Result<String> {
+        let fmt_path = self.irust_dir.join("fmt_file");
+        let _ = fs::remove_file(&fmt_path);
+
+        let mut fmt_file = fs::OpenOptions::new()
+            .create(true)
+            .read(true)
+            .write(true)
+            .open(&fmt_path)?;
+
+        write!(fmt_file, "{}", c)?;
+
+        std::process::Command::new("rustfmt")
+            .arg(&fmt_path)
+            .spawn()?
+            .wait()?;
+
+        let mut fmt_c = String::new();
+        fmt_file.seek(std::io::SeekFrom::Start(0))?;
+        fmt_file.read_to_string(&mut fmt_c)?;
+
+        Ok(fmt_c)
     }
 }

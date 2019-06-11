@@ -1,3 +1,5 @@
+#[cfg(feature = "highlight")]
+use super::highlight::highlight;
 use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
@@ -48,9 +50,17 @@ impl IRust {
     }
 
     fn show(&mut self) -> Result<Printer, IRustError> {
-        let outputs = Printer::new(PrinterItem::new(self.repl.show(), PrinterItemType::Show));
+        #[cfg(feature = "highlight")]
+        let code = highlight(&self.repl.show());
 
-        Ok(outputs)
+        // a default show method for debugging builds (less compile time)
+        #[cfg(not(feature = "highlight"))]
+        let code = Printer::new(PrinterItem::new(
+            self.repl.show(),
+            PrinterItemType::Custom(crossterm::Color::DarkCyan),
+        ));
+
+        Ok(code)
     }
 
     fn add_dep(&mut self) -> Result<Printer, IRustError> {
@@ -78,7 +88,9 @@ impl IRust {
         let script_code = std::fs::read(script)?;
         if let Ok(mut s) = String::from_utf8(script_code) {
             remove_main(&mut s);
-            self.repl.insert(s);
+            for line in s.lines() {
+                self.repl.insert(line.to_owned());
+            }
         }
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
