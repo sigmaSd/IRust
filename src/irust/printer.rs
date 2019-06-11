@@ -146,7 +146,7 @@ impl IRust {
 
     pub fn write_in(&mut self) -> Result<(), IRustError> {
         self.internal_cursor.x = 0;
-        self.move_cursor_to(0, None)?;
+        self.go_to_cursor()?;
         self.terminal.clear(ClearType::FromCursorDown)?;
         self.color.set_fg(self.options.input_color)?;
         self.terminal.write(IN)?;

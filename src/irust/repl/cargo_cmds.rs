@@ -129,6 +129,8 @@ impl CargoCmds {
         write!(fmt_file, "{}", c)?;
 
         std::process::Command::new("rustfmt")
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
             .arg(&fmt_path)
             .spawn()?
             .wait()?;

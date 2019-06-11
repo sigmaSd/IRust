@@ -22,6 +22,12 @@ impl IRust {
         // clear suggestion
         self.clear_suggestion()?;
 
+        // handle incomplete input
+        if self.incomplete_input() {
+            self.handle_incomplete_input()?;
+            return Ok(());
+        }
+
         // create a new line
         self.write_newline()?;
 
@@ -52,6 +58,36 @@ impl IRust {
 
         // new input
         self.write_in()?;
+        Ok(())
+    }
+
+    fn incomplete_input(&self) -> bool {
+        let mut braces = std::collections::HashMap::new();
+        braces.insert('(', 0);
+        braces.insert('[', 0);
+        braces.insert('{', 0);
+        for character in self.buffer.chars() {
+            match character {
+                '(' => *braces.get_mut(&'(').unwrap() += 1,
+                ')' => *braces.get_mut(&'(').unwrap() -= 1,
+                '[' => *braces.get_mut(&'[').unwrap() += 1,
+                ']' => *braces.get_mut(&'[').unwrap() -= 1,
+                '{' => *braces.get_mut(&'{').unwrap() += 1,
+                '}' => *braces.get_mut(&'{').unwrap() -= 1,
+                _ => (),
+            }
+        }
+
+        braces[&'('] != 0 || braces[&'['] != 0 || braces[&'{'] != 0
+    }
+
+    fn handle_incomplete_input(&mut self) -> Result<(), IRustError> {
+        StringTools::insert_at_char_idx(
+            &mut self.buffer,
+            self.internal_cursor.get_corrected_x(),
+            '\n',
+        );
+        self.write_insert(Some(&' '.to_string()))?;
         Ok(())
     }
 
@@ -86,7 +122,7 @@ impl IRust {
             self.cursor.move_up(overflow as u16);
         }
 
-        self.write(&up)?;
+        self.write(&StringTools::nl_to_space(&up))?;
 
         Ok(())
     }
@@ -108,7 +144,7 @@ impl IRust {
             self.cursor.move_up(overflow as u16);
         }
 
-        self.write(&down)?;
+        self.write(&StringTools::nl_to_space(&down))?;
 
         Ok(())
     }

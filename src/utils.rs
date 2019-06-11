@@ -86,6 +86,10 @@ impl StringTools {
             idx -= 1;
         }
     }
+
+    pub fn nl_to_space(s: &str) -> String {
+        s.replace("\n", " ")
+    }
 }
 
 pub struct VecTools {}

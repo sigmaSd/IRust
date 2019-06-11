@@ -89,9 +89,7 @@ impl IRust {
         let script_code = std::fs::read(script)?;
         if let Ok(mut s) = String::from_utf8(script_code) {
             remove_main(&mut s);
-            for line in s.lines() {
-                self.repl.insert(line.to_owned());
-            }
+            self.repl.insert(s);
         }
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
@@ -122,7 +120,10 @@ impl IRust {
         if self.buffer.trim_end().ends_with(';') {
             self.repl.insert(self.buffer.clone());
 
-            Ok(Printer::default())
+            let mut printer = Printer::default();
+            printer.add_new_line(self.internal_cursor.current_wrapped_lines);
+
+            Ok(printer)
         } else {
             let mut outputs = Printer::default();
 

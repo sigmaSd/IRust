@@ -93,7 +93,7 @@ impl IRust {
         let y = if y.is_some() {
             y.unwrap()
         } else {
-            self.internal_cursor.y
+            self.internal_cursor.get_corrected_y()
         };
 
         self.cursor.goto(x as u16, y as u16)?;
