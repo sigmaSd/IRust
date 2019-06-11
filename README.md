@@ -85,7 +85,7 @@ IRust config file is located in:
 
 ## Changeslog
 **0.5.11**
-- Handle multilines past
+- Handle multilines paste
 
 **0.5.10**
 - Enable the highlight feature by default for published build
