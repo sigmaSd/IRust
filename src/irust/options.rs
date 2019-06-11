@@ -9,7 +9,6 @@ pub struct Options {
     add_irust_cmd_to_history: bool,
     add_shell_cmd_to_history: bool,
     pub ok_color: Color,
-    pub show_color: Color,
     pub eval_color: Color,
     pub irust_color: Color,
     pub irust_warn_color: Color,
@@ -36,7 +35,6 @@ impl Default for Options {
 
             // [Colors]
             ok_color: Color::Blue,
-            show_color: Color::DarkCyan,
             eval_color: Color::White,
             irust_color: Color::DarkBlue,
             irust_warn_color: Color::Cyan,

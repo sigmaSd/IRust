@@ -10,7 +10,7 @@ license = "MIT"
 
 [dependencies]
 dirs = "2.0.1"
-syntect = "3.2.0"
+syntect = { version = "3.2.0", optional = true }
 
 [dependencies.crossterm]
 git = "https://github.com/sigmaSd/crossterm"
@@ -18,4 +18,7 @@ branch = "fork"
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.14.1"
+
+[features]
+highlight = ["syntect"]
 

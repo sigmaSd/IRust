@@ -8,6 +8,7 @@ mod debouncer;
 mod events;
 mod format;
 mod help;
+#[cfg(feature = "highlight")]
 mod highlight;
 mod history;
 mod irust_error;

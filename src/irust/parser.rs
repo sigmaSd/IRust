@@ -1,3 +1,4 @@
+#[cfg(feature = "highlight")]
 use super::highlight::highlight;
 use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
@@ -49,7 +50,17 @@ impl IRust {
     }
 
     fn show(&mut self) -> Result<Printer, IRustError> {
-        Ok(highlight(&self.repl.show()))
+        #[cfg(feature = "highlight")]
+        let code = highlight(&self.repl.show());
+
+        // a default show method for debugging builds (less compile time)
+        #[cfg(not(feature = "highlight"))]
+        let code = Printer::new(PrinterItem::new(
+            self.repl.show(),
+            PrinterItemType::Custom(crossterm::Color::DarkCyan),
+        ));
+
+        Ok(code)
     }
 
     fn add_dep(&mut self) -> Result<Printer, IRustError> {
