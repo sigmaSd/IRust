@@ -148,6 +148,9 @@ impl IRust {
                     InputEvent::Keyboard(KeyEvent::CtrlRight) => {
                         self.handle_ctrl_right();
                     }
+                    InputEvent::Keyboard(KeyEvent::Delete) => {
+                        self.handle_del()?;
+                    }
                     _ => {}
                 }
             }

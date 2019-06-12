@@ -93,4 +93,15 @@ impl IRust {
 
         Ok(())
     }
+
+    pub fn delete_char(&mut self) -> Result<(), IRustError> {
+        if !self.buffer.is_empty() {
+            StringTools::remove_at_char_idx(
+                &mut self.buffer,
+                self.internal_cursor.get_corrected_x(),
+            );
+        }
+        self.write_insert(None)?;
+        Ok(())
+    }
 }

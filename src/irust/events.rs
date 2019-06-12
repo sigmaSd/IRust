@@ -159,13 +159,14 @@ impl IRust {
     pub fn handle_backspace(&mut self) -> Result<(), IRustError> {
         if self.internal_cursor.get_corrected_x() > 0 {
             self.move_cursor_left()?;
-            if !self.buffer.is_empty() {
-                StringTools::remove_at_char_idx(
-                    &mut self.buffer,
-                    self.internal_cursor.get_corrected_x(),
-                );
-            }
-            self.write_insert(None)?;
+            self.delete_char()?;
+        }
+        Ok(())
+    }
+
+    pub fn handle_del(&mut self) -> Result<(), IRustError> {
+        if self.internal_cursor.get_corrected_x() < StringTools::chars_count(&self.buffer) {
+            self.delete_char()?;
         }
         Ok(())
     }
