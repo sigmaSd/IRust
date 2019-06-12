@@ -11,7 +11,6 @@ pub enum PrinterItemType {
     Out,
     Shell,
     Err,
-    Help,
     Empty,
     Welcome,
     Custom(Color),
@@ -107,7 +106,6 @@ impl IRust {
                 PrinterItemType::Out => self.options.out_color,
                 PrinterItemType::Shell => self.options.shell_color,
                 PrinterItemType::Err => self.options.err_color,
-                PrinterItemType::Help => Color::Cyan,
                 PrinterItemType::Welcome => {
                     self.color.set_fg(self.options.welcome_color)?;
                     let msg = if !self.options.welcome_msg.is_empty() {
@@ -202,7 +200,7 @@ pub trait ColoredPrinterItem {
 }
 
 impl<T: ToString> ColoredPrinterItem for T {
-    fn to_output(&self, _color: Color) -> PrinterItem {
-        PrinterItem::new(self.to_string(), PrinterItemType::Help)
+    fn to_output(&self, color: Color) -> PrinterItem {
+        PrinterItem::new(self.to_string(), PrinterItemType::Custom(color))
     }
 }
