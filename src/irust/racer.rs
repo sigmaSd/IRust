@@ -6,6 +6,11 @@ use std::env::temp_dir;
 use std::io::{self, Write};
 use std::process::{Child, Command, Stdio};
 
+pub enum Cycle {
+    Up,
+    Down,
+}
+
 pub struct Racer {
     process: Child,
     main_file: String,
@@ -114,6 +119,16 @@ impl Racer {
         self.suggestion_idx += 1;
     }
 
+    fn goto_previous_suggestion(&mut self) {
+        self.suggestion_idx = self
+            .suggestion_idx
+            .checked_sub(1)
+            .unwrap_or_else(|| self.suggestions.len());
+        if self.suggestion_idx == 0 {
+            self.suggestion_idx = self.suggestions.len();
+        }
+    }
+
     fn current_suggestion(&self) -> Option<(String, String)> {
         if self.suggestion_idx > 1 {
             self.suggestions
@@ -193,6 +208,13 @@ impl IRust {
         Ok(())
     }
 
+    fn write_previous_suggestion(&mut self) -> Result<(), IRustError> {
+        self.racer.as_mut()?.goto_previous_suggestion();
+        self.write_current_suggestion()?;
+
+        Ok(())
+    }
+
     fn write_first_suggestion(&mut self) -> Result<(), IRustError> {
         self.racer.as_mut()?.goto_first_suggestion();
         self.write_current_suggestion()?;
@@ -232,7 +254,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn cycle_suggestions(&mut self) -> Result<(), IRustError> {
+    pub fn cycle_suggestions(&mut self, cycle: Cycle) -> Result<(), IRustError> {
         if self.at_line_end() {
             // Clear screen from cursor down
             self.terminal.clear(ClearType::FromCursorDown)?;
@@ -243,7 +265,10 @@ impl IRust {
             }
 
             // Write inline suggestion
-            self.write_next_suggestion()?;
+            match cycle {
+                Cycle::Down => self.write_next_suggestion()?,
+                Cycle::Up => self.write_previous_suggestion()?,
+            }
 
             // Max suggestions number to show
             let suggestions_num = std::cmp::min(

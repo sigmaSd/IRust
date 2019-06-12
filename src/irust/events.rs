@@ -1,3 +1,4 @@
+use super::racer::Cycle;
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
@@ -80,14 +81,24 @@ impl IRust {
     }
 
     pub fn handle_tab(&mut self) -> Result<(), IRustError> {
-        let mut inner = || -> Result<(), IRustError> {
+        match || -> Result<(), IRustError> {
             self.update_suggestions()?;
             self.lock_racer_update()?;
-            self.cycle_suggestions()?;
+            self.cycle_suggestions(Cycle::Down)?;
             Ok(())
-        };
+        }() {
+            Ok(_) | Err(IRustError::RacerDisabled) => Ok(()),
+            Err(e) => Err(e),
+        }
+    }
 
-        match inner() {
+    pub fn handle_back_tab(&mut self) -> Result<(), IRustError> {
+        match || -> Result<(), IRustError> {
+            self.update_suggestions()?;
+            self.lock_racer_update()?;
+            self.cycle_suggestions(Cycle::Up)?;
+            Ok(())
+        }() {
             Ok(_) | Err(IRustError::RacerDisabled) => Ok(()),
             Err(e) => Err(e),
         }

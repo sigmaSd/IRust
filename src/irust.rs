@@ -109,6 +109,9 @@ impl IRust {
                         '\t' => self.handle_tab()?,
                         c => self.handle_character(c)?,
                     },
+                    InputEvent::Keyboard(KeyEvent::BackTab) => {
+                        self.handle_back_tab()?;
+                    }
                     InputEvent::Keyboard(KeyEvent::Left) => {
                         self.handle_left()?;
                     }
