@@ -96,8 +96,9 @@ impl Racer {
             }
             let mut try_parse = || -> Option<()> {
                 let start_idx = suggestion.find("MATCH ")? + 6;
-                let name = suggestion[start_idx..suggestion.find(',')?].to_owned();
-                let definition = suggestion[suggestion.rfind(',')?..].to_owned();
+                let mut indices = suggestion.match_indices(',');
+                let name = suggestion[start_idx..indices.nth(0)?.0].to_owned();
+                let definition = suggestion[indices.nth(3)?.0..].to_owned();
                 self.suggestions.push((name, definition[1..].to_owned()));
                 Some(())
             };
@@ -277,7 +278,7 @@ impl IRust {
             );
 
             // Handle screen height overflow
-            let height_overflow = self.screen_height_overflow_by_new_lines(suggestions_num);
+            let height_overflow = self.screen_height_overflow_by_new_lines(suggestions_num + 1);
             if height_overflow != 0 {
                 self.terminal.scroll_up((height_overflow) as i16)?;
                 self.cursor.move_up((height_overflow) as u16);

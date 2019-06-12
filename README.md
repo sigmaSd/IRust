@@ -35,7 +35,7 @@ You can use arrow keys to cycle through commands history
 
 **HOME/END** go to line start / line end
 
-**Tab** cycle through auto-completion suggestions (requires [racer](https://github.com/racer-rust/racer))
+**Tab/ShiftTab** cycle through auto-completion suggestions (requires [racer](https://github.com/racer-rust/racer))
 
 <img src="./irust.png" width="80%" height="60%">
 
@@ -84,6 +84,12 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.6.0**
+- Handle `shift-tab` key (cycle sugestions backward)
+- Handle `delete` key
+- More Racer fixes
+- More incomplete input detection
+
 **0.5.12**
 - Hotfix for multilines paste handling
 
