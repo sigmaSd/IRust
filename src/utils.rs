@@ -90,6 +90,26 @@ impl StringTools {
     pub fn nl_to_space(s: &str) -> String {
         s.replace("\n", " ")
     }
+
+    pub fn unmatched_brackets(s: &str) -> bool {
+        let mut braces = std::collections::HashMap::new();
+        braces.insert('(', 0);
+        braces.insert('[', 0);
+        braces.insert('{', 0);
+        for character in s.chars() {
+            match character {
+                '(' => *braces.get_mut(&'(').unwrap() += 1,
+                ')' => *braces.get_mut(&'(').unwrap() -= 1,
+                '[' => *braces.get_mut(&'[').unwrap() += 1,
+                ']' => *braces.get_mut(&'[').unwrap() -= 1,
+                '{' => *braces.get_mut(&'{').unwrap() += 1,
+                '}' => *braces.get_mut(&'{').unwrap() -= 1,
+                _ => (),
+            }
+        }
+
+        braces[&'('] != 0 || braces[&'['] != 0 || braces[&'{'] != 0
+    }
 }
 
 pub struct VecTools {}

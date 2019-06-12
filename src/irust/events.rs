@@ -62,23 +62,11 @@ impl IRust {
     }
 
     fn incomplete_input(&self) -> bool {
-        let mut braces = std::collections::HashMap::new();
-        braces.insert('(', 0);
-        braces.insert('[', 0);
-        braces.insert('{', 0);
-        for character in self.buffer.chars() {
-            match character {
-                '(' => *braces.get_mut(&'(').unwrap() += 1,
-                ')' => *braces.get_mut(&'(').unwrap() -= 1,
-                '[' => *braces.get_mut(&'[').unwrap() += 1,
-                ']' => *braces.get_mut(&'[').unwrap() -= 1,
-                '{' => *braces.get_mut(&'{').unwrap() += 1,
-                '}' => *braces.get_mut(&'{').unwrap() -= 1,
-                _ => (),
-            }
-        }
-
-        braces[&'('] != 0 || braces[&'['] != 0 || braces[&'{'] != 0
+        StringTools::unmatched_brackets(&self.buffer)
+            || self
+                .buffer
+                .trim_end()
+                .ends_with(|c| c == '.' || c == ':' || c == '=')
     }
 
     fn handle_incomplete_input(&mut self) -> Result<(), IRustError> {
