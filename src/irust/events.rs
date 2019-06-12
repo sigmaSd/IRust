@@ -24,7 +24,7 @@ impl IRust {
         self.clear_suggestion()?;
 
         // handle incomplete input
-        if self.incomplete_input() {
+        if StringTools::unmatched_brackets(&self.buffer) {
             self.handle_incomplete_input()?;
             return Ok(());
         }
@@ -62,21 +62,19 @@ impl IRust {
         Ok(())
     }
 
-    fn incomplete_input(&self) -> bool {
-        StringTools::unmatched_brackets(&self.buffer)
-            || self
-                .buffer
-                .trim_end()
-                .ends_with(|c| c == '.' || c == ':' || c == '=')
-    }
-
     fn handle_incomplete_input(&mut self) -> Result<(), IRustError> {
-        StringTools::insert_at_char_idx(
-            &mut self.buffer,
-            self.internal_cursor.get_corrected_x(),
-            '\n',
-        );
-        self.write_insert(Some(&' '.to_string()))?;
+        let remaining_till_nl = self.size.0 - self.internal_cursor.x % self.size.0;
+        let spaces = std::iter::repeat(' ')
+            .take(remaining_till_nl + 4)
+            .collect::<String>();
+        for c in spaces.chars() {
+            StringTools::insert_at_char_idx(
+                &mut self.buffer,
+                self.internal_cursor.get_corrected_x(),
+                c,
+            );
+        }
+        self.write_insert(Some(&spaces))?;
         Ok(())
     }
 

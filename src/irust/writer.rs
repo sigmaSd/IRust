@@ -18,7 +18,7 @@ impl IRust {
                         > self.size.1
                     {
                         let _ = self.terminal.scroll_up(1);
-                        self.internal_cursor.y -= 1;
+                        self.internal_cursor.y = self.internal_cursor.y.checked_sub(1).unwrap_or(0);
                         self.cursor.move_up(1);
                     }
                     let _ = self.terminal.write(c);
