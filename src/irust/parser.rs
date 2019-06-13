@@ -138,8 +138,8 @@ impl IRust {
             } else {
                 let mut eval_output = format_eval_output(&self.repl.eval(self.buffer.clone())?);
                 outputs.append(&mut eval_output);
-                outputs.add_new_line(1);
             }
+            outputs.add_new_line(self.internal_cursor.total_wrapped_lines + 1);
 
             Ok(outputs)
         }
