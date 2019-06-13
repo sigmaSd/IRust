@@ -107,7 +107,7 @@ impl IRust {
         self.move_cursor_to(None, self.internal_cursor.y)?;
         self.internal_cursor.reset_wrapped_lines();
         self.terminal.clear(ClearType::FromCursorDown)?;
-        let up = self.history.up();
+        let up = self.history.up(&self.buffer);
         self.buffer = up.clone();
 
         let overflow = self.screen_height_overflow_by_str(&up);

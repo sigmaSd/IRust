@@ -2,6 +2,7 @@ pub struct History {
     buffer_vec: Vec<String>,
     cursor: usize,
     empty: String,
+    present: String,
 }
 impl Default for History {
     fn default() -> Self {
@@ -9,6 +10,7 @@ impl Default for History {
             buffer_vec: Vec::new(),
             cursor: 0,
             empty: String::new(),
+            present: String::new(),
         }
     }
 }
@@ -20,11 +22,14 @@ impl History {
         }
         self.buffer_vec
             .get(self.cursor)
-            .unwrap_or(&self.empty)
+            .unwrap_or(&self.present)
             .clone()
     }
 
-    pub fn up(&mut self) -> String {
+    pub fn up(&mut self, present: &str) -> String {
+        if self.cursor == self.buffer_vec.len() {
+            self.present = present.to_owned();
+        }
         if self.cursor > 0 {
             self.cursor -= 1;
         }
