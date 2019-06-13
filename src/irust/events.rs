@@ -24,7 +24,7 @@ impl IRust {
         self.clear_suggestion()?;
 
         // handle incomplete input
-        if StringTools::unmatched_brackets(&self.buffer) {
+        if self.incomplete_input() {
             self.handle_incomplete_input()?;
             return Ok(());
         }
@@ -60,6 +60,14 @@ impl IRust {
         // new input
         self.write_in()?;
         Ok(())
+    }
+
+    fn incomplete_input(&self) -> bool {
+        StringTools::unmatched_brackets(&self.buffer)
+            || self
+                .buffer
+                .trim_end()
+                .ends_with(|c| c == ':' || c == '.' || c == '=')
     }
 
     fn handle_incomplete_input(&mut self) -> Result<(), IRustError> {
