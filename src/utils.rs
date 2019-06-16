@@ -129,7 +129,7 @@ impl StringTools {
                 }
                 '}' => {
                     if !quote && !double_quote {
-                        *braces.get_mut(&'}').unwrap() -= 1;
+                        *braces.get_mut(&'{').unwrap() -= 1;
                     }
                 }
                 '"' => {
