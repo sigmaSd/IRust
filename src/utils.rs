@@ -96,16 +96,55 @@ impl StringTools {
         braces.insert('(', 0);
         braces.insert('[', 0);
         braces.insert('{', 0);
+
+        let mut quote = false;
+        let mut double_quote = false;
+        let mut previous_char = ' ';
         for character in s.chars() {
             match character {
-                '(' => *braces.get_mut(&'(').unwrap() += 1,
-                ')' => *braces.get_mut(&'(').unwrap() -= 1,
-                '[' => *braces.get_mut(&'[').unwrap() += 1,
-                ']' => *braces.get_mut(&'[').unwrap() -= 1,
-                '{' => *braces.get_mut(&'{').unwrap() += 1,
-                '}' => *braces.get_mut(&'{').unwrap() -= 1,
+                '(' => {
+                    if !quote && !double_quote {
+                        *braces.get_mut(&'(').unwrap() += 1;
+                    }
+                }
+                ')' => {
+                    if !quote && !double_quote {
+                        *braces.get_mut(&'(').unwrap() -= 1;
+                    }
+                }
+                '[' => {
+                    if !quote && !double_quote {
+                        *braces.get_mut(&'[').unwrap() += 1;
+                    }
+                }
+                ']' => {
+                    if !quote && !double_quote {
+                        *braces.get_mut(&'[').unwrap() -= 1;
+                    }
+                }
+                '{' => {
+                    if !quote && !double_quote {
+                        *braces.get_mut(&'{').unwrap() += 1;
+                    }
+                }
+                '}' => {
+                    if !quote && !double_quote {
+                        *braces.get_mut(&'}').unwrap() -= 1;
+                    }
+                }
+                '"' => {
+                    if previous_char != '\\' {
+                        double_quote = !double_quote;
+                    }
+                }
+                '\'' => {
+                    if previous_char != '\\' {
+                        quote = !quote;
+                    }
+                }
                 _ => (),
             }
+            previous_char = character;
         }
 
         braces[&'('] != 0 || braces[&'['] != 0 || braces[&'{'] != 0
