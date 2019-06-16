@@ -89,6 +89,7 @@ IRust config file is located in:
 - Activate `ctrl + arrow` on published build
 - Improvements to incomplete input detection
 - Simulate multilines when pasting multilines input (temporary needs rework)
+- Try to keep current input when cycling history
 
 **0.6.0**
 - Handle `shift-tab` key (cycle sugestions backward)
