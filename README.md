@@ -84,6 +84,12 @@ IRust config file is located in:
     welcome_color = DarkBlue
 
 ## Changeslog
+**0.6.1**
+- Update to crossterm '0.9.6'
+- Activate `ctrl + arrow` on published build
+- Improvements to incomplete input detection
+- Simulate multilines when pasting multilines input (temporary needs rework)
+
 **0.6.0**
 - Handle `shift-tab` key (cycle sugestions backward)
 - Handle `delete` key
