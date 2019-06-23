@@ -229,23 +229,22 @@ impl IRust {
 
                 self.color
                     .set_fg(self.options.racer_inline_suggestion_color)?;
+                self.cursor.hide()?;
                 self.save_cursor_position()?;
                 self.terminal.clear(ClearType::FromCursorDown)?;
 
                 StringTools::strings_unique(&self.buffer, &mut suggestion);
 
                 let overflow = self.screen_height_overflow_by_str(&suggestion);
-                if overflow != 0 {
-                    self.internal_cursor.total_wrapped_lines += overflow;
-                }
 
                 self.write(&suggestion)?;
 
                 self.reset_cursor_position()?;
+                self.cursor.show()?;
 
                 if overflow != 0 {
                     self.cursor.move_up(overflow as u16);
-                    self.internal_cursor.y -= overflow;
+                    self.internal_cursor.screen_pos.1 -= overflow;
                 }
 
                 self.color.reset()?;
@@ -282,14 +281,14 @@ impl IRust {
             if height_overflow != 0 {
                 self.terminal.scroll_up((height_overflow) as i16)?;
                 self.cursor.move_up((height_overflow) as u16);
-                self.internal_cursor.y -= height_overflow;
+                self.internal_cursor.screen_pos.1 -= height_overflow;
             }
 
             // Save cursors postions from this point (Input position)
             self.save_cursor_position()?;
 
             // Write from screen start if a suggestion will be truncated
-            let mut max_width = self.size.0 - self.internal_cursor.x % self.size.0;
+            let mut max_width = self.size.0 - self.internal_cursor.screen_pos.0;
             if self
                 .racer
                 .as_ref()?
@@ -297,13 +296,10 @@ impl IRust {
                 .iter()
                 .any(|s| Racer::full_suggestion(s).len() > max_width)
             {
-                self.internal_cursor.x = 0;
-                self.go_to_cursor()?;
+                self.internal_cursor.screen_pos.0 = 0;
+                self.goto_cursor()?;
 
-                self.cursor
-                    .move_down(self.internal_cursor.current_wrapped_lines as u16);
-
-                max_width = self.size.0 - self.internal_cursor.x % self.size.0;
+                max_width = self.size.0 - self.internal_cursor.screen_pos.0;
             }
 
             // Write the suggestions
@@ -366,9 +362,8 @@ impl IRust {
             // get the unique part of the name
             StringTools::strings_unique(&self.buffer, &mut suggestion);
 
-            // update total wrapped lines count each time we touch the buffer
             self.buffer.push_str(&suggestion);
-            self.update_total_wrapped_lines();
+            self.internal_cursor.buffer_pos = self.buffer.len();
 
             // clear screen from cursor down
             self.terminal.clear(ClearType::FromCursorDown)?;

@@ -14,13 +14,6 @@ impl IRust {
                 });
             } else {
                 out.chars().for_each(|c| {
-                    if self.internal_cursor.y + self.internal_cursor.total_wrapped_lines
-                        > self.size.1
-                    {
-                        let _ = self.terminal.scroll_up(1);
-                        self.internal_cursor.y = self.internal_cursor.y.checked_sub(1).unwrap_or(0);
-                        self.cursor.move_up(1);
-                    }
                     let _ = self.terminal.write(c);
                     let _ = self.move_cursor_right();
                 });
@@ -48,21 +41,22 @@ impl IRust {
 
     pub fn write_newline(&mut self) -> Result<(), IRustError> {
         self.terminal.write('\n')?;
-        self.internal_cursor.x = 0;
-        self.internal_cursor.y += 1;
+        self.internal_cursor.screen_pos.0 = 0;
+        self.internal_cursor.screen_pos.1 += 1;
+        self.internal_cursor.add_bounds();
         // y should never exceed screen height
-        if self.internal_cursor.y > self.size.1 {
-            self.internal_cursor.y = self.size.1;
+        if self.internal_cursor.screen_pos.1 > self.size.1 {
+            self.internal_cursor.screen_pos.1 = self.size.1;
         }
-        self.go_to_cursor()?;
+        self.goto_cursor()?;
         Ok(())
     }
 
     pub fn clear_suggestion(&mut self) -> Result<(), IRustError> {
         if self.at_line_end() {
             self.clear_from(
-                self.internal_cursor.x,
-                self.internal_cursor.get_corrected_y(),
+                self.internal_cursor.screen_pos.0,
+                self.internal_cursor.screen_pos.1,
             )?;
         }
 
@@ -85,23 +79,29 @@ impl IRust {
     pub fn clear(&mut self) -> Result<(), IRustError> {
         self.terminal.clear(ClearType::All)?;
         self.internal_cursor.reset();
-        self.internal_cursor.y = 0;
-        self.go_to_cursor()?;
+        self.internal_cursor.screen_pos.1 = 0;
+        self.goto_cursor()?;
 
         self.write_in()?;
-        self.write(&StringTools::nl_to_space(&self.buffer))?;
+        self.write(&self.buffer.clone())?;
+        self.internal_cursor.buffer_pos = self.buffer.len();
 
         Ok(())
     }
 
     pub fn delete_char(&mut self) -> Result<(), IRustError> {
         if !self.buffer.is_empty() {
-            StringTools::remove_at_char_idx(
-                &mut self.buffer,
-                self.internal_cursor.get_corrected_x(),
-            );
+            StringTools::remove_at_char_idx(&mut self.buffer, self.internal_cursor.buffer_pos);
         }
         self.write_insert(None)?;
         Ok(())
+    }
+
+    pub fn scroll_up(&mut self, n: usize) {
+        self.terminal.scroll_up(n as i16).unwrap();
+        self.internal_cursor.screen_pos.1 -= n;
+        self.cursor.move_up(n as u16);
+        self.internal_cursor.lock_pos.1 -= n;
+        self.internal_cursor.bounds.shift_keys_left(n);
     }
 }

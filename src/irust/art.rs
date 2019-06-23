@@ -75,6 +75,7 @@ impl IRust {
         self.printer.add_new_line(2);
 
         self.write_out()?;
+        self.internal_cursor.add_bounds();
 
         Ok(())
     }

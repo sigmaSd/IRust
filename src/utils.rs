@@ -53,7 +53,11 @@ impl StringTools {
 
     pub fn remove_at_char_idx(buffer: &mut String, idx: usize) {
         let mut buffer_chars: Vec<char> = buffer.chars().collect();
-        buffer_chars.remove(idx);
+
+        if buffer_chars.len() > idx {
+            buffer_chars.remove(idx);
+        }
+
         *buffer = buffer_chars.into_iter().collect();
     }
 
@@ -85,10 +89,6 @@ impl StringTools {
 
             idx -= 1;
         }
-    }
-
-    pub fn nl_to_space(s: &str) -> String {
-        s.replace("\n", " ")
     }
 
     pub fn unmatched_brackets(s: &str) -> bool {

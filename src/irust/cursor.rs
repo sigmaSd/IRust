@@ -1,25 +1,31 @@
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
+mod bounds;
+use bounds::Bounds;
+
+#[derive(PartialEq)]
+pub enum Move {
+    Free,
+    Modify,
+}
 
 #[derive(Clone)]
 pub struct Cursor {
-    pub x: usize,
-    pub y: usize,
-    pub x_offset: usize,
-    origin: (usize, usize),
-    pub current_wrapped_lines: usize,
-    pub total_wrapped_lines: usize,
+    pub screen_pos: (usize, usize),
+    pub buffer_pos: usize,
+    pub bounds: Bounds,
+    pub lock_pos: (usize, usize),
+    origin: (usize, usize, usize),
     copy: Option<Box<Cursor>>,
 }
 impl Cursor {
-    pub fn new(x: usize, y: usize, x_offset: usize) -> Self {
+    pub fn new(x: usize, y: usize, width: usize) -> Self {
         Self {
-            x,
-            y,
-            x_offset,
-            origin: (x, y),
-            current_wrapped_lines: 0,
-            total_wrapped_lines: 0,
+            screen_pos: (x, y),
+            buffer_pos: 0,
+            bounds: Bounds::new(y, (4, width)),
+            lock_pos: (4, y),
+            origin: (x, y, width),
             copy: None,
         }
     }
@@ -36,42 +42,78 @@ impl Cursor {
     }
 
     fn move_right(&mut self) {
-        self.x += 1;
-    }
-
-    fn move_left(&mut self) {
-        if self.x != 0 {
-            self.x -= 1
-        }
-    }
-
-    pub fn get_corrected_x(&self) -> usize {
-        if self.x >= self.x_offset {
-            self.x - self.x_offset
+        if self.screen_pos.0 == self.current_upper_bound() {
+            if self.bounds.contains(self.screen_pos.1 + 1) {
+                self.screen_pos.0 = self.bounds.lower_bound(self.screen_pos.1 + 1);
+                self.screen_pos.1 += 1;
+            } else {
+                self.screen_pos.0 = 0;
+                self.screen_pos.1 += 1;
+                self.add_bounds();
+            }
         } else {
-            0
+            self.screen_pos.0 += 1;
         }
     }
 
-    pub fn get_corrected_y(&self) -> usize {
-        self.y + self.current_wrapped_lines
+    fn move_left(&mut self, move_type: Move) {
+        if self.screen_pos == self.lock_pos {
+            return;
+        }
+        if self.screen_pos.0 == self.current_lower_bound() {
+            if self.bounds.contains(self.screen_pos.1 - 1) {
+                self.screen_pos.0 = self.bounds.upper_bound(self.screen_pos.1 - 1);
+                self.screen_pos.1 -= 1;
+
+                if move_type == Move::Modify {
+                    self.current_bounds_mut().1 = self.origin.2;
+                }
+            }
+        } else {
+            self.screen_pos.0 -= 1;
+        }
+    }
+
+    pub fn move_buffer_cursor_left(&mut self) {
+        if self.buffer_pos > 0 {
+            self.buffer_pos -= 1;
+        }
+    }
+
+    pub fn move_buffer_cursor_right(&mut self) {
+        self.buffer_pos += 1;
     }
 
     pub fn reset(&mut self) {
         *self = Self {
-            x: self.origin.0,
-            y: self.origin.1,
-            x_offset: self.x_offset,
+            screen_pos: (self.origin.0, self.origin.1),
+            buffer_pos: 0,
+            bounds: Bounds::new(self.origin.1, (4, self.origin.2)),
+            lock_pos: (4, self.origin.1),
             origin: self.origin,
-            current_wrapped_lines: 0,
-            total_wrapped_lines: 0,
             copy: None,
         };
     }
 
-    pub fn reset_wrapped_lines(&mut self) {
-        self.current_wrapped_lines = 0;
-        self.total_wrapped_lines = 0;
+    fn current_lower_bound(&self) -> usize {
+        self.bounds.lower_bound(self.screen_pos.1)
+    }
+
+    fn current_upper_bound(&self) -> usize {
+        self.bounds.upper_bound(self.screen_pos.1)
+    }
+
+    pub fn current_bounds_mut(&mut self) -> &mut (usize, usize) {
+        self.bounds.get_mut(self.screen_pos.1).unwrap()
+    }
+
+    pub fn add_bounds(&mut self) {
+        self.bounds
+            .insert(self.screen_pos.1, (self.screen_pos.0, self.origin.2));
+    }
+
+    pub fn reset_screen_cursor(&mut self) {
+        self.screen_pos = self.lock_pos;
     }
 }
 
@@ -87,13 +129,13 @@ impl IRust {
         let x = if x.is_some() {
             x.unwrap()
         } else {
-            self.internal_cursor.x
+            self.internal_cursor.screen_pos.0
         };
 
         let y = if y.is_some() {
             y.unwrap()
         } else {
-            self.internal_cursor.get_corrected_y()
+            self.internal_cursor.screen_pos.1
         };
 
         self.cursor.goto(x as u16, y as u16)?;
@@ -101,75 +143,42 @@ impl IRust {
         Ok(())
     }
 
-    pub fn go_to_cursor(&mut self) -> Result<(), IRustError> {
+    pub fn goto_cursor(&mut self) -> Result<(), IRustError> {
         self.cursor.goto(
-            (self.internal_cursor.x % self.size.0) as u16,
-            self.internal_cursor.get_corrected_y() as u16,
+            self.internal_cursor.screen_pos.0 as u16,
+            self.internal_cursor.screen_pos.1 as u16,
         )?;
         Ok(())
     }
 
-    fn at_screen_start(&self) -> bool {
-        (self.internal_cursor.x + 1) % self.size.0 == 1
-    }
-
-    fn at_screen_end(&self) -> bool {
-        !self.buffer.is_empty() && (self.internal_cursor.x + 1) % self.size.0 == 0
-    }
-
     pub fn at_line_end(&self) -> bool {
-        if self.internal_cursor.get_corrected_x() == 0 && !self.buffer.is_empty() {
-            false
-        } else {
-            self.internal_cursor.get_corrected_x() == StringTools::chars_count(&self.buffer)
-        }
+        self.buffer.is_empty() || self.internal_cursor.buffer_pos == self.buffer.len()
     }
 
-    pub fn move_cursor_left(&mut self) -> Result<(), IRustError> {
-        self.internal_cursor.move_left();
-        self.go_to_cursor()?;
-        if self.at_screen_end() {
-            self.internal_cursor.current_wrapped_lines = self
-                .internal_cursor
-                .current_wrapped_lines
-                .checked_sub(1)
-                .unwrap_or(0);
-
-            self.move_cursor_to(self.size.0 - 1, self.internal_cursor.get_corrected_y())?;
-        }
+    pub fn move_cursor_left(&mut self, move_type: Move) -> Result<(), IRustError> {
+        self.internal_cursor.move_left(move_type);
+        self.goto_cursor()?;
 
         Ok(())
     }
 
     pub fn move_cursor_right(&mut self) -> Result<(), IRustError> {
         self.internal_cursor.move_right();
-        self.go_to_cursor()?;
-
-        if self.at_screen_start() {
-            self.internal_cursor.current_wrapped_lines += 1;
-            self.move_cursor_to(0, self.internal_cursor.get_corrected_y())?;
-        }
+        self.goto_cursor()?;
 
         Ok(())
     }
 
     pub fn screen_height_overflow_by_str(&self, out: &str) -> usize {
         let new_lines =
-            (StringTools::chars_count(out) + (self.internal_cursor.x % self.size.0)) / self.size.0;
+            (StringTools::chars_count(out) + self.internal_cursor.screen_pos.0) / self.size.0;
 
         self.screen_height_overflow_by_new_lines(new_lines)
     }
 
     pub fn screen_height_overflow_by_new_lines(&self, new_lines: usize) -> usize {
         // if corrected y  + new lines < self.size.1 there is no overflow so unwrap to 0
-        (new_lines + self.internal_cursor.get_corrected_y())
-            .checked_sub(self.size.1)
-            .unwrap_or(0)
-    }
-
-    pub fn update_total_wrapped_lines(&mut self) {
-        self.internal_cursor.total_wrapped_lines =
-            (4 + StringTools::chars_count(&self.buffer)) / self.size.0;
+        (new_lines + self.internal_cursor.screen_pos.1).saturating_sub(self.size.1)
     }
 
     pub fn save_cursor_position(&mut self) -> Result<(), IRustError> {

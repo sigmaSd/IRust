@@ -120,8 +120,7 @@ impl IRust {
         if self.buffer.trim_end().ends_with(';') {
             self.repl.insert(self.buffer.clone());
 
-            let mut printer = Printer::default();
-            printer.add_new_line(self.internal_cursor.total_wrapped_lines);
+            let printer = Printer::default();
 
             Ok(printer)
         } else {
@@ -139,7 +138,6 @@ impl IRust {
                 let mut eval_output = format_eval_output(&self.repl.eval(self.buffer.clone())?);
                 outputs.append(&mut eval_output);
             }
-            outputs.add_new_line(self.internal_cursor.total_wrapped_lines + 1);
 
             Ok(outputs)
         }

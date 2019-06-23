@@ -136,27 +136,24 @@ impl IRust {
             }
         }
 
-        // reset wrapped lines counter after each output
-        self.internal_cursor.reset_wrapped_lines();
-
         Ok(())
     }
 
     pub fn write_in(&mut self) -> Result<(), IRustError> {
-        self.internal_cursor.x = 0;
-        self.go_to_cursor()?;
+        self.internal_cursor.screen_pos.0 = 0;
+        self.goto_cursor()?;
         self.terminal.clear(ClearType::FromCursorDown)?;
         self.color.set_fg(self.options.input_color)?;
-        self.terminal.write(IN)?;
-        self.internal_cursor.x = 4;
+        self.write(IN)?;
+        //self.internal_cursor.screen_pos.0 = 4;
+        *self.internal_cursor.current_bounds_mut() = (4, self.size.0);
+        self.internal_cursor.buffer_pos = 0;
+        self.internal_cursor.lock_pos = (4, self.internal_cursor.screen_pos.1);
         self.color.reset()?;
         Ok(())
     }
 
     pub fn write_insert(&mut self, c: Option<&str>) -> Result<(), IRustError> {
-        // We modified the buffer we need to update total wrapped lines
-        self.update_total_wrapped_lines();
-
         // Clear from cursor down
         self.terminal.clear(ClearType::FromCursorDown)?;
 
@@ -176,7 +173,7 @@ impl IRust {
             for character in self
                 .buffer
                 .chars()
-                .skip(self.internal_cursor.get_corrected_x())
+                .skip(self.internal_cursor.buffer_pos)
                 .collect::<Vec<char>>()
                 .iter()
             {
