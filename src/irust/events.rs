@@ -55,7 +55,6 @@ impl IRust {
             }
             Err(e) => {
                 self.printer = Printer::new(PrinterItem::new(e.to_string(), PrinterItemType::Err));
-                self.printer.add_new_line(1);
             }
         }
 
@@ -64,8 +63,8 @@ impl IRust {
 
         // write out
         if !self.printer.is_empty() {
+            self.printer.add_new_line(1);
             self.write_out()?;
-            self.write_newline()?;
         }
 
         // new input

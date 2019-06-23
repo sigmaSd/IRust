@@ -1,7 +1,4 @@
-# Ignore everything
-*
-
-# But not these files...
+# Dont Ignore
 !*.rs
 !*/
 !Cargo.toml
@@ -9,3 +6,6 @@
 !README.md
 !LICENSE
 !.gitignore
+
+# Ignore
+*
