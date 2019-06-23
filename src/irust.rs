@@ -57,7 +57,6 @@ impl IRust {
         let buffer = String::new();
         let repl = Repl::new();
         let history = History::default();
-        let internal_cursor = Cursor::new(0, 0, 4);
         let options = Options::new().unwrap_or_default();
         let debouncer = Debouncer::new();
         let racer = if options.enable_racer {
@@ -69,6 +68,7 @@ impl IRust {
             let (width, height) = terminal.terminal_size();
             (width as usize, height as usize)
         };
+        let internal_cursor = Cursor::new(0, 0, size.0);
 
         IRust {
             cursor,
