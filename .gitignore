@@ -1,12 +1,11 @@
+# Ignore
+*
+
 # Dont Ignore
 !/src
 !*.rs
-!*/
 !Cargo.toml
 !CHANGELOG.md
 !README.md
 !LICENSE
 !.gitignore
-
-# Ignore
-*
