@@ -1,4 +1,5 @@
 # Dont Ignore
+!/src
 !*.rs
 !*/
 !Cargo.toml
