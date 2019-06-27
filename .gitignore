@@ -2,7 +2,9 @@
 *
 
 # Dont Ignore
-!/src
+!/src/
+!/src/*
+!/src/irust/*
 !*.rs
 !Cargo.toml
 !CHANGELOG.md
