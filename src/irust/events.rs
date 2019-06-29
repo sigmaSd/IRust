@@ -18,6 +18,9 @@ impl IRust {
         // Insert input char in buffer
         StringTools::insert_at_char_idx(&mut self.buffer, self.internal_cursor.buffer_pos, c);
 
+        // update histroy current
+        self.history.update_current(&self.buffer);
+
         // advance buffer pos
         self.internal_cursor.move_buffer_cursor_right();
 
@@ -60,6 +63,8 @@ impl IRust {
 
         // ensure buffer is cleaned
         self.buffer.clear();
+        // update history current
+        self.history.update_current(&self.buffer);
 
         // write out
         if !self.printer.is_empty() {
@@ -124,9 +129,9 @@ impl IRust {
             self.internal_cursor.lock_pos.0,
             self.internal_cursor.lock_pos.1,
         )?;
-
         self.terminal.clear(ClearType::FromCursorDown)?;
-        let up = self.history.up(&self.buffer);
+
+        let up = self.history.up();
         self.buffer = up.clone();
         self.internal_cursor.buffer_pos = self.buffer.len();
 
@@ -142,12 +147,16 @@ impl IRust {
     }
 
     pub fn handle_down(&mut self) -> Result<(), IRustError> {
+        if self.buffer.is_empty() {
+            return Ok(());
+        }
         self.internal_cursor.reset_screen_cursor();
         self.move_cursor_to(
             self.internal_cursor.lock_pos.0,
             self.internal_cursor.lock_pos.1,
         )?;
         self.terminal.clear(ClearType::FromCursorDown)?;
+
         let down = self.history.down();
         self.buffer = down.clone();
         self.internal_cursor.buffer_pos = self.buffer.len();
@@ -188,6 +197,8 @@ impl IRust {
             self.move_cursor_left(Move::Modify)?;
             self.internal_cursor.move_buffer_cursor_left();
             self.delete_char()?;
+            // update histroy current
+            self.history.update_current(&self.buffer);
         }
         Ok(())
     }

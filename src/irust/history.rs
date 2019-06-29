@@ -1,55 +1,65 @@
 pub struct History {
-    buffer_vec: Vec<String>,
+    history: Vec<String>,
+    current: String,
     cursor: usize,
-    empty: String,
-    present: String,
 }
 impl Default for History {
     fn default() -> Self {
         Self {
-            buffer_vec: Vec::new(),
+            history: Vec::new(),
+            current: String::new(),
             cursor: 0,
-            empty: String::new(),
-            present: String::new(),
         }
     }
 }
 impl History {
     pub fn down(&mut self) -> String {
+        let filtered = self.filter();
         self.cursor += 1;
-        if self.cursor > self.buffer_vec.len() {
-            self.cursor = self.buffer_vec.len();
+        if self.cursor >= filtered.len() {
+            self.cursor = filtered.len();
+            self.current.clone()
+        } else {
+            filtered[self.cursor].clone()
         }
-        self.buffer_vec
-            .get(self.cursor)
-            .unwrap_or(&self.present)
-            .clone()
     }
 
-    pub fn up(&mut self, present: &str) -> String {
-        if self.cursor == self.buffer_vec.len() {
-            self.present = present.to_owned();
-        }
+    pub fn up(&mut self) -> String {
+        let filtered = self.filter();
+        self.cursor = std::cmp::min(self.cursor, filtered.len());
         if self.cursor > 0 {
             self.cursor -= 1;
         }
-
-        self.buffer_vec
-            .get(self.cursor)
-            .unwrap_or(&self.empty)
-            .clone()
+        if filtered.is_empty() {
+            self.current.clone()
+        } else {
+            filtered[self.cursor].clone()
+        }
     }
 
     pub fn push(&mut self, buffer: String) {
-        if !buffer.is_empty() && Some(&buffer) != self.buffer_vec.last() {
-            self.buffer_vec.push(buffer);
+        if !buffer.is_empty() && Some(&buffer) != self.history.last() {
+            self.history.push(buffer);
             self.go_to_last();
         }
     }
 
+    pub fn update_current(&mut self, buffer: &str) {
+        self.current = buffer.to_string();
+        self.cursor = self.history.len();
+    }
+
+    fn filter(&self) -> Vec<String> {
+        self.history
+            .iter()
+            .filter(|h| h.contains(&self.current))
+            .map(ToOwned::to_owned)
+            .collect()
+    }
+
     fn go_to_last(&mut self) {
-        if !self.buffer_vec.is_empty() {
-            self.cursor = self.buffer_vec.len();
+        if !self.history.is_empty() {
+            self.cursor = self.history.len();
         }
     }
 
