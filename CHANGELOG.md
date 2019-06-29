@@ -1,3 +1,6 @@
+**0.6.3**
+- Improve History
+
 **0.6.2**
 - Refactor code
 - Rework Internal Cursor
