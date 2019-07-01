@@ -279,9 +279,7 @@ impl IRust {
             // Handle screen height overflow
             let height_overflow = self.screen_height_overflow_by_new_lines(suggestions_num + 1);
             if height_overflow != 0 {
-                self.terminal.scroll_up((height_overflow) as i16)?;
-                self.cursor.move_up((height_overflow) as u16);
-                self.internal_cursor.screen_pos.1 -= height_overflow;
+                self.scroll_up(height_overflow);
             }
 
             // Save cursors postions from this point (Input position)
