@@ -1,3 +1,6 @@
+**0.6.4**
+- Scrolling bug fix
+
 **0.6.3**
 - Improve History
 
