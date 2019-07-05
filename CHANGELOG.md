@@ -1,6 +1,6 @@
 **0.6.5**
 - Make history persistant
-- Fix add animation bug
+- Fix `add` animation bug
 
 **0.6.4**
 - Scrolling bug fix
