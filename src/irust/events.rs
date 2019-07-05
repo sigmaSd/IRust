@@ -124,24 +124,24 @@ impl IRust {
     }
 
     pub fn handle_up(&mut self) -> Result<(), IRustError> {
-        self.internal_cursor.reset_screen_cursor();
-        self.move_cursor_to(
-            self.internal_cursor.lock_pos.0,
-            self.internal_cursor.lock_pos.1,
-        )?;
-        self.terminal.clear(ClearType::FromCursorDown)?;
+        if let Some(up) = self.history.up() {
+            self.internal_cursor.reset_screen_cursor();
+            self.move_cursor_to(
+                self.internal_cursor.lock_pos.0,
+                self.internal_cursor.lock_pos.1,
+            )?;
+            self.terminal.clear(ClearType::FromCursorDown)?;
+            self.buffer = up.clone();
+            self.internal_cursor.buffer_pos = self.buffer.len();
 
-        let up = self.history.up();
-        self.buffer = up.clone();
-        self.internal_cursor.buffer_pos = self.buffer.len();
+            let overflow = self.screen_height_overflow_by_str(&up);
 
-        let overflow = self.screen_height_overflow_by_str(&up);
+            if overflow != 0 {
+                self.scroll_up(overflow);
+            }
 
-        if overflow != 0 {
-            self.scroll_up(overflow);
+            self.write(&up)?;
         }
-
-        self.write(&up)?;
 
         Ok(())
     }
@@ -150,24 +150,25 @@ impl IRust {
         if self.buffer.is_empty() {
             return Ok(());
         }
-        self.internal_cursor.reset_screen_cursor();
-        self.move_cursor_to(
-            self.internal_cursor.lock_pos.0,
-            self.internal_cursor.lock_pos.1,
-        )?;
-        self.terminal.clear(ClearType::FromCursorDown)?;
 
-        let down = self.history.down();
-        self.buffer = down.clone();
-        self.internal_cursor.buffer_pos = self.buffer.len();
+        if let Some(down) = self.history.down() {
+            self.internal_cursor.reset_screen_cursor();
+            self.move_cursor_to(
+                self.internal_cursor.lock_pos.0,
+                self.internal_cursor.lock_pos.1,
+            )?;
+            self.terminal.clear(ClearType::FromCursorDown)?;
+            self.buffer = down.clone();
+            self.internal_cursor.buffer_pos = self.buffer.len();
 
-        let overflow = self.screen_height_overflow_by_str(&down);
+            let overflow = self.screen_height_overflow_by_str(&down);
 
-        if overflow != 0 {
-            self.scroll_up(overflow);
+            if overflow != 0 {
+                self.scroll_up(overflow);
+            }
+
+            self.write(&down)?;
         }
-
-        self.write(&down)?;
 
         Ok(())
     }
@@ -233,6 +234,7 @@ impl IRust {
     }
 
     fn exit(&mut self) -> Result<(), IRustError> {
+        self.history.save();
         self.terminal.clear(ClearType::All)?;
         self.terminal.exit();
 
