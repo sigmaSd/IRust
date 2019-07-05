@@ -35,7 +35,7 @@ impl IRust {
         y: U,
     ) -> Result<(), IRustError> {
         self.move_cursor_to(x, y)?;
-        self.write(s)?;
+        self.terminal.write(s)?;
         Ok(())
     }
 
