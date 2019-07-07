@@ -1,3 +1,6 @@
+**0.6.6**
+- Limit persistant histroy
+
 **0.6.5**
 - Make history persistant
 - Fix add animation bug
