@@ -69,7 +69,15 @@ impl History {
     }
 
     pub fn save(&self) {
-        let history: String = self.history.join("\n");
+        let history = if self.history.len() > 100 {
+            self.history
+                .windows(100)
+                .last()
+                .unwrap_or_default()
+                .join("\n")
+        } else {
+            self.history.join("\n")
+        };
         let _ = fs::write(&self.path, history);
     }
 
