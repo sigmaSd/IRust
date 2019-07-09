@@ -1,3 +1,6 @@
+**0.6.7**
+- Add `type` cmd (prints an expression type)
+
 **0.6.6**
 - Limit persistant histroy
 

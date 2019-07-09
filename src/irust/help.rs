@@ -17,6 +17,8 @@ impl IRust {
 
 :add <dep_list> => add dependencies (requires cargo-edit)
 
+:type <expression> => shows the expression type, example :type vec!(5)
+
 :load => load a rust script into the repl
 
 :pop => remove last repl code line

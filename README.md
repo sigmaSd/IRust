@@ -11,6 +11,8 @@ Cross Platform Rust Repl
 
 **:add** *<dep_list>* => add dependencies (requires [cargo-edit](https://github.com/killercup/cargo-edit))
 
+**:type** *<expression>* => shows the expression type, example `:type vec!(5)`
+
 **:load** => load a rust script into the repl
 
 **:pop** => remove last repl code line
