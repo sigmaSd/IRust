@@ -56,7 +56,8 @@ impl Repl {
 
         repl.write()?;
 
-        Ok(self.cargo_cmds.cargo_run()?)
+        // run cargo with color
+        Ok(self.cargo_cmds.cargo_run(true)?)
     }
 
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {

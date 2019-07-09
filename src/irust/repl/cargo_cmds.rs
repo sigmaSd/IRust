@@ -47,11 +47,13 @@ impl CargoCmds {
         Ok(())
     }
 
-    pub fn cargo_run(&self) -> Result<String, io::Error> {
+    pub fn cargo_run(&self, color: bool) -> Result<String, io::Error> {
+        let color = if color { "always" } else { "never" };
+
         Ok(stdout_and_stderr(
             Command::new("cargo")
                 .current_dir(&*self.irust_dir)
-                .args(&["run", "--color", "always"])
+                .args(&["run", "--color", color])
                 .output()?,
         ))
     }

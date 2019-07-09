@@ -100,18 +100,21 @@ impl IRust {
     }
 
     fn show_type(&mut self) -> Result<Printer, IRustError> {
-        const TYPE_FOUND_MSG: &str = "expected (), found";
+        const TYPE_FOUND_MSG: &str = "found type `";
         const EMPTY_TYPE_MSG: &str = "dev [unoptimized + debuginfo]";
 
         let mut tmp_repl = self.repl.clone();
         tmp_repl.insert(self.buffer.split_whitespace().last().unwrap().to_string());
         tmp_repl.write()?;
-        let raw_out = tmp_repl.cargo_cmds.cargo_run().unwrap();
+        let raw_out = tmp_repl.cargo_cmds.cargo_run(false).unwrap();
 
-        let var_type = if let Some(idx) = raw_out.find(TYPE_FOUND_MSG) {
-            raw_out[idx + TYPE_FOUND_MSG.len() + 1..]
+        let var_type = if raw_out.find(TYPE_FOUND_MSG).is_some() {
+            raw_out
                 .lines()
-                .next()
+                .find(|l| l.contains(TYPE_FOUND_MSG))
+                .unwrap()
+                .split('`')
+                .nth(1)
                 .unwrap()
                 .to_string()
         } else if raw_out.find(EMPTY_TYPE_MSG).is_some() {
