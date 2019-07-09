@@ -17,6 +17,7 @@ impl IRust {
             cmd if cmd.starts_with("::") => self.run_cmd(),
             cmd if cmd.starts_with(":add") => self.add_dep(),
             cmd if cmd.starts_with(":load") => self.load_script(),
+            cmd if cmd.starts_with(":type") => self.show_type(),
             cmd if cmd.starts_with(":del") => self.del(),
             _ => self.parse_second_order(),
         }
@@ -96,6 +97,33 @@ impl IRust {
         outputs.add_new_line(1);
 
         Ok(outputs)
+    }
+
+    fn show_type(&mut self) -> Result<Printer, IRustError> {
+        const TYPE_FOUND_MSG: &str = "expected (), found";
+        const EMPTY_TYPE_MSG: &str = "dev [unoptimized + debuginfo]";
+
+        let mut tmp_repl = self.repl.clone();
+        tmp_repl.insert(self.buffer.split_whitespace().last().unwrap().to_string());
+        tmp_repl.write()?;
+        let raw_out = tmp_repl.cargo_cmds.cargo_run().unwrap();
+
+        let var_type = if let Some(idx) = raw_out.find(TYPE_FOUND_MSG) {
+            raw_out[idx + TYPE_FOUND_MSG.len() + 1..]
+                .lines()
+                .next()
+                .unwrap()
+                .to_string()
+        } else if raw_out.find(EMPTY_TYPE_MSG).is_some() {
+            "()".into()
+        } else {
+            "Uknown".into()
+        };
+
+        Ok(Printer::new(PrinterItem::new(
+            var_type,
+            PrinterItemType::Ok,
+        )))
     }
 
     fn run_cmd(&mut self) -> Result<Printer, IRustError> {

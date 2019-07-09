@@ -7,7 +7,7 @@ use std::io::{self, Write};
 pub struct Repl {
     pub body: Vec<String>,
     cursor: usize,
-    cargo_cmds: CargoCmds,
+    pub cargo_cmds: CargoCmds,
 }
 
 impl Repl {
