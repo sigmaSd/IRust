@@ -104,7 +104,7 @@ impl IRust {
         const EMPTY_TYPE_MSG: &str = "dev [unoptimized + debuginfo]";
 
         let mut tmp_repl = self.repl.clone();
-        tmp_repl.insert(self.buffer.split_whitespace().last().unwrap().to_string());
+        tmp_repl.insert(self.buffer.trim_start_matches(":type").to_string());
         tmp_repl.write()?;
         let raw_out = tmp_repl.cargo_cmds.cargo_run(false).unwrap();
 
