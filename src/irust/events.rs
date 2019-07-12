@@ -234,6 +234,7 @@ impl IRust {
     }
 
     fn exit(&mut self) -> Result<(), IRustError> {
+        crossterm::RawScreen::disable_raw_mode()?;
         self.history.save();
         self.terminal.clear(ClearType::All)?;
         self.terminal.exit();
