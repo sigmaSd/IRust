@@ -1,3 +1,7 @@
+**0.6.8**
+- Fix raw mode bug
+- Improve `type` cmd
+
 **0.6.7**
 - Add `type` cmd (prints an expression type)
 
