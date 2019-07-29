@@ -46,15 +46,16 @@ impl Repl {
         Ok(())
     }
 
-    pub fn eval(&self, input: String) -> io::Result<String> {
+    pub fn eval(&mut self, input: String) -> Result<String, IRustError> {
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
-        let mut repl = self.clone();
-        repl.insert(eval_statement);
+        let mut eval_result = String::new();
 
-        repl.write()?;
+        self.exec_in_tmp_repl(eval_statement, || -> Result<(), IRustError> {
+            eval_result = cargo_run(true)?;
+            Ok(())
+        })?;
 
-        // run cargo with color
-        Ok(cargo_run(true)?)
+        Ok(eval_result)
     }
 
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
