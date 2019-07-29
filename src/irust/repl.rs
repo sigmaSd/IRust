@@ -1,13 +1,11 @@
-mod cargo_cmds;
+use super::cargo_cmds::*;
 use super::IRustError;
-use cargo_cmds::CargoCmds;
 use std::io::{self, Write};
 
 #[derive(Clone)]
 pub struct Repl {
     pub body: Vec<String>,
     cursor: usize,
-    pub cargo_cmds: CargoCmds,
 }
 
 impl Repl {
@@ -15,7 +13,6 @@ impl Repl {
         Self {
             body: vec!["fn main() {\n".to_string(), "}".to_string()],
             cursor: 1,
-            cargo_cmds: Default::default(),
         }
     }
 
@@ -37,7 +34,7 @@ impl Repl {
     pub fn show(&self) -> String {
         let mut current_code = self.body.join("");
         // If cargo fmt is present foramt output else ignore
-        if let Ok(fmt_code) = self.cargo_cmds.cargo_fmt(&current_code) {
+        if let Ok(fmt_code) = cargo_fmt(&current_code) {
             current_code = fmt_code;
         }
         format!("Current Repl Code:\n{}", current_code)
@@ -45,7 +42,7 @@ impl Repl {
 
     // prepare ground
     pub fn prepare_ground(&self) -> Result<(), io::Error> {
-        self.cargo_cmds.cargo_new()?;
+        cargo_new()?;
         Ok(())
     }
 
@@ -57,20 +54,38 @@ impl Repl {
         repl.write()?;
 
         // run cargo with color
-        Ok(self.cargo_cmds.cargo_run(true)?)
+        Ok(cargo_run(true)?)
     }
 
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
-        Ok(self.cargo_cmds.cargo_add(dep)?)
+        Ok(cargo_add(dep)?)
     }
 
     pub fn build(&self) -> std::io::Result<std::process::Child> {
-        self.cargo_cmds.cargo_build()
+        cargo_build()
     }
 
     pub fn write(&self) -> io::Result<()> {
-        let mut main_file = std::fs::File::create(&*self.cargo_cmds.main_file)?;
+        let mut main_file = std::fs::File::create(&*MAIN_FILE)?;
         write!(main_file, "{}", self.body.join(""))?;
+
+        Ok(())
+    }
+
+    pub fn exec_in_tmp_repl(
+        &mut self,
+        input: String,
+        mut f: impl FnMut() -> Result<(), IRustError>,
+    ) -> Result<(), IRustError> {
+        let orig_body = self.body.clone();
+        let orig_cursor = self.cursor;
+
+        self.insert(input);
+        self.write()?;
+        f()?;
+
+        self.body = orig_body;
+        self.cursor = orig_cursor;
 
         Ok(())
     }

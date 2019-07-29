@@ -185,16 +185,15 @@ impl IRust {
                 .collect();
         } else {
             // Auto complete rust code
-            let mut tmp_repl = self.repl.clone();
-            let y_pos = tmp_repl.body.len();
-            tmp_repl.insert(self.buffer.clone());
-            tmp_repl.write()?;
-
-            self.racer.as_mut()?.cursor.0 = y_pos;
+            let mut racer = self.racer.as_mut()?;
+            racer.cursor.0 = self.repl.body.len();
             // add +1 for the \t
-            self.racer.as_mut()?.cursor.1 = StringTools::chars_count(&self.buffer) + 1;
-            // Auto complete rust code
-            self.racer.as_mut()?.complete_code()?;
+            racer.cursor.1 = StringTools::chars_count(&self.buffer) + 1;
+
+            self.repl
+                .exec_in_tmp_repl(self.buffer.clone(), move || -> Result<(), IRustError> {
+                    racer.complete_code().map_err(From::from)
+                })?;
 
             // reset debouncer
             self.debouncer.reset_timer();

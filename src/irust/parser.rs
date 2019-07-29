@@ -1,3 +1,4 @@
+use super::cargo_cmds::cargo_run;
 #[cfg(feature = "highlight")]
 use super::highlight::highlight;
 use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
@@ -103,10 +104,14 @@ impl IRust {
         const TYPE_FOUND_MSG: &str = "found type `";
         const EMPTY_TYPE_MSG: &str = "dev [unoptimized + debuginfo]";
 
-        let mut tmp_repl = self.repl.clone();
-        tmp_repl.insert(self.buffer.trim_start_matches(":type").to_string());
-        tmp_repl.write()?;
-        let raw_out = tmp_repl.cargo_cmds.cargo_run(false).unwrap();
+        let variable = self.buffer.trim_start_matches(":type").to_string();
+        let mut raw_out = String::new();
+
+        self.repl
+            .exec_in_tmp_repl(variable, || -> Result<(), IRustError> {
+                raw_out = cargo_run(false).unwrap();
+                Ok(())
+            })?;
 
         let var_type = if raw_out.find(TYPE_FOUND_MSG).is_some() {
             raw_out

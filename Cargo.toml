@@ -12,6 +12,7 @@ license = "MIT"
 crossterm = "0.9.6"
 dirs = "2.0.1"
 syntect = { version = "3.2.0", optional = true }
+once_cell = "0.2.4"
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.14.1"

@@ -3,6 +3,7 @@ use crossterm::{
 };
 
 mod art;
+mod cargo_cmds;
 mod cursor;
 mod debouncer;
 mod events;
