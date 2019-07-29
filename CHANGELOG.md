@@ -1,3 +1,8 @@
+**0.6.9**
+- Refactor code
+- Use `once_cell` crate for globals
+- Small improvements to `unmatched_brackets` fn and `load_script` cmd
+
 **0.6.8**
 - Fix raw mode bug
 - Improve `type` cmd
