@@ -8,18 +8,17 @@ pub fn stdout_and_stderr(out: std::process::Output) -> String {
     String::from_utf8(out).unwrap_or_default()
 }
 
-pub fn remove_main(script: &mut String) {
-    let main_start = match script.find("fn main() {") {
-        Some(idx) => idx,
-        None => return,
+pub fn remove_main(script: &str) -> String {
+    const MAIN_FN: &str = "fn main() {";
+
+    let mut script = remove_comments(script);
+
+    let main_start = match script.find(MAIN_FN) {
+        Some(idx) if balanced_quotes(&script[..idx]) => idx,
+        _ => return script,
     };
 
-    let open_tag = main_start + 11;
-
-    // corrupted script `..fn main() {`
-    if open_tag == script.len() - 1 {
-        return;
-    }
+    let open_tag = main_start + MAIN_FN.len();
 
     let mut close_tag = None;
 
@@ -33,6 +32,7 @@ pub fn remove_main(script: &mut String) {
             tag_score -= 1;
             if tag_score == 0 {
                 close_tag = Some(idx);
+                break;
             }
         }
     }
@@ -40,6 +40,7 @@ pub fn remove_main(script: &mut String) {
         script.remove(open_tag + close_tag + 1);
         script.replace_range(main_start..=open_tag, "");
     }
+    script
 }
 
 pub struct StringTools {}
@@ -92,6 +93,7 @@ impl StringTools {
     }
 
     pub fn unmatched_brackets(s: &str) -> bool {
+        let s = remove_comments(s);
         let mut braces = std::collections::HashMap::new();
         braces.insert('(', 0);
         braces.insert('[', 0);
@@ -205,4 +207,42 @@ pub fn read_until_bytes<R: std::io::BufRead + ?Sized>(
             return Ok(read);
         }
     }
+}
+
+fn remove_comments(s: &str) -> String {
+    s.lines()
+        .filter(|l| !l.trim_start().starts_with("//"))
+        .map(|l| {
+            let mut quote = false;
+            let mut d_quote = false;
+
+            let mut l = l.chars().peekable();
+            let mut purged_line = String::new();
+
+            loop {
+                match (l.next(), l.peek()) {
+                    (Some('/'), Some('/')) => {
+                        if !quote && !d_quote {
+                            break;
+                        }
+                    }
+                    (Some('\''), _) => {
+                        quote = !quote;
+                        purged_line.push('\'');
+                    }
+                    (Some('"'), _) => {
+                        d_quote = !d_quote;
+                        purged_line.push('"');
+                    }
+                    (Some(c), _) => purged_line.push(c),
+                    _ => break,
+                }
+            }
+            purged_line + "\n"
+        })
+        .collect()
+}
+
+fn balanced_quotes(s: &str) -> bool {
+    s.match_indices(|p| p == '"' || p == '\'').count() % 2 == 0
 }

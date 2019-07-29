@@ -1,4 +1,4 @@
-use super::cargo_cmds::cargo_run;
+use super::cargo_cmds::{cargo_fmt, cargo_run};
 #[cfg(feature = "highlight")]
 use super::highlight::highlight;
 use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
@@ -89,8 +89,11 @@ impl IRust {
         let script = self.buffer.split_whitespace().last().unwrap();
 
         let script_code = std::fs::read(script)?;
-        if let Ok(mut s) = String::from_utf8(script_code) {
-            remove_main(&mut s);
+        if let Ok(s) = String::from_utf8(script_code) {
+            // Format script to make `remove_main` function work correctly
+            let s = cargo_fmt(&s)?;
+            let s = remove_main(&s);
+
             self.repl.insert(s);
         }
 
