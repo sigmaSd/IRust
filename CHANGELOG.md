@@ -1,3 +1,6 @@
+**0.6.10**
+- Fix scrolling bug
+
 **0.6.9**
 - Refactor code
 - Use `once_cell` crate for globals
