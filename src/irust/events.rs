@@ -28,7 +28,10 @@ impl IRust {
         self.internal_cursor.current_bounds_mut().1 = self.size.0;
 
         // Write input char
+        log::info!("screen size: {}", self.size.1);
+        log::info!("before s.pos: {}", self.internal_cursor.screen_pos.1);
         self.write_insert(Some(&c.to_string()))?;
+        log::info!("after s.pos: {}", self.internal_cursor.screen_pos.1);
 
         Ok(())
     }
@@ -87,12 +90,12 @@ impl IRust {
     }
 
     fn handle_incomplete_input(&mut self) -> Result<(), IRustError> {
-        if self.internal_cursor.screen_pos.1 == self.size.1 {
-            self.scroll_up(1);
-        }
         self.internal_cursor.current_bounds_mut().1 = self.internal_cursor.screen_pos.0 - 1;
         self.internal_cursor.screen_pos.0 = 4;
         self.internal_cursor.screen_pos.1 += 1;
+        if self.internal_cursor.screen_pos.1 == self.size.1 {
+            self.scroll_up(1);
+        }
         self.internal_cursor.add_bounds();
 
         self.goto_cursor()?;

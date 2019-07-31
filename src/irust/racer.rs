@@ -2,6 +2,7 @@ use super::IRustError;
 use crate::irust::IRust;
 use crate::utils::{read_until_bytes, StringTools};
 use crossterm::ClearType;
+use log::info;
 use std::env::temp_dir;
 use std::io::{self, Write};
 use std::process::{Child, Command, Stdio};
@@ -279,6 +280,7 @@ impl IRust {
             // Handle screen height overflow
             let height_overflow = self.screen_height_overflow_by_new_lines(suggestions_num + 1);
             if height_overflow != 0 {
+                info!("height_overflow: {}", height_overflow);
                 self.scroll_up(height_overflow);
             }
 

@@ -40,13 +40,12 @@ impl IRust {
     }
 
     pub fn write_newline(&mut self) -> Result<(), IRustError> {
-        self.terminal.write('\n')?;
         self.internal_cursor.screen_pos.0 = 0;
         self.internal_cursor.screen_pos.1 += 1;
         self.internal_cursor.add_bounds();
         // y should never exceed screen height
-        if self.internal_cursor.screen_pos.1 > self.size.1 {
-            self.internal_cursor.screen_pos.1 = self.size.1;
+        if self.internal_cursor.screen_pos.1 == self.size.1 {
+            self.scroll_up(1);
         }
         self.goto_cursor()?;
         Ok(())
@@ -98,9 +97,10 @@ impl IRust {
     }
 
     pub fn scroll_up(&mut self, n: usize) {
+        log::info!("screen_pos.1: ,{}", self.internal_cursor.screen_pos.1);
         self.terminal.scroll_up(n as i16).unwrap();
-        self.internal_cursor.screen_pos.1 -= n;
         self.cursor.move_up(n as u16);
+        self.internal_cursor.screen_pos.1 -= n;
         self.internal_cursor.lock_pos.1 -= n;
         self.internal_cursor.bounds.shift_keys_left(n);
     }

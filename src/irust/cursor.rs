@@ -44,6 +44,7 @@ impl Cursor {
     fn move_right(&mut self) {
         if self.screen_pos.0 == self.current_upper_bound() {
             if self.bounds.contains(self.screen_pos.1 + 1) {
+                log::info!("reached!");
                 self.screen_pos.0 = self.bounds.lower_bound(self.screen_pos.1 + 1);
                 self.screen_pos.1 += 1;
             } else {
