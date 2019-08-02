@@ -1,3 +1,6 @@
+**0.6.13**
+- Use `chars_count` instead of `len` to handle special chars
+
 **0.6.12**
 - Fix line end detection
 
