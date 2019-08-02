@@ -361,7 +361,7 @@ impl IRust {
             StringTools::strings_unique(&self.buffer, &mut suggestion);
 
             self.buffer.push_str(&suggestion);
-            self.cursor.buffer_pos = self.buffer.len();
+            self.cursor.buffer_pos = StringTools::chars_count(&self.buffer);
 
             // clear screen from cursor down
             self.terminal.clear(ClearType::FromCursorDown)?;
