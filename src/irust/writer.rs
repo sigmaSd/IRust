@@ -83,7 +83,7 @@ impl IRust {
 
         self.write_in()?;
         self.write(&self.buffer.clone())?;
-        self.internal_cursor.buffer_pos = self.buffer.len();
+        self.internal_cursor.buffer_pos = StringTools::chars_count(&self.buffer);
 
         Ok(())
     }
