@@ -99,8 +99,8 @@ impl IRust {
     pub fn scroll_up(&mut self, n: usize) {
         self.terminal.scroll_up(n as i16).unwrap();
         self.cursor.move_up(n as u16);
-        self.internal_cursor.screen_pos.1 -= n;
-        self.internal_cursor.lock_pos.1 -= n;
+        self.internal_cursor.screen_pos.1 = self.internal_cursor.screen_pos.1.saturating_sub(n);
+        self.internal_cursor.lock_pos.1 = self.internal_cursor.lock_pos.1.saturating_sub(n);
         self.internal_cursor.bounds.shift_keys_left(n);
     }
 }
