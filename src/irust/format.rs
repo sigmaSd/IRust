@@ -33,19 +33,3 @@ pub fn format_eval_output(output: &str) -> Printer {
 
     eval_output
 }
-
-pub fn _warn_about_common_mistakes(input: &str) -> Option<Printer> {
-    let mut outputs = Printer::new(PrinterItem::new("IRust: ".into(), PrinterItemType::_IRust));
-
-    // if input = `x = something`
-    if input.split('=').count() == 2 && input.split('=').map(str::trim).all(|s| !s.is_empty()) {
-        outputs.push(PrinterItem::new(
-            "Are you missing a `;` ?".into(),
-            PrinterItemType::Warn,
-        ));
-        return Some(outputs);
-    }
-
-    // if there were no mistakes return None
-    None
-}
