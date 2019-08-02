@@ -152,7 +152,8 @@ impl IRust {
     }
 
     pub fn at_line_end(&self) -> bool {
-        self.buffer.is_empty() || self.internal_cursor.buffer_pos == self.buffer.len()
+        self.buffer.is_empty()
+            || self.internal_cursor.buffer_pos == StringTools::chars_count(&self.buffer)
     }
 
     pub fn move_cursor_left(&mut self, move_type: Move) -> Result<(), IRustError> {
