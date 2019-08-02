@@ -32,6 +32,7 @@ pub fn cargo_run(color: bool) -> Result<String, io::Error> {
         Command::new("cargo")
             .current_dir(&*IRUST_DIR)
             .args(&["run", "--color", color])
+            .env("RUSTFLAGS", "-Awarnings")
             .output()?,
     ))
 }
