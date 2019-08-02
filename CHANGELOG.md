@@ -1,3 +1,6 @@
+**0.6.12**
+- Fix line end detection
+
 **0.6.11**
 - Warn about empty outputs
 - Disable cargo warnings
