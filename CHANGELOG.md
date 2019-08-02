@@ -1,3 +1,9 @@
+**0.6.11**
+- Warn about empty outputs
+- Disable cargo warnings
+- Handle main panic
+- Bug fixes
+
 **0.6.10**
 - Fix scrolling bug
 
