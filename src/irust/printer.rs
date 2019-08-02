@@ -6,7 +6,7 @@ use std::iter::FromIterator;
 pub enum PrinterItemType {
     Eval,
     Ok,
-    IRust,
+    _IRust,
     Warn,
     Out,
     Shell,
@@ -101,7 +101,7 @@ impl IRust {
             let color = match output.out_type {
                 PrinterItemType::Eval => self.options.eval_color,
                 PrinterItemType::Ok => self.options.ok_color,
-                PrinterItemType::IRust => self.options.irust_color,
+                PrinterItemType::_IRust => self.options.irust_color,
                 PrinterItemType::Warn => self.options.irust_warn_color,
                 PrinterItemType::Out => self.options.out_color,
                 PrinterItemType::Shell => self.options.shell_color,

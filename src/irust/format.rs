@@ -19,14 +19,23 @@ pub fn format_eval_output(output: &str) -> Printer {
         eval_output.push(PrinterItem::new(actual_error, PrinterItemType::Err));
     } else {
         eval_output.push(PrinterItem::new(OUT.into(), PrinterItemType::Out));
+
+        if output.trim() == "()" {
+            eval_output.push(PrinterItem::new(
+                "IRust: Are you missing a `;` ?".into(),
+                PrinterItemType::Warn,
+            ));
+            eval_output.add_new_line(1);
+        }
+
         eval_output.push(PrinterItem::new(output.into(), PrinterItemType::Eval));
     }
 
     eval_output
 }
 
-pub fn warn_about_common_mistakes(input: &str) -> Option<Printer> {
-    let mut outputs = Printer::new(PrinterItem::new("IRust: ".into(), PrinterItemType::IRust));
+pub fn _warn_about_common_mistakes(input: &str) -> Option<Printer> {
+    let mut outputs = Printer::new(PrinterItem::new("IRust: ".into(), PrinterItemType::_IRust));
 
     // if input = `x = something`
     if input.split('=').count() == 2 && input.split('=').map(str::trim).all(|s| !s.is_empty()) {

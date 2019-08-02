@@ -1,7 +1,7 @@
 use super::cargo_cmds::{cargo_fmt, cargo_run};
 #[cfg(feature = "highlight")]
 use super::highlight::highlight;
-use crate::irust::format::{format_eval_output, warn_about_common_mistakes};
+use crate::irust::format::format_eval_output;
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::{remove_main, stdout_and_stderr};
@@ -156,7 +156,9 @@ impl IRust {
     }
 
     fn parse_second_order(&mut self) -> Result<Printer, IRustError> {
-        if self.buffer.trim_end().ends_with(';') {
+        if self.buffer.is_empty() {
+            Ok(Printer::default())
+        } else if self.buffer.trim_end().ends_with(';') {
             self.repl.insert(self.buffer.clone());
 
             let printer = Printer::default();
@@ -165,18 +167,20 @@ impl IRust {
         } else {
             let mut outputs = Printer::default();
 
-            if let Some(mut warning) = warn_about_common_mistakes(&self.buffer) {
-                outputs.append(&mut warning);
-                outputs.add_new_line(1);
+            // if let Some(mut warning) = warn_about_common_mistakes(&self.buffer) {
+            //     outputs.append(&mut warning);
+            //     outputs.add_new_line(1);
 
-                let eval_output = self.repl.eval(self.buffer.clone())?;
-                if !eval_output.is_empty() {
-                    outputs.append(&mut format_eval_output(&eval_output));
-                }
-            } else {
-                let mut eval_output = format_eval_output(&self.repl.eval(self.buffer.clone())?);
-                outputs.append(&mut eval_output);
-            }
+            //     let eval_output = self.repl.eval(self.buffer.clone())?;
+            //     if !eval_output.is_empty() {
+            //         outputs.append(&mut format_eval_output(&eval_output));
+            //     }
+            // } else {
+            let mut eval_output = format_eval_output(&self.repl.eval(self.buffer.clone())?);
+
+            outputs.append(&mut eval_output);
+
+            //}
             outputs.add_new_line(1);
 
             Ok(outputs)
