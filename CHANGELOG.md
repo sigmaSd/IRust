@@ -1,3 +1,7 @@
+**0.6.14**
+- Fix scrolling bug
+- Improve highlight fn (using lazy evaluation)
+
 **0.6.13**
 - Use `chars_count` instead of `len` to handle special chars
 
