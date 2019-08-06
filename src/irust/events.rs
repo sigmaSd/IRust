@@ -11,7 +11,7 @@ impl IRust {
         self.clear_suggestion()?;
 
         // check for scroll
-        if self.internal_cursor.screen_pos == self.size {
+        if self.internal_cursor.screen_pos == (self.size.0, self.size.1 - 1) {
             self.scroll_up(1);
         }
 
