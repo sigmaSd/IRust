@@ -157,7 +157,7 @@ impl Racer {
 impl IRust {
     pub fn update_suggestions(&mut self) -> Result<(), IRustError> {
         // return if we're not at the end of the line
-        if !self.at_line_end() {
+        if !self.cursor.is_at_line_end(&self) {
             return Ok(());
         }
 
@@ -224,27 +224,27 @@ impl IRust {
 
     fn write_current_suggestion(&mut self) -> Result<(), IRustError> {
         if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
-            if self.at_line_end() {
+            if self.cursor.is_at_line_end(&self) {
                 let mut suggestion = suggestion.0;
 
                 self.color
                     .set_fg(self.options.racer_inline_suggestion_color)?;
-                self.cursor.hide()?;
-                self.save_cursor_position()?;
+                self.cursor.hide();
+                self.cursor.save_cursor_position()?;
                 self.terminal.clear(ClearType::FromCursorDown)?;
 
                 StringTools::strings_unique(&self.buffer, &mut suggestion);
 
-                let overflow = self.screen_height_overflow_by_str(&suggestion);
+                let overflow = self.cursor.screen_height_overflow_by_str(&self, &suggestion);
 
                 self.write(&suggestion)?;
 
-                self.reset_cursor_position()?;
-                self.cursor.show()?;
+                self.cursor.reset_cursor_position()?;
+                self.cursor.show();
 
                 if overflow != 0 {
                     self.cursor.move_up(overflow as u16);
-                    self.internal_cursor.screen_pos.1 -= overflow;
+                    self.cursor.screen_pos.1 -= overflow;
                 }
 
                 self.color.reset()?;
@@ -255,7 +255,7 @@ impl IRust {
     }
 
     pub fn cycle_suggestions(&mut self, cycle: Cycle) -> Result<(), IRustError> {
-        if self.at_line_end() {
+        if self.cursor.is_at_line_end(&self) {
             // Clear screen from cursor down
             self.terminal.clear(ClearType::FromCursorDown)?;
 
@@ -277,16 +277,16 @@ impl IRust {
             );
 
             // Handle screen height overflow
-            let height_overflow = self.screen_height_overflow_by_new_lines(suggestions_num + 1);
+            let height_overflow = self.cursor.screen_height_overflow_by_new_lines(&self, suggestions_num + 1);
             if height_overflow != 0 {
                 self.scroll_up(height_overflow);
             }
 
             // Save cursors postions from this point (Input position)
-            self.save_cursor_position()?;
+            self.cursor.save_cursor_position()?;
 
             // Write from screen start if a suggestion will be truncated
-            let mut max_width = self.size.0 - self.internal_cursor.screen_pos.0;
+            let mut max_width = self.size.0 - self.cursor.screen_pos.0;
             if self
                 .racer
                 .as_ref()?
@@ -294,10 +294,10 @@ impl IRust {
                 .iter()
                 .any(|s| Racer::full_suggestion(s).len() > max_width)
             {
-                self.internal_cursor.screen_pos.0 = 0;
-                self.goto_cursor()?;
+                self.cursor.screen_pos.0 = 0;
+                self.cursor.goto_cursor()?;
 
-                max_width = self.size.0 - self.internal_cursor.screen_pos.0;
+                max_width = self.size.0 - self.cursor.screen_pos.0;
             }
 
             // Write the suggestions
@@ -343,7 +343,7 @@ impl IRust {
 
             // reset to input position and color
             self.color.reset()?;
-            self.reset_cursor_position()?;
+            self.cursor.reset_cursor_position()?;
         }
 
         Ok(())
@@ -361,7 +361,7 @@ impl IRust {
             StringTools::strings_unique(&self.buffer, &mut suggestion);
 
             self.buffer.push_str(&suggestion);
-            self.internal_cursor.buffer_pos = self.buffer.len();
+            self.cursor.buffer_pos = self.buffer.len();
 
             // clear screen from cursor down
             self.terminal.clear(ClearType::FromCursorDown)?;

@@ -3,24 +3,48 @@ use crate::utils::StringTools;
 mod bounds;
 use bounds::Bounds;
 
+use crossterm::TerminalCursor;
+
 #[derive(PartialEq)]
 pub enum Move {
     Free,
     Modify,
 }
 
-#[derive(Clone)]
 pub struct Cursor {
     pub screen_pos: (usize, usize),
     pub buffer_pos: usize,
     pub bounds: Bounds,
     pub lock_pos: (usize, usize),
+    // TODO(smolck): This may not need to be a Mutex,
+    // right now used as a workaround for being unable
+    // to clone a `crossterm::TerminalCursor`.
+    internal_cursor: TerminalCursor,
     origin: (usize, usize, usize),
     copy: Option<Box<Cursor>>,
 }
-impl Cursor {
-    pub fn new(x: usize, y: usize, width: usize) -> Self {
+
+impl Clone for Cursor {
+    fn clone(&self) -> Self {
+        let bounds = self.bounds.clone();
+        let internal_cursor = TerminalCursor::now();
+
         Self {
+            screen_pos: self.screen_pos,
+            buffer_pos: self.buffer_pos,
+            bounds,
+            lock_pos: self.lock_pos,
+            internal_cursor,
+            origin: self.origin,
+            copy: self.copy.clone(),
+        }
+    }
+}
+
+impl Cursor {
+    pub fn new(internal_cursor: TerminalCursor, x: usize, y: usize, width: usize) -> Self {
+        Self {
+            internal_cursor: internal_cursor,
             screen_pos: (x, y),
             buffer_pos: 0,
             bounds: Bounds::new(y, (4, width)),
@@ -30,18 +54,22 @@ impl Cursor {
         }
     }
 
-    fn save_position(&mut self) {
+    // NOTE(smolck): May need to modify this (`save_position`)
+    // to return a Result<T, E>
+    pub fn save_position(&mut self) {
         self.copy = Some(Box::new(self.clone()));
     }
 
-    fn reset_position(&mut self) {
+    // NOTE(smolck): May need to modify this (`reset_position`)
+    // to return a Result<T, E>
+    pub fn reset_position(&mut self) {
         if let Some(copy) = self.copy.take() {
-            *self = *copy.clone();
-            self.copy = Some(copy);
+            *self = *copy;
+            self.copy = Some(Box::new(self.clone()));
         }
     }
 
-    fn move_right(&mut self) {
+    pub fn move_right(&mut self) {
         if self.screen_pos.0 == self.current_upper_bound() {
             if self.bounds.contains(self.screen_pos.1 + 1) {
                 self.screen_pos.0 = self.bounds.lower_bound(self.screen_pos.1 + 1);
@@ -54,9 +82,12 @@ impl Cursor {
         } else {
             self.screen_pos.0 += 1;
         }
+
+        self.goto_cursor().unwrap();
     }
 
-    fn move_left(&mut self, move_type: Move) {
+    // NOTE(smolck): Is `move_one_left` a good name for this?
+    pub fn move_one_left(&mut self, move_type: Move) {
         if self.screen_pos == self.lock_pos {
             return;
         }
@@ -72,6 +103,8 @@ impl Cursor {
         } else {
             self.screen_pos.0 -= 1;
         }
+
+        self.goto_cursor().unwrap();
     }
 
     pub fn move_buffer_cursor_left(&mut self) {
@@ -86,6 +119,8 @@ impl Cursor {
 
     pub fn reset(&mut self) {
         *self = Self {
+            // This may need to change.
+            internal_cursor: TerminalCursor::now(),
             screen_pos: (self.origin.0, self.origin.1),
             buffer_pos: 0,
             bounds: Bounds::new(self.origin.1, (4, self.origin.2)),
@@ -115,9 +150,7 @@ impl Cursor {
     pub fn reset_screen_cursor(&mut self) {
         self.screen_pos = self.lock_pos;
     }
-}
 
-impl IRust {
     pub fn move_cursor_to<P: Into<Option<usize>>, U: Into<Option<usize>>>(
         &mut self,
         x: P,
@@ -129,68 +162,85 @@ impl IRust {
         let x = if x.is_some() {
             x.unwrap()
         } else {
-            self.internal_cursor.screen_pos.0
+            self.screen_pos.0
         };
 
         let y = if y.is_some() {
             y.unwrap()
         } else {
-            self.internal_cursor.screen_pos.1
+            self.screen_pos.1
         };
 
-        self.cursor.goto(x as u16, y as u16)?;
+        self.internal_cursor.goto(x as u16, y as u16)?;
 
         Ok(())
     }
 
-    pub fn goto_cursor(&mut self) -> Result<(), IRustError> {
-        self.cursor.goto(
-            self.internal_cursor.screen_pos.0 as u16,
-            self.internal_cursor.screen_pos.1 as u16,
-        )?;
-        Ok(())
+    pub fn is_at_line_end(&self, irust: &IRust) -> bool {
+        irust.buffer.is_empty()
+            || self.buffer_pos == StringTools::chars_count(&irust.buffer)
     }
 
-    pub fn at_line_end(&self) -> bool {
-        self.buffer.is_empty()
-            || self.internal_cursor.buffer_pos == StringTools::chars_count(&self.buffer)
-    }
-
-    pub fn move_cursor_left(&mut self, move_type: Move) -> Result<(), IRustError> {
-        self.internal_cursor.move_left(move_type);
-        self.goto_cursor()?;
-
-        Ok(())
-    }
-
-    pub fn move_cursor_right(&mut self) -> Result<(), IRustError> {
-        self.internal_cursor.move_right();
-        self.goto_cursor()?;
-
-        Ok(())
-    }
-
-    pub fn screen_height_overflow_by_str(&self, out: &str) -> usize {
+    pub fn screen_height_overflow_by_str(&self, irust: &IRust, out: &str) -> usize {
         let new_lines =
-            (StringTools::chars_count(out) + self.internal_cursor.screen_pos.0) / self.size.0;
+            (StringTools::chars_count(out) + self.screen_pos.0) / irust.size.0;
 
-        self.screen_height_overflow_by_new_lines(new_lines)
+        self.screen_height_overflow_by_new_lines(irust, new_lines)
     }
 
-    pub fn screen_height_overflow_by_new_lines(&self, new_lines: usize) -> usize {
+    pub fn screen_height_overflow_by_new_lines(&self, irust: &IRust, new_lines: usize) -> usize {
         // if corrected y  + new lines < self.size.1 there is no overflow so unwrap to 0
-        (new_lines + self.internal_cursor.screen_pos.1).saturating_sub(self.size.1)
+        (new_lines + self.screen_pos.1).saturating_sub(irust.size.1)
     }
 
     pub fn save_cursor_position(&mut self) -> Result<(), IRustError> {
-        self.cursor.save_position()?;
-        self.internal_cursor.save_position();
+        self.internal_cursor.save_position()?;
+        // internal_cursor.save_position();
         Ok(())
     }
 
     pub fn reset_cursor_position(&mut self) -> Result<(), IRustError> {
-        self.cursor.reset_position()?;
+        self.reset_position();
         self.internal_cursor.reset_position();
         Ok(())
+    }
+
+    pub fn goto_cursor(&mut self) -> Result<(), IRustError> {
+        self.internal_cursor.goto(
+            self.screen_pos.0 as u16,
+            self.screen_pos.1 as u16,
+        )?;
+        Ok(())
+    }
+
+    pub fn move_cursor_right(&mut self, idx: u16) -> Result<(), IRustError> {
+        self.internal_cursor.move_right(idx);
+        self.goto_cursor()?;
+
+        Ok(())
+    }
+
+    // NOTE(smolck): Maybe change variable name to something other than `n`
+    // Also, the following functions work on internal cursor exclusively,
+    // so we may want to remove them and make `internal_cursor` public in the
+    // `Cursor` struct.
+    pub fn move_up(&mut self, n: u16) {
+        self.internal_cursor.move_up(n);
+    }
+
+    pub fn hide(&self) {
+        self.internal_cursor.hide();
+    }
+
+    pub fn show(&self) {
+        self.internal_cursor.show();
+    }
+
+    pub fn move_down(&mut self, idx: u16) {
+        self.internal_cursor.move_down(idx);
+    }
+
+    pub fn move_left(&mut self, idx: u16) {
+        self.internal_cursor.move_down(idx);
     }
 }

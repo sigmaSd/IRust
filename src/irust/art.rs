@@ -9,7 +9,7 @@ impl IRust {
         mut add_cmd: std::process::Child,
         msg: &str,
     ) -> Result<(), IRustError> {
-        self.cursor.hide()?;
+        self.cursor.hide();
         self.color.set_fg(Color::Cyan)?;
 
         match self.wait_add_inner(&mut add_cmd, msg) {
@@ -60,9 +60,9 @@ impl IRust {
     }
 
     fn clean_art(&mut self) -> Result<(), IRustError> {
-        self.reset_cursor_position()?;
+        self.cursor.reset_cursor_position()?;
         self.write_newline()?;
-        self.cursor.show()?;
+        self.cursor.show();
         self.color.reset()?;
         Ok(())
     }
@@ -75,7 +75,7 @@ impl IRust {
         self.printer.add_new_line(2);
 
         self.write_out()?;
-        self.internal_cursor.add_bounds();
+        self.cursor.add_bounds();
 
         Ok(())
     }
