@@ -140,15 +140,15 @@ impl IRust {
     }
 
     pub fn write_in(&mut self) -> Result<(), IRustError> {
-        self.internal_cursor.screen_pos.0 = 0;
-        self.goto_cursor()?;
+        self.cursor.pos.screen_pos.0 = 0;
+        self.cursor.goto_internal_pos()?;
         self.terminal.clear(ClearType::FromCursorDown)?;
         self.color.set_fg(self.options.input_color)?;
         self.write(IN)?;
         //self.internal_cursor.screen_pos.0 = 4;
-        *self.internal_cursor.current_bounds_mut() = (4, self.size.0);
-        self.internal_cursor.buffer_pos = 0;
-        self.internal_cursor.lock_pos = (4, self.internal_cursor.screen_pos.1);
+        *self.cursor.current_bounds_mut() = (4, self.size.0);
+        self.cursor.pos.buffer_pos = 0;
+        self.cursor.pos.starting_pos = (4, self.cursor.pos.screen_pos.1);
         self.color.reset()?;
         Ok(())
     }
@@ -168,18 +168,18 @@ impl IRust {
 
         // If the new character is not in the last position
         // rewrite the buffer from the character and on
-        if !self.at_line_end() {
-            self.save_cursor_position()?;
+        if !self.cursor.is_at_line_end(&self) {
+            self.cursor.save_position()?;
             for character in self
                 .buffer
                 .chars()
-                .skip(self.internal_cursor.buffer_pos)
+                .skip(self.cursor.pos.buffer_pos)
                 .collect::<Vec<char>>()
                 .iter()
             {
                 self.write(&character.to_string())?;
             }
-            self.reset_cursor_position()?;
+            self.cursor.reset_position()?;
         }
 
         // Reset color

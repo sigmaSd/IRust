@@ -74,7 +74,7 @@ impl IRust {
             .map(ToOwned::to_owned)
             .collect();
 
-        self.save_cursor_position()?;
+        self.cursor.save_position()?;
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build()?, "Build")?;
         self.write_newline()?;
