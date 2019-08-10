@@ -7,7 +7,8 @@ use syntect::util::LinesWithEndings;
 
 static PS: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newlines);
 static TS: Lazy<ThemeSet> = Lazy::new(ThemeSet::load_defaults);
-static SYNTAX: Lazy<&SyntaxReference> = Lazy::new(|| PS.find_syntax_by_extension("rs").unwrap());
+static SYNTAX: Lazy<&SyntaxReference> =
+    Lazy::new(|| PS.find_syntax_by_extension("rs").unwrap());
 
 pub fn highlight(c: &str) -> Printer {
     let mut h = HighlightLines::new(&SYNTAX, &TS.themes["base16-ocean.dark"]);

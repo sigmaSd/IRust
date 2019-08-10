@@ -47,7 +47,8 @@ impl Repl {
     }
 
     pub fn eval(&mut self, input: String) -> Result<String, IRustError> {
-        let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
+        let eval_statement =
+            format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut eval_result = String::new();
 
         self.exec_in_tmp_repl(eval_statement, || -> Result<(), IRustError> {
@@ -58,7 +59,10 @@ impl Repl {
         Ok(eval_result)
     }
 
-    pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
+    pub fn add_dep(
+        &self,
+        dep: &[String],
+    ) -> std::io::Result<std::process::Child> {
         Ok(cargo_add(dep)?)
     }
 

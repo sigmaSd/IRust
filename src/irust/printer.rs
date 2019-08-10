@@ -65,7 +65,9 @@ impl Iterator for Printer {
 }
 
 impl FromIterator<PrinterItem> for Printer {
-    fn from_iter<I: IntoIterator<Item = PrinterItem>>(printer_items: I) -> Self {
+    fn from_iter<I: IntoIterator<Item = PrinterItem>>(
+        printer_items: I,
+    ) -> Self {
         let mut printer = Printer::default();
         for printer_item in printer_items {
             printer.push(printer_item);

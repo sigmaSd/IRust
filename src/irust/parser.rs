@@ -26,7 +26,10 @@ impl IRust {
 
     fn reset(&mut self) -> Result<Printer, IRustError> {
         self.repl.reset();
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+        let mut outputs = Printer::new(PrinterItem::new(
+            SUCCESS.to_string(),
+            PrinterItemType::Ok,
+        ));
         outputs.add_new_line(2);
 
         Ok(outputs)
@@ -34,7 +37,10 @@ impl IRust {
 
     fn pop(&mut self) -> Result<Printer, IRustError> {
         self.repl.pop();
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+        let mut outputs = Printer::new(PrinterItem::new(
+            SUCCESS.to_string(),
+            PrinterItemType::Ok,
+        ));
         outputs.add_new_line(2);
 
         Ok(outputs)
@@ -45,7 +51,10 @@ impl IRust {
             self.repl.del(line_num)?;
         }
 
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+        let mut outputs = Printer::new(PrinterItem::new(
+            SUCCESS.to_string(),
+            PrinterItemType::Ok,
+        ));
         outputs.add_new_line(2);
 
         Ok(outputs)
@@ -79,7 +88,10 @@ impl IRust {
         self.wait_add(self.repl.build()?, "Build")?;
         self.write_newline()?;
 
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+        let mut outputs = Printer::new(PrinterItem::new(
+            SUCCESS.to_string(),
+            PrinterItemType::Ok,
+        ));
         outputs.add_new_line(1);
 
         Ok(outputs)
@@ -97,7 +109,10 @@ impl IRust {
             self.repl.insert(s);
         }
 
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+        let mut outputs = Printer::new(PrinterItem::new(
+            SUCCESS.to_string(),
+            PrinterItemType::Ok,
+        ));
         outputs.add_new_line(1);
 
         Ok(outputs)
@@ -110,11 +125,13 @@ impl IRust {
         let variable = self.buffer.trim_start_matches(":type").to_string();
         let mut raw_out = String::new();
 
-        self.repl
-            .exec_in_tmp_repl(variable, || -> Result<(), IRustError> {
+        self.repl.exec_in_tmp_repl(
+            variable,
+            || -> Result<(), IRustError> {
                 raw_out = cargo_run(false).unwrap();
                 Ok(())
-            })?;
+            },
+        )?;
 
         let var_type = if raw_out.find(TYPE_FOUND_MSG).is_some() {
             raw_out
@@ -166,7 +183,8 @@ impl IRust {
             Ok(printer)
         } else {
             let mut outputs = Printer::default();
-            let mut eval_output = format_eval_output(&self.repl.eval(self.buffer.clone())?);
+            let mut eval_output =
+                format_eval_output(&self.repl.eval(self.buffer.clone())?);
 
             outputs.append(&mut eval_output);
             outputs.add_new_line(1);

@@ -90,7 +90,9 @@ impl Options {
         Some(config_path)
     }
 
-    fn create_config(config_path: std::path::PathBuf) -> std::io::Result<Options> {
+    fn create_config(
+        config_path: std::path::PathBuf,
+    ) -> std::io::Result<Options> {
         let config = Options::default_config();
 
         let mut config_file = std::fs::File::create(&config_path)?;
@@ -137,7 +139,10 @@ impl Options {
         }
     }
 
-    fn get_section(lines: &[String], section_name: String) -> Vec<(String, String)> {
+    fn get_section(
+        lines: &[String],
+        section_name: String,
+    ) -> Vec<(String, String)> {
         let sec_start = match VecTools::index(lines, &section_name).get(0) {
             Some(idx) => *idx,
             None => {
@@ -154,7 +159,8 @@ impl Options {
         lines[sec_start + 1..sec_end]
             .iter()
             .filter_map(|line| {
-                let lines_part = line.split('=').map(str::trim).collect::<Vec<&str>>();
+                let lines_part =
+                    line.split('=').map(str::trim).collect::<Vec<&str>>();
                 if lines_part.len() == 2 {
                     Some((lines_part[0].to_string(), lines_part[1].to_string()))
                 } else {

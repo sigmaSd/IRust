@@ -16,7 +16,11 @@ impl IRust {
         }
 
         // Insert input char in buffer
-        StringTools::insert_at_char_idx(&mut self.buffer, self.internal_cursor.buffer_pos, c);
+        StringTools::insert_at_char_idx(
+            &mut self.buffer,
+            self.internal_cursor.buffer_pos,
+            c,
+        );
 
         // update histroy current
         self.history.update_current(&self.buffer);
@@ -57,7 +61,10 @@ impl IRust {
                 self.printer = out;
             }
             Err(e) => {
-                self.printer = Printer::new(PrinterItem::new(e.to_string(), PrinterItemType::Err));
+                self.printer = Printer::new(PrinterItem::new(
+                    e.to_string(),
+                    PrinterItemType::Err,
+                ));
             }
         }
 
@@ -87,7 +94,8 @@ impl IRust {
     }
 
     fn handle_incomplete_input(&mut self) -> Result<(), IRustError> {
-        self.internal_cursor.current_bounds_mut().1 = self.internal_cursor.screen_pos.0 - 1;
+        self.internal_cursor.current_bounds_mut().1 =
+            self.internal_cursor.screen_pos.0 - 1;
         self.internal_cursor.screen_pos.0 = 4;
         self.internal_cursor.screen_pos.1 += 1;
         if self.internal_cursor.screen_pos.1 == self.size.1 {
@@ -132,7 +140,8 @@ impl IRust {
             )?;
             self.terminal.clear(ClearType::FromCursorDown)?;
             self.buffer = up.clone();
-            self.internal_cursor.buffer_pos = StringTools::chars_count(&self.buffer);
+            self.internal_cursor.buffer_pos =
+                StringTools::chars_count(&self.buffer);
 
             let overflow = self.screen_height_overflow_by_str(&up);
 
@@ -159,7 +168,8 @@ impl IRust {
             )?;
             self.terminal.clear(ClearType::FromCursorDown)?;
             self.buffer = down.clone();
-            self.internal_cursor.buffer_pos = StringTools::chars_count(&self.buffer);
+            self.internal_cursor.buffer_pos =
+                StringTools::chars_count(&self.buffer);
 
             let overflow = self.screen_height_overflow_by_str(&down);
 
@@ -266,8 +276,8 @@ impl IRust {
 
     pub fn go_to_start(&mut self) -> Result<(), IRustError> {
         self.clear_suggestion()?;
-        let distance_to_start =
-            self.internal_cursor.screen_pos.0 - self.internal_cursor.current_bounds_mut().0;
+        let distance_to_start = self.internal_cursor.screen_pos.0
+            - self.internal_cursor.current_bounds_mut().0;
         if distance_to_start != 0 {
             self.cursor.move_left(distance_to_start as u16);
             self.internal_cursor.screen_pos.0 -= distance_to_start;
@@ -282,9 +292,10 @@ impl IRust {
             let _ = self.use_suggestion();
         } else {
             let distance_to_end = {
-                let c1 =
-                    self.internal_cursor.current_bounds_mut().1 - self.internal_cursor.screen_pos.0;
-                let c2 = StringTools::chars_count(&self.buffer) - self.internal_cursor.buffer_pos;
+                let c1 = self.internal_cursor.current_bounds_mut().1
+                    - self.internal_cursor.screen_pos.0;
+                let c2 = StringTools::chars_count(&self.buffer)
+                    - self.internal_cursor.buffer_pos;
                 std::cmp::min(c1, c2)
             };
             if distance_to_end != 0 {
@@ -309,7 +320,9 @@ impl IRust {
         let _ = self.move_cursor_left(Move::Free);
         self.internal_cursor.move_buffer_cursor_left();
 
-        if let Some(current_char) = buffer.get(self.internal_cursor.buffer_pos.checked_sub(1)?) {
+        if let Some(current_char) =
+            buffer.get(self.internal_cursor.buffer_pos.checked_sub(1)?)
+        {
             match *current_char {
                 ' ' => {
                     while buffer[self.internal_cursor.buffer_pos] == ' ' {
@@ -318,7 +331,9 @@ impl IRust {
                     }
                 }
                 c if c.is_alphanumeric() => {
-                    while buffer[self.internal_cursor.buffer_pos.checked_sub(1)?].is_alphanumeric()
+                    while buffer
+                        [self.internal_cursor.buffer_pos.checked_sub(1)?]
+                    .is_alphanumeric()
                     {
                         let _ = self.move_cursor_left(Move::Free);
                         self.internal_cursor.move_buffer_cursor_left();
@@ -326,8 +341,12 @@ impl IRust {
                 }
 
                 _ => {
-                    while !buffer[self.internal_cursor.buffer_pos.checked_sub(1)?].is_alphanumeric()
-                        && buffer[self.internal_cursor.buffer_pos.checked_sub(1)?] != ' '
+                    while !buffer
+                        [self.internal_cursor.buffer_pos.checked_sub(1)?]
+                    .is_alphanumeric()
+                        && buffer
+                            [self.internal_cursor.buffer_pos.checked_sub(1)?]
+                            != ' '
                     {
                         let _ = self.move_cursor_left(Move::Free);
                         self.internal_cursor.move_buffer_cursor_left();
@@ -346,10 +365,13 @@ impl IRust {
         } else {
             let _ = self.use_suggestion();
         }
-        if let Some(current_char) = buffer.get(self.internal_cursor.buffer_pos) {
+        if let Some(current_char) = buffer.get(self.internal_cursor.buffer_pos)
+        {
             match *current_char {
                 ' ' => {
-                    while buffer.get(self.internal_cursor.buffer_pos + 1) == Some(&' ') {
+                    while buffer.get(self.internal_cursor.buffer_pos + 1)
+                        == Some(&' ')
+                    {
                         let _ = self.move_cursor_right();
                         self.internal_cursor.move_buffer_cursor_right();
                     }
@@ -357,7 +379,9 @@ impl IRust {
                     self.internal_cursor.move_buffer_cursor_right();
                 }
                 c if c.is_alphanumeric() => {
-                    while let Some(character) = buffer.get(self.internal_cursor.buffer_pos) {
+                    while let Some(character) =
+                        buffer.get(self.internal_cursor.buffer_pos)
+                    {
                         if !character.is_alphanumeric() {
                             break;
                         }
@@ -367,7 +391,9 @@ impl IRust {
                 }
 
                 _ => {
-                    while let Some(character) = buffer.get(self.internal_cursor.buffer_pos) {
+                    while let Some(character) =
+                        buffer.get(self.internal_cursor.buffer_pos)
+                    {
                         if character.is_alphanumeric() || *character == ' ' {
                             break;
                         }

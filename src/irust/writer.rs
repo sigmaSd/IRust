@@ -83,14 +83,18 @@ impl IRust {
 
         self.write_in()?;
         self.write(&self.buffer.clone())?;
-        self.internal_cursor.buffer_pos = StringTools::chars_count(&self.buffer);
+        self.internal_cursor.buffer_pos =
+            StringTools::chars_count(&self.buffer);
 
         Ok(())
     }
 
     pub fn delete_char(&mut self) -> Result<(), IRustError> {
         if !self.buffer.is_empty() {
-            StringTools::remove_at_char_idx(&mut self.buffer, self.internal_cursor.buffer_pos);
+            StringTools::remove_at_char_idx(
+                &mut self.buffer,
+                self.internal_cursor.buffer_pos,
+            );
         }
         self.write_insert(None)?;
         Ok(())
@@ -99,8 +103,10 @@ impl IRust {
     pub fn scroll_up(&mut self, n: usize) {
         self.terminal.scroll_up(n as i16).unwrap();
         self.cursor.move_up(n as u16);
-        self.internal_cursor.screen_pos.1 = self.internal_cursor.screen_pos.1.saturating_sub(n);
-        self.internal_cursor.lock_pos.1 = self.internal_cursor.lock_pos.1.saturating_sub(n);
+        self.internal_cursor.screen_pos.1 =
+            self.internal_cursor.screen_pos.1.saturating_sub(n);
+        self.internal_cursor.lock_pos.1 =
+            self.internal_cursor.lock_pos.1.saturating_sub(n);
         self.internal_cursor.bounds.shift_keys_left(n);
     }
 }

@@ -1,5 +1,6 @@
 use crossterm::{
-    Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalCursor, TerminalInput,
+    Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalCursor,
+    TerminalInput,
 };
 
 mod art;
@@ -57,7 +58,8 @@ impl IRust {
         let color = crossterm.color();
         let buffer = String::new();
         let repl = Repl::new();
-        let history = History::new(dirs::cache_dir().unwrap().join("irust")).unwrap_or_default();
+        let history = History::new(dirs::cache_dir().unwrap().join("irust"))
+            .unwrap_or_default();
         let options = Options::new().unwrap_or_default();
         let debouncer = Debouncer::new();
         let racer = if options.enable_racer {

@@ -190,10 +190,12 @@ impl IRust {
             // add +1 for the \t
             racer.cursor.1 = StringTools::chars_count(&self.buffer) + 1;
 
-            self.repl
-                .exec_in_tmp_repl(self.buffer.clone(), move || -> Result<(), IRustError> {
+            self.repl.exec_in_tmp_repl(
+                self.buffer.clone(),
+                move || -> Result<(), IRustError> {
                     racer.complete_code().map_err(From::from)
-                })?;
+                },
+            )?;
 
             // reset debouncer
             self.debouncer.reset_timer();
@@ -254,7 +256,10 @@ impl IRust {
         Ok(())
     }
 
-    pub fn cycle_suggestions(&mut self, cycle: Cycle) -> Result<(), IRustError> {
+    pub fn cycle_suggestions(
+        &mut self,
+        cycle: Cycle,
+    ) -> Result<(), IRustError> {
         if self.at_line_end() {
             // Clear screen from cursor down
             self.terminal.clear(ClearType::FromCursorDown)?;
@@ -277,7 +282,8 @@ impl IRust {
             );
 
             // Handle screen height overflow
-            let height_overflow = self.screen_height_overflow_by_new_lines(suggestions_num + 1);
+            let height_overflow =
+                self.screen_height_overflow_by_new_lines(suggestions_num + 1);
             if height_overflow != 0 {
                 self.scroll_up(height_overflow);
             }
@@ -311,7 +317,9 @@ impl IRust {
                 .suggestions
                 .iter()
                 .skip(
-                    ((self.racer.as_ref()?.suggestion_idx - 1) / suggestions_num) * suggestions_num,
+                    ((self.racer.as_ref()?.suggestion_idx - 1)
+                        / suggestions_num)
+                        * suggestions_num,
                 )
                 .take(suggestions_num)
                 .enumerate()
@@ -361,7 +369,8 @@ impl IRust {
             StringTools::strings_unique(&self.buffer, &mut suggestion);
 
             self.buffer.push_str(&suggestion);
-            self.internal_cursor.buffer_pos = StringTools::chars_count(&self.buffer);
+            self.internal_cursor.buffer_pos =
+                StringTools::chars_count(&self.buffer);
 
             // clear screen from cursor down
             self.terminal.clear(ClearType::FromCursorDown)?;

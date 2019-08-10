@@ -6,7 +6,9 @@ impl IRust {
     pub fn help(&mut self) -> Result<Printer, IRustError> {
         let mut outputs = Printer::default();
 
-        outputs.push("### Keywords / Tips & Tricks ###".to_output(Color::DarkYellow));
+        outputs.push(
+            "### Keywords / Tips & Tricks ###".to_output(Color::DarkYellow),
+        );
         outputs.push(
             "
 :help => print help

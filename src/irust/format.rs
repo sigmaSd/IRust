@@ -12,7 +12,8 @@ pub fn format_eval_output(output: &str) -> Printer {
         let actual_error: String = if main_panic(&output) {
             // example:
             // thread 'main' panicked at 'attempt to multiply with overflow',
-            let mut output: Vec<&str> = output.lines().nth(3).unwrap().split(',').collect();
+            let mut output: Vec<&str> =
+                output.lines().nth(3).unwrap().split(',').collect();
             output.pop();
 
             output.join(",")
@@ -36,7 +37,8 @@ pub fn format_eval_output(output: &str) -> Printer {
             eval_output.add_new_line(1);
         }
 
-        eval_output.push(PrinterItem::new(output.into(), PrinterItemType::Eval));
+        eval_output
+            .push(PrinterItem::new(output.into(), PrinterItemType::Eval));
     }
 
     eval_output

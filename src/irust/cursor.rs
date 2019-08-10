@@ -44,7 +44,8 @@ impl Cursor {
     fn move_right(&mut self) {
         if self.screen_pos.0 == self.current_upper_bound() {
             if self.bounds.contains(self.screen_pos.1 + 1) {
-                self.screen_pos.0 = self.bounds.lower_bound(self.screen_pos.1 + 1);
+                self.screen_pos.0 =
+                    self.bounds.lower_bound(self.screen_pos.1 + 1);
                 self.screen_pos.1 += 1;
             } else {
                 self.screen_pos.0 = 0;
@@ -62,7 +63,8 @@ impl Cursor {
         }
         if self.screen_pos.0 == self.current_lower_bound() {
             if self.bounds.contains(self.screen_pos.1 - 1) {
-                self.screen_pos.0 = self.bounds.upper_bound(self.screen_pos.1 - 1);
+                self.screen_pos.0 =
+                    self.bounds.upper_bound(self.screen_pos.1 - 1);
                 self.screen_pos.1 -= 1;
 
                 if move_type == Move::Modify {
@@ -153,10 +155,14 @@ impl IRust {
 
     pub fn at_line_end(&self) -> bool {
         self.buffer.is_empty()
-            || self.internal_cursor.buffer_pos == StringTools::chars_count(&self.buffer)
+            || self.internal_cursor.buffer_pos
+                == StringTools::chars_count(&self.buffer)
     }
 
-    pub fn move_cursor_left(&mut self, move_type: Move) -> Result<(), IRustError> {
+    pub fn move_cursor_left(
+        &mut self,
+        move_type: Move,
+    ) -> Result<(), IRustError> {
         self.internal_cursor.move_left(move_type);
         self.goto_cursor()?;
 
@@ -171,15 +177,20 @@ impl IRust {
     }
 
     pub fn screen_height_overflow_by_str(&self, out: &str) -> usize {
-        let new_lines =
-            (StringTools::chars_count(out) + self.internal_cursor.screen_pos.0) / self.size.0;
+        let new_lines = (StringTools::chars_count(out)
+            + self.internal_cursor.screen_pos.0)
+            / self.size.0;
 
         self.screen_height_overflow_by_new_lines(new_lines)
     }
 
-    pub fn screen_height_overflow_by_new_lines(&self, new_lines: usize) -> usize {
+    pub fn screen_height_overflow_by_new_lines(
+        &self,
+        new_lines: usize,
+    ) -> usize {
         // if corrected y  + new lines < self.size.1 there is no overflow so unwrap to 0
-        (new_lines + self.internal_cursor.screen_pos.1).saturating_sub(self.size.1)
+        (new_lines + self.internal_cursor.screen_pos.1)
+            .saturating_sub(self.size.1)
     }
 
     pub fn save_cursor_position(&mut self) -> Result<(), IRustError> {

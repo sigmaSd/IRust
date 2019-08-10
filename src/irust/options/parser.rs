@@ -17,19 +17,25 @@ impl Options {
             .map(ToOwned::to_owned)
             .collect();
 
-        for (option, value) in Options::get_section(&lines, "[History]".to_string()).into_iter() {
+        for (option, value) in
+            Options::get_section(&lines, "[History]".to_string()).into_iter()
+        {
             match (option.to_lowercase().as_str(), value.clone()) {
                 ("add_irust_cmd_to_history", value) => {
-                    options.add_irust_cmd_to_history = Options::str_to_bool(&value);
+                    options.add_irust_cmd_to_history =
+                        Options::str_to_bool(&value);
                 }
                 ("add_shell_cmd_to_history", value) => {
-                    options.add_shell_cmd_to_history = Options::str_to_bool(&value);;
+                    options.add_shell_cmd_to_history =
+                        Options::str_to_bool(&value);
                 }
                 _ => eprintln!("Unknown config option: {} {}", option, value),
             }
         }
 
-        for (option, value) in Options::get_section(&lines, "[Colors]".to_string()).into_iter() {
+        for (option, value) in
+            Options::get_section(&lines, "[Colors]".to_string()).into_iter()
+        {
             match (option.to_lowercase().as_ref(), value.clone()) {
                 ("ok_color", value) => {
                     if let Ok(value) = Options::str_to_color(&value) {
@@ -80,7 +86,9 @@ impl Options {
             }
         }
 
-        for (option, value) in Options::get_section(&lines, "[Welcome]".to_string()).into_iter() {
+        for (option, value) in
+            Options::get_section(&lines, "[Welcome]".to_string()).into_iter()
+        {
             match (option.to_lowercase().as_str(), value.clone()) {
                 ("welcome_msg", value) => {
                     if !value.is_empty() {
@@ -96,7 +104,9 @@ impl Options {
             }
         }
 
-        for (option, value) in Options::get_section(&lines, "[Racer]".to_string()).into_iter() {
+        for (option, value) in
+            Options::get_section(&lines, "[Racer]".to_string()).into_iter()
+        {
             match (option.to_lowercase().as_str(), value.clone()) {
                 ("enable_racer", value) => {
                     options.enable_racer = Options::str_to_bool(&value);

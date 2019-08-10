@@ -24,7 +24,9 @@ impl Debouncer {
         let send = self.send.clone();
         let timer = self.timer.clone();
         std::thread::spawn(move || loop {
-            if timer.lock().unwrap().elapsed() >= Duration::from_millis(WAIT_TIMEOUT) {
+            if timer.lock().unwrap().elapsed()
+                >= Duration::from_millis(WAIT_TIMEOUT)
+            {
                 send.send(1).unwrap();
             }
             std::thread::sleep(std::time::Duration::from_millis(SLEEP_TIME));
