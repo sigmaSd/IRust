@@ -1,5 +1,5 @@
 use crossterm::{
-    Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalCursor, TerminalInput,
+    Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalInput,
 };
 
 mod art;
@@ -32,14 +32,13 @@ const IN: &str = "In: ";
 const OUT: &str = "Out: ";
 
 pub struct IRust {
-    cursor: TerminalCursor,
     terminal: Terminal,
     input: TerminalInput,
     printer: Printer,
     color: TerminalColor,
     buffer: String,
     repl: Repl,
-    internal_cursor: Cursor,
+    cursor: Cursor,
     history: History,
     options: Options,
     racer: Result<Racer, IRustError>,
@@ -50,7 +49,6 @@ pub struct IRust {
 impl IRust {
     pub fn new() -> Self {
         let crossterm = Crossterm::new();
-        let cursor = crossterm.cursor();
         let terminal = crossterm.terminal();
         let input = crossterm.input();
         let printer = Printer::default();
@@ -69,7 +67,7 @@ impl IRust {
             let (width, height) = terminal.terminal_size();
             (width as usize, height as usize)
         };
-        let internal_cursor = Cursor::new(0, 0, size.0);
+        let cursor = Cursor::new(0, 0, size.0);
 
         IRust {
             cursor,
@@ -81,7 +79,6 @@ impl IRust {
             repl,
             history,
             options,
-            internal_cursor,
             racer,
             debouncer,
             size,
