@@ -2,6 +2,9 @@ use super::IRustError;
 use std::fs;
 use std::path;
 
+/// Mark to keep backward-compatibility with the old way of saving history
+const NEW_HISTORY_MARK: &str = "##NewHistoryMark##\n//\n";
+
 #[derive(Default)]
 pub struct History {
     history: Vec<String>,
@@ -19,10 +22,18 @@ impl History {
             let _ = fs::File::create(&path);
         }
 
-        let history: Vec<String> = fs::read_to_string(&path)?
-            .lines()
-            .map(ToOwned::to_owned)
-            .collect();
+        let history: String = fs::read_to_string(&path)?;
+
+        let history: Vec<String> = if history.starts_with(NEW_HISTORY_MARK) {
+            history
+                .split("\n//\n")
+                .skip(1)
+                .map(ToOwned::to_owned)
+                .collect()
+        } else {
+            history.lines().map(ToOwned::to_owned).collect()
+        };
+
         let cursor = history.len();
         let current = String::new();
 
@@ -69,15 +80,26 @@ impl History {
     }
 
     pub fn save(&self) {
-        let history = if self.history.len() > 100 {
-            self.history
-                .windows(100)
-                .last()
-                .unwrap_or_default()
-                .join("\n")
-        } else {
-            self.history.join("\n")
-        };
+        let is_comment = |s: &str| -> bool { s.trim_start().starts_with("//") };
+        let mut history = self.history.clone();
+
+        if history[0] != NEW_HISTORY_MARK {
+            history.insert(0, NEW_HISTORY_MARK.to_string());
+        }
+
+        let history: Vec<String> = history
+            .into_iter()
+            .map(|e| {
+                let e: Vec<String> = e
+                    .lines()
+                    .filter(|l| !is_comment(l))
+                    .map(ToOwned::to_owned)
+                    .collect();
+                e.join("\n")
+            })
+            .collect();
+        let history = history.join("\n//\n");
+
         let _ = fs::write(&self.path, history);
     }
 
