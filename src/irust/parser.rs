@@ -10,7 +10,7 @@ const SUCCESS: &str = "Ok!";
 
 impl IRust {
     pub fn parse(&mut self) -> Result<Printer, IRustError> {
-        match self.buffer.as_str() {
+        match self.buf.to_string().as_str() {
             ":help" => self.help(),
             ":reset" => self.reset(),
             ":show" => self.show(),
@@ -41,7 +41,7 @@ impl IRust {
     }
 
     fn del(&mut self) -> Result<Printer, IRustError> {
-        if let Some(line_num) = self.buffer.split_whitespace().last() {
+        if let Some(line_num) = self.buf.to_string().split_whitespace().last() {
             self.repl.del(line_num)?;
         }
 
@@ -68,7 +68,8 @@ impl IRust {
 
     fn add_dep(&mut self) -> Result<Printer, IRustError> {
         let dep: Vec<String> = self
-            .buffer
+            .buf
+            .to_string()
             .split_whitespace()
             .skip(1)
             .map(ToOwned::to_owned)
@@ -86,7 +87,8 @@ impl IRust {
     }
 
     fn load_script(&mut self) -> Result<Printer, IRustError> {
-        let script = self.buffer.split_whitespace().last().unwrap();
+        let buffer = self.buf.to_string();
+        let script = buffer.split_whitespace().last().unwrap();
 
         let script_code = std::fs::read(script)?;
         if let Ok(s) = String::from_utf8(script_code) {
@@ -107,7 +109,7 @@ impl IRust {
         const TYPE_FOUND_MSG: &str = "found type `";
         const EMPTY_TYPE_MSG: &str = "dev [unoptimized + debuginfo]";
 
-        let variable = self.buffer.trim_start_matches(":type").to_string();
+        let variable = self.buf.to_string().trim_start_matches(":type").to_string();
         let mut raw_out = String::new();
 
         self.repl
@@ -139,7 +141,7 @@ impl IRust {
 
     fn run_cmd(&mut self) -> Result<Printer, IRustError> {
         // remove ::
-        let buffer = &self.buffer[2..];
+        let buffer = &self.buf.to_string()[2..];
 
         let mut cmd = buffer.split_whitespace();
 
@@ -156,17 +158,17 @@ impl IRust {
     }
 
     fn parse_second_order(&mut self) -> Result<Printer, IRustError> {
-        if self.buffer.trim().is_empty() {
+        if self.buf.to_string().trim().is_empty() {
             Ok(Printer::default())
-        } else if self.buffer.trim_end().ends_with(';') {
-            self.repl.insert(self.buffer.clone());
+        } else if self.buf.to_string().trim().ends_with(';') {
+            self.repl.insert(self.buf.to_string());
 
             let printer = Printer::default();
 
             Ok(printer)
         } else {
             let mut outputs = Printer::default();
-            let mut eval_output = format_eval_output(&self.repl.eval(self.buffer.clone())?);
+            let mut eval_output = format_eval_output(&self.repl.eval(self.buf.to_string())?);
 
             outputs.append(&mut eval_output);
             outputs.add_new_line(1);

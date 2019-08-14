@@ -28,6 +28,11 @@ pub fn highlight(c: &str) -> Printer {
             });
         printer.add_new_line(1);
     }
+    //crate::log!("c: {}, printer: {:?}", &c, &printer);
+    if !c.ends_with('\n') {
+        printer.pop();
+    }
 
+    //crate::log!("printer: {:?}", &printer);
     printer
 }

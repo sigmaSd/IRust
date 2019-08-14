@@ -46,24 +46,37 @@ pub fn remove_main(script: &str) -> String {
 pub struct StringTools {}
 
 impl StringTools {
-    pub fn insert_at_char_idx(buffer: &mut String, idx: usize, character: char) {
+    pub fn _insert_at_char_idx(buffer: &mut String, idx: usize, character: char) {
         let mut buffer_chars: Vec<char> = buffer.chars().collect();
         buffer_chars.insert(idx, character);
         *buffer = buffer_chars.into_iter().collect();
     }
 
-    pub fn remove_at_char_idx(buffer: &mut String, idx: usize) {
+    pub fn _remove_at_char_idx(buffer: &mut String, idx: usize) -> Option<char> {
         let mut buffer_chars: Vec<char> = buffer.chars().collect();
 
-        if buffer_chars.len() > idx {
-            buffer_chars.remove(idx);
-        }
+        let removed_char = if buffer_chars.len() > idx {
+            Some(buffer_chars.remove(idx))
+        } else {
+            None
+        };
 
         *buffer = buffer_chars.into_iter().collect();
+
+        removed_char
+    }
+
+    pub fn _get_char_at_idx(buffer: &str, idx: usize) -> Option<char> {
+        let buffer_chars: Vec<char> = buffer.chars().collect();
+        buffer_chars.into_iter().nth(idx)
     }
 
     pub fn chars_count(buffer: &str) -> usize {
         buffer.chars().count()
+    }
+
+    pub fn new_lines_count(buffer: &str) -> usize {
+        buffer.chars().filter(|c| c == &'\n').count()
     }
 
     pub fn is_multiline(string: &str) -> bool {

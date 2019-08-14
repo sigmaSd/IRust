@@ -19,7 +19,7 @@ impl Repl {
     pub fn insert(&mut self, input: String) {
         for line in input.lines() {
             let mut line = line.to_owned();
-            line.insert(0, '\t');
+            //line.insert(0, '\t');
             line.push('\n');
             self.body.insert(self.cursor, line);
             self.cursor += 1;

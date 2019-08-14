@@ -1,5 +1,7 @@
 mod args;
 mod irust;
+// uncomment next line to enable logging
+// mod log;
 mod utils;
 
 use crate::args::handle_args;
