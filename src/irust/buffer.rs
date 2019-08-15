@@ -18,6 +18,10 @@ impl Buffer {
         self.move_forward();
     }
 
+    pub fn insert_str(&mut self, s: &str) {
+        s.chars().for_each(|c| self.insert(c));
+    }
+
     pub fn remove_current_char(&mut self) -> Option<char> {
         if !self.is_empty() {
             let character = self.buffer.remove(self.buffer_pos);
@@ -29,8 +33,20 @@ impl Buffer {
         }
     }
 
+    pub fn next_char(&self) -> Option<&char> {
+        self.buffer.get(self.buffer_pos + 1)
+    }
+
     pub fn current_char(&self) -> Option<&char> {
-        self.buffer.get(self.buffer_pos.saturating_sub(1))
+        self.buffer.get(self.buffer_pos)
+    }
+
+    pub fn previous_char(&self) -> Option<&char> {
+        if self.buffer_pos > 0 {
+            self.buffer.get(self.buffer_pos - 1)
+        } else {
+            None
+        }
     }
 
     pub fn move_forward(&mut self) {
@@ -75,12 +91,12 @@ impl Buffer {
         self.buffer_pos = self.buffer.len();
     }
 
-    pub fn push_str(&mut self, str: &str) {
+    pub fn _push_str(&mut self, str: &str) {
         self.buffer.extend(str.chars());
         self.buffer_pos = self.buffer.len();
     }
 
-    pub fn to_relative_screen_pos(&self) -> (usize, usize) {
+    pub fn to_relative_current_pos(&self) -> (usize, usize) {
         let x = self
             .buffer
             .iter()
@@ -98,10 +114,10 @@ impl Buffer {
         (x, y)
     }
 
-    pub fn end_to_relative_screen_pos(&mut self) -> (usize, usize) {
+    pub fn end_to_relative_current_pos(&mut self) -> (usize, usize) {
         let tmp = self.buffer_pos;
         self.goto_end();
-        let relative_pos = self.to_relative_screen_pos();
+        let relative_pos = self.to_relative_current_pos();
         self.buffer_pos = tmp;
 
         relative_pos
@@ -115,7 +131,7 @@ impl Buffer {
         }
     }
 
-    pub fn get(&self, idx: usize) -> Option<&char> {
+    pub fn _get(&self, idx: usize) -> Option<&char> {
         self.buffer.get(idx)
     }
 

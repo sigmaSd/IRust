@@ -1,6 +1,7 @@
 pub struct Bound {
     pub bound: Vec<usize>,
     pub width: usize,
+    pub height: usize,
 }
 
 impl Bound {
@@ -10,7 +11,11 @@ impl Bound {
             bound.push(width - 1);
         }
 
-        Self { bound, width }
+        Self {
+            bound,
+            width,
+            height,
+        }
     }
 
     pub fn get_bound(&self, row: usize) -> &usize {
@@ -29,7 +34,4 @@ impl Bound {
         self.bound.insert(row, col);
         self.bound[0] = self.bound.pop().unwrap();
     }
-    // pub fn unbound(&mut self, row: usize) {
-    //     self.bound.insert(row, self.width - 1);
-    // }
 }

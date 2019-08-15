@@ -92,8 +92,6 @@ impl IRust {
         self.debouncer.run();
         self.welcome()?;
         self.write_in()?;
-        self.cursor.pos.screen_pos.1 = 2;
-        self.cursor.pos.screen_pos.0 = 4;
         Ok(())
     }
 
@@ -142,10 +140,10 @@ impl IRust {
                         self.handle_ctrl_l()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Home) => {
-                        self.go_to_start()?;
+                        self.handle_home_key()?;
                     }
                     InputEvent::Keyboard(KeyEvent::End) => {
-                        self.go_to_end()?;
+                        self.handle_end_key()?;
                     }
                     InputEvent::Keyboard(KeyEvent::CtrlLeft) => {
                         self.handle_ctrl_left();

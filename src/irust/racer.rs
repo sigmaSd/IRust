@@ -247,9 +247,9 @@ impl IRust {
             self.cursor.hide();
             self.color
                 .set_fg(self.options.racer_inline_suggestion_color)?;
-            self.cursor.internal_cursor.save_position()?;
+            self.cursor.cursor.save_position()?;
             self.terminal.write(&suggestion)?;
-            self.cursor.internal_cursor.reset_position()?;
+            self.cursor.cursor.reset_position()?;
             self.color.reset()?;
             self.cursor.show();
         }
@@ -278,17 +278,21 @@ impl IRust {
         // Handle screen height overflow
         let height_overflow = self
             .cursor
-            .screen_height_overflow_by_new_lines(&self, suggestions_num + 1);
+            .screen_height_overflow_by_new_lines(suggestions_num + 1);
 
         if height_overflow != 0 {
             self.scroll_up(height_overflow);
         }
+
         self.cursor.save_position()?;
         self.move_screen_cursor_to_last_line();
 
         let max_width = self.size.0 - 1;
-        self.cursor.pos.screen_pos.0 = 0;
+        self.cursor.pos.current_pos.0 = 0;
         self.cursor.goto_internal_pos()?;
+        self.cursor.cursor.move_down(1);
+        self.terminal.clear(ClearType::FromCursorDown)?;
+        self.cursor.cursor.move_up(1);
 
         self.color
             .set_fg(self.options.racer_suggestions_table_color)?;
@@ -311,10 +315,10 @@ impl IRust {
                 suggestion.push_str("...");
             }
             // move one + idx row down
-            self.cursor.move_down(idx as u16 + 1);
+            self.cursor.cursor.move_down(idx as u16 + 1);
 
             // write suggestion
-            self.cursor.internal_cursor.save_position()?;
+            self.cursor.cursor.save_position()?;
 
             if Some(&suggestion_c) == current_suggestion.as_ref() {
                 self.color
@@ -323,7 +327,7 @@ impl IRust {
 
             self.terminal.write(&suggestion)?;
             self.color.set_bg(crossterm::Color::Reset)?;
-            self.cursor.internal_cursor.reset_position()?;
+            self.cursor.cursor.reset_position()?;
             self.cursor.move_up(idx as u16 + 1);
         }
 
@@ -347,24 +351,14 @@ impl IRust {
             let buffer: String = self.buf.buffer.iter().take(self.buf.buffer_pos).collect();
             StringTools::strings_unique(&buffer, &mut suggestion);
 
-            self.buf.push_str(&suggestion);
+            self.buf.insert_str(&suggestion);
             let chars_count = StringTools::chars_count(&suggestion);
+
             for _ in 0..chars_count {
-                if self.cursor.pos.screen_pos.0 == self.size.0 - 1 {
-                    self.cursor.pos.screen_pos.0 = 4;
-                    self.cursor.pos.screen_pos.1 += 1;
-                } else {
-                    self.cursor.pos.screen_pos.0 += 1;
-                }
+                self.cursor.move_right_unbounded();
             }
 
-            self.cursor.goto_internal_pos()?;
-
-            self.color.reset()?;
             self.print()?;
-
-            // Unlock racer suggestions update
-            let _ = self.unlock_racer_update();
         }
 
         Ok(())
@@ -386,7 +380,7 @@ impl IRust {
 
     pub fn check_racer_callback(&mut self) -> Result<(), IRustError> {
         let mut inner = || -> Result<(), IRustError> {
-            if let Some(character) = self.buf.current_char() {
+            if let Some(character) = self.buf.previous_char() {
                 if character.is_alphanumeric()
                     && !self.racer_update_locked()?
                     && self.debouncer.recv.try_recv().is_ok()

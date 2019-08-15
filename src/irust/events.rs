@@ -8,19 +8,10 @@ use crossterm::ClearType;
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> Result<(), IRustError> {
         self.buf.insert(c);
-
         self.print()?;
-
-        if self.cursor.pos.screen_pos.0 == self.size.0 - 1 {
-            self.cursor.pos.screen_pos.0 = 4;
-            self.cursor.pos.screen_pos.1 += 1;
-        } else {
-            self.cursor.pos.screen_pos.0 += 1;
-        }
-        self.cursor.goto_internal_pos()?;
-
-        let _ = self.unlock_racer_update();
-
+        self.cursor.move_right_unbounded();
+        self.unlock_racer_update()?;
+        crate::log!("cp: {}", self.cursor.pos.current_pos.1);
         Ok(())
     }
 
@@ -30,7 +21,7 @@ impl IRust {
         if self.incomplete_input(&buffer) {
             self.buf.insert('\n');
             self.print()?;
-            self.cursor.goto(4, self.cursor.pos.screen_pos.1 + 1);
+            self.cursor.goto(4, self.cursor.pos.current_pos.1 + 1);
             return Ok(());
         }
 
@@ -55,12 +46,10 @@ impl IRust {
         }
 
         // ensure buffer is cleaned
-        self.buffer.clear();
-        self.buf.buffer_pos = 0;
         self.buf.clear();
 
         // update history current
-        self.history.update_current(&self.buf.to_string());
+        self.history.update_current("");
 
         // write out
         if !self.printer.is_empty() {
@@ -69,9 +58,8 @@ impl IRust {
         }
 
         self.print()?;
+        self.write_in()?;
 
-        self.cursor.pos.screen_pos.0 = 4;
-        self.cursor.goto_internal_pos()?;
         self.cursor.show();
         Ok(())
     }
@@ -108,75 +96,71 @@ impl IRust {
     }
 
     pub fn handle_up(&mut self) -> Result<(), IRustError> {
-        if let Some(up) = self.history.up() {
-            self.buf = Buffer::from_str(&up, self.size.0 - 1);
-
-            let y = self.last_line_row();
-            let height_overflow = y.saturating_sub(self.size.1 - 1);
-            if height_overflow > 0 {
-                self.scroll_up(height_overflow);
-            }
-
-            self.buf.goto_start();
-            self.cursor.goto(4, self.cursor.pos.starting_pos.1);
-            self.print()?;
-        }
-
-        Ok(())
+        self.handle_history("up")
     }
 
     pub fn handle_down(&mut self) -> Result<(), IRustError> {
         if self.buf.is_empty() {
             return Ok(());
         }
+        self.handle_history("down")
+    }
 
-        if let Some(down) = self.history.down() {
-            self.buf = Buffer::from_str(&down, self.size.0 - 1);
+    fn handle_history(&mut self, direction: &str) -> Result<(), IRustError> {
+        let history = match direction {
+            "up" => self.history.up(),
+            "down" => self.history.down(),
+            _ => panic!("incorrect usage of handle_history function"),
+        };
 
-            let y = self.last_line_row();
-            let height_overflow = y.saturating_sub(self.size.1 - 1);
+        if let Some(history) = history {
+            self.buf = Buffer::from_str(&history, self.size.0 - 1);
+
+            // scroll if needed
+            let last_input_row = self.input_last_pos().1;
+            let height_overflow = last_input_row.saturating_sub(self.size.1 - 1);
             if height_overflow > 0 {
                 self.scroll_up(height_overflow);
             }
 
             self.buf.goto_start();
-            self.cursor.goto(4, self.cursor.pos.starting_pos.1);
+            self.cursor.goto_start();
             self.print()?;
-        }
-
-        Ok(())
-    }
-
-    pub fn handle_left(&mut self) -> Result<(), IRustError> {
-        if !self.buf.is_at_start() && !self.buf.is_empty() {
-            self.cursor.move_screen_cursor_left();
-            self.buf.move_backward();
+            self.write_in()?;
         }
         Ok(())
     }
 
     pub fn handle_right(&mut self) -> Result<(), IRustError> {
-        if !self.buf.is_at_end() {
-            self.buf.move_forward();
-            self.cursor.move_screen_cursor_right();
-        } else {
+        if self.cursor.is_at_line_end(&self) {
             let _ = self.use_suggestion();
+        }
+        if !self.buf.is_at_end() {
+            self.cursor.move_right();
+            self.buf.move_forward();
+        }
+        Ok(())
+    }
+
+    pub fn handle_left(&mut self) -> Result<(), IRustError> {
+        if !self.buf.is_at_start() && !self.buf.is_empty() {
+            self.cursor.move_left();
+            self.buf.move_backward();
         }
         Ok(())
     }
 
     pub fn handle_backspace(&mut self) -> Result<(), IRustError> {
-        self.color.reset()?;
         if !self.buf.is_at_start() {
             self.buf.move_backward();
-            self.cursor.move_screen_cursor_left();
-            let _ = self.buf.remove_current_char();
+            self.cursor.move_left();
+            self.buf.remove_current_char();
 
             // update histroy current
             self.history.update_current(&self.buf.to_string());
 
             self.print()?;
-            let _ = self.unlock_racer_update();
+            self.unlock_racer_update()?;
         }
         Ok(())
     }
@@ -195,15 +179,10 @@ impl IRust {
             self.exit()?;
         } else {
             self.write_newline()?;
-            self.buf.clear();
-
             self.terminal.clear(ClearType::FromCursorDown)?;
-            self.color.set_fg(crossterm::Color::Yellow)?;
-            self.terminal.write("In: ")?;
-            self.cursor.pos.screen_pos.0 = 4;
-            self.color.reset()?;
+            self.write_in()?;
+            self.buf.clear();
         }
-
         Ok(())
     }
 
@@ -211,7 +190,6 @@ impl IRust {
         if self.buf.is_empty() {
             self.exit()?;
         }
-
         Ok(())
     }
 
@@ -220,7 +198,6 @@ impl IRust {
         self.history.save();
         self.terminal.clear(ClearType::All)?;
         self.terminal.exit();
-
         Ok(())
     }
 
@@ -237,7 +214,6 @@ impl IRust {
             // display empty prompt after SIGCONT
             self.clear()?;
         }
-
         Ok(())
     }
 
@@ -246,95 +222,93 @@ impl IRust {
         Ok(())
     }
 
-    pub fn go_to_start(&mut self) -> Result<(), IRustError> {
+    pub fn handle_home_key(&mut self) -> Result<(), IRustError> {
         self.buf.goto_start();
         self.cursor.goto(4, self.cursor.pos.starting_pos.1);
         Ok(())
     }
 
-    pub fn go_to_end(&mut self) -> Result<(), IRustError> {
+    pub fn handle_end_key(&mut self) -> Result<(), IRustError> {
         // TODO
         Ok(())
     }
 
-    pub fn handle_ctrl_left(&mut self) -> Option<()> {
+    pub fn handle_ctrl_left(&mut self) {
         if self.buf.is_empty() || self.buf.is_at_start() {
-            return Some(());
+            return;
         }
 
-        self.cursor.move_screen_cursor_left();
+        self.cursor.move_left();
         self.buf.move_backward();
 
-        if let Some(current_char) = self.buf.get(self.buf.buffer_pos.checked_sub(1)?) {
+        if let Some(current_char) = self.buf.current_char() {
             match *current_char {
                 ' ' => {
-                    while self.buf.get(self.buf.buffer_pos) == Some(&' ') {
-                        self.cursor.move_screen_cursor_left();
+                    while self.buf.previous_char() == Some(&' ') {
+                        self.cursor.move_left();
                         self.buf.move_backward()
                     }
                 }
                 c if c.is_alphanumeric() => {
-                    while self
-                        .buf
-                        .get(self.buf.buffer_pos.checked_sub(1)?)
-                        .unwrap()
-                        .is_alphanumeric()
-                    {
-                        self.cursor.move_screen_cursor_left();
-                        self.buf.move_backward()
+                    while let Some(previous_char) = self.buf.previous_char() {
+                        if previous_char.is_alphanumeric() {
+                            self.cursor.move_left();
+                            self.buf.move_backward()
+                        } else {
+                            break;
+                        }
                     }
                 }
 
                 _ => {
-                    while !self
-                        .buf
-                        .get(self.buf.buffer_pos.checked_sub(1)?)
-                        .unwrap()
-                        .is_alphanumeric()
-                        && self.buf.get(self.buf.buffer_pos.checked_sub(1)?) != Some(&' ')
-                    {
-                        self.cursor.move_screen_cursor_left();
-                        self.buf.move_backward()
+                    while let Some(previous_char) = self.buf.previous_char() {
+                        if !previous_char.is_alphanumeric() && *previous_char != ' ' {
+                            self.cursor.move_left();
+                            self.buf.move_backward()
+                        } else {
+                            break;
+                        }
                     }
                 }
             }
         }
-        Some(())
     }
 
     pub fn handle_ctrl_right(&mut self) {
-        if !self.buf.is_at_end() {
-            self.cursor.move_screen_cursor_right();
-            self.buf.move_forward();
-        } else {
+        if self.cursor.is_at_line_end(&self) {
             let _ = self.use_suggestion();
         }
-        if let Some(current_char) = self.buf.get(self.buf.buffer_pos) {
+        if !self.buf.is_at_end() {
+            self.cursor.move_right();
+            self.buf.move_forward();
+        }
+
+        if let Some(current_char) = self.buf.current_char() {
             match *current_char {
                 ' ' => {
-                    while self.buf.get(self.buf.buffer_pos + 1) == Some(&' ') {
-                        self.cursor.move_screen_cursor_right();
+                    while self.buf.next_char() == Some(&' ') {
+                        self.cursor.move_right();
                         self.buf.move_forward();
                     }
-                    self.cursor.move_screen_cursor_right();
+                    self.cursor.move_right();
                     self.buf.move_forward();
                 }
                 c if c.is_alphanumeric() => {
-                    while let Some(character) = self.buf.get(self.buf.buffer_pos) {
+                    while let Some(character) = self.buf.current_char() {
                         if !character.is_alphanumeric() {
                             break;
                         }
-                        self.cursor.move_screen_cursor_right();
+                        self.cursor.move_right();
                         self.buf.move_forward();
                     }
                 }
 
                 _ => {
-                    while let Some(character) = self.buf.get(self.buf.buffer_pos) {
+                    while let Some(character) = self.buf.current_char() {
                         if character.is_alphanumeric() || *character == ' ' {
                             break;
                         }
-                        self.cursor.move_screen_cursor_right();
+                        self.cursor.move_right();
                         self.buf.move_forward();
                     }
                 }

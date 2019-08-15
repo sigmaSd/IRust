@@ -104,31 +104,31 @@ impl PrinterItem {
 }
 
 impl IRust {
-    pub fn last_line_row(&mut self) -> usize {
-        let relative_pos = self.buf.end_to_relative_screen_pos();
+    pub fn input_last_pos(&mut self) -> (usize, usize) {
+        let relative_pos = self.buf.end_to_relative_current_pos();
         let mut x = relative_pos.0 + 3;
         x += (x / (self.size.0 - 1)) * 3;
 
         let mut y = relative_pos.1 + self.cursor.pos.starting_pos.1;
         y += x / (self.size.0 - 1);
 
-        y
+        (x, y)
     }
 
     pub fn move_screen_cursor_to_last_line(&mut self) {
-        let y = self.last_line_row();
+        let input_last_row = self.input_last_pos().1;
 
-        let height_overflow = y.saturating_sub(self.size.1 - 1);
+        let height_overflow = input_last_row.saturating_sub(self.size.1 - 1);
 
         if height_overflow > 0 {
             self.scroll_up(height_overflow);
         }
 
-        self.cursor.goto(0, y);
+        self.cursor.goto(0, input_last_row);
     }
 
     pub fn print(&mut self) -> Result<(), IRustError> {
-        let y = self.last_line_row();
+        let y = self.input_last_pos().1;
         let height_overflow = y.saturating_sub(self.size.1 - 1);
         if height_overflow > 0 {
             self.scroll_up(height_overflow);
@@ -140,8 +140,8 @@ impl IRust {
         self.terminal.clear(ClearType::FromCursorDown)?;
 
         self.color.set_fg(Color::Yellow)?;
-        self.terminal.write("In: ")?;
-        self.cursor.pos.screen_pos.0 = 3;
+        self.write("In: ")?;
+        self.cursor.pos.current_pos.0 = 3;
         self.color.reset()?;
 
         let input = super::highlight::highlight(&self.buf.to_string());
@@ -159,28 +159,28 @@ impl IRust {
                     let _ = self.color.set_fg(color);
 
                     for c in elem.string.chars() {
-                        if self.cursor.is_at_last_col() {
+                        if self.cursor.is_at_last_terminal_col() {
                             self.cursor.bound_current_row_at_current_col();
-                            self.cursor.goto(0, self.cursor.pos.screen_pos.1 + 1);
+                            self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
 
                             self.color.set_fg(crossterm::Color::Yellow)?;
                             self.terminal.write("..: ")?;
-                            self.cursor.pos.screen_pos.0 = 3;
+                            self.cursor.pos.current_pos.0 = 3;
                             self.color.set_fg(color)?;
                         }
                         self.terminal.write(c)?;
-                        self.cursor.pos.screen_pos.0 += 1;
+                        self.cursor.pos.current_pos.0 += 1;
                     }
                 }
                 PrinterItemType::Empty => {
                     self.cursor
                         .bound
-                        .set_bound(self.cursor.pos.screen_pos.1, self.cursor.pos.screen_pos.0);
-                    self.cursor.goto(0, self.cursor.pos.screen_pos.1 + 1);
+                        .set_bound(self.cursor.pos.current_pos.1, self.cursor.pos.current_pos.0);
+                    self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
 
                     self.color.set_fg(crossterm::Color::Yellow)?;
                     self.terminal.write("..: ")?;
-                    self.cursor.pos.screen_pos.0 = 3;
+                    self.cursor.pos.current_pos.0 = 3;
                     self.color.reset()?;
                 }
                 _ => {}
@@ -197,7 +197,7 @@ impl IRust {
             .filter(|p| p.out_type == PrinterItemType::Empty)
             .count();
 
-        let overflow = (new_lines + self.cursor.pos.screen_pos.1).saturating_sub(self.size.1 - 1);
+        let overflow = (new_lines + self.cursor.pos.current_pos.1).saturating_sub(self.size.1 - 1);
         if overflow > 0 {
             self.scroll_up(overflow);
         }
@@ -222,8 +222,8 @@ impl IRust {
                     continue;
                 }
                 PrinterItemType::Empty => {
-                    self.cursor.goto(0, self.cursor.pos.screen_pos.1 + 1);
-                    self.cursor.pos.starting_pos.1 = self.cursor.pos.screen_pos.1;
+                    self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
+                    self.cursor.pos.starting_pos.1 = self.cursor.pos.current_pos.1;
                     continue;
                 }
                 PrinterItemType::Custom(color) => color,
@@ -233,23 +233,18 @@ impl IRust {
             if !output.string.is_empty() {
                 if crate::utils::StringTools::is_multiline(&output.string) {
                     let overflow = (output.string.chars().filter(|c| *c == '\n').count()
-                        + self.cursor.pos.screen_pos.1)
+                        + self.cursor.pos.current_pos.1)
                         .saturating_sub(self.size.1 - 1);
                     if overflow > 0 {
                         self.scroll_up(overflow);
                     }
-                    self.cursor.goto(0, self.cursor.pos.screen_pos.1 + 1);
+                    self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
                     output.string.split('\n').for_each(|o| {
                         let _ = self.terminal.write(o);
-                        self.cursor.goto(0, self.cursor.pos.screen_pos.1 + 1);
-                        //let _ = self.write_newline();
-                        //                        self.cursor.goto(0, self.cursor.pos.screen_pos.1 + 1);
-                        //                        self.cursor.pos.starting_pos.1 = self.cursor.pos.screen_pos.1;
+                        self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
                     });
                 } else {
                     self.terminal.write(&output.string)?;
-                    //self.cursor.goto(0, self.cursor.pos.screen_pos.1 +1);
-                    //self.cursor.pos.starting_pos.1 = self.cursor.pos.screen_pos.1;
                 }
             }
         }
@@ -259,7 +254,7 @@ impl IRust {
 
     pub fn write_in(&mut self) -> Result<(), IRustError> {
         self.color.set_fg(crossterm::Color::Yellow)?;
-        self.terminal.write("In: ")?;
+        self.write("In: ")?;
         self.color.reset()?;
         Ok(())
     }

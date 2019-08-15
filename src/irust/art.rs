@@ -40,19 +40,19 @@ impl IRust {
         self.write_str_at(
             &format!(" {}ing dep [\\]", msg),
             0,
-            self.cursor.pos.screen_pos.1,
+            self.cursor.pos.current_pos.1,
         )?;
         loop {
             match add_cmd.try_wait() {
                 Ok(None) => {
-                    self.write_str_at("\\", msg.len() + 10, self.cursor.pos.screen_pos.1)?;
-                    self.write_str_at("|", msg.len() + 10, self.cursor.pos.screen_pos.1)?;
-                    self.write_str_at("/", msg.len() + 10, self.cursor.pos.screen_pos.1)?;
-                    self.write_str_at("-", msg.len() + 10, self.cursor.pos.screen_pos.1)?;
-                    self.write_str_at("\\", msg.len() + 10, self.cursor.pos.screen_pos.1)?;
-                    self.write_str_at("|", msg.len() + 10, self.cursor.pos.screen_pos.1)?;
-                    self.write_str_at("/", msg.len() + 10, self.cursor.pos.screen_pos.1)?;
-                    self.write_str_at("-", msg.len() + 10, self.cursor.pos.screen_pos.1)?;
+                    self.write_str_at("\\", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_str_at("|", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_str_at("/", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_str_at("-", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_str_at("\\", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_str_at("|", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_str_at("/", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_str_at("-", msg.len() + 10, self.cursor.pos.current_pos.1)?;
                     continue;
                 }
                 Err(e) => {
@@ -76,7 +76,7 @@ impl IRust {
 
         let default_msg = "Welcome to IRust".to_string();
         self.printer = Printer::new(PrinterItem::new(default_msg, PrinterItemType::Welcome));
-        self.printer.add_new_line(2);
+        self.printer.add_new_line(1);
 
         self.write_out()?;
 
