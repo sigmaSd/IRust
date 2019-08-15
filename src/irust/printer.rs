@@ -104,6 +104,12 @@ impl PrinterItem {
 }
 
 impl IRust {
+    /// TODO: the math is wrong better fix this or even better
+    /// use a better method
+    /// here is an example, this function tries to find X position
+    ///
+    /// In: azezae
+    /// ..: zaezaezaeazeX
     pub fn input_last_pos(&mut self) -> (usize, usize) {
         let relative_pos = self.buf.end_to_relative_current_pos();
         let mut x = relative_pos.0 + 3;
@@ -241,8 +247,17 @@ impl IRust {
                     self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
                     output.string.split('\n').for_each(|o| {
                         let _ = self.terminal.write(o);
-                        self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
+                        let _ = self.terminal.write("\r\n");
                     });
+                    let new_lines = (output.string.chars().filter(|c| *c == '\n')).count();
+                    let overflow =
+                        (new_lines + self.cursor.pos.current_pos.1).saturating_sub(self.size.1 - 1);
+                    if overflow > 0 {
+                        self.terminal.scroll_up(1)?;
+                        self.cursor.pos.current_pos.1 = self.size.1 - 1;
+                    } else {
+                        self.cursor.pos.current_pos.1 += new_lines;
+                    }
                 } else {
                     self.terminal.write(&output.string)?;
                 }
@@ -253,6 +268,7 @@ impl IRust {
     }
 
     pub fn write_in(&mut self) -> Result<(), IRustError> {
+        self.cursor.goto_start();
         self.color.set_fg(crossterm::Color::Yellow)?;
         self.write("In: ")?;
         self.color.reset()?;

@@ -19,7 +19,7 @@ impl IRust {
 
     pub fn write_newline(&mut self) -> Result<(), IRustError> {
         self.move_screen_cursor_to_last_line();
-        crate::log!("cp: {}", self.cursor.pos.current_pos.1);
+
         // check for scroll
         if self.cursor.is_at_last_terminal_row() {
             self.scroll_up(1);

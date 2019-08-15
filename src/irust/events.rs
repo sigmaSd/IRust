@@ -11,7 +11,6 @@ impl IRust {
         self.print()?;
         self.cursor.move_right_unbounded();
         self.unlock_racer_update()?;
-        crate::log!("cp: {}", self.cursor.pos.current_pos.1);
         Ok(())
     }
 
@@ -132,12 +131,11 @@ impl IRust {
     }
 
     pub fn handle_right(&mut self) -> Result<(), IRustError> {
-        if self.cursor.is_at_line_end(&self) {
-            let _ = self.use_suggestion();
-        }
         if !self.buf.is_at_end() {
             self.cursor.move_right();
             self.buf.move_forward();
+        } else {
+            let _ = self.use_suggestion();
         }
         Ok(())
     }
@@ -275,12 +273,11 @@ impl IRust {
     }
 
     pub fn handle_ctrl_right(&mut self) {
-        if self.cursor.is_at_line_end(&self) {
-            let _ = self.use_suggestion();
-        }
         if !self.buf.is_at_end() {
             self.cursor.move_right();
             self.buf.move_forward();
+        } else {
+            let _ = self.use_suggestion();
         }
 
         if let Some(current_char) = self.buf.current_char() {
