@@ -1,3 +1,8 @@
+**0.7.0**
+- Start of major code-base refactor
+- Input is now highlighted
+- Credits to @smolck for his awesome ideas and contributions!
+
 **0.6.14**
 - Fix scrolling bug
 - Improve highlight fn (using lazy evaluation)
