@@ -1,6 +1,4 @@
-use crossterm::{
-    Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalInput,
-};
+use crossterm::{Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalInput};
 
 mod art;
 mod cargo_cmds;
@@ -27,8 +25,10 @@ use options::Options;
 use printer::Printer;
 use racer::Racer;
 use repl::Repl;
+mod buffer;
+use buffer::Buffer;
 
-const IN: &str = "In: ";
+const _IN: &str = "In: ";
 const OUT: &str = "Out: ";
 
 pub struct IRust {
@@ -37,6 +37,7 @@ pub struct IRust {
     printer: Printer,
     color: TerminalColor,
     buffer: String,
+    buf: Buffer,
     repl: Repl,
     cursor: Cursor,
     history: History,
@@ -67,7 +68,7 @@ impl IRust {
             let (width, height) = terminal.terminal_size();
             (width as usize, height as usize)
         };
-        let cursor = Cursor::new(0, 0, size.0);
+        let cursor = Cursor::new(0, 0, size.0, size.1);
 
         IRust {
             cursor,
@@ -82,6 +83,7 @@ impl IRust {
             racer,
             debouncer,
             size,
+            buf: Buffer::new(size.0 - 1),
         }
     }
 
@@ -138,10 +140,10 @@ impl IRust {
                         self.handle_ctrl_l()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Home) => {
-                        self.go_to_start()?;
+                        self.handle_home_key()?;
                     }
                     InputEvent::Keyboard(KeyEvent::End) => {
-                        self.go_to_end()?;
+                        self.handle_end_key()?;
                     }
                     InputEvent::Keyboard(KeyEvent::CtrlLeft) => {
                         self.handle_ctrl_left();
