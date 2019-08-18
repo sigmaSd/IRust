@@ -8,7 +8,7 @@ const NEW_HISTORY_MARK: &str = "##NewHistoryMark##\n//\n";
 #[derive(Default)]
 pub struct History {
     history: Vec<String>,
-    current: String,
+    current_buffer: String,
     cursor: usize,
     path: path::PathBuf,
 }
@@ -35,11 +35,11 @@ impl History {
         };
 
         let cursor = history.len();
-        let current = String::new();
+        let current_buffer = String::new();
 
         Ok(Self {
             history,
-            current,
+            current_buffer,
             cursor,
             path,
         })
@@ -49,7 +49,7 @@ impl History {
         self.cursor += 1;
         if self.cursor >= filtered.len() {
             self.cursor = filtered.len();
-            Some(self.current.clone())
+            Some(self.current_buffer.clone())
         } else {
             Some(filtered[self.cursor].clone())
         }
@@ -68,19 +68,19 @@ impl History {
 
     pub fn push(&mut self, buffer: String) {
         if !buffer.is_empty() && Some(&buffer) != self.history.last() {
-            self.current.clear();
+            self.current_buffer.clear();
             self.history.push(buffer);
             self.go_to_last();
         }
     }
 
-    pub fn update_current(&mut self, buffer: &str) {
-        self.current = buffer.to_string();
+    pub fn update_current_buffer(&mut self, buffer: &str) {
+        self.current_buffer = buffer.to_string();
         self.cursor = self.history.len();
     }
 
-    pub fn reset_current(&mut self) {
-        self.current.clear();
+    pub fn reset_current_buffer(&mut self) {
+        self.current_buffer.clear();
         self.cursor = self.history.len();
     }
 
@@ -111,7 +111,7 @@ impl History {
     fn filter(&self) -> Vec<String> {
         self.history
             .iter()
-            .filter(|h| h.contains(&self.current))
+            .filter(|h| h.contains(&self.current_buffer))
             .map(ToOwned::to_owned)
             .collect()
     }
