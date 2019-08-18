@@ -8,6 +8,7 @@ use crossterm::{ClearType, Color};
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> Result<(), IRustError> {
         self.buffer.insert(c);
+        self.history.update_current(&self.buffer.to_string());
         self.write_input()?;
         self.cursor.move_right_unbounded();
         self.unlock_racer_update()?;
@@ -47,8 +48,8 @@ impl IRust {
         // ensure buffer is cleaned
         self.buffer.clear();
 
-        // update history current
-        self.history.update_current("");
+        // reset history current
+        self.history.reset_current();
 
         // write out
         if !self.printer.is_empty() {

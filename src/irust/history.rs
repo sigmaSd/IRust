@@ -79,6 +79,11 @@ impl History {
         self.cursor = self.history.len();
     }
 
+    pub fn reset_current(&mut self) {
+        self.current.clear();
+        self.cursor = self.history.len();
+    }
+
     pub fn save(&self) {
         let is_comment = |s: &str| -> bool { s.trim_start().starts_with("//") };
         let mut history = self.history.clone();
