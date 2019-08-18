@@ -64,6 +64,16 @@ impl Cursor {
         let _ = self.goto_internal_pos();
     }
 
+    pub fn move_up(&mut self, count: u16) {
+        self.pos.current_pos.1 = self.pos.current_pos.1.saturating_sub(count as usize);
+        self.cursor.move_up(count);
+    }
+
+    pub fn move_down(&mut self, count: u16) {
+        self.pos.current_pos.1 += count as usize;
+        self.cursor.move_down(count);
+    }
+
     pub fn use_current_row_as_starting_row(&mut self) {
         self.pos.starting_pos.1 = self.pos.current_pos.1;
     }
@@ -83,7 +93,7 @@ impl Cursor {
     }
 
     pub fn is_at_line_end(&self, irust: &IRust) -> bool {
-        irust.buf.is_at_end()
+        irust.buffer.is_at_end()
             || self.pos.current_pos.0 == *self.bound.get_bound(self.pos.current_pos.1)
     }
 
@@ -122,28 +132,21 @@ impl Cursor {
         self.cursor.show().unwrap();
     }
 
-    pub fn move_up(&mut self, count: u16) {
-        self.pos.current_pos.1 = self.pos.current_pos.1.saturating_sub(count as usize);
-        self.cursor.move_up(count);
-    }
-
-    pub fn move_down(&mut self, count: u16) {
-        self.pos.current_pos.1 += count as usize;
-        //self.pos.current_pos.1 = std::cmp::min(self.pos.current_pos.1, self.bound.height - 1);
-        self.cursor.move_down(count);
-    }
-
     pub fn goto_start(&mut self) {
         self.pos.current_pos.0 = self.pos.starting_pos.0;
         self.pos.current_pos.1 = self.pos.starting_pos.1;
         let _ = self.goto_internal_pos();
     }
 
-    pub fn is_at_last_terminal_col(&self) -> bool {
+    pub fn _is_at_last_terminal_col(&self) -> bool {
         self.pos.current_pos.0 == self.bound.width - 1
     }
 
     pub fn is_at_last_terminal_row(&self) -> bool {
         self.pos.current_pos.1 == self.bound.height - 1
+    }
+
+    pub fn is_at_col(&self, col: usize) -> bool {
+        self.pos.current_pos.0 == col
     }
 }

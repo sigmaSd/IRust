@@ -156,23 +156,25 @@ impl Racer {
 
 impl IRust {
     pub fn update_suggestions(&mut self) -> Result<(), IRustError> {
+        // get the buffer as string
+        let buffer: String = self.buffer.iter().take(self.buffer.buffer_pos).collect();
+
         // return if we're not at the end of the line
         if !self.cursor.is_at_line_end(&self) {
             return Ok(());
         }
 
         // don't autocomplete shell commands
-        if self.buffer.starts_with("::") {
+        if buffer.starts_with("::") {
             return Ok(());
         }
 
-        self.show_suggestions_inner()?;
+        self.show_suggestions_inner(buffer)?;
 
         Ok(())
     }
 
-    fn show_suggestions_inner(&mut self) -> Result<(), IRustError> {
-        let buffer = self.buf.to_string();
+    fn show_suggestions_inner(&mut self, buffer: String) -> Result<(), IRustError> {
         if buffer.starts_with(':') {
             // Auto complete IRust commands
             self.racer.as_mut()?.suggestions = self
@@ -188,13 +190,10 @@ impl IRust {
             // Auto complete rust code
             let mut racer = self.racer.as_mut()?;
 
-            racer.cursor.0 = self.repl.body.len()
-                + StringTools::new_lines_count(
-                    &buffer.chars().take(self.buf.buffer_pos).collect::<String>(),
-                );
+            racer.cursor.0 = self.repl.body.len() + StringTools::new_lines_count(&buffer);
 
             racer.cursor.1 = 0;
-            for c in buffer.chars().take(self.buf.buffer_pos) {
+            for c in buffer.chars() {
                 if c == '\n' {
                     racer.cursor.1 = 0;
                 } else {
@@ -203,7 +202,7 @@ impl IRust {
             }
 
             self.repl
-                .exec_in_tmp_repl(buffer.clone(), move || -> Result<(), IRustError> {
+                .eval_in_tmp_repl(buffer, move || -> Result<(), IRustError> {
                     racer.complete_code().map_err(From::from)
                 })?;
 
@@ -242,7 +241,12 @@ impl IRust {
         if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
             self.terminal.clear(ClearType::UntilNewLine)?;
             let mut suggestion = suggestion.0;
-            let buffer: String = self.buf.buffer.iter().take(self.buf.buffer_pos).collect();
+            let buffer: String = self
+                .buffer
+                .buffer
+                .iter()
+                .take(self.buffer.buffer_pos)
+                .collect();
             StringTools::strings_unique(&buffer, &mut suggestion);
             self.cursor.hide();
             self.color
@@ -348,17 +352,22 @@ impl IRust {
             let mut suggestion = suggestion.0;
 
             // get the unique part of the name
-            let buffer: String = self.buf.buffer.iter().take(self.buf.buffer_pos).collect();
+            let buffer: String = self
+                .buffer
+                .buffer
+                .iter()
+                .take(self.buffer.buffer_pos)
+                .collect();
             StringTools::strings_unique(&buffer, &mut suggestion);
 
-            self.buf.insert_str(&suggestion);
+            self.buffer.insert_str(&suggestion);
             let chars_count = StringTools::chars_count(&suggestion);
 
             for _ in 0..chars_count {
                 self.cursor.move_right_unbounded();
             }
 
-            self.print()?;
+            self.write_input()?;
         }
 
         Ok(())
@@ -380,7 +389,7 @@ impl IRust {
 
     pub fn check_racer_callback(&mut self) -> Result<(), IRustError> {
         let mut inner = || -> Result<(), IRustError> {
-            if let Some(character) = self.buf.previous_char() {
+            if let Some(character) = self.buffer.previous_char() {
                 if character.is_alphanumeric()
                     && !self.racer_update_locked()?
                     && self.debouncer.recv.try_recv().is_ok()

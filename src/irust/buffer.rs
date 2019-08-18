@@ -2,13 +2,13 @@
 pub struct Buffer {
     pub buffer: Vec<char>,
     pub buffer_pos: usize,
-    max_line_character: usize,
+    max_line_char: usize,
 }
 
 impl Buffer {
-    pub fn new(max_line_character: usize) -> Self {
+    pub fn new(max_line_char: usize) -> Self {
         Self {
-            max_line_character,
+            max_line_char,
             ..Self::default()
         }
     }
@@ -25,8 +25,6 @@ impl Buffer {
     pub fn remove_current_char(&mut self) -> Option<char> {
         if !self.is_empty() {
             let character = self.buffer.remove(self.buffer_pos);
-            //self.move_backward();
-
             Some(character)
         } else {
             None
@@ -51,9 +49,6 @@ impl Buffer {
 
     pub fn move_forward(&mut self) {
         self.buffer_pos += 1;
-        // if self.buffer_pos == self.len() {
-        //     self.buffer_pos = self.len().saturating_sub(1);
-        // }
     }
 
     pub fn move_backward(&mut self) {
@@ -97,19 +92,24 @@ impl Buffer {
     }
 
     pub fn to_relative_current_pos(&self) -> (usize, usize) {
-        let x = self
-            .buffer
-            .iter()
-            .take(self.buffer_pos)
-            .filter(|c| **c != '\n')
-            .count();
-
-        let y = self
+        let mut y = self
             .buffer
             .iter()
             .take(self.buffer_pos)
             .filter(|c| **c == '\n')
             .count();
+
+        let mut x = 0;
+        for i in 0..self.buffer_pos {
+            match self.buffer.get(i) {
+                Some('\n') => x = 0,
+                _ => x += 1,
+            };
+            if x == self.max_line_char {
+                x = 0;
+                y += 1;
+            }
+        }
 
         (x, y)
     }
@@ -123,11 +123,11 @@ impl Buffer {
         relative_pos
     }
 
-    pub fn from_str(str: &str, max_line_character: usize) -> Self {
+    pub fn from_str(str: &str, max_line_char: usize) -> Self {
         Self {
             buffer: str.chars().collect(),
             buffer_pos: 0,
-            max_line_character,
+            max_line_char,
         }
     }
 
@@ -137,6 +137,10 @@ impl Buffer {
 
     pub fn _last(&self) -> Option<&char> {
         self.buffer.last()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &char> {
+        self.buffer.iter()
     }
 }
 

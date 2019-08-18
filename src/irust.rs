@@ -1,4 +1,4 @@
-use crossterm::{Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalInput};
+use crossterm::{Color, Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalInput};
 
 mod art;
 mod cargo_cmds;
@@ -7,7 +7,6 @@ mod debouncer;
 mod events;
 mod format;
 mod help;
-#[cfg(feature = "highlight")]
 mod highlight;
 mod history;
 mod irust_error;
@@ -22,7 +21,7 @@ use debouncer::Debouncer;
 use history::History;
 use irust_error::IRustError;
 use options::Options;
-use printer::Printer;
+use printer::{Printer, INPUT_START_COL};
 use racer::Racer;
 use repl::Repl;
 mod buffer;
@@ -36,8 +35,7 @@ pub struct IRust {
     input: TerminalInput,
     printer: Printer,
     color: TerminalColor,
-    buffer: String,
-    buf: Buffer,
+    buffer: Buffer,
     repl: Repl,
     cursor: Cursor,
     history: History,
@@ -54,7 +52,6 @@ impl IRust {
         let input = crossterm.input();
         let printer = Printer::default();
         let color = crossterm.color();
-        let buffer = String::new();
         let repl = Repl::new();
         let history = History::new(dirs::cache_dir().unwrap().join("irust")).unwrap_or_default();
         let options = Options::new().unwrap_or_default();
@@ -76,14 +73,13 @@ impl IRust {
             input,
             printer,
             color,
-            buffer,
             repl,
             history,
             options,
             racer,
             debouncer,
             size,
-            buf: Buffer::new(size.0 - 1),
+            buffer: Buffer::new(size.0 - INPUT_START_COL),
         }
     }
 
@@ -91,7 +87,7 @@ impl IRust {
         self.repl.prepare_ground()?;
         self.debouncer.run();
         self.welcome()?;
-        self.write_in()?;
+        self.write_from_terminal_start("In: ", Color::Yellow)?;
         Ok(())
     }
 

@@ -1,19 +1,27 @@
-use crossterm::ClearType;
+use crossterm::{ClearType, Color};
 
 use crate::irust::{IRust, IRustError};
 
 impl IRust {
-    pub fn write(&mut self, out: &str) -> Result<(), IRustError> {
+    pub fn write(&mut self, out: &str, color: Color) -> Result<(), IRustError> {
+        self.color.set_fg(color)?;
         for c in out.chars() {
             self.terminal.write(c)?;
-            self.cursor.move_right();
+            self.cursor.move_right_unbounded();
         }
+        self.color.reset()?;
         Ok(())
     }
 
     pub fn write_str_at(&mut self, s: &str, x: usize, y: usize) -> Result<(), IRustError> {
         self.cursor.goto(x, y);
         self.terminal.write(s)?;
+        Ok(())
+    }
+
+    pub fn write_from_terminal_start(&mut self, out: &str, color: Color) -> Result<(), IRustError> {
+        self.cursor.goto(0, self.cursor.pos.current_pos.1);
+        self.write(out, color)?;
         Ok(())
     }
 
@@ -32,10 +40,10 @@ impl IRust {
 
     pub fn clear(&mut self) -> Result<(), IRustError> {
         self.terminal.clear(ClearType::All)?;
-        self.buf.goto_start();
+        self.buffer.goto_start();
         self.cursor.pos.starting_pos = (0, 0);
         self.cursor.goto(4, 0);
-        self.print()?;
+        self.write_input()?;
         Ok(())
     }
 

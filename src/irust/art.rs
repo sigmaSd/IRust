@@ -78,7 +78,7 @@ impl IRust {
         self.printer = Printer::new(PrinterItem::new(default_msg, PrinterItemType::Welcome));
         self.printer.add_new_line(1);
 
-        self.write_out()?;
+        self.write_output()?;
 
         Ok(())
     }

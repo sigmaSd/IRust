@@ -185,7 +185,7 @@ impl VecTools {
 pub fn read_until_bytes<R: std::io::BufRead + ?Sized>(
     r: &mut R,
     delim: &[u8],
-    buf: &mut Vec<u8>,
+    buffer: &mut Vec<u8>,
 ) -> std::io::Result<usize> {
     let mut read = 0;
     let mut count = 0;
@@ -198,7 +198,7 @@ pub fn read_until_bytes<R: std::io::BufRead + ?Sized>(
             };
             match available.iter().position(|b| *b == delim[count]) {
                 Some(i) => {
-                    buf.extend_from_slice(&available[..=i]);
+                    buffer.extend_from_slice(&available[..=i]);
 
                     count += 1;
                     if count == delim.len() {
@@ -209,7 +209,7 @@ pub fn read_until_bytes<R: std::io::BufRead + ?Sized>(
                 }
                 None => {
                     count = 0;
-                    buf.extend_from_slice(available);
+                    buffer.extend_from_slice(available);
                     (false, available.len())
                 }
             }

@@ -50,7 +50,7 @@ impl Repl {
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut eval_result = String::new();
 
-        self.exec_in_tmp_repl(eval_statement, || -> Result<(), IRustError> {
+        self.eval_in_tmp_repl(eval_statement, || -> Result<(), IRustError> {
             eval_result = cargo_run(true)?;
             Ok(())
         })?;
@@ -73,7 +73,7 @@ impl Repl {
         Ok(())
     }
 
-    pub fn exec_in_tmp_repl(
+    pub fn eval_in_tmp_repl(
         &mut self,
         input: String,
         mut f: impl FnMut() -> Result<(), IRustError>,

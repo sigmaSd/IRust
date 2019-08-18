@@ -14,6 +14,8 @@ pub fn highlight(c: &str) -> Printer {
 
     let mut printer = Printer::default();
 
+    // we Use `LinesWithEndings` instead of `lines`
+    // becuase according to syntect docs can parsing with `lines` can break in some rare tricky cases
     for line in LinesWithEndings::from(c) {
         h.highlight(line, &PS)
             .into_iter()
@@ -22,7 +24,8 @@ pub fn highlight(c: &str) -> Printer {
                     Color { r, g, b, .. } => crossterm::Color::Rgb { r, g, b },
                 };
                 printer.push(PrinterItem::new(
-                    part.to_string(),
+                    // trim() because we dont want the new line (we kept it for syntect parser)
+                    part.trim_end_matches('\n').to_string(),
                     PrinterItemType::Custom(fg_color),
                 ));
             });
