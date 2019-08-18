@@ -1,3 +1,8 @@
+**0.7.1**
+- Clean up
+- Bug fixes
+- Restore disabled functionalities (disabled in 0.7.0)
+
 **0.7.0**
 - Start of major code-base refactor
 - Input is now highlighted
