@@ -1,3 +1,6 @@
+**0.7.2**
+- Restore History filtering based on current buffer
+
 **0.7.1**
 - Clean up
 - Bug fixes
