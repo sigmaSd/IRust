@@ -1,5 +1,4 @@
 use super::cargo_cmds::{cargo_fmt, cargo_run};
-#[cfg(feature = "highlight")]
 use super::highlight::highlight;
 use crate::irust::format::format_eval_output;
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
@@ -52,18 +51,9 @@ impl IRust {
     }
 
     fn show(&mut self) -> Result<Printer, IRustError> {
-        #[cfg(feature = "highlight")]
-        let code = highlight(&self.repl.show());
+        let repl_code = highlight(&self.repl.show());
 
-        // a default show method for dev builds (less compile time)
-        // via cargo b --no-default-features
-        #[cfg(not(feature = "highlight"))]
-        let code = Printer::new(PrinterItem::new(
-            self.repl.show(),
-            PrinterItemType::Custom(crossterm::Color::DarkCyan),
-        ));
-
-        Ok(code)
+        Ok(repl_code)
     }
 
     fn add_dep(&mut self) -> Result<Printer, IRustError> {

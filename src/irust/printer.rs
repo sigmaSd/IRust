@@ -1,4 +1,5 @@
 use crate::irust::{IRust, IRustError};
+use crate::utils::StringTools;
 use crossterm::{ClearType, Color};
 use std::iter::FromIterator;
 
@@ -17,14 +18,14 @@ pub enum PrinterItemType {
     Out,
     Shell,
     Err,
-    Empty,
+    NewLine,
     Welcome,
     Custom(Color),
 }
 
 impl Default for PrinterItemType {
     fn default() -> Self {
-        PrinterItemType::Empty
+        PrinterItemType::NewLine
     }
 }
 
@@ -98,7 +99,7 @@ impl Default for PrinterItem {
     fn default() -> Self {
         Self {
             string: String::new(),
-            out_type: PrinterItemType::Empty,
+            out_type: PrinterItemType::NewLine,
         }
     }
 }
@@ -163,7 +164,7 @@ impl IRust {
                         }
                     }
                 }
-                PrinterItemType::Empty => {
+                PrinterItemType::NewLine => {
                     self.cursor.bound_current_row_at_current_col();
                     self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
                     self.write_from_terminal_start("..: ", Color::Yellow)?;
@@ -176,18 +177,18 @@ impl IRust {
     }
 
     pub fn write_output(&mut self, printer: Printer) -> Result<(), IRustError> {
+        // check if need to scroll
         let new_lines = printer
             .iter()
-            .filter(|p| p.out_type == PrinterItemType::Empty)
+            .filter(|p| p.out_type == PrinterItemType::NewLine)
             .count();
 
-        let overflow = (new_lines + self.cursor.pos.current_pos.1)
-            .saturating_sub(self.cursor.bound.height - 1);
-        if overflow > 0 {
-            self.scroll_up(overflow);
+        let height_overflow = self.cursor.screen_height_overflow_by_new_lines(new_lines);
+        if height_overflow > 0 {
+            self.scroll_up(height_overflow);
         }
 
-        for output in printer.clone() {
+        for output in printer {
             let color = match output.out_type {
                 PrinterItemType::Eval => self.options.eval_color,
                 PrinterItemType::Ok => self.options.ok_color,
@@ -205,9 +206,9 @@ impl IRust {
                     self.write(&msg, self.options.welcome_color)?;
                     continue;
                 }
-                PrinterItemType::Empty => {
+                PrinterItemType::NewLine => {
                     self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
-                    self.cursor.pos.starting_pos.1 = self.cursor.pos.current_pos.1;
+                    self.cursor.use_current_row_as_starting_row();
                     continue;
                 }
                 PrinterItemType::Custom(color) => color,
@@ -215,19 +216,21 @@ impl IRust {
 
             self.raw_terminal.set_fg(color)?;
             if !output.string.is_empty() {
-                if crate::utils::StringTools::is_multiline(&output.string) {
+                if StringTools::is_multiline(&output.string) {
                     self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
 
-                    output.string.split('\n').for_each(|o| {
-                        let _ = self.raw_terminal.write(o);
+                    output.string.split('\n').for_each(|line| {
+                        let _ = self.raw_terminal.write(line);
                         let _ = self.raw_terminal.write("\r\n");
                     });
 
-                    // check if we scrolled
-                    let new_lines = (output.string.chars().filter(|c| *c == '\n')).count();
-                    let overflow = (new_lines + self.cursor.pos.current_pos.1)
-                        .saturating_sub(self.cursor.bound.height - 1);
-                    if overflow > 0 {
+                    // check if we did scroll automatically
+                    // TODO: maybe convert all output.string newlines to printer NewLine
+                    // So I can remove this check
+                    let new_lines = StringTools::new_lines_count(&output.string);
+                    let height_overflow =
+                        self.cursor.screen_height_overflow_by_new_lines(new_lines);
+                    if height_overflow > 0 {
                         self.raw_terminal.scroll_up(1)?;
                         self.cursor.pos.current_pos.1 = self.cursor.bound.height - 1;
                     } else {

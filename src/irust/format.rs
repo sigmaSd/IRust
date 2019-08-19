@@ -7,8 +7,8 @@ pub fn format_eval_output(output: &str) -> Printer {
     let mut eval_output = Printer::default();
     if output.contains("irust v0.1.0 (/tmp/irust)") {
         // Consider this an error
-        let lines_count = output.lines().count();
 
+        let lines_count = output.lines().count();
         let actual_error: String = if main_panic(&output) {
             // example:
             // thread 'main' panicked at 'attempt to multiply with overflow',
