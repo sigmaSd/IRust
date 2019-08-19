@@ -172,7 +172,7 @@ impl IRust {
             self.exit()?;
         } else {
             self.write_newline()?;
-            self.terminal.clear(ClearType::FromCursorDown)?;
+            self.raw_terminal.clear(ClearType::FromCursorDown)?;
             self.write_from_terminal_start("In: ", Color::Yellow)?;
             self.buffer.clear();
         }
@@ -187,10 +187,9 @@ impl IRust {
     }
 
     fn exit(&mut self) -> Result<(), IRustError> {
-        crossterm::RawScreen::disable_raw_mode()?;
         self.history.save();
-        self.terminal.clear(ClearType::All)?;
-        self.terminal.exit();
+        self.raw_terminal.clear(ClearType::All)?;
+        self.raw_terminal.exit();
         Ok(())
     }
 
@@ -201,7 +200,7 @@ impl IRust {
                 sys::signal::{kill, Signal},
                 unistd::Pid,
             };
-            self.terminal.clear(ClearType::All)?;
+            self.raw_terminal.clear(ClearType::All)?;
             let _ = kill(Pid::this(), Some(Signal::SIGTSTP));
 
             // display empty prompt after SIGCONT

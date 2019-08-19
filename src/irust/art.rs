@@ -10,7 +10,7 @@ impl IRust {
         msg: &str,
     ) -> Result<(), IRustError> {
         self.cursor.hide();
-        self.color.set_fg(Color::Cyan)?;
+        self.raw_terminal.set_fg(Color::Cyan)?;
 
         match self.wait_add_inner(&mut add_cmd, msg) {
             Ok(()) => {
@@ -67,12 +67,12 @@ impl IRust {
         self.cursor.reset_position()?;
         self.write_newline()?;
         self.cursor.show();
-        self.color.reset()?;
+        self.raw_terminal.reset_color()?;
         Ok(())
     }
 
     pub fn welcome(&mut self) -> Result<(), IRustError> {
-        self.terminal.clear(ClearType::All)?;
+        self.raw_terminal.clear(ClearType::All)?;
 
         let default_msg = "Welcome to IRust".to_string();
         let mut output = Printer::new(PrinterItem::new(default_msg, PrinterItemType::Welcome));
@@ -84,7 +84,7 @@ impl IRust {
     }
 
     pub fn fit_msg(&mut self, msg: &str) -> String {
-        let slash_num = self.terminal.terminal_size().0 as usize - msg.len();
+        let slash_num = self.raw_terminal.terminal_size().0 as usize - msg.len();
         let slash = std::iter::repeat('-')
             .take(slash_num / 2)
             .collect::<String>();

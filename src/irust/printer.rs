@@ -140,7 +140,7 @@ impl IRust {
 
         self.cursor.save_position()?;
         self.cursor.goto_start();
-        self.terminal.clear(ClearType::FromCursorDown)?;
+        self.raw_terminal.clear(ClearType::FromCursorDown)?;
         self.write_from_terminal_start("In: ", Color::Yellow)?;
 
         let input = super::highlight::highlight(&self.buffer.to_string());
@@ -154,7 +154,7 @@ impl IRust {
         for elem in printer {
             match elem.out_type {
                 PrinterItemType::Custom(color) => {
-                    let _ = self.color.set_fg(color);
+                    let _ = self.raw_terminal.set_fg(color);
 
                     for c in elem.string.chars() {
                         self.write(&c.to_string(), color)?;
@@ -213,14 +213,14 @@ impl IRust {
                 PrinterItemType::Custom(color) => color,
             };
 
-            self.color.set_fg(color)?;
+            self.raw_terminal.set_fg(color)?;
             if !output.string.is_empty() {
                 if crate::utils::StringTools::is_multiline(&output.string) {
                     self.cursor.goto(0, self.cursor.pos.current_pos.1 + 1);
 
                     output.string.split('\n').for_each(|o| {
-                        let _ = self.terminal.write(o);
-                        let _ = self.terminal.write("\r\n");
+                        let _ = self.raw_terminal.write(o);
+                        let _ = self.raw_terminal.write("\r\n");
                     });
 
                     // check if we scrolled
@@ -228,13 +228,13 @@ impl IRust {
                     let overflow = (new_lines + self.cursor.pos.current_pos.1)
                         .saturating_sub(self.cursor.bound.height - 1);
                     if overflow > 0 {
-                        self.terminal.scroll_up(1)?;
+                        self.raw_terminal.scroll_up(1)?;
                         self.cursor.pos.current_pos.1 = self.cursor.bound.height - 1;
                     } else {
                         self.cursor.pos.current_pos.1 += new_lines;
                     }
                 } else {
-                    self.terminal.write(&output.string)?;
+                    self.raw_terminal.write(&output.string)?;
                 }
             }
         }

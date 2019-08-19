@@ -239,7 +239,7 @@ impl IRust {
         }
 
         if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
-            self.terminal.clear(ClearType::UntilNewLine)?;
+            self.raw_terminal.clear(ClearType::UntilNewLine)?;
             let mut suggestion = suggestion.0;
             let buffer: String = self
                 .buffer
@@ -249,12 +249,12 @@ impl IRust {
                 .collect();
             StringTools::strings_unique(&buffer, &mut suggestion);
             self.cursor.hide();
-            self.color
+            self.raw_terminal
                 .set_fg(self.options.racer_inline_suggestion_color)?;
             self.cursor.cursor.save_position()?;
-            self.terminal.write(&suggestion)?;
+            self.raw_terminal.write(&suggestion)?;
             self.cursor.cursor.reset_position()?;
-            self.color.reset()?;
+            self.raw_terminal.reset_color()?;
             self.cursor.show();
         }
 
@@ -295,10 +295,10 @@ impl IRust {
         self.cursor.pos.current_pos.0 = 0;
         self.cursor.goto_internal_pos()?;
         self.cursor.cursor.move_down(1);
-        self.terminal.clear(ClearType::FromCursorDown)?;
+        self.raw_terminal.clear(ClearType::FromCursorDown)?;
         self.cursor.cursor.move_up(1);
 
-        self.color
+        self.raw_terminal
             .set_fg(self.options.racer_suggestions_table_color)?;
         let current_suggestion = self.racer.as_ref()?.current_suggestion();
 
@@ -325,18 +325,18 @@ impl IRust {
             self.cursor.cursor.save_position()?;
 
             if Some(&suggestion_c) == current_suggestion.as_ref() {
-                self.color
+                self.raw_terminal
                     .set_bg(self.options.racer_selected_suggestion_color)?;
             }
 
-            self.terminal.write(&suggestion)?;
-            self.color.set_bg(crossterm::Color::Reset)?;
+            self.raw_terminal.write(&suggestion)?;
+            self.raw_terminal.set_bg(crossterm::Color::Reset)?;
             self.cursor.cursor.reset_position()?;
             self.cursor.move_up(idx as u16 + 1);
         }
 
         // reset to input position and color
-        self.color.reset()?;
+        self.raw_terminal.reset_color()?;
         self.cursor.reset_position()?;
         self.cursor.goto_internal_pos()?;
 

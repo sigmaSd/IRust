@@ -1,4 +1,4 @@
-use crossterm::{Color, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalInput};
+use crossterm::{Color, InputEvent, KeyEvent, TerminalInput};
 
 mod art;
 mod cargo_cmds;
@@ -26,13 +26,14 @@ use racer::Racer;
 use repl::Repl;
 mod buffer;
 use buffer::Buffer;
+mod raw_terminal;
+use raw_terminal::RawTerminal;
 
 const _IN: &str = "In: ";
 const OUT: &str = "Out: ";
 
 pub struct IRust {
-    terminal: Terminal,
-    color: TerminalColor,
+    raw_terminal: RawTerminal,
     buffer: Buffer,
     repl: Repl,
     cursor: Cursor,
@@ -44,8 +45,7 @@ pub struct IRust {
 
 impl IRust {
     pub fn new() -> Self {
-        let terminal = Terminal::new();
-        let color = TerminalColor::new();
+        let raw_terminal = RawTerminal::new();
         let repl = Repl::new();
         let history = History::new(dirs::cache_dir().unwrap().join("irust")).unwrap_or_default();
         let options = Options::new().unwrap_or_default();
@@ -56,15 +56,14 @@ impl IRust {
             Err(IRustError::RacerDisabled)
         };
         let size = {
-            let (width, height) = terminal.terminal_size();
+            let (width, height) = raw_terminal.terminal_size();
             (width as usize, height as usize)
         };
         let cursor = Cursor::new(0, 0, size.0, size.1);
 
         IRust {
             cursor,
-            terminal,
-            color,
+            raw_terminal,
             repl,
             history,
             options,
