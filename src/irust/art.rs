@@ -75,10 +75,10 @@ impl IRust {
         self.terminal.clear(ClearType::All)?;
 
         let default_msg = "Welcome to IRust".to_string();
-        self.printer = Printer::new(PrinterItem::new(default_msg, PrinterItemType::Welcome));
-        self.printer.add_new_line(1);
+        let mut output = Printer::new(PrinterItem::new(default_msg, PrinterItemType::Welcome));
+        output.add_new_line(1);
 
-        self.write_output()?;
+        self.write_output(output)?;
 
         Ok(())
     }

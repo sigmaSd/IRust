@@ -175,9 +175,8 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_output(&mut self) -> Result<(), IRustError> {
-        let new_lines = self
-            .printer
+    pub fn write_output(&mut self, printer: Printer) -> Result<(), IRustError> {
+        let new_lines = printer
             .iter()
             .filter(|p| p.out_type == PrinterItemType::Empty)
             .count();
@@ -188,7 +187,7 @@ impl IRust {
             self.scroll_up(overflow);
         }
 
-        for output in self.printer.clone() {
+        for output in printer.clone() {
             let color = match output.out_type {
                 PrinterItemType::Eval => self.options.eval_color,
                 PrinterItemType::Ok => self.options.ok_color,

@@ -36,14 +36,10 @@ impl IRust {
         }
 
         // parse and handle errors
-        match self.parse() {
-            Ok(out) => {
-                self.printer = out;
-            }
-            Err(e) => {
-                self.printer = Printer::new(PrinterItem::new(e.to_string(), PrinterItemType::Err));
-            }
-        }
+        let mut output = match self.parse() {
+            Ok(out) => out,
+            Err(e) => Printer::new(PrinterItem::new(e.to_string(), PrinterItemType::Err)),
+        };
 
         // ensure buffer is cleaned
         self.buffer.clear();
@@ -52,9 +48,9 @@ impl IRust {
         self.history.reset_current_buffer();
 
         // write out
-        if !self.printer.is_empty() {
-            self.printer.add_new_line(1);
-            self.write_output()?;
+        if !output.is_empty() {
+            output.add_new_line(1);
+            self.write_output(output)?;
         }
 
         self.write_input()?;

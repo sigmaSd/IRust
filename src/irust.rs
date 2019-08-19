@@ -21,7 +21,7 @@ use debouncer::Debouncer;
 use history::History;
 use irust_error::IRustError;
 use options::Options;
-use printer::{Printer, INPUT_START_COL};
+use printer::INPUT_START_COL;
 use racer::Racer;
 use repl::Repl;
 mod buffer;
@@ -32,7 +32,6 @@ const OUT: &str = "Out: ";
 
 pub struct IRust {
     terminal: Terminal,
-    printer: Printer,
     color: TerminalColor,
     buffer: Buffer,
     repl: Repl,
@@ -46,7 +45,6 @@ pub struct IRust {
 impl IRust {
     pub fn new() -> Self {
         let terminal = Terminal::new();
-        let printer = Printer::default();
         let color = TerminalColor::new();
         let repl = Repl::new();
         let history = History::new(dirs::cache_dir().unwrap().join("irust")).unwrap_or_default();
@@ -66,7 +64,6 @@ impl IRust {
         IRust {
             cursor,
             terminal,
-            printer,
             color,
             repl,
             history,
