@@ -1,4 +1,4 @@
-use crossterm::{Color, Crossterm, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalInput};
+use crossterm::{Color, InputEvent, KeyEvent, Terminal, TerminalColor, TerminalInput};
 
 mod art;
 mod cargo_cmds;
@@ -32,7 +32,6 @@ const OUT: &str = "Out: ";
 
 pub struct IRust {
     terminal: Terminal,
-    input: TerminalInput,
     printer: Printer,
     color: TerminalColor,
     buffer: Buffer,
@@ -47,11 +46,9 @@ pub struct IRust {
 
 impl IRust {
     pub fn new() -> Self {
-        let crossterm = Crossterm::new();
-        let terminal = crossterm.terminal();
-        let input = crossterm.input();
+        let terminal = Terminal::new();
         let printer = Printer::default();
-        let color = crossterm.color();
+        let color = TerminalColor::new();
         let repl = Repl::new();
         let history = History::new(dirs::cache_dir().unwrap().join("irust")).unwrap_or_default();
         let options = Options::new().unwrap_or_default();
@@ -70,7 +67,6 @@ impl IRust {
         IRust {
             cursor,
             terminal,
-            input,
             printer,
             color,
             repl,
@@ -93,7 +89,7 @@ impl IRust {
 
     pub fn run(&mut self) -> Result<(), IRustError> {
         self.prepare()?;
-        let mut stdin = self.input.read_sync();
+        let mut stdin = TerminalInput::new().read_sync();
         let _screen = crossterm::RawScreen::into_raw_mode()?;
 
         loop {
