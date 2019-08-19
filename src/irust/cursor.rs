@@ -98,7 +98,7 @@ impl Cursor {
     }
 
     pub fn screen_height_overflow_by_new_lines(&self, new_lines: usize) -> usize {
-        // if current row  + new lines < self.size.1 there is no overflow so unwrap to 0
+        // if current row  + new lines < self.cursor.bound.height there is no overflow so unwrap to 0
         (new_lines + self.pos.current_pos.1).saturating_sub(self.bound.height - 1)
     }
 

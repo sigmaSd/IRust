@@ -291,7 +291,7 @@ impl IRust {
         self.cursor.save_position()?;
         self.move_screen_cursor_to_last_line();
 
-        let max_width = self.size.0 - 1;
+        let max_width = self.cursor.bound.width - 1;
         self.cursor.pos.current_pos.0 = 0;
         self.cursor.goto_internal_pos()?;
         self.cursor.cursor.move_down(1);

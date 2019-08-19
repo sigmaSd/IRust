@@ -114,7 +114,10 @@ impl IRust {
         };
 
         if let Some(history) = history {
-            self.buffer = Buffer::from_str(&history, self.size.0 - super::printer::INPUT_START_COL);
+            self.buffer = Buffer::from_str(
+                &history,
+                self.cursor.bound.width - super::printer::INPUT_START_COL,
+            );
 
             self.write_from_terminal_start("In: ", Color::Yellow)?;
             self.write_input()?;

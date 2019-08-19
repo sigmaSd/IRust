@@ -121,7 +121,7 @@ impl IRust {
     pub fn move_screen_cursor_to_last_line(&mut self) {
         let input_last_row = self.input_last_pos().1;
 
-        let height_overflow = input_last_row.saturating_sub(self.size.1 - 1);
+        let height_overflow = input_last_row.saturating_sub(self.cursor.bound.height - 1);
 
         if height_overflow > 0 {
             self.scroll_up(height_overflow);
@@ -133,7 +133,7 @@ impl IRust {
     pub fn write_input(&mut self) -> Result<(), IRustError> {
         // scroll if needed before writing the input
         let input_last_row = self.input_last_pos().1;
-        let height_overflow = input_last_row.saturating_sub(self.size.1 - 1);
+        let height_overflow = input_last_row.saturating_sub(self.cursor.bound.height - 1);
         if height_overflow > 0 {
             self.scroll_up(height_overflow);
         }
@@ -182,7 +182,8 @@ impl IRust {
             .filter(|p| p.out_type == PrinterItemType::Empty)
             .count();
 
-        let overflow = (new_lines + self.cursor.pos.current_pos.1).saturating_sub(self.size.1 - 1);
+        let overflow = (new_lines + self.cursor.pos.current_pos.1)
+            .saturating_sub(self.cursor.bound.height - 1);
         if overflow > 0 {
             self.scroll_up(overflow);
         }
@@ -225,11 +226,11 @@ impl IRust {
 
                     // check if we scrolled
                     let new_lines = (output.string.chars().filter(|c| *c == '\n')).count();
-                    let overflow =
-                        (new_lines + self.cursor.pos.current_pos.1).saturating_sub(self.size.1 - 1);
+                    let overflow = (new_lines + self.cursor.pos.current_pos.1)
+                        .saturating_sub(self.cursor.bound.height - 1);
                     if overflow > 0 {
                         self.terminal.scroll_up(1)?;
-                        self.cursor.pos.current_pos.1 = self.size.1 - 1;
+                        self.cursor.pos.current_pos.1 = self.cursor.bound.height - 1;
                     } else {
                         self.cursor.pos.current_pos.1 += new_lines;
                     }

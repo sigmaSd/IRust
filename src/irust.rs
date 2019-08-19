@@ -41,7 +41,6 @@ pub struct IRust {
     options: Options,
     racer: Result<Racer, IRustError>,
     debouncer: Debouncer,
-    size: (usize, usize),
 }
 
 impl IRust {
@@ -74,7 +73,6 @@ impl IRust {
             options,
             racer,
             debouncer,
-            size,
             buffer: Buffer::new(size.0 - INPUT_START_COL),
         }
     }
