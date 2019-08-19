@@ -1,4 +1,5 @@
 use crate::irust::{IRust, IRustError};
+use crate::utils::StringTools;
 mod bound;
 use bound::Bound;
 
@@ -95,6 +96,13 @@ impl Cursor {
     pub fn is_at_line_end(&self, irust: &IRust) -> bool {
         irust.buffer.is_at_end()
             || self.pos.current_pos.0 == *self.bound.get_bound(self.pos.current_pos.1)
+    }
+
+    pub fn screen_height_overflow_by_str(&self, out: &str) -> usize {
+        let new_lines =
+            (StringTools::chars_count(out) + self.pos.current_pos.0) / (self.bound.width - 1);
+
+        self.screen_height_overflow_by_new_lines(new_lines)
     }
 
     pub fn screen_height_overflow_by_new_lines(&self, new_lines: usize) -> usize {

@@ -240,19 +240,25 @@ impl IRust {
 
         if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
             self.raw_terminal.clear(ClearType::UntilNewLine)?;
+
             let mut suggestion = suggestion.0;
-            let buffer: String = self
-                .buffer
-                .buffer
-                .iter()
-                .take(self.buffer.buffer_pos)
-                .collect();
+
+            let buffer: String = self.buffer.iter().take(self.buffer.buffer_pos).collect();
             StringTools::strings_unique(&buffer, &mut suggestion);
+
+            // scroll if needed
+            let height_overflow = self.cursor.screen_height_overflow_by_str(&suggestion);
+            if height_overflow > 0 {
+                self.scroll_up(height_overflow);
+            }
+
             self.cursor.hide();
             self.raw_terminal
                 .set_fg(self.options.racer_inline_suggestion_color)?;
             self.cursor.cursor.save_position()?;
+
             self.raw_terminal.write(&suggestion)?;
+
             self.cursor.cursor.reset_position()?;
             self.raw_terminal.reset_color()?;
             self.cursor.show();
