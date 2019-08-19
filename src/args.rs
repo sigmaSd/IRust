@@ -1,6 +1,8 @@
 use crate::irust::options::Options;
 use std::env;
 
+const VERSION: &str = "0.7.2";
+
 pub fn handle_args() -> std::io::Result<()> {
     let args: Vec<String> = env::args().skip(1).collect();
 
@@ -12,17 +14,21 @@ pub fn handle_args() -> std::io::Result<()> {
                 }
             }
 
-            "--help" => {
+            "-h" | "--help" => {
                 println!(
-                    "IRust: Cross Platform Rust REPL\n
+                    "IRust: Cross Platform Rust REPL
+        version: {}\n
         config file is in {}\n
         --help => shows this message
         --reset-config => reset IRust configuration to default",
+                    VERSION,
                     Options::config_path()
                         .map(|p| p.to_string_lossy().to_string())
                         .unwrap_or_else(|| "??".into())
                 );
             }
+
+            "-v" | "--version" => println!("{}", VERSION),
 
             _ => (),
         }
