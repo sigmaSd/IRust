@@ -1,3 +1,8 @@
+**0.7.3**
+- More work on code-base refactoring
+- Bug-fixes
+- Add version to Cli flags (-v)
+
 **0.7.2**
 - Restore History filtering based on current buffer
 
