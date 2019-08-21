@@ -106,6 +106,7 @@ impl PrinterItem {
 
 impl IRust {
     pub fn write_input(&mut self) -> Result<(), IRustError> {
+        self.cursor.hide();
         // scroll if needed before writing the input
         let input_last_row = self.cursor.input_last_pos(&self.buffer).1;
         let height_overflow = input_last_row.saturating_sub(self.cursor.bound.height - 1);
@@ -121,6 +122,8 @@ impl IRust {
         let input = super::highlight::highlight(&self.buffer.to_string());
         self.print_inner(input)?;
         self.cursor.reset_position()?;
+
+        self.cursor.show();
 
         Ok(())
     }
