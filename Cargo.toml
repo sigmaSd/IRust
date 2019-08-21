@@ -11,8 +11,12 @@ license = "MIT"
 [dependencies]
 crossterm = "0.9.6"
 dirs = "2.0.1"
-syntect = "3.2.0"
 once_cell = "0.2.4"
+
+[dependencies.syntect]
+version = "3.2.0"
+default-features = false
+features = ["parsing", "assets", "dump-load-rs"]
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.14.1"
