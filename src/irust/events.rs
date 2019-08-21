@@ -110,15 +110,12 @@ impl IRust {
         };
 
         if let Some(history) = history {
-            self.buffer = Buffer::from_str(
-                &history,
-                self.cursor.bound.width - super::printer::INPUT_START_COL,
-            );
+            self.buffer =
+                Buffer::from_str(&history, self.cursor.bound.width - super::INPUT_START_COL);
 
-            self.write_from_terminal_start("In: ", Color::Yellow)?;
             self.write_input()?;
 
-            let last_input_pos = self.input_last_pos();
+            let last_input_pos = self.cursor.input_last_pos(&self.buffer);
             self.buffer.goto_end();
             self.cursor.goto(last_input_pos.0, last_input_pos.1);
         }
@@ -221,7 +218,7 @@ impl IRust {
     }
 
     pub fn handle_end_key(&mut self) -> Result<(), IRustError> {
-        let last_input_pos = self.input_last_pos();
+        let last_input_pos = self.cursor.input_last_pos(&self.buffer);
         self.buffer.goto_end();
         self.cursor.goto(last_input_pos.0, last_input_pos.1);
         Ok(())

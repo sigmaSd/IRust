@@ -1,9 +1,16 @@
+use super::Buffer;
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
 mod bound;
 use bound::Bound;
 
 use crossterm::TerminalCursor;
+
+/// input is shown with x in this example
+/// |In: x
+/// |    x
+/// |    x
+pub const INPUT_START_COL: usize = 4;
 
 #[derive(Clone)]
 pub struct CursorPosition {
@@ -156,5 +163,18 @@ impl Cursor {
 
     pub fn is_at_col(&self, col: usize) -> bool {
         self.pos.current_pos.0 == col
+    }
+
+    pub fn input_last_pos(&mut self, buffer: &Buffer) -> (usize, usize) {
+        let relative_pos = buffer.last_buffer_pos_to_relative_cursor_pos();
+        let x = relative_pos.0 + INPUT_START_COL;
+        let y = relative_pos.1 + self.pos.starting_pos.1;
+
+        (x, y)
+    }
+
+    pub fn move_to_input_last_row(&mut self, buffer: &Buffer) {
+        let input_last_row = self.input_last_pos(buffer).1;
+        self.goto(0, input_last_row);
     }
 }

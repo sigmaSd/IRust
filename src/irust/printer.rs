@@ -3,12 +3,6 @@ use crate::utils::StringTools;
 use crossterm::{ClearType, Color};
 use std::iter::FromIterator;
 
-/// input is shown with x in this example
-/// |In: x
-/// |    x
-/// |    x
-pub const INPUT_START_COL: usize = 4;
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum PrinterItemType {
     Eval,
@@ -111,29 +105,9 @@ impl PrinterItem {
 }
 
 impl IRust {
-    pub fn input_last_pos(&mut self) -> (usize, usize) {
-        let relative_pos = self.buffer.end_to_relative_current_pos();
-        let x = relative_pos.0 + INPUT_START_COL;
-        let y = relative_pos.1 + self.cursor.pos.starting_pos.1;
-
-        (x, y)
-    }
-
-    pub fn move_screen_cursor_to_last_line(&mut self) {
-        let input_last_row = self.input_last_pos().1;
-
-        let height_overflow = input_last_row.saturating_sub(self.cursor.bound.height - 1);
-
-        if height_overflow > 0 {
-            self.scroll_up(height_overflow);
-        }
-
-        self.cursor.goto(0, input_last_row);
-    }
-
     pub fn write_input(&mut self) -> Result<(), IRustError> {
         // scroll if needed before writing the input
-        let input_last_row = self.input_last_pos().1;
+        let input_last_row = self.cursor.input_last_pos(&self.buffer).1;
         let height_overflow = input_last_row.saturating_sub(self.cursor.bound.height - 1);
         if height_overflow > 0 {
             self.scroll_up(height_overflow);
@@ -159,7 +133,7 @@ impl IRust {
 
                     for c in elem.string.chars() {
                         self.write(&c.to_string(), color)?;
-                        if self.cursor.is_at_col(INPUT_START_COL) {
+                        if self.cursor.is_at_col(super::INPUT_START_COL) {
                             self.write_from_terminal_start("..: ", Color::Yellow)?;
                         }
                     }

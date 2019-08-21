@@ -91,16 +91,16 @@ impl Buffer {
         self.buffer_pos = self.buffer.len();
     }
 
-    pub fn to_relative_current_pos(&self) -> (usize, usize) {
+    pub fn buffer_pos_to_relative_cursor_pos(&self, buffer_pos: usize) -> (usize, usize) {
         let mut y = self
             .buffer
             .iter()
-            .take(self.buffer_pos)
+            .take(buffer_pos)
             .filter(|c| **c == '\n')
             .count();
 
         let mut x = 0;
-        for i in 0..self.buffer_pos {
+        for i in 0..buffer_pos {
             match self.buffer.get(i) {
                 Some('\n') => x = 0,
                 _ => x += 1,
@@ -114,13 +114,8 @@ impl Buffer {
         (x, y)
     }
 
-    pub fn end_to_relative_current_pos(&mut self) -> (usize, usize) {
-        let tmp = self.buffer_pos;
-        self.goto_end();
-        let relative_pos = self.to_relative_current_pos();
-        self.buffer_pos = tmp;
-
-        relative_pos
+    pub fn last_buffer_pos_to_relative_cursor_pos(&self) -> (usize, usize) {
+        self.buffer_pos_to_relative_cursor_pos(self.buffer.len())
     }
 
     pub fn from_str(str: &str, max_line_char: usize) -> Self {

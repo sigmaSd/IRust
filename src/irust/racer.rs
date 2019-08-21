@@ -295,7 +295,7 @@ impl IRust {
         }
 
         self.cursor.save_position()?;
-        self.move_screen_cursor_to_last_line();
+        self.cursor.move_to_input_last_row(&self.buffer);
 
         let max_width = self.cursor.bound.width - 1;
         self.cursor.pos.current_pos.0 = 0;

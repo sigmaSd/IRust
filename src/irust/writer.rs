@@ -26,7 +26,7 @@ impl IRust {
     }
 
     pub fn write_newline(&mut self) -> Result<(), IRustError> {
-        self.move_screen_cursor_to_last_line();
+        self.cursor.move_to_input_last_row(&self.buffer);
 
         // check for scroll
         if self.cursor.is_at_last_terminal_row() {
