@@ -72,9 +72,21 @@ impl Cursor {
         let _ = self.goto_internal_pos();
     }
 
+    pub fn move_up_bounded(&mut self, count: u16) {
+        self.move_up(count);
+        self.pos.current_pos.0 = std::cmp::min(self.pos.current_pos.0, self.current_row_bound());
+        let _ = self.goto_internal_pos();
+    }
+
     pub fn move_up(&mut self, count: u16) {
         self.pos.current_pos.1 = self.pos.current_pos.1.saturating_sub(count as usize);
         self.cursor.move_up(count);
+    }
+
+    pub fn move_down_bounded(&mut self, count: u16) {
+        self.move_down(count);
+        self.pos.current_pos.0 = std::cmp::min(self.pos.current_pos.0, self.current_row_bound());
+        let _ = self.goto_internal_pos();
     }
 
     pub fn move_down(&mut self, count: u16) {
@@ -165,7 +177,7 @@ impl Cursor {
         self.pos.current_pos.0 == col
     }
 
-    pub fn input_last_pos(&mut self, buffer: &Buffer) -> (usize, usize) {
+    pub fn input_last_pos(&self, buffer: &Buffer) -> (usize, usize) {
         let relative_pos = buffer.last_buffer_pos_to_relative_cursor_pos();
         let x = relative_pos.0 + INPUT_START_COL;
         let y = relative_pos.1 + self.pos.starting_pos.1;
@@ -176,5 +188,20 @@ impl Cursor {
     pub fn move_to_input_last_row(&mut self, buffer: &Buffer) {
         let input_last_row = self.input_last_pos(buffer).1;
         self.goto(0, input_last_row);
+    }
+
+    pub fn is_at_first_input_line(&self) -> bool {
+        self.pos.current_pos.1 == self.pos.starting_pos.1
+    }
+
+    pub fn is_at_last_input_line(&self, buffer: &Buffer) -> bool {
+        self.pos.current_pos.1 == self.input_last_pos(buffer).1
+    }
+
+    pub fn cursor_pos_to_buffer_pos(&self) -> usize {
+        self.pos.current_pos.0 - INPUT_START_COL
+            + self
+                .bound
+                .bounds_sum(self.pos.starting_pos.1, self.pos.current_pos.1)
     }
 }

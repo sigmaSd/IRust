@@ -34,4 +34,13 @@ impl Bound {
         self.bound.insert(row, col);
         self.bound[0] = self.bound.pop().unwrap();
     }
+
+    pub fn bounds_sum(&self, start_row: usize, end_row: usize) -> usize {
+        self.bound
+            .iter()
+            .take(end_row)
+            .skip(start_row)
+            .map(|b| b + 1 - super::INPUT_START_COL)
+            .sum()
+    }
 }
