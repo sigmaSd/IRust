@@ -1,3 +1,7 @@
+**0.7.4**
+- Up/Down can move cursor in multi-line input
+- Disable some optional `syntect` features
+
 **0.7.3**
 - More work on code-base refactoring
 - Bug-fixes
