@@ -92,14 +92,30 @@ impl IRust {
     }
 
     pub fn handle_up(&mut self) -> Result<(), IRustError> {
-        self.handle_history("up")
+        if self.cursor.is_at_first_input_line() {
+            self.handle_history("up")?;
+        } else {
+            self.cursor.move_up_bounded(1);
+            // set buffer cursor
+            let buffer_pos = self.cursor.cursor_pos_to_buffer_pos();
+            self.buffer.set_buffer_pos(buffer_pos);
+        }
+        Ok(())
     }
 
     pub fn handle_down(&mut self) -> Result<(), IRustError> {
         if self.buffer.is_empty() {
             return Ok(());
         }
-        self.handle_history("down")
+        if self.cursor.is_at_last_input_line(&self.buffer) {
+            self.handle_history("down")?;
+        } else {
+            self.cursor.move_down_bounded(1);
+            // set buffer cursor
+            let buffer_pos = self.cursor.cursor_pos_to_buffer_pos();
+            self.buffer.set_buffer_pos(buffer_pos);
+        }
+        Ok(())
     }
 
     fn handle_history(&mut self, direction: &str) -> Result<(), IRustError> {

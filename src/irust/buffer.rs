@@ -22,6 +22,10 @@ impl Buffer {
         s.chars().for_each(|c| self.insert(c));
     }
 
+    pub fn set_buffer_pos(&mut self, pos: usize) {
+        self.buffer_pos = pos;
+    }
+
     pub fn remove_current_char(&mut self) -> Option<char> {
         if !self.is_empty() {
             let character = self.buffer.remove(self.buffer_pos);
