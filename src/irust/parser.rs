@@ -185,6 +185,9 @@ impl IRust {
         .map(|l| l.to_string() + "\n")
         .collect();
 
-        Ok(Printer::new(PrinterItem::new(irust, PrinterItemType::Custom(crossterm::Color::Red))))
+        Ok(Printer::new(PrinterItem::new(
+            irust,
+            PrinterItemType::Custom(crossterm::Color::Red),
+        )))
     }
 }
