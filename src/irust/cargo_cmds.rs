@@ -4,7 +4,7 @@ use std::env::temp_dir;
 use std::fs;
 use std::io;
 use std::io::prelude::*;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
 pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(temp_dir);
@@ -12,10 +12,8 @@ pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust"));
 pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src/main.rs"));
 
 pub fn cargo_new() -> Result<(), io::Error> {
-    clean_toml();
-    if Path::new(&*IRUST_DIR).exists() {
-        std::fs::remove_dir_all(&*IRUST_DIR)?;
-    }
+    let _ = std::fs::remove_dir_all(&*IRUST_DIR);
+
     let _ = Command::new("cargo")
         .current_dir(&*TMP_DIR)
         .args(&["new", "irust"])
@@ -55,35 +53,6 @@ pub fn cargo_build() -> Result<std::process::Child, io::Error> {
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn()?)
-}
-
-fn clean_toml() {
-    let mut clean = String::new();
-
-    let toml_file = IRUST_DIR.join("Cargo.toml");
-
-    if !Path::exists(&toml_file) {
-        return;
-    }
-
-    let mut toml_read = fs::File::open(&toml_file).unwrap();
-
-    let toml_contents = {
-        let mut c = String::new();
-        toml_read.read_to_string(&mut c).unwrap();
-        c
-    };
-
-    for line in toml_contents.lines() {
-        clean.push_str(line);
-        if line.contains("[dependencies]") {
-            break;
-        }
-        clean.push('\n')
-    }
-
-    let mut toml_write = fs::File::create(&toml_file).unwrap();
-    write!(toml_write, "{}", clean).unwrap();
 }
 
 fn clean_main_file() -> io::Result<()> {
