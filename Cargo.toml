@@ -9,14 +9,14 @@ repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
 [dependencies]
-crossterm = "0.9.6"
-dirs = "2.0.1"
-once_cell = "0.2.4"
+crossterm = "0.10.2"
+dirs = "2.0.2"
+once_cell = "1.0.2"
 
 [dependencies.syntect]
-version = "3.2.0"
+version = "3.2.1"
 default-features = false
 features = ["parsing", "assets", "dump-load-rs"]
 
 [target.'cfg(unix)'.dependencies]
-nix = "0.14.1"
+nix = "0.15.0"
