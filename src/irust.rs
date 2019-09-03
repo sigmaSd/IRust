@@ -28,7 +28,7 @@ use buffer::Buffer;
 mod raw_terminal;
 use raw_terminal::RawTerminal;
 
-const _IN: &str = "In: ";
+const IN: &str = "In: ";
 const OUT: &str = "Out: ";
 
 pub struct IRust {
@@ -59,6 +59,7 @@ impl IRust {
             (width as usize, height as usize)
         };
         let cursor = Cursor::new(0, 0, size.0, size.1);
+        let buffer = Buffer::new(size.0 - INPUT_START_COL);
 
         IRust {
             cursor,
@@ -68,7 +69,7 @@ impl IRust {
             options,
             racer,
             debouncer,
-            buffer: Buffer::new(size.0 - INPUT_START_COL),
+            buffer,
         }
     }
 
@@ -76,7 +77,7 @@ impl IRust {
         self.repl.prepare_ground()?;
         self.debouncer.run();
         self.welcome()?;
-        self.write_from_terminal_start("In: ", Color::Yellow)?;
+        self.write_from_terminal_start(IN, Color::Yellow)?;
         Ok(())
     }
 

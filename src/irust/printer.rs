@@ -117,7 +117,7 @@ impl IRust {
         self.cursor.save_position()?;
         self.cursor.goto_start();
         self.raw_terminal.clear(ClearType::FromCursorDown)?;
-        self.write_from_terminal_start("In: ", Color::Yellow)?;
+        self.write_from_terminal_start(super::IN, Color::Yellow)?;
 
         let input = super::highlight::highlight(&self.buffer.to_string());
         self.print_inner(input)?;

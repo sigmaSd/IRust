@@ -54,7 +54,7 @@ impl IRust {
         }
 
         self.write_input()?;
-        self.write_from_terminal_start("In: ", Color::Yellow)?;
+        self.write_from_terminal_start(super::IN, Color::Yellow)?;
 
         self.cursor.show();
         Ok(())
@@ -186,7 +186,7 @@ impl IRust {
         } else {
             self.write_newline()?;
             self.raw_terminal.clear(ClearType::FromCursorDown)?;
-            self.write_from_terminal_start("In: ", Color::Yellow)?;
+            self.write_from_terminal_start(super::IN, Color::Yellow)?;
             self.buffer.clear();
         }
         Ok(())
