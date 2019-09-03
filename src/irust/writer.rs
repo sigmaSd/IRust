@@ -43,6 +43,7 @@ impl IRust {
         self.buffer.goto_start();
         self.cursor.pos.starting_pos = (0, 0);
         self.cursor.goto(4, 0);
+        self.cursor.bound.reset();
         self.write_input()?;
         Ok(())
     }

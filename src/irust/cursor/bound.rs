@@ -18,6 +18,10 @@ impl Bound {
         }
     }
 
+    pub fn reset(&mut self) {
+        *self = Self::new(self.width, self.height);
+    }
+
     pub fn get_bound(&self, row: usize) -> &usize {
         self.bound.get(row).unwrap()
     }
