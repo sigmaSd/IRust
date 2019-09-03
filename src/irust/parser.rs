@@ -14,6 +14,7 @@ impl IRust {
             ":reset" => self.reset(),
             ":show" => self.show(),
             ":pop" => self.pop(),
+            ":irust" => self.irust(),
             cmd if cmd.starts_with("::") => self.run_cmd(),
             cmd if cmd.starts_with(":add") => self.add_dep(),
             cmd if cmd.starts_with(":load") => self.load_script(),
@@ -169,5 +170,21 @@ impl IRust {
 
             Ok(outputs)
         }
+    }
+
+    fn irust(&mut self) -> Result<Printer, IRustError> {
+        let irust = r#"
+._____________ ____ ___  ____________________
+|   \______   \    |   \/   _____/\__    ___/
+|   ||       _/    |   /\_____  \   |    |
+|   ||    |   \    |  / /        \  |    |
+|___||____|____\_____/ /_______  /  |____|
+                     "#
+        .lines()
+        .skip(1)
+        .map(|l| l.to_string() + "\n")
+        .collect();
+
+        Ok(Printer::new(PrinterItem::new(irust, PrinterItemType::Custom(crossterm::Color::Red))))
     }
 }
