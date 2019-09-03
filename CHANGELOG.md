@@ -1,3 +1,8 @@
+**0.7.5**
+- Update dependencies
+- Refactor + Clean up
+- Bug-fix: reset bounds after clear
+
 **0.7.4**
 - Up/Down can move cursor in multi-line input
 - Disable some optional `syntect` features
