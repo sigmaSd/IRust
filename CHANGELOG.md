@@ -1,3 +1,6 @@
+**0.7.8**
+`Tab` will now add 4 spaces if the current line is is empty
+
 **0.7.7**
 - Add `Alt-Enter` keyevent -> add line break
 
