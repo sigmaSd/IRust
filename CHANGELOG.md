@@ -1,3 +1,6 @@
+**0.7.6**
+- Make Racer optional again
+
 **0.7.5**
 - Update dependencies
 - Refactor + Clean up
