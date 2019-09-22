@@ -11,7 +11,9 @@ impl IRust {
         self.history.update_buffer_copy(&self.buffer.to_string());
         self.write_input()?;
         self.cursor.move_right_unbounded();
-        self.unlock_racer_update()?;
+
+        // Ignore RacerDisabled error
+        let _ = self.unlock_racer_update();
         Ok(())
     }
 
@@ -166,7 +168,9 @@ impl IRust {
             self.history.update_buffer_copy(&self.buffer.to_string());
 
             self.write_input()?;
-            self.unlock_racer_update()?;
+
+            // Ignore RacerDisabled error
+            let _ = self.unlock_racer_update();
         }
         Ok(())
     }
