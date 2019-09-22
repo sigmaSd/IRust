@@ -1,3 +1,6 @@
+**0.7.7**
+- Add `Alt-Enter` keyevent -> add line break
+
 **0.7.6**
 - Make Racer optional again
 
