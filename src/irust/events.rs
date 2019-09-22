@@ -21,9 +21,7 @@ impl IRust {
         let buffer = self.buffer.to_string();
 
         if self.incomplete_input(&buffer) {
-            self.buffer.insert('\n');
-            self.write_input()?;
-            self.cursor.goto(4, self.cursor.pos.current_pos.1 + 1);
+            self.write_from_next_line()?;
             return Ok(());
         }
 
@@ -60,6 +58,10 @@ impl IRust {
 
         self.cursor.show();
         Ok(())
+    }
+
+    pub fn handle_alt_enter(&mut self) -> Result<(), IRustError> {
+        self.write_from_next_line()
     }
 
     fn incomplete_input(&self, buffer: &str) -> bool {

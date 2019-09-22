@@ -125,6 +125,9 @@ impl IRust {
                     InputEvent::Keyboard(KeyEvent::Ctrl('l')) => {
                         self.handle_ctrl_l()?;
                     }
+                    InputEvent::Keyboard(KeyEvent::Alt('\r')) => {
+                        self.handle_alt_enter()?;
+                    }
                     InputEvent::Keyboard(KeyEvent::Home) => {
                         self.handle_home_key()?;
                     }
