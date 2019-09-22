@@ -74,6 +74,12 @@ impl Buffer {
         self.len() == 0
     }
 
+    pub fn is_at_string_line_start(&self) -> bool {
+        self.is_empty()
+            || self.previous_char() == Some(&'\n')
+            || self.previous_char() == Some(&'\t')
+    }
+
     pub fn is_at_start(&self) -> bool {
         self.buffer_pos == 0
     }

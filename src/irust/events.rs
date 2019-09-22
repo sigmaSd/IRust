@@ -72,6 +72,17 @@ impl IRust {
     }
 
     pub fn handle_tab(&mut self) -> Result<(), IRustError> {
+        if self.buffer.is_at_string_line_start() {
+            const TAB: &str = "   \t";
+
+            self.buffer.insert_str(TAB);
+            self.write_input()?;
+            for _ in 0..4 {
+                self.cursor.move_right_unbounded();
+            }
+            return Ok(());
+        }
+
         match || -> Result<(), IRustError> {
             self.update_suggestions()?;
             self.lock_racer_update()?;
