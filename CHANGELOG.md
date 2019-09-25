@@ -1,3 +1,7 @@
+**0.7.9**
+- Update deps
+- Update codebase to use crossterm 0.11
+
 **0.7.8**
 `Tab` will now add 4 spaces if the current line is is empty
 
