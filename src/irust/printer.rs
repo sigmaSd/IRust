@@ -121,7 +121,7 @@ impl IRust {
 
         let input = super::highlight::highlight(&self.buffer.to_string());
         self.print_inner(input)?;
-        self.cursor.reset_position()?;
+        self.cursor.restore_position()?;
 
         self.cursor.show();
 

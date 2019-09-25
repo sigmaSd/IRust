@@ -80,7 +80,7 @@ impl Cursor {
 
     pub fn move_up(&mut self, count: u16) {
         self.pos.current_pos.1 = self.pos.current_pos.1.saturating_sub(count as usize);
-        self.cursor.move_up(count);
+        let _ = self.cursor.move_up(count);
     }
 
     pub fn move_down_bounded(&mut self, count: u16) {
@@ -91,7 +91,7 @@ impl Cursor {
 
     pub fn move_down(&mut self, count: u16) {
         self.pos.current_pos.1 += count as usize;
-        self.cursor.move_down(count);
+        let _ = self.cursor.move_down(count);
     }
 
     pub fn use_current_row_as_starting_row(&mut self) {
@@ -129,12 +129,12 @@ impl Cursor {
         (new_lines + self.pos.current_pos.1).saturating_sub(self.bound.height - 1)
     }
 
-    pub fn reset_position(&mut self) -> Result<(), IRustError> {
+    pub fn restore_position(&mut self) -> Result<(), IRustError> {
         if let Some(copy) = self.copy.take() {
             self.pos = *copy;
             self.copy = Some(Box::new(self.pos.clone()));
         }
-        self.cursor.reset_position()?;
+        self.cursor.restore_position()?;
         Ok(())
     }
 

@@ -55,7 +55,7 @@ impl IRust {
             Err(IRustError::RacerDisabled)
         };
         let size = {
-            let (width, height) = raw_terminal.terminal_size();
+            let (width, height) = raw_terminal.size().expect("Error getting terminal size");
             (width as usize, height as usize)
         };
         let cursor = Cursor::new(0, 0, size.0, size.1);
@@ -90,11 +90,15 @@ impl IRust {
             self.check_racer_callback()?;
             if let Some(key_event) = stdin.next() {
                 match key_event {
-                    InputEvent::Keyboard(KeyEvent::Char(c)) => match c {
-                        '\n' => self.handle_enter()?,
-                        '\t' => self.handle_tab()?,
-                        c => self.handle_character(c)?,
-                    },
+                    InputEvent::Keyboard(KeyEvent::Char(c)) => {
+                        self.handle_character(c)?;
+                    }
+                    InputEvent::Keyboard(KeyEvent::Enter) => {
+                        self.handle_enter()?;
+                    }
+                    InputEvent::Keyboard(KeyEvent::Tab) => {
+                        self.handle_tab()?;
+                    }
                     InputEvent::Keyboard(KeyEvent::BackTab) => {
                         self.handle_back_tab()?;
                     }

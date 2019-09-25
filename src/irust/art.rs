@@ -64,7 +64,7 @@ impl IRust {
     }
 
     fn clean_art(&mut self) -> Result<(), IRustError> {
-        self.cursor.reset_position()?;
+        self.cursor.restore_position()?;
         self.write_newline()?;
         self.cursor.show();
         self.raw_terminal.reset_color()?;
@@ -84,7 +84,7 @@ impl IRust {
     }
 
     pub fn fit_msg(&mut self, msg: &str) -> String {
-        let slash_num = self.raw_terminal.terminal_size().0 as usize - msg.len();
+        let slash_num = self.cursor.bound.width - msg.len();
         let slash = std::iter::repeat('-')
             .take(slash_num / 2)
             .collect::<String>();

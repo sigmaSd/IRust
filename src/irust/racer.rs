@@ -259,7 +259,7 @@ impl IRust {
 
             self.raw_terminal.write(&suggestion)?;
 
-            self.cursor.cursor.reset_position()?;
+            self.cursor.cursor.restore_position()?;
             self.raw_terminal.reset_color()?;
             self.cursor.show();
         }
@@ -300,9 +300,9 @@ impl IRust {
         let max_width = self.cursor.bound.width - 1;
         self.cursor.pos.current_pos.0 = 0;
         self.cursor.goto_internal_pos()?;
-        self.cursor.cursor.move_down(1);
+        self.cursor.cursor.move_down(1)?;
         self.raw_terminal.clear(ClearType::FromCursorDown)?;
-        self.cursor.cursor.move_up(1);
+        self.cursor.cursor.move_up(1)?;
 
         self.raw_terminal
             .set_fg(self.options.racer_suggestions_table_color)?;
@@ -325,7 +325,7 @@ impl IRust {
                 suggestion.push_str("...");
             }
             // move one + idx row down
-            self.cursor.cursor.move_down(idx as u16 + 1);
+            self.cursor.cursor.move_down(idx as u16 + 1)?;
 
             // write suggestion
             self.cursor.cursor.save_position()?;
@@ -337,13 +337,13 @@ impl IRust {
 
             self.raw_terminal.write(&suggestion)?;
             self.raw_terminal.set_bg(crossterm::Color::Reset)?;
-            self.cursor.cursor.reset_position()?;
+            self.cursor.cursor.restore_position()?;
             self.cursor.move_up(idx as u16 + 1);
         }
 
         // reset to input position and color
         self.raw_terminal.reset_color()?;
-        self.cursor.reset_position()?;
+        self.cursor.restore_position()?;
         self.cursor.goto_internal_pos()?;
 
         Ok(())
