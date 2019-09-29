@@ -9,7 +9,7 @@ impl IRust {
     pub fn handle_character(&mut self, c: char) -> Result<(), IRustError> {
         self.buffer.insert(c);
         self.history.update_buffer_copy(&self.buffer.to_string());
-        self.write_input()?;
+        self.print_input()?;
         self.cursor.move_right_unbounded();
 
         // Ignore RacerDisabled error
@@ -50,10 +50,10 @@ impl IRust {
         // write out
         if !output.is_empty() {
             output.add_new_line(1);
-            self.write_output(output)?;
+            self.print_output(output)?;
         }
 
-        self.write_input()?;
+        self.print_input()?;
         self.write_from_terminal_start(super::IN, Color::Yellow)?;
 
         self.cursor.show();
@@ -76,7 +76,7 @@ impl IRust {
             const TAB: &str = "   \t";
 
             self.buffer.insert_str(TAB);
-            self.write_input()?;
+            self.print_input()?;
             for _ in 0..4 {
                 self.cursor.move_right_unbounded();
             }
@@ -144,7 +144,7 @@ impl IRust {
             self.buffer =
                 Buffer::from_str(&history, self.cursor.bound.width - super::INPUT_START_COL);
 
-            self.write_input()?;
+            self.print_input()?;
 
             let last_input_pos = self.cursor.input_last_pos(&self.buffer);
             self.buffer.goto_end();
@@ -180,7 +180,7 @@ impl IRust {
             // update histroy current
             self.history.update_buffer_copy(&self.buffer.to_string());
 
-            self.write_input()?;
+            self.print_input()?;
 
             // Ignore RacerDisabled error
             let _ = self.unlock_racer_update();
@@ -192,7 +192,7 @@ impl IRust {
         if !self.buffer.is_empty() {
             self.buffer.remove_current_char();
             self.history.update_buffer_copy(&self.buffer.to_string());
-            self.write_input()?;
+            self.print_input()?;
         }
         Ok(())
     }

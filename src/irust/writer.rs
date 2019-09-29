@@ -44,7 +44,7 @@ impl IRust {
         self.cursor.pos.starting_pos = (0, 0);
         self.cursor.goto(4, 0);
         self.cursor.bound.reset();
-        self.write_input()?;
+        self.print_input()?;
         Ok(())
     }
 
@@ -56,7 +56,7 @@ impl IRust {
 
     pub fn write_from_next_line(&mut self) -> Result<(), IRustError> {
         self.buffer.insert('\n');
-        self.write_input()?;
+        self.print_input()?;
         self.cursor.goto(4, self.cursor.pos.current_pos.1 + 1);
         Ok(())
     }

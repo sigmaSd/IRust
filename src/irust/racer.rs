@@ -373,7 +373,7 @@ impl IRust {
                 self.cursor.move_right_unbounded();
             }
 
-            self.write_input()?;
+            self.print_input()?;
         }
 
         Ok(())

@@ -78,7 +78,7 @@ impl IRust {
         let mut output = Printer::new(PrinterItem::new(default_msg, PrinterItemType::Welcome));
         output.add_new_line(1);
 
-        self.write_output(output)?;
+        self.print_output(output)?;
 
         Ok(())
     }

@@ -109,7 +109,7 @@ impl Default for PrinterItemType {
 }
 
 impl IRust {
-    pub fn write_input(&mut self) -> Result<(), IRustError> {
+    pub fn print_input(&mut self) -> Result<(), IRustError> {
         self.cursor.hide();
         // scroll if needed before writing the input
         self.scroll_if_needed_for_input();
@@ -118,7 +118,7 @@ impl IRust {
         self.raw_terminal.clear(ClearType::FromCursorDown)?;
 
         self.write_from_terminal_start(super::IN, Color::Yellow)?;
-        self.write_inner(highlight(&self.buffer.to_string()))?;
+        self.print_inner(highlight(&self.buffer.to_string()))?;
 
         self.cursor.restore_position()?;
         self.cursor.show();
@@ -126,7 +126,7 @@ impl IRust {
         Ok(())
     }
 
-    fn write_inner(&mut self, printer: Printer) -> Result<(), IRustError> {
+    fn print_inner(&mut self, printer: Printer) -> Result<(), IRustError> {
         for elem in printer {
             match elem.string_type {
                 PrinterItemType::Custom(color) => {
@@ -151,7 +151,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_output(&mut self, printer: Printer) -> Result<(), IRustError> {
+    pub fn print_output(&mut self, printer: Printer) -> Result<(), IRustError> {
         self.scroll_if_needed_for_printer(&printer);
 
         for output in printer {
