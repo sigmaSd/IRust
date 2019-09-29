@@ -61,7 +61,9 @@ ctrl-left/right jump through words
 
 HOME/END go to line start / line end
 
-Tab/ShiftTab cycle through auto-completion suggestions (requires racer)"
+Tab/ShiftTab cycle through auto-completion suggestions (requires racer)
+
+Alt-Enter add line break"
                 .to_output(Color::DarkCyan),
         );
 

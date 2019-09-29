@@ -64,13 +64,6 @@ impl IRust {
         self.write_from_next_line()
     }
 
-    fn incomplete_input(&self, buffer: &str) -> bool {
-        StringTools::unmatched_brackets(&buffer)
-            || buffer
-                .trim_end()
-                .ends_with(|c| c == ':' || c == '.' || c == '=')
-    }
-
     pub fn handle_tab(&mut self) -> Result<(), IRustError> {
         if self.buffer.is_at_string_line_start() {
             const TAB: &str = "   \t";
@@ -337,5 +330,12 @@ impl IRust {
                 }
             }
         }
+    }
+
+    fn incomplete_input(&self, buffer: &str) -> bool {
+        StringTools::unmatched_brackets(&buffer)
+            || buffer
+                .trim_end()
+                .ends_with(|c| c == ':' || c == '.' || c == '=')
     }
 }
