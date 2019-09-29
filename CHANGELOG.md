@@ -1,3 +1,6 @@
+**0.7.10**
+- Refactor printer.rs (with some bug fixes)
+
 **0.7.9**
 - Update deps
 - Update codebase to use crossterm 0.11

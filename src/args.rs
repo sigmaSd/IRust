@@ -1,7 +1,7 @@
 use crate::irust::options::Options;
 use std::env;
 
-const VERSION: &str = "0.7.9";
+const VERSION: &str = "0.7.10";
 
 pub fn handle_args() -> std::io::Result<()> {
     let args: Vec<String> = env::args().skip(1).collect();
