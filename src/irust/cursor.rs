@@ -204,4 +204,8 @@ impl Cursor {
                 .bound
                 .bounds_sum(self.pos.starting_pos.1, self.pos.current_pos.1)
     }
+
+    pub fn goto_next_row_terminal_start(&mut self) {
+        self.goto(0, self.pos.current_pos.1 + 1);
+    }
 }
