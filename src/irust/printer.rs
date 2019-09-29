@@ -98,7 +98,6 @@ pub enum PrinterItemType {
     Shell,
     Err,
     NewLine,
-    Welcome,
     Custom(Color),
 }
 
@@ -142,7 +141,7 @@ impl IRust {
                 PrinterItemType::NewLine => {
                     self.cursor.bound_current_row_at_current_col();
                     self.cursor.goto_next_row_terminal_start();
-                    self.write_from_terminal_start("..: ", Color::Yellow)?;
+                    self.write("..: ", Color::Yellow)?;
                 }
                 _ => {}
             }
@@ -163,21 +162,12 @@ impl IRust {
                 PrinterItemType::Out => self.options.out_color,
                 PrinterItemType::Shell => self.options.shell_color,
                 PrinterItemType::Err => self.options.err_color,
-                PrinterItemType::Welcome => {
-                    let msg = if !self.options.welcome_msg.is_empty() {
-                        self.fit_msg(&self.options.welcome_msg.clone())
-                    } else {
-                        self.fit_msg(&output.string)
-                    };
-                    self.write(&msg, self.options.welcome_color)?;
-                    continue;
-                }
+                PrinterItemType::Custom(color) => color,
                 PrinterItemType::NewLine => {
                     self.cursor.goto_next_row_terminal_start();
                     self.cursor.use_current_row_as_starting_row();
                     continue;
                 }
-                PrinterItemType::Custom(color) => color,
             };
 
             self.raw_terminal.set_fg(color)?;
