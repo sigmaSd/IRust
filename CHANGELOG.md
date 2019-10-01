@@ -1,3 +1,6 @@
+**0.7.12**
+- Bug fixes
+
 **0.7.11**
 - Add `:edit` command -> edit internal buffer using an external editor, example: `:edit gedit`
 
