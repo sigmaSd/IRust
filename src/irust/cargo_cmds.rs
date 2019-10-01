@@ -14,10 +14,14 @@ pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src/main.rs")
 pub fn cargo_new() -> Result<(), io::Error> {
     let _ = std::fs::remove_dir_all(&*IRUST_DIR);
 
-    let _ = Command::new("cargo")
+    Command::new("cargo")
         .current_dir(&*TMP_DIR)
         .args(&["new", "irust"])
-        .output();
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()?
+        .wait()?;
+
     clean_main_file()?;
     cargo_build()?.wait()?;
     Ok(())

@@ -28,7 +28,7 @@ impl IRust {
     fn reset(&mut self) -> Result<Printer, IRustError> {
         self.repl.reset();
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(2);
+        outputs.add_new_line(1);
 
         Ok(outputs)
     }
@@ -36,7 +36,7 @@ impl IRust {
     fn pop(&mut self) -> Result<Printer, IRustError> {
         self.repl.pop();
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(2);
+        outputs.add_new_line(1);
 
         Ok(outputs)
     }
@@ -47,7 +47,7 @@ impl IRust {
         }
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(2);
+        outputs.add_new_line(1);
 
         Ok(outputs)
     }
@@ -186,7 +186,9 @@ impl IRust {
         // write current repl (to ensure eval leftover is cleaned)
         self.repl.write()?;
         // beautify code
-        let _ = cargo_fmt_file(&*MAIN_FILE);
+        if self.repl.body.len() > 2 {
+            let _ = cargo_fmt_file(&*MAIN_FILE);
+        }
 
         std::process::Command::new(editor)
             .arg(&*MAIN_FILE)
