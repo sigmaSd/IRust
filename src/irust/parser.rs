@@ -175,7 +175,10 @@ impl IRust {
 
     fn extern_edit(&mut self) -> Result<Printer, IRustError> {
         // exp: :edit vi
-        let editor: String = self.buffer.to_string().split_whitespace().skip(1).collect();
+        let editor: String = match self.buffer.to_string().split_whitespace().nth(1) {
+            Some(ed) => ed.to_string(),
+            None => return Err(IRustError::Custom("No editor specified".to_string())),
+        };
 
         self.raw_terminal.write_with_color(
             format!("waiting for {}...", editor),
