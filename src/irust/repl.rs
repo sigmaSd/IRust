@@ -11,17 +11,31 @@ pub struct Repl {
 impl Repl {
     pub fn new() -> Self {
         Self {
-            body: vec!["fn main() {\n".to_string(), "}".to_string()],
+            body: vec!["fn main() {".to_string(), "}".to_string()],
             cursor: 1,
         }
     }
 
+    pub fn update_from_main_file(&mut self) -> Result<(), IRustError> {
+        let main_file = std::fs::read_to_string(&*MAIN_FILE)?;
+        let lines_num = main_file.lines().count();
+        if lines_num < 2 {
+            return Err(IRustError::Custom(
+                "main.rs file corrupted, resetting irust..".to_string(),
+            ));
+        }
+        let cursor_pos = lines_num - 1;
+
+        *self = Self {
+            body: main_file.lines().map(ToOwned::to_owned).collect(),
+            cursor: cursor_pos,
+        };
+        Ok(())
+    }
+
     pub fn insert(&mut self, input: String) {
         for line in input.lines() {
-            let mut line = line.to_owned();
-            //line.insert(0, '\t');
-            line.push('\n');
-            self.body.insert(self.cursor, line);
+            self.body.insert(self.cursor, line.to_owned());
             self.cursor += 1;
         }
     }
@@ -32,7 +46,7 @@ impl Repl {
     }
 
     pub fn show(&self) -> String {
-        let mut current_code = self.body.join("");
+        let mut current_code = self.body.join("\n");
         // If cargo fmt is present foramt output else ignore
         if let Ok(fmt_code) = cargo_fmt(&current_code) {
             current_code = fmt_code;
@@ -41,7 +55,7 @@ impl Repl {
     }
 
     // prepare ground
-    pub fn prepare_ground(&self) -> Result<(), io::Error> {
+    pub fn prepare_ground(&self) -> Result<(), IRustError> {
         cargo_new()?;
         Ok(())
     }
@@ -58,21 +72,6 @@ impl Repl {
         Ok(eval_result)
     }
 
-    pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
-        Ok(cargo_add(dep)?)
-    }
-
-    pub fn build(&self) -> std::io::Result<std::process::Child> {
-        cargo_build()
-    }
-
-    pub fn write(&self) -> io::Result<()> {
-        let mut main_file = std::fs::File::create(&*MAIN_FILE)?;
-        write!(main_file, "{}", self.body.join(""))?;
-
-        Ok(())
-    }
-
     pub fn eval_in_tmp_repl(
         &mut self,
         input: String,
@@ -87,6 +86,21 @@ impl Repl {
 
         self.body = orig_body;
         self.cursor = orig_cursor;
+
+        Ok(())
+    }
+
+    pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
+        Ok(cargo_add(dep)?)
+    }
+
+    pub fn build(&self) -> std::io::Result<std::process::Child> {
+        cargo_build()
+    }
+
+    pub fn write(&self) -> io::Result<()> {
+        let mut main_file = std::fs::File::create(&*MAIN_FILE)?;
+        write!(main_file, "{}", self.body.join("\n"))?;
 
         Ok(())
     }

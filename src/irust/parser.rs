@@ -1,4 +1,4 @@
-use super::cargo_cmds::{cargo_fmt, cargo_run};
+use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE};
 use super::highlight::highlight;
 use crate::irust::format::format_eval_output;
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
@@ -16,6 +16,7 @@ impl IRust {
             ":pop" => self.pop(),
             ":irust" => self.irust(),
             cmd if cmd.starts_with("::") => self.run_cmd(),
+            cmd if cmd.starts_with(":edit") => self.extern_edit(),
             cmd if cmd.starts_with(":add") => self.add_dep(),
             cmd if cmd.starts_with(":load") => self.load_script(),
             cmd if cmd.starts_with(":type") => self.show_type(),
@@ -169,6 +170,38 @@ impl IRust {
             outputs.add_new_line(1);
 
             Ok(outputs)
+        }
+    }
+
+    fn extern_edit(&mut self) -> Result<Printer, IRustError> {
+        // exp: :edit vi
+        let editor: String = self.buffer.to_string().split_whitespace().skip(1).collect();
+
+        self.raw_terminal.write_with_color(
+            format!("waiting for {}...", editor),
+            crossterm::Color::Magenta,
+        )?;
+        self.write_newline()?;
+
+        // write current repl (to ensure eval leftover is cleaned)
+        self.repl.write()?;
+        // beautify code
+        let _ = cargo_fmt_file(&*MAIN_FILE);
+
+        std::process::Command::new(editor)
+            .arg(&*MAIN_FILE)
+            .spawn()?
+            .wait()?;
+
+        match self.repl.update_from_main_file() {
+            Ok(_) => Ok(Printer::new(PrinterItem::new(
+                SUCCESS.to_string(),
+                PrinterItemType::Ok,
+            ))),
+            Err(e) => {
+                self.repl.reset();
+                Err(e)
+            }
         }
     }
 

@@ -87,3 +87,13 @@ pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
 
     Ok(fmt_c)
 }
+
+pub fn cargo_fmt_file(file: &PathBuf) -> io::Result<()> {
+    std::process::Command::new("rustfmt")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .arg(file)
+        .spawn()?
+        .wait()?;
+    Ok(())
+}

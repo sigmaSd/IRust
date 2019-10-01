@@ -23,7 +23,7 @@ impl Options {
                     options.add_irust_cmd_to_history = Options::str_to_bool(&value);
                 }
                 ("add_shell_cmd_to_history", value) => {
-                    options.add_shell_cmd_to_history = Options::str_to_bool(&value);;
+                    options.add_shell_cmd_to_history = Options::str_to_bool(&value);
                 }
                 _ => eprintln!("Unknown config option: {} {}", option, value),
             }

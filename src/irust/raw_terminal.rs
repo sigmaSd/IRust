@@ -30,6 +30,13 @@ impl RawTerminal {
         Ok(())
     }
 
+    pub fn write_with_color<D: Display>(&self, value: D, color: Color) -> Result<(), IRustError> {
+        self.set_fg(color)?;
+        self.terminal.write(value)?;
+        self.reset_color()?;
+        Ok(())
+    }
+
     pub fn size(&self) -> Result<(u16, u16), IRustError> {
         Ok(self.terminal.size()?)
     }
