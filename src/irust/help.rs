@@ -35,6 +35,7 @@ impl IRust {
 
 :del <line_num> => remove a specific line from repl code (line count starts at 1 from the first expression statement)
 
+:edit <editor> => edit internal buffer using an external editor, example: :edit micro
 
 :: => run a shell command, example ::ls
 

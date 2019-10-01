@@ -19,6 +19,8 @@ Cross Platform Rust Repl
 
 **:del** *<line_num>* => remove a specific line from repl code (line count starts at 1 from the first expression statement)
 
+**:edit** *<editor>* => edit internal buffer using an external editor, exp: `:edit micro`, currently it has some limitations, exp: everthing should be defined in the main function (structs, enum, etc..)
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history

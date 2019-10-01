@@ -1,3 +1,6 @@
+**0.7.11**
+- Add ":edit" command -> edit internal buffer using an external editor, example: `:edit gedit`
+
 **0.7.10**
 - Refactor printer.rs (with some bug fixes)
 
