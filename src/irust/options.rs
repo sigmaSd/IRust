@@ -3,6 +3,7 @@ use crate::utils::VecTools;
 use crossterm::Color;
 use std::io::Write;
 mod parser;
+use parser::RacerEnabled;
 
 #[derive(Clone)]
 pub struct Options {
@@ -49,10 +50,7 @@ impl Default for Options {
             welcome_color: Color::DarkBlue,
 
             // [Racer]
-            #[cfg(unix)]
             enable_racer: true,
-            #[cfg(windows)]
-            enable_racer: false,
 
             racer_inline_suggestion_color: Color::Cyan,
             racer_suggestions_table_color: Color::Green,
@@ -67,7 +65,7 @@ impl Options {
         if let Some(config_path) = Options::config_path() {
             match std::fs::File::open(&config_path) {
                 Ok(config_file) => Options::parse(config_file),
-                Err(_) => Options::create_config(config_path),
+                Err(_) => Options::create_config(config_path, RacerEnabled::True),
             }
         } else {
             Ok(Options::default())
@@ -75,7 +73,7 @@ impl Options {
     }
 
     pub fn reset_config(config_path: std::path::PathBuf) {
-        let _ = Options::create_config(config_path);
+        let _ = Options::create_config(config_path, RacerEnabled::True);
     }
 
     pub fn config_path() -> Option<std::path::PathBuf> {
@@ -90,14 +88,24 @@ impl Options {
         Some(config_path)
     }
 
-    fn create_config(config_path: std::path::PathBuf) -> std::io::Result<Options> {
-        let config = Options::default_config();
+    fn create_config(
+        config_path: std::path::PathBuf,
+        racer_enabled: RacerEnabled,
+    ) -> std::io::Result<Options> {
+        let config = Options::default_config(racer_enabled);
 
         let mut config_file = std::fs::File::create(&config_path)?;
 
         write!(config_file, "{}", config)?;
 
         Ok(Options::default())
+    }
+
+    pub fn disable_racer() -> std::io::Result<()> {
+        if let Some(config_path) = Options::config_path() {
+            Options::create_config(config_path, RacerEnabled::False)?;
+        }
+        Ok(())
     }
 }
 

@@ -56,8 +56,8 @@ impl RawTerminal {
         Ok(())
     }
 
-    pub fn exit(&self) {
+    pub fn exit(status: i32) {
         let _ = crossterm::RawScreen::disable_raw_mode();
-        std::process::exit(0);
+        std::process::exit(status);
     }
 }

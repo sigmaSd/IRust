@@ -128,21 +128,21 @@ impl Options {
         Ok(options)
     }
 
-    pub fn default_config() -> String {
+    pub fn default_config(racer_enabled: RacerEnabled) -> String {
         let history = "\
 [History]
 add_irust_cmd_to_history = false
 add_shell_cmd_to_history = false";
 
-        #[cfg(unix)]
-        let racer = "enable_racer = true";
-        #[cfg(windows)]
-        let racer = "enable_racer = false";
-
+        let racer = if racer_enabled == RacerEnabled::True {
+            "true"
+        } else {
+            "false"
+        };
         let racer = format!(
             "\
 [Racer]
-{}
+enable_racer = {}
 racer_inline_suggestion_color = Cyan
 racer_suggestions_table_color = Green
 racer_selected_suggestion_color = DarkRed
@@ -169,4 +169,10 @@ welcome_color = DarkBlue";
 
         format!("{}\n\n{}\n\n{}\n\n{}", history, racer, colors, welcome)
     }
+}
+
+#[derive(PartialEq)]
+pub enum RacerEnabled {
+    True,
+    False,
 }

@@ -1,9 +1,10 @@
 use super::IRustError;
+use super::Options;
 use crate::irust::IRust;
 use crate::utils::{read_until_bytes, StringTools};
 use crossterm::ClearType;
 use std::env::temp_dir;
-use std::io::{self, Write};
+use std::io::Write;
 use std::process::{Child, Command, Stdio};
 
 pub enum Cycle {
@@ -63,7 +64,7 @@ impl Racer {
         Ok(racer)
     }
 
-    fn complete_code(&mut self) -> io::Result<()> {
+    fn complete_code(&mut self) -> Result<(), IRustError> {
         // check for lock
         if self.update_lock {
             return Ok(());
@@ -76,11 +77,22 @@ impl Racer {
         let stdin = self.process.stdin.as_mut().unwrap();
         let stdout = self.process.stdout.as_mut().unwrap();
 
-        writeln!(
+        match writeln!(
             stdin,
             "complete {} {} {}",
             self.cursor.0, self.cursor.1, self.main_file
-        )?;
+        ) {
+            Ok(_) => (),
+            Err(_) => {
+                let _ = Options::disable_racer();
+                eprintln!(
+                    "Error writing to racer, make sure it's properly configuerd\
+                     \ncheckout https://github.com/racer-rust/racer/#configuration\
+                     \ndisabling racer.., make sure to reenable it after the proper configuration"
+                );
+                super::RawTerminal::exit(1)
+            }
+        };
 
         // read till END
         let mut raw_output = vec![];
