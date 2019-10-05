@@ -1,3 +1,6 @@
+**0.7.13**
+- Handle error gracefully when racer is improperly configured
+
 **0.7.12**
 - Bug fixes
 
