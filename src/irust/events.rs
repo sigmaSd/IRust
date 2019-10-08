@@ -3,7 +3,7 @@ use super::racer::Cycle;
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
-use crossterm::{ClearType, Color};
+use crossterm::{ClearType, Color, TerminalInput, InputEvent, KeyEvent};
 
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> Result<(), IRustError> {
@@ -204,10 +204,36 @@ impl IRust {
 
     pub fn handle_ctrl_d(&mut self) -> Result<(), IRustError> {
         if self.buffer.is_empty() {
-            self.exit()?;
+            self.write_newline()?;
+            self.write("Do you really want to exit ([y]/n)? ", Color::Grey)?;
+            
+            let mut stdin = TerminalInput::new().read_sync();
+            loop {
+                if let Some(key_event) = stdin.next() {
+                    match key_event {
+                        InputEvent::Keyboard(KeyEvent::Char(c)) => match &c {
+                            'y' | 'Y' => self.exit()?,
+                            _ => {
+                                self.buffer.clear();
+                                self.write_newline()?;
+                                self.write_newline()?;
+                                self.print_input()?;
+                                self.write_from_terminal_start(super::IN, Color::Yellow)?;                               
+                                return Ok(());
+
+                            }
+                        },
+                        InputEvent::Keyboard(KeyEvent::Enter) => {
+                            self.exit()?;
+                        },
+                        _ => continue,
+                    }
+                }
+            }                        
         }
         Ok(())
     }
+
 
     fn exit(&mut self) -> Result<(), IRustError> {
         self.history.save();
