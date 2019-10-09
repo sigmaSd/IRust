@@ -191,9 +191,7 @@ impl IRust {
     }
 
     pub fn handle_ctrl_c(&mut self) -> Result<(), IRustError> {
-        if self.buffer.is_empty() {
-            self.exit()?;
-        } else {
+        if !self.buffer.is_empty() {
             self.write_newline()?;
             self.raw_terminal.clear(ClearType::FromCursorDown)?;
             self.write_from_terminal_start(super::IN, Color::Yellow)?;
@@ -214,10 +212,8 @@ impl IRust {
                         InputEvent::Keyboard(KeyEvent::Char(c)) => match &c {
                             'y' | 'Y' => self.exit()?,
                             _ => {
-                                self.buffer.clear();
                                 self.write_newline()?;
                                 self.write_newline()?;
-                                self.print_input()?;
                                 self.write_from_terminal_start(super::IN, Color::Yellow)?;
                                 return Ok(());
                             }
