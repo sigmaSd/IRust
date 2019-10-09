@@ -218,7 +218,8 @@ impl IRust {
                                 return Ok(());
                             }
                         },
-                        InputEvent::Keyboard(KeyEvent::Enter) => {
+                        InputEvent::Keyboard(KeyEvent::Ctrl('d'))
+                        | InputEvent::Keyboard(KeyEvent::Enter) => {
                             self.exit()?;
                         }
                         _ => continue,
