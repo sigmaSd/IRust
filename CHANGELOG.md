@@ -1,3 +1,7 @@
+**0.7.14**
+- Add confirmation dialog to exit with `Ctrl-d`
+- Remove exit function from `Ctrl-c`
+
 **0.7.13**
 - Handle error gracefully when racer is improperly configured
 

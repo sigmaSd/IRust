@@ -29,7 +29,7 @@ You can use arrow keys to cycle through commands history
 
 **ctrl-l** clear screen
 
-**ctrl-c** clear line, double click to exit
+**ctrl-c** clear line
 
 **ctrl-d** exit if buffer is empty
 
