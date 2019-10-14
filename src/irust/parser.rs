@@ -5,6 +5,7 @@ use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::{remove_main, stdout_and_stderr};
 
+
 const SUCCESS: &str = "Ok!";
 
 impl IRust {
@@ -211,17 +212,7 @@ impl IRust {
     }
 
     fn irust(&mut self) -> Result<Printer, IRustError> {
-        let irust = r#"
-._____________ ____ ___  ____________________
-|   \______   \    |   \/   _____/\__    ___/
-|   ||       _/    |   /\_____  \   |    |
-|   ||    |   \    |  / /        \  |    |
-|___||____|____\_____/ /_______  /  |____|
-                     "#
-        .lines()
-        .skip(1)
-        .map(|l| l.to_string() + "\n")
-        .collect();
+        let irust = self.ferris();
 
         Ok(Printer::new(PrinterItem::new(
             irust,
