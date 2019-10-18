@@ -91,7 +91,7 @@ impl IRust {
     }
 
     pub fn ferris(&mut self) -> String {
-        let ferris = r#"
+        r#"
      _~^~^~_
  \) /  o o  \ (/
    '_   ¬   _'
@@ -100,9 +100,7 @@ impl IRust {
         .lines()
         .skip(1)
         .map(|l| l.to_string() + "\n")
-        .collect();
-
-        ferris
+        .collect()
     }
 
     fn fit_msg(&mut self, msg: &str) -> String {
