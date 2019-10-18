@@ -90,6 +90,21 @@ impl IRust {
         Ok(())
     }
 
+    pub fn ferris(&mut self) -> String {        
+        let ferris = r#"
+     _~^~^~_
+ \) /  o o  \ (/
+   '_   ¬   _'
+   / '-----' \
+                     "#
+        .lines()
+        .skip(1)
+        .map(|l| l.to_string() + "\n")
+        .collect();
+
+        ferris
+    }
+
     fn fit_msg(&mut self, msg: &str) -> String {
         let slash_num = self.cursor.bound.width - msg.len();
         let slash = std::iter::repeat('-')
