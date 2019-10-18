@@ -5,7 +5,6 @@ use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::{remove_main, stdout_and_stderr};
 
-
 const SUCCESS: &str = "Ok!";
 
 impl IRust {
