@@ -165,6 +165,12 @@ impl Cursor {
         let _ = self.goto_internal_pos();
     }
 
+    pub fn goto_input_start_col(&mut self) {
+        self.pos.current_pos.0 = self.pos.starting_pos.0 + INPUT_START_COL;
+        self.pos.current_pos.1 = self.pos.starting_pos.1;
+        let _ = self.goto_internal_pos();
+    }
+
     pub fn _is_at_last_terminal_col(&self) -> bool {
         self.pos.current_pos.0 == self.bound.width - 1
     }

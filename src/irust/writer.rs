@@ -13,9 +13,17 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_str_at(&mut self, s: &str, x: usize, y: usize) -> Result<(), IRustError> {
+    pub fn write_at(&mut self, s: &str, x: usize, y: usize) -> Result<(), IRustError> {
         self.cursor.goto(x, y);
         self.raw_terminal.write(s)?;
+        Ok(())
+    }
+
+    pub fn write_at_no_cursor(&mut self, s: &str, x: usize, y: usize) -> Result<(), IRustError> {
+        let origin_pos = self.cursor.pos.current_pos;
+        self.cursor.goto(x, y);
+        self.raw_terminal.write(s)?;
+        self.cursor.goto(origin_pos.0, origin_pos.1);
         Ok(())
     }
 
@@ -45,6 +53,14 @@ impl IRust {
         self.cursor.goto(4, 0);
         self.cursor.bound.reset();
         self.print_input()?;
+        Ok(())
+    }
+
+    pub fn clear_last_line(&mut self) -> Result<(), IRustError> {
+        let origin_pos = self.cursor.pos.current_pos;
+        self.cursor.goto(0, self.cursor.bound.height - 1);
+        self.raw_terminal.clear(ClearType::CurrentLine)?;
+        self.cursor.goto(origin_pos.0, origin_pos.1);
         Ok(())
     }
 
