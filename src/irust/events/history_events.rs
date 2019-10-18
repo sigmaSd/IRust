@@ -1,7 +1,8 @@
 use crate::irust::buffer::Buffer;
 use crate::irust::cursor::INPUT_START_COL;
 use crate::irust::irust_error::IRustError;
-use crossterm::{InputEvent, KeyEvent, TerminalInput};
+use crate::utils::StringTools;
+use crossterm::{Color, InputEvent, KeyEvent, TerminalInput};
 
 impl super::IRust {
     pub fn handle_up(&mut self) -> Result<(), IRustError> {
@@ -58,7 +59,8 @@ impl super::IRust {
         self.cursor.goto_input_start_col();
 
         const SEARCH_TITLE: &str = "search history: ";
-        self.write_at_no_cursor(SEARCH_TITLE, 0, self.cursor.bound.height - 1)?;
+        const TITLE_WIDTH: usize = 16; // SEARCH_TITLE.chars().count()
+        self.write_at_no_cursor(&SEARCH_TITLE, Color::Red, 0, self.cursor.bound.height - 1)?;
 
         let mut needle = String::new();
 
@@ -68,7 +70,9 @@ impl super::IRust {
                 match key_event {
                     InputEvent::Keyboard(KeyEvent::Char(c)) => {
                         // max search len
-                        if needle.len() + SEARCH_TITLE.len() == self.cursor.bound.width - 1 {
+                        if StringTools::chars_count(&needle) + TITLE_WIDTH
+                            == self.cursor.bound.width - 1
+                        {
                             continue;
                         }
                         needle.push(c);
@@ -80,9 +84,19 @@ impl super::IRust {
                             self.buffer = Buffer::new(self.cursor.bound.width - INPUT_START_COL);
                         }
                         self.print_input()?;
-                        let search_bar = format!("{}{}", SEARCH_TITLE, needle);
                         self.clear_last_line()?;
-                        self.write_at_no_cursor(&search_bar, 0, self.cursor.bound.height - 1)?;
+                        self.write_at_no_cursor(
+                            &SEARCH_TITLE,
+                            Color::Red,
+                            0,
+                            self.cursor.bound.height - 1,
+                        )?;
+                        self.write_at_no_cursor(
+                            &needle,
+                            Color::White,
+                            TITLE_WIDTH,
+                            self.cursor.bound.height - 1,
+                        )?;
                     }
                     InputEvent::Keyboard(KeyEvent::Backspace) => {
                         needle.pop();
@@ -102,20 +116,39 @@ impl super::IRust {
                             self.buffer = Buffer::new(self.cursor.bound.width - INPUT_START_COL);
                             self.print_input()?;
                         }
-                        let search_bar = format!("{}{}", SEARCH_TITLE, needle);
                         self.clear_last_line()?;
-                        self.write_at_no_cursor(&search_bar, 0, self.cursor.bound.height - 1)?;
+                        self.write_at_no_cursor(
+                            &SEARCH_TITLE,
+                            Color::Red,
+                            0,
+                            self.cursor.bound.height - 1,
+                        )?;
+                        self.write_at_no_cursor(
+                            &needle,
+                            Color::White,
+                            TITLE_WIDTH,
+                            self.cursor.bound.height - 1,
+                        )?;
                     }
                     InputEvent::Keyboard(KeyEvent::Ctrl('c')) => {
                         self.buffer.clear();
                         self.print_input()?;
                         needle.clear();
-                        let search_bar = format!("{}{}", SEARCH_TITLE, needle);
                         self.clear_last_line()?;
-                        self.write_at_no_cursor(&search_bar, 0, self.cursor.bound.height - 1)?;
+                        self.write_at_no_cursor(
+                            &SEARCH_TITLE,
+                            Color::Red,
+                            0,
+                            self.cursor.bound.height - 1,
+                        )?;
                     }
                     InputEvent::Keyboard(KeyEvent::Enter) | InputEvent::Keyboard(KeyEvent::Esc) => {
                         break
+                    }
+                    InputEvent::Keyboard(KeyEvent::Ctrl('d')) => {
+                        if needle.is_empty() {
+                            break;
+                        }
                     }
                     _ => (),
                 }

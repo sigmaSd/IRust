@@ -19,11 +19,18 @@ impl IRust {
         Ok(())
     }
 
-    pub fn write_at_no_cursor(&mut self, s: &str, x: usize, y: usize) -> Result<(), IRustError> {
+    pub fn write_at_no_cursor(
+        &mut self,
+        s: &str,
+        color: Color,
+        x: usize,
+        y: usize,
+    ) -> Result<(), IRustError> {
+        self.raw_terminal.set_fg(color)?;
         let origin_pos = self.cursor.pos.current_pos;
-        self.cursor.goto(x, y);
-        self.raw_terminal.write(s)?;
+        self.write_at(s, x, y)?;
         self.cursor.goto(origin_pos.0, origin_pos.1);
+        self.raw_terminal.reset_color()?;
         Ok(())
     }
 
