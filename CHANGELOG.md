@@ -1,4 +1,4 @@
-**0.7.2**
+**0.7.20**
 - Add feris
 - Add search history function with `Ctrl-r`
 **0.7.14**
