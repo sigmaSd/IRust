@@ -1,9 +1,10 @@
-use super::buffer::Buffer;
 use super::racer::Cycle;
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
 use crossterm::{ClearType, Color, InputEvent, KeyEvent, TerminalInput};
+
+mod history_events;
 
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> Result<(), IRustError> {
@@ -97,53 +98,6 @@ impl IRust {
             Ok(_) | Err(IRustError::RacerDisabled) => Ok(()),
             Err(e) => Err(e),
         }
-    }
-
-    pub fn handle_up(&mut self) -> Result<(), IRustError> {
-        if self.cursor.is_at_first_input_line() {
-            self.handle_history("up")?;
-        } else {
-            self.cursor.move_up_bounded(1);
-            // set buffer cursor
-            let buffer_pos = self.cursor.cursor_pos_to_buffer_pos();
-            self.buffer.set_buffer_pos(buffer_pos);
-        }
-        Ok(())
-    }
-
-    pub fn handle_down(&mut self) -> Result<(), IRustError> {
-        if self.buffer.is_empty() {
-            return Ok(());
-        }
-        if self.cursor.is_at_last_input_line(&self.buffer) {
-            self.handle_history("down")?;
-        } else {
-            self.cursor.move_down_bounded(1);
-            // set buffer cursor
-            let buffer_pos = self.cursor.cursor_pos_to_buffer_pos();
-            self.buffer.set_buffer_pos(buffer_pos);
-        }
-        Ok(())
-    }
-
-    fn handle_history(&mut self, direction: &str) -> Result<(), IRustError> {
-        let history = match direction {
-            "up" => self.history.up(),
-            "down" => self.history.down(),
-            _ => panic!("incorrect usage of handle_history function"),
-        };
-
-        if let Some(history) = history {
-            self.buffer =
-                Buffer::from_str(&history, self.cursor.bound.width - super::INPUT_START_COL);
-
-            self.print_input()?;
-
-            let last_input_pos = self.cursor.input_last_pos(&self.buffer);
-            self.buffer.goto_end();
-            self.cursor.goto(last_input_pos.0, last_input_pos.1);
-        }
-        Ok(())
     }
 
     pub fn handle_right(&mut self) -> Result<(), IRustError> {

@@ -121,4 +121,8 @@ impl History {
             self.cursor = self.history.len();
         }
     }
+
+    pub fn find(&self, needle: &str) -> Option<&String> {
+        self.history.iter().find(|h| h.contains(needle))
+    }
 }

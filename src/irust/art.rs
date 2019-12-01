@@ -36,7 +36,7 @@ impl IRust {
         add_cmd: &mut std::process::Child,
         msg: &str,
     ) -> Result<(), IRustError> {
-        self.write_str_at(
+        self.write_at(
             &format!(" {}ing dep [\\]", msg),
             0,
             self.cursor.pos.current_pos.1,
@@ -44,14 +44,14 @@ impl IRust {
         loop {
             match add_cmd.try_wait() {
                 Ok(None) => {
-                    self.write_str_at("\\", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_str_at("|", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_str_at("/", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_str_at("-", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_str_at("\\", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_str_at("|", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_str_at("/", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_str_at("-", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_at("\\", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_at("|", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_at("/", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_at("-", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_at("\\", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_at("|", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_at("/", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.write_at("-", msg.len() + 10, self.cursor.pos.current_pos.1)?;
                     continue;
                 }
                 Err(e) => {
