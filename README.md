@@ -35,6 +35,8 @@ You can use arrow keys to cycle through commands history
 
 **ctrl-z** [unix only]  send IRust to the background
 
+**ctrl-r** search history
+
 **ctrl-left/right** jump through words
 
 **HOME/END** go to line start / line end
