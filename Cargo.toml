@@ -9,7 +9,7 @@ repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
 [dependencies]
-crossterm = "0.11.1"
+crossterm = "0.12.1"
 dirs = "2.0.2"
 once_cell = "1.2.0"
 
