@@ -1,4 +1,4 @@
-use crossterm::{ClearType, Color};
+use crossterm::{style::Color, terminal::ClearType};
 
 use crate::irust::{IRust, IRustError};
 

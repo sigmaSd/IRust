@@ -1,6 +1,6 @@
 use crate::irust::IRust;
 use crate::utils::VecTools;
-use crossterm::Color;
+use crossterm::style::Color;
 use std::io::Write;
 mod parser;
 use parser::RacerEnabled;

@@ -1,7 +1,7 @@
 use super::highlight::highlight;
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
-use crossterm::{ClearType, Color};
+use crossterm::{style::Color, terminal::ClearType};
 use std::iter::FromIterator;
 
 #[derive(Debug, Default, Clone)]

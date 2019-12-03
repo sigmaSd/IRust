@@ -1,5 +1,5 @@
 use crate::irust::{IRust, IRustError};
-use crossterm::{ClearType, Color};
+use crossterm::{style::Color, terminal::ClearType};
 use std::io::Read;
 
 impl IRust {
@@ -80,6 +80,7 @@ impl IRust {
             self.fit_msg(&default_msg)
         };
 
+        super::raw_terminal::RawCursor::new().goto(0, 0)?;
         self.raw_terminal.set_fg(self.options.welcome_color)?;
         self.raw_terminal.write(&msg)?;
         self.raw_terminal.reset_color()?;

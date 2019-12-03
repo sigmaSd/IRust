@@ -2,7 +2,7 @@ use super::IRustError;
 use super::Options;
 use crate::irust::IRust;
 use crate::utils::{read_until_bytes, StringTools};
-use crossterm::ClearType;
+use crossterm::terminal::ClearType;
 use std::env::temp_dir;
 use std::io::Write;
 use std::process::{Child, Command, Stdio};
@@ -348,7 +348,7 @@ impl IRust {
             }
 
             self.raw_terminal.write(&suggestion)?;
-            self.raw_terminal.set_bg(crossterm::Color::Reset)?;
+            self.raw_terminal.set_bg(crossterm::style::Color::Reset)?;
             self.cursor.cursor.restore_position()?;
             self.cursor.move_up(idx as u16 + 1);
         }

@@ -4,7 +4,7 @@ use crate::utils::StringTools;
 mod bound;
 use bound::Bound;
 
-use crossterm::TerminalCursor;
+use super::raw_terminal::RawCursor;
 
 /// input is shown with x in this example
 /// |In: x
@@ -20,7 +20,7 @@ pub struct CursorPosition {
 
 pub struct Cursor {
     pub pos: CursorPosition,
-    pub cursor: TerminalCursor,
+    pub cursor: RawCursor,
     copy: Option<Box<CursorPosition>>,
     pub bound: Bound,
 }
@@ -32,7 +32,7 @@ impl Cursor {
                 current_pos: (x, y),
                 starting_pos: (0, y),
             },
-            cursor: TerminalCursor::new(),
+            cursor: RawCursor::new(),
             copy: None,
             bound: Bound::new(width, height),
         }

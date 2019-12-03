@@ -2,7 +2,7 @@ use crate::irust::buffer::Buffer;
 use crate::irust::cursor::INPUT_START_COL;
 use crate::irust::irust_error::IRustError;
 use crate::utils::StringTools;
-use crossterm::{Color, InputEvent, KeyEvent, TerminalInput};
+use crossterm::{input::input, input::InputEvent, input::KeyEvent, style::Color};
 
 impl super::IRust {
     pub fn handle_up(&mut self) -> Result<(), IRustError> {
@@ -64,7 +64,7 @@ impl super::IRust {
 
         let mut needle = String::new();
 
-        let mut stdin = TerminalInput::new().read_sync();
+        let mut stdin = input().read_sync();
         loop {
             if let Some(key_event) = stdin.next() {
                 match key_event {

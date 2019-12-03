@@ -21,7 +21,7 @@ pub fn highlight(c: &str) -> Printer {
             .into_iter()
             .for_each(|(style, part)| {
                 let fg_color = match style.foreground {
-                    Color { r, g, b, .. } => crossterm::Color::Rgb { r, g, b },
+                    Color { r, g, b, .. } => crossterm::style::Color::Rgb { r, g, b },
                 };
                 printer.push(PrinterItem::new(
                     // trim() because we dont want the new line (we kept it for syntect parser)

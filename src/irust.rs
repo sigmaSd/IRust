@@ -1,4 +1,8 @@
-use crossterm::{Color, InputEvent, KeyEvent, TerminalInput};
+use crossterm::{
+    input::{input, InputEvent, KeyEvent},
+    screen::RawScreen,
+    style::Color,
+};
 
 mod art;
 mod cargo_cmds;
@@ -82,9 +86,9 @@ impl IRust {
     }
 
     pub fn run(&mut self) -> Result<(), IRustError> {
+        let _screen = RawScreen::into_raw_mode()?;
         self.prepare()?;
-        let mut stdin = TerminalInput::new().read_sync();
-        let _screen = crossterm::RawScreen::into_raw_mode()?;
+        let mut stdin = input().read_sync();
 
         loop {
             self.check_racer_callback()?;

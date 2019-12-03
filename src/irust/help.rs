@@ -1,6 +1,6 @@
 use super::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
-use crossterm::Color;
+use crossterm::style::Color;
 
 pub trait ColoredPrinterItem {
     fn to_output(&self, _color: Color) -> PrinterItem;

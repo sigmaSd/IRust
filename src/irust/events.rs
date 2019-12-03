@@ -2,7 +2,9 @@ use super::racer::Cycle;
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
-use crossterm::{ClearType, Color, InputEvent, KeyEvent, TerminalInput};
+use crossterm::{
+    input::input, input::InputEvent, input::KeyEvent, style::Color, terminal::ClearType,
+};
 
 mod history_events;
 
@@ -159,7 +161,7 @@ impl IRust {
             self.write_newline()?;
             self.write("Do you really want to exit ([y]/n)? ", Color::Grey)?;
 
-            let mut stdin = TerminalInput::new().read_sync();
+            let mut stdin = input().read_sync();
             loop {
                 if let Some(key_event) = stdin.next() {
                     match key_event {

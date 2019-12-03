@@ -182,7 +182,7 @@ impl IRust {
 
         self.raw_terminal.write_with_color(
             format!("waiting for {}...", editor),
-            crossterm::Color::Magenta,
+            crossterm::style::Color::Magenta,
         )?;
         self.write_newline()?;
 
@@ -215,7 +215,7 @@ impl IRust {
 
         Ok(Printer::new(PrinterItem::new(
             irust,
-            PrinterItemType::Custom(crossterm::Color::Red),
+            PrinterItemType::Custom(crossterm::style::Color::Red),
         )))
     }
 }
