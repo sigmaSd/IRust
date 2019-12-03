@@ -55,6 +55,7 @@ impl IRust {
 
     pub fn clear(&mut self) -> Result<(), IRustError> {
         self.raw_terminal.clear(ClearType::All)?;
+        self.buffer.clear();
         self.buffer.goto_start();
         self.cursor.pos.starting_pos = (0, 0);
         self.cursor.goto(4, 0);
