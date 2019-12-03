@@ -1,6 +1,11 @@
-**0.7.20**
+**0.7.30**
+- Update IRust to crossterm 0.13*
+- Update all dependencies
+
+**0.7.20(broken)**
 - Add feris
 - Add search history function with `Ctrl-r`
+
 **0.7.14**
 - Add confirmation dialog to exit with `Ctrl-d`
 - Remove exit function from `Ctrl-c`
