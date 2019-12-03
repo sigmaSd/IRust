@@ -51,7 +51,7 @@ impl super::IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_r(&mut self) -> Result<(), IRustError> {
+    pub fn handle_ctrl_r(&mut self) -> Result<usize, IRustError> {
         // make space for the search bar
         if self.cursor.is_at_last_terminal_row() {
             self.scroll_up(1);
@@ -65,8 +65,10 @@ impl super::IRust {
         let mut needle = String::new();
 
         let mut stdin = input().read_sync();
+        let mut events_num = 0;
         loop {
             if let Some(key_event) = stdin.next() {
+                events_num += 1;
                 match key_event {
                     InputEvent::Keyboard(KeyEvent::Char(c)) => {
                         // max search len
@@ -156,6 +158,6 @@ impl super::IRust {
         }
         self.clear_last_line()?;
         self.print_input()?;
-        Ok(())
+        Ok(events_num)
     }
 }

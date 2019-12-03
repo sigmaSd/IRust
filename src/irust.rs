@@ -86,6 +86,10 @@ impl IRust {
     }
 
     pub fn run(&mut self) -> Result<(), IRustError> {
+        // ignore events after ctrl-r
+        // new crossterm event loop will run the events twice if this is not used
+        let mut ignore_events = 0;
+
         let _screen = RawScreen::into_raw_mode()?;
         self.prepare()?;
         let mut stdin = input().read_sync();
@@ -93,6 +97,12 @@ impl IRust {
         loop {
             self.check_racer_callback()?;
             if let Some(key_event) = stdin.next() {
+                // hack to ignore repeted events after ctrl-r
+                if ignore_events > 0 {
+                    ignore_events -= 1;
+                    continue;
+                }
+
                 match key_event {
                     InputEvent::Keyboard(KeyEvent::Char(c)) => {
                         self.handle_character(c)?;
@@ -134,7 +144,7 @@ impl IRust {
                         self.handle_ctrl_l()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Ctrl('r')) => {
-                        self.handle_ctrl_r()?;
+                        ignore_events = self.handle_ctrl_r()?;
                     }
                     InputEvent::Keyboard(KeyEvent::Alt('\r')) => {
                         self.handle_alt_enter()?;
