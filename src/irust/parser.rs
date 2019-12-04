@@ -158,6 +158,13 @@ impl IRust {
         const ASYNC_FUNCTION_DEF: &str = "async fn ";
         const ENUM_DEF: &str = "enum ";
         const STRUCT_DEF: &str = "struct ";
+        const TRAIT_DEF: &str = "trait ";
+        const IMPL: &str = "impl ";
+
+        // attribute exp:
+        // #[derive(Debug)]
+        // struct B{}
+        const ATTRIBUTE: &str = "#";
 
         let buffer = self.buffer.to_string();
         let buffer = buffer.trim();
@@ -169,6 +176,9 @@ impl IRust {
             || buffer.starts_with(ASYNC_FUNCTION_DEF)
             || buffer.starts_with(ENUM_DEF)
             || buffer.starts_with(STRUCT_DEF)
+            || buffer.starts_with(TRAIT_DEF)
+            || buffer.starts_with(IMPL)
+            || buffer.starts_with(ATTRIBUTE)
         {
             self.repl.insert(self.buffer.to_string());
 
