@@ -154,9 +154,22 @@ impl IRust {
     }
 
     fn parse_second_order(&mut self) -> Result<Printer, IRustError> {
-        if self.buffer.to_string().trim().is_empty() {
+        const FUNCTION_DEF: &str = "fn ";
+        const ASYNC_FUNCTION_DEF: &str = "async fn ";
+        const ENUM_DEF: &str = "enum ";
+        const STRUCT_DEF: &str = "struct ";
+
+        let buffer = self.buffer.to_string();
+        let buffer = buffer.trim();
+
+        if buffer.is_empty() {
             Ok(Printer::default())
-        } else if self.buffer.to_string().trim().ends_with(';') {
+        } else if buffer.ends_with(';')
+            || buffer.starts_with(FUNCTION_DEF)
+            || buffer.starts_with(ASYNC_FUNCTION_DEF)
+            || buffer.starts_with(ENUM_DEF)
+            || buffer.starts_with(STRUCT_DEF)
+        {
             self.repl.insert(self.buffer.to_string());
 
             let printer = Printer::default();
