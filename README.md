@@ -91,4 +91,15 @@ IRust config file is located in:
     welcome_msg = Welcome to IRust
     welcome_color = DarkBlue
 
+## FAQ
+
+**1- Why is `fn a() {...}` not working and instead produes '()' as output**
+    
+    -> you have to add ; at the end of the function, exp: a(){}; instead of a(){}
+**2- Why Autocompletion doesnt work**
+    
+    -> you need racer installed and configured correctly
+        cargo +nightly install racer
+        rustup component add rust-src
+    
 ## [Changelog](./CHANGELOG.md)
