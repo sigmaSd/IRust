@@ -1,3 +1,7 @@
+**0.7.40**
+- funcitons, enums, structs, traits, now won't require `;` at the end of ther definition
+- minor bug fix
+
 **0.7.30**
 - Update IRust to crossterm 0.13*
 - Update all dependencies
