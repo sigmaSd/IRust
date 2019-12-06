@@ -93,10 +93,7 @@ IRust config file is located in:
 
 ## FAQ
 
-**1- Why is `fn a() {...}` not working and instead produes '()' as output**
-    
-    -> you have to add ; at the end of the function, exp: a(){}; instead of a(){}
-**2- Why Autocompletion doesnt work**
+**1- Why is autocompletion not working**
     
     -> you need racer installed and configured correctly
         cargo +nightly install racer
