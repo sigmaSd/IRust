@@ -316,3 +316,23 @@ impl IRust {
                 .ends_with(|c| c == ':' || c == '.' || c == '=')
     }
 }
+
+impl IRust {
+    pub fn should_push_to_history(&self, buffer: &str) -> bool {
+        let buffer: Vec<char> = buffer.chars().collect();
+
+        if buffer.is_empty() {
+            return false;
+        }
+        if buffer.len() == 1 {
+            return buffer[0] != ':';
+        }
+
+        let irust_cmd = buffer[0] == ':' && buffer[1] != ':';
+        let shell_cmd = buffer[0] == ':' && buffer[1] == ':';
+
+        (irust_cmd && self.options.add_irust_cmd_to_history)
+            || (shell_cmd && self.options.add_shell_cmd_to_history)
+            || (!irust_cmd && !shell_cmd)
+    }
+}

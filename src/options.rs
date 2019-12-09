@@ -1,4 +1,3 @@
-use crate::irust::IRust;
 use crate::utils::VecTools;
 use crossterm::style::Color;
 use std::io::Write;
@@ -7,8 +6,8 @@ use parser::RacerEnabled;
 
 #[derive(Clone)]
 pub struct Options {
-    add_irust_cmd_to_history: bool,
-    add_shell_cmd_to_history: bool,
+    pub add_irust_cmd_to_history: bool,
+    pub add_shell_cmd_to_history: bool,
     pub ok_color: Color,
     pub eval_color: Color,
     pub irust_color: Color,
@@ -171,25 +170,5 @@ impl Options {
                 }
             })
             .collect()
-    }
-}
-
-impl IRust {
-    pub fn should_push_to_history(&self, buffer: &str) -> bool {
-        let buffer: Vec<char> = buffer.chars().collect();
-
-        if buffer.is_empty() {
-            return false;
-        }
-        if buffer.len() == 1 {
-            return buffer[0] != ':';
-        }
-
-        let irust_cmd = buffer[0] == ':' && buffer[1] != ':';
-        let shell_cmd = buffer[0] == ':' && buffer[1] == ':';
-
-        (irust_cmd && self.options.add_irust_cmd_to_history)
-            || (shell_cmd && self.options.add_shell_cmd_to_history)
-            || (!irust_cmd && !shell_cmd)
     }
 }

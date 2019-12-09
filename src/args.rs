@@ -1,4 +1,4 @@
-use crate::irust::options::Options;
+use crate::options::Options;
 use std::env;
 
 const VERSION: &str = "0.7.40";

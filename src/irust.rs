@@ -14,17 +14,17 @@ mod help;
 mod highlight;
 mod history;
 mod irust_error;
-pub mod options;
+//pub mod options;
 mod parser;
 mod printer;
 mod racer;
 mod repl;
 mod writer;
+use crate::options::Options;
 use cursor::{Cursor, INPUT_START_COL};
 use debouncer::Debouncer;
 use history::History;
 use irust_error::IRustError;
-use options::Options;
 use racer::Racer;
 use repl::Repl;
 mod buffer;
@@ -47,11 +47,10 @@ pub struct IRust {
 }
 
 impl IRust {
-    pub fn new() -> Self {
+    pub fn new(options: Options) -> Self {
         let raw_terminal = RawTerminal::new();
         let repl = Repl::new();
         let history = History::new(dirs::cache_dir().unwrap().join("irust")).unwrap_or_default();
-        let options = Options::new().unwrap_or_default();
         let debouncer = Debouncer::new();
         let racer = if options.enable_racer {
             Racer::start()
