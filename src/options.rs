@@ -24,6 +24,7 @@ pub struct Options {
     pub racer_suggestions_table_color: Color,
     pub racer_selected_suggestion_color: Color,
     pub racer_max_suggestions: usize,
+    pub first_irust_run: bool,
 }
 
 impl Default for Options {
@@ -55,6 +56,8 @@ impl Default for Options {
             racer_suggestions_table_color: Color::Green,
             racer_selected_suggestion_color: Color::DarkRed,
             racer_max_suggestions: 5,
+
+            first_irust_run: true,
         }
     }
 }

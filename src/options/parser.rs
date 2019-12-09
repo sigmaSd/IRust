@@ -2,6 +2,7 @@ use super::Options;
 use std::io::Read;
 
 impl Options {
+    #[allow(clippy::cognitive_complexity)]
     pub fn parse(mut config_path: std::fs::File) -> std::io::Result<Options> {
         let mut options = Options::default();
 
@@ -96,6 +97,15 @@ impl Options {
             }
         }
 
+        for (option, value) in Options::get_section(&lines, "[Other]".to_string()).into_iter() {
+            match (option.to_lowercase().as_str(), value.clone()) {
+                ("first_irust_run", value) => {
+                    options.first_irust_run = Options::str_to_bool(&value);
+                }
+                _ => eprintln!("Unknown config option: {} {}", option, value),
+            }
+        }
+
         for (option, value) in Options::get_section(&lines, "[Racer]".to_string()).into_iter() {
             match (option.to_lowercase().as_str(), value.clone()) {
                 ("enable_racer", value) => {
@@ -167,7 +177,14 @@ err_color = DarkRed";
 welcome_msg = Welcome to IRust
 welcome_color = DarkBlue";
 
-        format!("{}\n\n{}\n\n{}\n\n{}", history, racer, colors, welcome)
+        let other = "\
+[Other]
+irust_first_run = false";
+
+        format!(
+            "{}\n\n{}\n\n{}\n\n{}\n\n{}",
+            history, racer, colors, welcome, other
+        )
     }
 }
 
