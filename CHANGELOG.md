@@ -1,3 +1,6 @@
+**0.7.50**
+  - update crossterm to 0.14
+  
 **0.7.40**
 - funcitons, enums, structs, traits, now won't require `;` at the end of ther definition
 - minor bug fix
