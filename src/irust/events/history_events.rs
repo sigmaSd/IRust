@@ -25,7 +25,7 @@ impl super::IRust {
         if self.cursor.is_at_last_input_line(&self.buffer) {
             self.handle_history("down")?;
         } else {
-            self.cursor.move_down_bounded(1);
+            self.cursor.move_down_bounded(1, &self.buffer);
             // set buffer cursor
             let buffer_pos = self.cursor.cursor_pos_to_buffer_pos();
             self.buffer.set_buffer_pos(buffer_pos);

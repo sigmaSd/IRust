@@ -83,9 +83,15 @@ impl Cursor {
         let _ = self.cursor.move_up(count);
     }
 
-    pub fn move_down_bounded(&mut self, count: u16) {
+    pub fn move_down_bounded(&mut self, count: u16, buffer: &Buffer) {
         self.move_down(count);
+        // check if we're out of bound
         self.pos.current_pos.0 = std::cmp::min(self.pos.current_pos.0, self.current_row_bound());
+        // check if we passed the buffer
+        let last_pos = self.input_last_pos(buffer);
+        if self.pos.current_pos.1 >= last_pos.1 && self.pos.current_pos.0 >= last_pos.0 {
+            self.pos.current_pos = last_pos;
+        }
         let _ = self.goto_internal_pos();
     }
 
