@@ -1,5 +1,5 @@
 use super::IRustError;
-use crossterm::{cursor::*, execute, screen::RawScreen, style::*, terminal::*, Output};
+use crossterm::{cursor::*, execute, style::*, terminal::*};
 use std::fmt::Display;
 use std::io::{stdout, Write};
 
@@ -21,7 +21,7 @@ impl RawTerminal {
     }
 
     pub fn write<D: Display + Clone>(&self, value: D) -> Result<(), IRustError> {
-        execute!(stdout(), Output(value))?;
+        execute!(stdout(), Print(value))?;
         Ok(())
     }
 
@@ -56,7 +56,7 @@ impl RawTerminal {
     }
 
     pub fn exit(status: i32) {
-        let _ = RawScreen::disable_raw_mode();
+        let _ = disable_raw_mode();
         std::process::exit(status);
     }
 }

@@ -1,8 +1,9 @@
 use crate::irust::buffer::Buffer;
 use crate::irust::cursor::INPUT_START_COL;
 use crate::irust::irust_error::IRustError;
+use crate::irust::{CTRL_KEYMODIFIER, NO_MODIFIER};
 use crate::utils::StringTools;
-use crossterm::{input::input, input::InputEvent, input::KeyEvent, style::Color};
+use crossterm::{event::*, style::Color};
 
 impl super::IRust {
     pub fn handle_up(&mut self) -> Result<(), IRustError> {
@@ -51,7 +52,7 @@ impl super::IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_r(&mut self) -> Result<usize, IRustError> {
+    pub fn handle_ctrl_r(&mut self) -> Result<(), IRustError> {
         // make space for the search bar
         if self.cursor.is_at_last_terminal_row() {
             self.scroll_up(1);
@@ -64,13 +65,13 @@ impl super::IRust {
 
         let mut needle = String::new();
 
-        let mut stdin = input().read_sync();
-        let mut events_num = 0;
         loop {
-            if let Some(key_event) = stdin.next() {
-                events_num += 1;
+            if let Ok(key_event) = read() {
                 match key_event {
-                    InputEvent::Keyboard(KeyEvent::Char(c)) => {
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Char(c),
+                        modifiers: NO_MODIFIER,
+                    }) => {
                         // max search len
                         if StringTools::chars_count(&needle) + TITLE_WIDTH
                             == self.cursor.bound.width - 1
@@ -100,7 +101,10 @@ impl super::IRust {
                             self.cursor.bound.height - 1,
                         )?;
                     }
-                    InputEvent::Keyboard(KeyEvent::Backspace) => {
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Backspace,
+                        ..
+                    }) => {
                         needle.pop();
                         // search history
                         if !needle.is_empty() {
@@ -132,7 +136,10 @@ impl super::IRust {
                             self.cursor.bound.height - 1,
                         )?;
                     }
-                    InputEvent::Keyboard(KeyEvent::Ctrl('c')) => {
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Char('c'),
+                        modifiers: CTRL_KEYMODIFIER,
+                    }) => {
                         self.buffer.clear();
                         self.print_input()?;
                         needle.clear();
@@ -144,10 +151,17 @@ impl super::IRust {
                             self.cursor.bound.height - 1,
                         )?;
                     }
-                    InputEvent::Keyboard(KeyEvent::Enter) | InputEvent::Keyboard(KeyEvent::Esc) => {
-                        break
-                    }
-                    InputEvent::Keyboard(KeyEvent::Ctrl('d')) => {
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Enter,
+                        ..
+                    })
+                    | Event::Key(KeyEvent {
+                        code: KeyCode::Esc, ..
+                    }) => break,
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Char('d'),
+                        modifiers: CTRL_KEYMODIFIER,
+                    }) => {
                         if needle.is_empty() {
                             break;
                         }
@@ -158,6 +172,6 @@ impl super::IRust {
         }
         self.clear_last_line()?;
         self.print_input()?;
-        Ok(events_num)
+        Ok(())
     }
 }

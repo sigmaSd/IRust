@@ -1,10 +1,9 @@
 use super::racer::Cycle;
+use super::{CTRL_KEYMODIFIER, NO_MODIFIER};
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
-use crossterm::{
-    input::input, input::InputEvent, input::KeyEvent, style::Color, terminal::ClearType,
-};
+use crossterm::{event::*, style::Color, terminal::ClearType};
 
 mod history_events;
 
@@ -161,11 +160,13 @@ impl IRust {
             self.write_newline()?;
             self.write("Do you really want to exit ([y]/n)? ", Color::Grey)?;
 
-            let mut stdin = input().read_sync();
             loop {
-                if let Some(key_event) = stdin.next() {
+                if let Ok(key_event) = read() {
                     match key_event {
-                        InputEvent::Keyboard(KeyEvent::Char(c)) => match &c {
+                        Event::Key(KeyEvent {
+                            code: KeyCode::Char(c),
+                            modifiers: NO_MODIFIER,
+                        }) => match &c {
                             'y' | 'Y' => self.exit()?,
                             _ => {
                                 self.write_newline()?;
@@ -174,8 +175,14 @@ impl IRust {
                                 return Ok(());
                             }
                         },
-                        InputEvent::Keyboard(KeyEvent::Ctrl('d'))
-                        | InputEvent::Keyboard(KeyEvent::Enter) => {
+                        Event::Key(KeyEvent {
+                            code: KeyCode::Char('d'),
+                            modifiers: CTRL_KEYMODIFIER,
+                        })
+                        | Event::Key(KeyEvent {
+                            code: KeyCode::Enter,
+                            ..
+                        }) => {
                             self.exit()?;
                         }
                         _ => continue,

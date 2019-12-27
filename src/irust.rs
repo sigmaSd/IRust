@@ -1,9 +1,3 @@
-use crossterm::{
-    input::{input, InputEvent, KeyEvent},
-    screen::RawScreen,
-    style::Color,
-};
-
 mod art;
 mod cargo_cmds;
 mod cursor;
@@ -20,6 +14,8 @@ mod printer;
 mod racer;
 mod repl;
 mod writer;
+use crossterm::event::*;
+use crossterm::{style::Color, terminal::enable_raw_mode};
 use cursor::{Cursor, INPUT_START_COL};
 use debouncer::Debouncer;
 use history::History;
@@ -34,6 +30,11 @@ use raw_terminal::RawTerminal;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
+pub const CTRL_KEYMODIFIER: crossterm::event::KeyModifiers =
+    crossterm::event::KeyModifiers::CONTROL;
+const ALT_KEYMODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::ALT;
+const _SHIFT_KEYMODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::SHIFT;
+pub const NO_MODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::empty();
 
 pub struct IRust {
     raw_terminal: RawTerminal,
@@ -86,85 +87,135 @@ impl IRust {
     }
 
     pub fn run(&mut self) -> Result<(), IRustError> {
-        // ignore events after ctrl-r
-        // new crossterm event loop will run the events twice if this is not used
-        let mut ignore_events = 0;
-
-        let _screen = RawScreen::into_raw_mode()?;
+        enable_raw_mode()?;
         self.prepare()?;
-        let mut stdin = input().read_sync();
 
         loop {
             self.check_racer_callback()?;
-            if let Some(key_event) = stdin.next() {
-                // hack to ignore repeted events after ctrl-r
-                if ignore_events > 0 {
-                    ignore_events -= 1;
-                    continue;
-                }
-
+            if let Ok(key_event) = read() {
                 match key_event {
-                    InputEvent::Keyboard(KeyEvent::Char(c)) => {
-                        self.handle_character(c)?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Enter) => {
-                        self.handle_enter()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Tab) => {
-                        self.handle_tab()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::BackTab) => {
-                        self.handle_back_tab()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Left) => {
-                        self.handle_left()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Right) => {
-                        self.handle_right()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Up) => {
-                        self.handle_up()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Down) => {
-                        self.handle_down()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Backspace) => {
-                        self.handle_backspace()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Ctrl('c')) => {
-                        self.handle_ctrl_c()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Ctrl('d')) => {
-                        self.handle_ctrl_d()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Ctrl('z')) => {
-                        self.handle_ctrl_z()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Ctrl('l')) => {
-                        self.handle_ctrl_l()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Ctrl('r')) => {
-                        ignore_events = self.handle_ctrl_r()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Alt('\r')) => {
-                        self.handle_alt_enter()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::Home) => {
-                        self.handle_home_key()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::End) => {
-                        self.handle_end_key()?;
-                    }
-                    InputEvent::Keyboard(KeyEvent::CtrlLeft) => {
-                        self.handle_ctrl_left();
-                    }
-                    InputEvent::Keyboard(KeyEvent::CtrlRight) => {
-                        self.handle_ctrl_right();
-                    }
-                    InputEvent::Keyboard(KeyEvent::Delete) => {
-                        self.handle_del()?;
-                    }
-                    _ => {}
+                    Event::Mouse(_) => (),
+                    Event::Resize(_width, _height) => (),
+                    Event::Key(key_event) => match key_event {
+                        KeyEvent {
+                            code: KeyCode::Char(c),
+                            modifiers: NO_MODIFIER,
+                        } => {
+                            self.handle_character(c)?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Enter,
+                            ..
+                        } => {
+                            self.handle_enter()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Tab, ..
+                        } => {
+                            self.handle_tab()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::BackTab,
+                            ..
+                        } => {
+                            self.handle_back_tab()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Left,
+                            modifiers: NO_MODIFIER,
+                        } => {
+                            self.handle_left()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Right,
+                            modifiers: NO_MODIFIER,
+                        } => {
+                            self.handle_right()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Up, ..
+                        } => {
+                            self.handle_up()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Down,
+                            ..
+                        } => {
+                            self.handle_down()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Backspace,
+                            ..
+                        } => {
+                            self.handle_backspace()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Char('c'),
+                            modifiers: CTRL_KEYMODIFIER,
+                        } => {
+                            self.handle_ctrl_c()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Char('d'),
+                            modifiers: CTRL_KEYMODIFIER,
+                        } => {
+                            self.handle_ctrl_d()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Char('z'),
+                            modifiers: CTRL_KEYMODIFIER,
+                        } => {
+                            self.handle_ctrl_z()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Char('l'),
+                            modifiers: CTRL_KEYMODIFIER,
+                        } => {
+                            self.handle_ctrl_l()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Char('r'),
+                            modifiers: CTRL_KEYMODIFIER,
+                        } => {
+                            self.handle_ctrl_r()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Char('\r'),
+                            modifiers: ALT_KEYMODIFIER,
+                        } => {
+                            self.handle_alt_enter()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Home,
+                            ..
+                        } => {
+                            self.handle_home_key()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::End, ..
+                        } => {
+                            self.handle_end_key()?;
+                        }
+                        KeyEvent {
+                            code: KeyCode::Left,
+                            modifiers: CTRL_KEYMODIFIER,
+                        } => {
+                            self.handle_ctrl_left();
+                        }
+                        KeyEvent {
+                            code: KeyCode::Right,
+                            modifiers: CTRL_KEYMODIFIER,
+                        } => {
+                            self.handle_ctrl_right();
+                        }
+                        KeyEvent {
+                            code: KeyCode::Delete,
+                            ..
+                        } => {
+                            self.handle_del()?;
+                        }
+                        _ => {}
+                    },
                 }
             }
         }
