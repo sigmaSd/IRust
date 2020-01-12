@@ -1,4 +1,4 @@
-**0.7.6**
+**0.8.0**
 - Try to canonicalize paths used with `:add` command, so now this for example works `:add regex --path ./regex` (Adding local dependency regex)
 - Update dependencies
 
