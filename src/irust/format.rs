@@ -17,12 +17,17 @@ pub fn format_eval_output(output: &str) -> Printer {
 
             output.join(",")
         } else {
-            output
-                .lines()
-                .skip(1)
-                .take(lines_count - 8)
-                .collect::<Vec<&str>>()
-                .join("\n")
+            // what was this for hmm
+            if lines_count > 8 {
+                output
+                    .lines()
+                    .skip(1)
+                    .take(lines_count - 8)
+                    .collect::<Vec<&str>>()
+                    .join("\n")
+            } else {
+                output.to_string()
+            }
         };
         eval_output.push(PrinterItem::new(actual_error, PrinterItemType::Err));
     } else {

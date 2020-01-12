@@ -59,13 +59,28 @@ impl IRust {
     }
 
     fn add_dep(&mut self) -> Result<Printer, IRustError> {
-        let dep: Vec<String> = self
+        let mut dep: Vec<String> = self
             .buffer
             .to_string()
             .split_whitespace()
             .skip(1)
             .map(ToOwned::to_owned)
             .collect();
+
+        // if user provides a path, for example for cargo add --path
+        // canonicalize that path, since relative directiories wont work
+        for p in dep.iter_mut() {
+            if p.contains('/') {
+                match std::path::Path::new(p).canonicalize() {
+                    Ok(full_p) => {
+                        if let Some(full_p) = full_p.to_str() {
+                            *p = full_p.to_string();
+                        }
+                    }
+                    Err(e) => return Err(e.into()),
+                }
+            }
+        }
 
         self.cursor.save_position()?;
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
