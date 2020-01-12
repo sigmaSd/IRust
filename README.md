@@ -9,7 +9,7 @@ Cross Platform Rust Repl
 
 **:show** => show repl current code (optionally depends on [rustfmt](https://github.com/rust-lang/rustfmt) to format output)
 
-**:add** *<dep_list>* => add dependencies (requires [cargo-edit](https://github.com/killercup/cargo-edit))
+**:add** *<dep_list>* => add dependencies (requires [cargo-edit](https://github.com/killercup/cargo-edit)) also it accepts most `cargo-edit` arguments
 
 **:type** *<expression>* => shows the expression type, example `:type vec!(5)`
 
