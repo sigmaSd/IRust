@@ -1,3 +1,7 @@
+**0.7.6**
+- Try to canonicalize paths used with `:add` command, so now this for example works `:add regex --path ./regex` (Adding local dependency regex)
+- Update dependencies
+
 **0.7.51**
 - bug-fix: Keep the cursor in bound when hitting down key
 
