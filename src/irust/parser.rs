@@ -113,6 +113,10 @@ impl IRust {
     }
 
     fn show_type(&mut self) -> Result<Printer, IRustError> {
+        // TODO
+        // We should probably use the `Any` trait instead of the current method
+        // Current method might break with compiler updates
+
         const TYPE_FOUND_MSG: &str = "expected `()`, found ";
         const EMPTY_TYPE_MSG: &str = "dev [unoptimized + debuginfo]";
 
