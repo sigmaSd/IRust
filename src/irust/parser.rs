@@ -113,7 +113,7 @@ impl IRust {
     }
 
     fn show_type(&mut self) -> Result<Printer, IRustError> {
-        const TYPE_FOUND_MSG: &str = "found type `";
+        const TYPE_FOUND_MSG: &str = "expected `()`, found ";
         const EMPTY_TYPE_MSG: &str = "dev [unoptimized + debuginfo]";
 
         let variable = self
@@ -132,10 +132,13 @@ impl IRust {
         let var_type = if raw_out.find(TYPE_FOUND_MSG).is_some() {
             raw_out
                 .lines()
-                .find(|l| l.contains(TYPE_FOUND_MSG))
+                // there is a case where there could be 2 found msg
+                // the second one is more detailed
+                .rev()
+                .find(|l| l.contains("found"))
                 .unwrap()
-                .split('`')
-                .nth(1)
+                .rsplit("found ")
+                .next()
                 .unwrap()
                 .to_string()
         } else if raw_out.find(EMPTY_TYPE_MSG).is_some() {
