@@ -116,6 +116,7 @@ impl IRust {
         // TODO
         // We should probably use the `Any` trait instead of the current method
         // Current method might break with compiler updates
+        // On the other hand `Any` is more limited
 
         const TYPE_FOUND_MSG: &str = "expected `()`, found ";
         const EMPTY_TYPE_MSG: &str = "dev [unoptimized + debuginfo]";
