@@ -33,7 +33,7 @@ const OUT: &str = "Out: ";
 pub const CTRL_KEYMODIFIER: crossterm::event::KeyModifiers =
     crossterm::event::KeyModifiers::CONTROL;
 const ALT_KEYMODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::ALT;
-const _SHIFT_KEYMODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::SHIFT;
+const SHIFT_KEYMODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::SHIFT;
 pub const NO_MODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::empty();
 
 pub struct IRust {
@@ -100,6 +100,10 @@ impl IRust {
                         KeyEvent {
                             code: KeyCode::Char(c),
                             modifiers: NO_MODIFIER,
+                        }
+                        | KeyEvent {
+                            code: KeyCode::Char(c),
+                            modifiers: SHIFT_KEYMODIFIER,
                         } => {
                             self.handle_character(c)?;
                         }
