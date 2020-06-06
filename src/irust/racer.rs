@@ -110,7 +110,7 @@ impl Racer {
             let mut try_parse = || -> Option<()> {
                 let start_idx = suggestion.find("MATCH ")? + 6;
                 let mut indices = suggestion.match_indices(',');
-                let name = suggestion[start_idx..indices.nth(0)?.0].to_owned();
+                let name = suggestion[start_idx..indices.next()?.0].to_owned();
                 let definition = suggestion[indices.nth(3)?.0..].to_owned();
                 self.suggestions.push((name, definition[1..].to_owned()));
                 Some(())
