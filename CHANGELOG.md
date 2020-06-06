@@ -2,7 +2,7 @@
 - Update `:type` to work with latest stable compiler version (Might break with future update, maybe use `Any` trait to determine type?)
 
 **0.8.0**
-- Try to canonicalize paths used with `:add` command, so now this for example works `:add regex --path ./regex` (Adding local dependency regex)
+- Try to canonicalize paths used with `:add` command, so now this for example works `:add regex --path ./regex` or for a short version `:add ./` (Adding local dependency regex)
 - Update dependencies
 
 **0.7.51**
