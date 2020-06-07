@@ -134,7 +134,7 @@ jobs:
       shell: bash
       run: |
         staging="irust-${{ env.RELEASE_VERSION }}-${{ matrix.target }}"
-        mkdir -p "$staging"/{doc}
+        mkdir -p "$staging"/doc
 
         cp {README.md,LICENSE} "$staging/"
         cp {CHANGELOG.md} "$staging/doc/"
