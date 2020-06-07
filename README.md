@@ -93,6 +93,12 @@ IRust config file is located in:
     welcome_msg = Welcome to IRust
     welcome_color = DarkBlue
 
+## Releases
+   Automatic releases by github actions are uploaded here https://github.com/sigmaSd/irust/releases
+    
+## Building
+    cargo b --release
+    
 ## FAQ
 
 **1- Why is autocompletion not working**
