@@ -45,9 +45,11 @@ jobs:
       run: cargo build --verbose --release
       continue-on-error: ${{ matrix.can-fail }}
     - name: Upload release archive
+      if: matrix.rust == 'stable'
       uses: actions/upload-release-asset@v1.0.1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
+        upload_url: https://github.com/sigmaSd/IRust/releases
         asset_path: target/release/irust
         asset_name: irust
