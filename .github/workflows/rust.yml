@@ -16,10 +16,14 @@ name: release
 on:
   push:
     # Enable when testing release infrastructure on a branch.
-    # branches:
+   branches:
+     - master
+  pull_request:
+    branches:
+      - master
     # - ag/release
-    tags:
-    - '[0-9]+.[0-9]+.[0-9]+'
+    # tags:
+    #- '[0-9]+.[0-9]+.[0-9]+'
 jobs:
   create-release:
     name: create-release
