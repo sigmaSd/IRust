@@ -21,6 +21,8 @@ Cross Platform Rust Repl
 
 **:edit** *\<editor\>* => edit internal buffer using an external editor, example: `:edit micro`, currently it has some limitations mainly everthing should be defined in the main function (structs, enum, etc..)
 
+**:cd** => change current working directory
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history
