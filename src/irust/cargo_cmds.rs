@@ -7,6 +7,8 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Command;
 
+// TODO:
+// Move these paths to KnownPaths struct
 pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(temp_dir);
 pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust"));
 pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src/main.rs"));
