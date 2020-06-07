@@ -126,10 +126,16 @@ jobs:
         release_version="$(cat artifacts/release-version)"
         echo "::set-env name=RELEASE_VERSION::$release_version"
         echo "release version: $RELEASE_VERSION"
-
-    - name: Build release binary
+        
+    - name: Update TARGET_DIR
       run: |
         echo "::set-env name=TARGET_DIR::./target/${{ matrix.target }}"
+        echo "target dir is: ${{ env.TARGET_DIR }}"
+       
+      
+      
+    - name: Build release binary
+      run: |
         cargo build --release
 
     - name: Build archive
@@ -146,6 +152,7 @@ jobs:
           7z a "$staging.zip" "$staging"
           echo "::set-env name=ASSET::$staging.zip"
         else
+          ls "target/${{ matrix.target }}/release"
           cp "target/${{ matrix.target }}/release/irust" "$staging/"
           tar czf "$staging.tar.gz" "$staging"
           echo "::set-env name=ASSET::$staging.tar.gz"
