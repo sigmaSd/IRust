@@ -21,6 +21,7 @@ impl IRust {
             cmd if cmd.starts_with(":load") => self.load_script(),
             cmd if cmd.starts_with(":type") => self.show_type(),
             cmd if cmd.starts_with(":del") => self.del(),
+            cmd if cmd.starts_with(":cd") => self.cd(),
             _ => self.parse_second_order(),
         }
     }
@@ -163,7 +164,6 @@ impl IRust {
         let buffer = &self.buffer.to_string()[2..];
 
         let mut cmd = buffer.split_whitespace();
-
         let output = stdout_and_stderr(
             std::process::Command::new(cmd.next().unwrap_or_default())
                 .args(&cmd.collect::<Vec<&str>>())
@@ -263,5 +263,43 @@ impl IRust {
             irust,
             PrinterItemType::Custom(crossterm::style::Color::Red),
         )))
+    }
+
+    fn cd(&mut self) -> Result<Printer, IRustError> {
+        use std::env::*;
+        let buffer = self.buffer.to_string();
+        let buffer = buffer
+            .split(":cd")
+            .skip(1)
+            .collect::<String>()
+            .trim()
+            .to_string();
+        match buffer.as_str() {
+            "" => {
+                if let Some(dir) = dirs::home_dir() {
+                    set_current_dir(dir)?;
+                }
+            }
+            "-" => {
+                set_current_dir(self.known_paths.get_pwd())?;
+            }
+            path => {
+                let mut dir = current_dir()?;
+                dir.push(&path);
+                set_current_dir(dir)?;
+            }
+        }
+        // Update cwd and the terminal title accordingly
+        let cwd = current_dir()?;
+        self.known_paths.update_cwd(cwd.clone());
+        self.raw_terminal
+            .set_title(&format!("IRust: {}", cwd.display()));
+
+        let mut output = Printer::new(PrinterItem::new(
+            cwd.display().to_string(),
+            PrinterItemType::Ok,
+        ));
+        output.add_new_line(1);
+        Ok(output)
     }
 }

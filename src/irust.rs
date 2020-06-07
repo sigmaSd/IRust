@@ -8,6 +8,7 @@ mod help;
 mod highlight;
 mod history;
 mod irust_error;
+mod known_paths;
 pub mod options;
 mod parser;
 mod printer;
@@ -26,6 +27,7 @@ use repl::Repl;
 mod buffer;
 use buffer::Buffer;
 mod raw_terminal;
+use known_paths::KnownPaths;
 use raw_terminal::RawTerminal;
 
 const IN: &str = "In: ";
@@ -45,11 +47,15 @@ pub struct IRust {
     options: Options,
     racer: Result<Racer, IRustError>,
     debouncer: Debouncer,
+    known_paths: KnownPaths,
 }
 
 impl IRust {
     pub fn new() -> Self {
         let raw_terminal = RawTerminal::new();
+        let known_paths = KnownPaths::new();
+        raw_terminal.set_title(&format!("IRust: {}", known_paths.get_cwd().display()));
+
         let repl = Repl::new();
         let history = History::new(dirs::cache_dir().unwrap().join("irust")).unwrap_or_default();
         let options = Options::new().unwrap_or_default();
@@ -75,6 +81,7 @@ impl IRust {
             racer,
             debouncer,
             buffer,
+            known_paths,
         }
     }
 

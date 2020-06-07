@@ -22,7 +22,7 @@ impl IRust {
     pub fn handle_enter(&mut self) -> Result<(), IRustError> {
         let buffer = self.buffer.to_string();
 
-        if self.incomplete_input(&buffer) {
+        if !self.input_is_cmd_or_shell(&buffer) && self.incomplete_input(&buffer) {
             self.write_from_next_line()?;
             return Ok(());
         }
@@ -316,10 +316,15 @@ impl IRust {
         }
     }
 
+    // helper functions
     fn incomplete_input(&self, buffer: &str) -> bool {
         StringTools::unmatched_brackets(&buffer)
             || buffer
                 .trim_end()
                 .ends_with(|c| c == ':' || c == '.' || c == '=')
+    }
+
+    fn input_is_cmd_or_shell(&self, buffer: &str) -> bool {
+        buffer.starts_with(':') || buffer.starts_with("::")
     }
 }

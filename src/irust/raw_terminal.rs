@@ -55,6 +55,10 @@ impl RawTerminal {
         Ok(())
     }
 
+    pub fn set_title(&self, title: &str) {
+        let _ = execute!(stdout(), SetTitle(title));
+    }
+
     pub fn exit(status: i32) {
         let _ = disable_raw_mode();
         std::process::exit(status);
