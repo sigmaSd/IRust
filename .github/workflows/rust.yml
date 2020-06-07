@@ -133,9 +133,8 @@ jobs:
     - name: Build archive
       shell: bash
       run: |
-        outdir="$(ci/cargo-out-dir "${{ env.TARGET_DIR }}")"
         staging="irust-${{ env.RELEASE_VERSION }}-${{ matrix.target }}"
-        mkdir -p "$staging"/{complete,doc}
+        mkdir -p "$staging"/{doc}
 
         cp {README.md,LICENSE} "$staging/"
         cp {CHANGELOG.md} "$staging/doc/"
