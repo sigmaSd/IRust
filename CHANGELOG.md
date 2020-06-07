@@ -1,6 +1,11 @@
+**0.8.3**
+- Add `:cd` command
+- Don't scan for incomplete input when its a builtin cmd or a shell cmd
+- Set terminal title according to current working directory
+
 **0.8.2**
 - Update all dependencies
-- `syntect`: switeched to the new [fancy-regex](https://github.com/trishume/syntect#pure-rust-fancy-regex-mode-without-onig) engine
+- `syntect`: switched to the new [fancy-regex](https://github.com/trishume/syntect#pure-rust-fancy-regex-mode-without-onig) engine
 
 **0.8.1**
 - Update `:type` to work with latest stable compiler version (Might break with future update, maybe use `Any` trait to determine type?)
