@@ -17,7 +17,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-2019, macOS-latest]
-        rust: [stable, nightly]
+        rust: [stable] 
+        #[stable, nightly]
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v1
@@ -34,22 +35,6 @@ jobs:
         rustfmt --version
         rustup --version
         cargo --version
-      
-    - name: Get release download URL
-      uses: actions/download-artifact@v1
-      with:
-        name: artifacts
-        path: artifacts
-
-    - name: Set release upload URL and release version
-      shell: bash
-      run: |
-        release_upload_url="$(cat artifacts/release-upload-url)"
-        echo "::set-env name=RELEASE_UPLOAD_URL::$release_upload_url"
-        echo "release upload url: $RELEASE_UPLOAD_URL"
-        release_version="$(cat artifacts/release-version)"
-        echo "::set-env name=RELEASE_VERSION::$release_version"
-        echo "release version: $RELEASE_VERSION"
         
     - name: Build binary
       run: cargo build --verbose 
@@ -60,7 +45,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ env.RELEASE_UPLOAD_URL }}
+        upload_url: https://github.com/sigmaSd/IRust/releases
         asset_path: target/release/irust
         asset_name: irust
         asset_content_type: application/octet-stream
