@@ -137,7 +137,7 @@ jobs:
         mkdir -p "$staging"/doc
 
         cp {README.md,LICENSE} "$staging/"
-        cp {CHANGELOG.md} "$staging/doc/"
+        cp CHANGELOG.md "$staging/doc/"
 
         if [ "${{ matrix.os }}" = "windows-2019" ]; then
           cp "target/${{ matrix.target }}/release/irust.exe" "$staging/"
