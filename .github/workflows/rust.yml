@@ -39,13 +39,21 @@ jobs:
     - name: Build binary
       run: cargo build --verbose 
       continue-on-error: ${{ matrix.can-fail }}
-    - name: Upload release archive
-      if: matrix.rust == 'stable'
-      uses: actions/upload-release-asset@v1.0.1
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: https://github.com/sigmaSd/IRust/releases
-        asset_path: target/debug/irust
-        asset_name: irust
-        asset_content_type: application/octet-stream
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
