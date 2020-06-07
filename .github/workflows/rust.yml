@@ -73,8 +73,6 @@ jobs:
       # For some builds, we use cross to test on 32-bit and big-endian
       # systems.
       CARGO: cargo
-      # When CARGO is set to CROSS, this is set to `--target matrix.target`.
-      # When CARGO is set to CROSS, TARGET_DIR includes matrix.target.
       TARGET_DIR: ./target
     strategy:
       matrix:
@@ -126,13 +124,6 @@ jobs:
         release_version="$(cat artifacts/release-version)"
         echo "::set-env name=RELEASE_VERSION::$release_version"
         echo "release version: $RELEASE_VERSION"
-        
-    - name: Update TARGET_DIR
-      run: |
-        echo "::set-env name=TARGET_DIR::./target/${{ matrix.target }}"
-        echo "target dir is: ${{ env.TARGET_DIR }}"
-       
-      
       
     - name: Build release binary
       run: |
@@ -148,12 +139,11 @@ jobs:
         cp CHANGELOG.md "$staging/doc/"
 
         if [ "${{ matrix.os }}" = "windows-2019" ]; then
-          cp "target/${{ matrix.target }}/release/irust.exe" "$staging/"
+          cp "target/release/irust.exe" "$staging/"
           7z a "$staging.zip" "$staging"
           echo "::set-env name=ASSET::$staging.zip"
         else
-          ls "target/${{ matrix.target }}/release"
-          cp "target/${{ matrix.target }}/release/irust" "$staging/"
+          cp "target/release/irust" "$staging/"
           tar czf "$staging.tar.gz" "$staging"
           echo "::set-env name=ASSET::$staging.tar.gz"
         fi
