@@ -1,3 +1,8 @@
+**0.8.4**
+- add `:cd` to racer suggestions
+- expression starting with `pub` dont require ';'
+- don't clear screen after exiting
+
 **0.8.3**
 - Add `:cd` command
 - Don't scan for incomplete input when its a builtin cmd or a shell cmd
