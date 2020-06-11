@@ -195,7 +195,6 @@ impl IRust {
 
     fn exit(&mut self) -> Result<(), IRustError> {
         self.history.save();
-        self.raw_terminal.clear(ClearType::All)?;
         super::RawTerminal::exit(0);
         Ok(())
     }
