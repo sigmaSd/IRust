@@ -69,7 +69,7 @@ impl IRust {
             let (width, height) = raw_terminal.size().expect("Error getting terminal size");
             (width as usize, height as usize)
         };
-        let cursor = Cursor::new(0, 0, size.0, size.1);
+        let cursor = Cursor::new(size.0, size.1);
         let buffer = Buffer::new(size.0 - INPUT_START_COL);
 
         IRust {
