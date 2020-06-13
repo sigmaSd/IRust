@@ -1,5 +1,5 @@
 use crate::irust::{IRust, IRustError};
-use crossterm::{style::Color, terminal::ClearType};
+use crossterm::style::Color;
 use std::io::Read;
 
 impl IRust {
@@ -71,8 +71,6 @@ impl IRust {
     }
 
     pub fn welcome(&mut self) -> Result<(), IRustError> {
-        self.raw_terminal.clear(ClearType::All)?;
-
         let default_msg = "Welcome to IRust".to_string();
         let msg = if !self.options.welcome_msg.is_empty() {
             self.fit_msg(&self.options.welcome_msg.clone())
@@ -80,7 +78,6 @@ impl IRust {
             self.fit_msg(&default_msg)
         };
 
-        super::raw_terminal::RawCursor::new().goto(0, 0)?;
         self.raw_terminal.set_fg(self.options.welcome_color)?;
         self.raw_terminal.write(&msg)?;
         self.raw_terminal.reset_color()?;

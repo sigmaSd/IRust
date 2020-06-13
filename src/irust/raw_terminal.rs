@@ -105,4 +105,10 @@ impl RawCursor {
         execute!(stdout(), MoveTo(x, y))?;
         Ok(())
     }
+
+    pub fn get_current_pos() -> Result<(usize, usize), IRustError> {
+        let pos = crossterm::cursor::position();
+        let pos = pos.map(|(x, y)| (x as usize, y as usize));
+        Ok(pos?)
+    }
 }

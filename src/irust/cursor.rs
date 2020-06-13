@@ -26,11 +26,12 @@ pub struct Cursor {
 }
 
 impl Cursor {
-    pub fn new(x: usize, y: usize, width: usize, height: usize) -> Self {
+    pub fn new(width: usize, height: usize) -> Self {
+        let current_pos = RawCursor::get_current_pos().expect("Error getting cursor position");
         Self {
             pos: CursorPosition {
-                current_pos: (x, y),
-                starting_pos: (0, y),
+                current_pos,
+                starting_pos: (0, current_pos.1),
             },
             cursor: RawCursor::new(),
             copy: None,
