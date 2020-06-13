@@ -1,7 +1,6 @@
 mod art;
 mod cargo_cmds;
 mod cursor;
-mod debouncer;
 mod events;
 mod format;
 mod help;
@@ -18,7 +17,6 @@ mod writer;
 use crossterm::event::*;
 use crossterm::{style::Color, terminal::enable_raw_mode};
 use cursor::{Cursor, INPUT_START_COL};
-use debouncer::Debouncer;
 use history::History;
 use irust_error::IRustError;
 use options::Options;
@@ -46,7 +44,6 @@ pub struct IRust {
     history: History,
     options: Options,
     racer: Result<Racer, IRustError>,
-    debouncer: Debouncer,
     known_paths: KnownPaths,
 }
 
@@ -59,7 +56,6 @@ impl IRust {
         let repl = Repl::new();
         let history = History::new(dirs::cache_dir().unwrap().join("irust")).unwrap_or_default();
         let options = Options::new().unwrap_or_default();
-        let debouncer = Debouncer::new();
         let racer = if options.enable_racer {
             Racer::start()
         } else {
@@ -79,7 +75,6 @@ impl IRust {
             history,
             options,
             racer,
-            debouncer,
             buffer,
             known_paths,
         }
@@ -87,7 +82,6 @@ impl IRust {
 
     fn prepare(&mut self) -> Result<(), IRustError> {
         self.repl.prepare_ground()?;
-        self.debouncer.run();
         self.welcome()?;
         self.write_from_terminal_start(IN, Color::Yellow)?;
 
@@ -99,9 +93,6 @@ impl IRust {
         self.prepare()?;
 
         loop {
-            // racer autocompletion
-            self.check_racer_callback()?;
-
             // flush queued output after each key
             // some events that have an inner input loop like ctrl-r/ ctrl-d require flushing inside their respective handler function
             self.raw_terminal.flush()?;
@@ -112,6 +103,7 @@ impl IRust {
                     Event::Mouse(_) => (),
                     Event::Resize(width, height) => {
                         // ctrlc so we can ignore a lot of position adjusting
+                        // TODO fix this
                         self.handle_ctrl_c()?;
                         self.cursor = Cursor::new(width.into(), height.into());
                     }

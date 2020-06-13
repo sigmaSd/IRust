@@ -218,9 +218,6 @@ impl IRust {
                 .eval_in_tmp_repl(buffer, move || -> Result<(), IRustError> {
                     racer.complete_code().map_err(From::from)
                 })?;
-
-            // reset debouncer
-            self.debouncer.reset_timer();
         }
 
         Ok(())
@@ -237,12 +234,6 @@ impl IRust {
         self.racer.as_mut()?.goto_previous_suggestion();
         self.write_current_suggestion()?;
 
-        Ok(())
-    }
-
-    fn write_first_suggestion(&mut self) -> Result<(), IRustError> {
-        self.racer.as_mut()?.goto_first_suggestion();
-        self.write_current_suggestion()?;
         Ok(())
     }
 
@@ -400,29 +391,5 @@ impl IRust {
     pub fn unlock_racer_update(&mut self) -> Result<(), IRustError> {
         self.racer.as_mut()?.update_lock = false;
         Ok(())
-    }
-
-    fn racer_update_locked(&mut self) -> Result<bool, IRustError> {
-        Ok(self.racer.as_ref()?.update_lock)
-    }
-
-    pub fn check_racer_callback(&mut self) -> Result<(), IRustError> {
-        let mut inner = || -> Result<(), IRustError> {
-            if let Some(character) = self.buffer.previous_char() {
-                if character.is_alphanumeric()
-                    && !self.racer_update_locked()?
-                    && self.debouncer.recv.try_recv().is_ok()
-                {
-                    self.update_suggestions()?;
-                    self.write_first_suggestion()?;
-                }
-            }
-            Ok(())
-        };
-
-        match inner() {
-            Ok(_) | Err(IRustError::RacerDisabled) => Ok(()),
-            Err(e) => Err(e),
-        }
     }
 }
