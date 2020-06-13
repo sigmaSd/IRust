@@ -66,6 +66,8 @@ impl super::IRust {
         let mut needle = String::new();
 
         loop {
+            self.raw_terminal.flush()?;
+
             if let Ok(key_event) = read() {
                 match key_event {
                     Event::Key(KeyEvent {

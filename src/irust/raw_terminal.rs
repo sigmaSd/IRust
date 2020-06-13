@@ -1,5 +1,5 @@
 use super::IRustError;
-use crossterm::{cursor::*, execute, style::*, terminal::*};
+use crossterm::{cursor::*, queue, style::*, terminal::*};
 use std::fmt::Display;
 use std::io::{stdout, Write};
 
@@ -11,17 +11,17 @@ impl RawTerminal {
     }
 
     pub fn scroll_up(&self, n: u16) -> Result<(), IRustError> {
-        execute!(stdout(), ScrollUp(n))?;
+        queue!(stdout(), ScrollUp(n))?;
         Ok(())
     }
 
     pub fn clear(&self, clear_type: ClearType) -> Result<(), IRustError> {
-        execute!(stdout(), Clear(clear_type))?;
+        queue!(stdout(), Clear(clear_type))?;
         Ok(())
     }
 
     pub fn write<D: Display + Clone>(&self, value: D) -> Result<(), IRustError> {
-        execute!(stdout(), Print(value))?;
+        queue!(stdout(), Print(value))?;
         Ok(())
     }
 
@@ -41,27 +41,31 @@ impl RawTerminal {
     }
 
     pub fn reset_color(&self) -> Result<(), IRustError> {
-        execute!(stdout(), ResetColor)?;
+        queue!(stdout(), ResetColor)?;
         Ok(())
     }
 
     pub fn set_fg(&self, color: Color) -> Result<(), IRustError> {
-        execute!(stdout(), SetForegroundColor(color))?;
+        queue!(stdout(), SetForegroundColor(color))?;
         Ok(())
     }
 
     pub fn set_bg(&self, color: Color) -> Result<(), IRustError> {
-        execute!(stdout(), SetBackgroundColor(color))?;
+        queue!(stdout(), SetBackgroundColor(color))?;
         Ok(())
     }
 
     pub fn set_title(&self, title: &str) {
-        let _ = execute!(stdout(), SetTitle(title));
+        let _ = queue!(stdout(), SetTitle(title));
     }
 
     pub fn exit(status: i32) {
         let _ = disable_raw_mode();
         std::process::exit(status);
+    }
+
+    pub fn flush(&self) -> Result<(), IRustError> {
+        Ok(stdout().flush()?)
     }
 }
 
@@ -72,37 +76,37 @@ impl RawCursor {
         Self {}
     }
     pub fn restore_position(&self) -> Result<(), IRustError> {
-        execute!(stdout(), RestorePosition)?;
+        queue!(stdout(), RestorePosition)?;
         Ok(())
     }
 
     pub fn save_position(&self) -> Result<(), IRustError> {
-        execute!(stdout(), SavePosition)?;
+        queue!(stdout(), SavePosition)?;
         Ok(())
     }
 
     pub fn move_down(&self, n: u16) -> Result<(), IRustError> {
-        execute!(stdout(), MoveDown(n))?;
+        queue!(stdout(), MoveDown(n))?;
         Ok(())
     }
 
     pub fn move_up(&self, n: u16) -> Result<(), IRustError> {
-        execute!(stdout(), MoveUp(n))?;
+        queue!(stdout(), MoveUp(n))?;
         Ok(())
     }
 
     pub fn show(&self) -> Result<(), IRustError> {
-        execute!(stdout(), Show)?;
+        queue!(stdout(), Show)?;
         Ok(())
     }
 
     pub fn hide(&self) -> Result<(), IRustError> {
-        execute!(stdout(), Hide)?;
+        queue!(stdout(), Hide)?;
         Ok(())
     }
 
     pub fn goto(&self, x: u16, y: u16) -> Result<(), IRustError> {
-        execute!(stdout(), MoveTo(x, y))?;
+        queue!(stdout(), MoveTo(x, y))?;
         Ok(())
     }
 

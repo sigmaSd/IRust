@@ -14,6 +14,9 @@ impl IRust {
         self.print_input()?;
         self.cursor.move_right_unbounded();
 
+        //        use std::io::Write;
+        //        std::io::stdout().flush().unwrap();
+
         // Ignore RacerDisabled error
         let _ = self.unlock_racer_update();
         Ok(())
@@ -161,6 +164,8 @@ impl IRust {
             self.write("Do you really want to exit ([y]/n)? ", Color::Grey)?;
 
             loop {
+                self.raw_terminal.flush()?;
+
                 if let Ok(key_event) = read() {
                     match key_event {
                         Event::Key(KeyEvent {

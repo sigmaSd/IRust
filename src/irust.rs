@@ -90,6 +90,7 @@ impl IRust {
         self.debouncer.run();
         self.welcome()?;
         self.write_from_terminal_start(IN, Color::Yellow)?;
+
         Ok(())
     }
 
@@ -98,7 +99,14 @@ impl IRust {
         self.prepare()?;
 
         loop {
+            // racer autocompletion
             self.check_racer_callback()?;
+
+            // flush queued output after each key
+            // some events that have an inner input loop like ctrl-r/ ctrl-d require flushing inside their respective handler function
+            self.raw_terminal.flush()?;
+
+            // handle input event
             if let Ok(key_event) = read() {
                 match key_event {
                     Event::Mouse(_) => (),
