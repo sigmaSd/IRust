@@ -1,5 +1,4 @@
 use crate::irust::buffer::Buffer;
-use crate::irust::cursor::INPUT_START_COL;
 use crate::irust::irust_error::IRustError;
 use crate::irust::{CTRL_KEYMODIFIER, NO_MODIFIER};
 use crate::utils::StringTools;
@@ -41,7 +40,7 @@ impl super::IRust {
         };
 
         if let Some(history) = history {
-            self.buffer = Buffer::from_str(&history, self.cursor.bound.width - INPUT_START_COL);
+            self.buffer = Buffer::from_str(&history);
 
             self.print_input()?;
 
@@ -83,10 +82,9 @@ impl super::IRust {
                         needle.push(c);
                         // search history
                         if let Some(hit) = self.history.find(&needle) {
-                            self.buffer =
-                                Buffer::from_str(&hit, self.cursor.bound.width - INPUT_START_COL);
+                            self.buffer = Buffer::from_str(&hit);
                         } else {
-                            self.buffer = Buffer::new(self.cursor.bound.width - INPUT_START_COL);
+                            self.buffer = Buffer::new();
                         }
                         self.print_input()?;
                         self.clear_last_line()?;
@@ -111,17 +109,13 @@ impl super::IRust {
                         // search history
                         if !needle.is_empty() {
                             if let Some(hit) = self.history.find(&needle) {
-                                self.buffer = Buffer::from_str(
-                                    &hit,
-                                    self.cursor.bound.width - INPUT_START_COL,
-                                );
+                                self.buffer = Buffer::from_str(&hit);
                             } else {
-                                self.buffer =
-                                    Buffer::new(self.cursor.bound.width - INPUT_START_COL);
+                                self.buffer = Buffer::new();
                             }
                             self.print_input()?;
                         } else {
-                            self.buffer = Buffer::new(self.cursor.bound.width - INPUT_START_COL);
+                            self.buffer = Buffer::new();
                             self.print_input()?;
                         }
                         self.clear_last_line()?;

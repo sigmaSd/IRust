@@ -70,7 +70,7 @@ impl IRust {
             (width as usize, height as usize)
         };
         let cursor = Cursor::new(size.0, size.1);
-        let buffer = Buffer::new(size.0 - INPUT_START_COL);
+        let buffer = Buffer::new();
 
         IRust {
             cursor,
@@ -110,7 +110,11 @@ impl IRust {
             if let Ok(key_event) = read() {
                 match key_event {
                     Event::Mouse(_) => (),
-                    Event::Resize(_width, _height) => (),
+                    Event::Resize(width, height) => {
+                        // ctrlc so we can ignore a lot of position adjusting
+                        self.handle_ctrl_c()?;
+                        self.cursor = Cursor::new(width.into(), height.into());
+                    }
                     Event::Key(key_event) => match key_event {
                         KeyEvent {
                             code: KeyCode::Char(c),

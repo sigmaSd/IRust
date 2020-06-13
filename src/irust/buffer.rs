@@ -2,15 +2,11 @@
 pub struct Buffer {
     pub buffer: Vec<char>,
     pub buffer_pos: usize,
-    max_line_char: usize,
 }
 
 impl Buffer {
-    pub fn new(max_line_char: usize) -> Self {
-        Self {
-            max_line_char,
-            ..Self::default()
-        }
+    pub fn new() -> Self {
+        Self { ..Self::default() }
     }
 
     pub fn insert(&mut self, c: char) {
@@ -101,7 +97,13 @@ impl Buffer {
         self.buffer_pos = self.buffer.len();
     }
 
-    pub fn buffer_pos_to_relative_cursor_pos(&self, buffer_pos: usize) -> (usize, usize) {
+    pub fn buffer_pos_to_relative_cursor_pos(
+        &self,
+        buffer_pos: usize,
+        screen_width: usize,
+    ) -> (usize, usize) {
+        let max_line_chars = screen_width - super::cursor::INPUT_START_COL;
+
         let mut y = self
             .buffer
             .iter()
@@ -115,7 +117,7 @@ impl Buffer {
                 Some('\n') => x = 0,
                 _ => x += 1,
             };
-            if x == self.max_line_char {
+            if x == max_line_chars {
                 x = 0;
                 y += 1;
             }
@@ -124,15 +126,14 @@ impl Buffer {
         (x, y)
     }
 
-    pub fn last_buffer_pos_to_relative_cursor_pos(&self) -> (usize, usize) {
-        self.buffer_pos_to_relative_cursor_pos(self.buffer.len())
+    pub fn last_buffer_pos_to_relative_cursor_pos(&self, screen_width: usize) -> (usize, usize) {
+        self.buffer_pos_to_relative_cursor_pos(self.buffer.len(), screen_width)
     }
 
-    pub fn from_str(str: &str, max_line_char: usize) -> Self {
+    pub fn from_str(str: &str) -> Self {
         Self {
             buffer: str.chars().collect(),
             buffer_pos: 0,
-            max_line_char,
         }
     }
 

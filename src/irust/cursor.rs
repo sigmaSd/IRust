@@ -191,7 +191,7 @@ impl Cursor {
     }
 
     pub fn input_last_pos(&self, buffer: &Buffer) -> (usize, usize) {
-        let relative_pos = buffer.last_buffer_pos_to_relative_cursor_pos();
+        let relative_pos = buffer.last_buffer_pos_to_relative_cursor_pos(self.bound.width);
         let x = relative_pos.0 + INPUT_START_COL;
         let y = relative_pos.1 + self.pos.starting_pos.1;
 
