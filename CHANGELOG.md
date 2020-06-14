@@ -1,3 +1,7 @@
+**0.8.6**
+- Fix regression: racer suggestions cycling
+- Bug-fix: add buffer bound check for remove_current_char
+
 **0.8.5**
 - Improve performance by queuing output and flushing only when needed
 - Handle terminal size change (a bit hacky but works)
