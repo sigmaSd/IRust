@@ -133,6 +133,9 @@ impl IRust {
 
                     for c in elem.string.chars() {
                         self.write(&c.to_string(), color)?;
+                        if self.cursor.is_at_last_terminal_col() {
+                            self.cursor.bound_current_row_at_current_col();
+                        }
                         if self.cursor.is_at_col(super::INPUT_START_COL) {
                             self.write_from_terminal_start("..: ", Color::Yellow)?;
                         }
