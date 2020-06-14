@@ -28,6 +28,7 @@ pub struct Cursor {
 impl Cursor {
     pub fn new(width: usize, height: usize) -> Self {
         let current_pos = RawCursor::get_current_pos().expect("Error getting cursor position");
+
         Self {
             pos: CursorPosition {
                 current_pos,
@@ -110,7 +111,6 @@ impl Cursor {
     }
 
     pub fn current_row_bound(&self) -> usize {
-        //crate::log!("cp: {}", self.pos.current_pos.1);
         *self.bound.get_bound(self.pos.current_pos.1)
     }
 
@@ -178,7 +178,7 @@ impl Cursor {
         let _ = self.goto_internal_pos();
     }
 
-    pub fn _is_at_last_terminal_col(&self) -> bool {
+    pub fn is_at_last_terminal_col(&self) -> bool {
         self.pos.current_pos.0 == self.bound.width - 1
     }
 

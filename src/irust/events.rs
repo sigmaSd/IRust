@@ -14,11 +14,6 @@ impl IRust {
         self.print_input()?;
         self.cursor.move_right_unbounded();
 
-        //        use std::io::Write;
-        //        std::io::stdout().flush().unwrap();
-
-        // Ignore RacerDisabled error
-        let _ = self.unlock_racer_update();
         Ok(())
     }
 
@@ -83,7 +78,6 @@ impl IRust {
 
         match || -> Result<(), IRustError> {
             self.update_suggestions()?;
-            self.lock_racer_update()?;
             self.cycle_suggestions(Cycle::Down)?;
             Ok(())
         }() {
@@ -95,7 +89,6 @@ impl IRust {
     pub fn handle_back_tab(&mut self) -> Result<(), IRustError> {
         match || -> Result<(), IRustError> {
             self.update_suggestions()?;
-            self.lock_racer_update()?;
             self.cycle_suggestions(Cycle::Up)?;
             Ok(())
         }() {
@@ -132,9 +125,6 @@ impl IRust {
             self.history.update_buffer_copy(&self.buffer.to_string());
 
             self.print_input()?;
-
-            // Ignore RacerDisabled error
-            let _ = self.unlock_racer_update();
         }
         Ok(())
     }

@@ -20,7 +20,6 @@ pub struct Racer {
     suggestions: Vec<(String, String)>,
     suggestion_idx: usize,
     cmds: [String; 9],
-    update_lock: bool,
 }
 
 impl Racer {
@@ -58,7 +57,6 @@ impl Racer {
             suggestions: vec![],
             suggestion_idx: 0,
             cmds,
-            update_lock: false,
         };
         racer.complete_code()?;
 
@@ -66,11 +64,6 @@ impl Racer {
     }
 
     fn complete_code(&mut self) -> Result<(), IRustError> {
-        // check for lock
-        if self.update_lock {
-            return Ok(());
-        }
-
         // reset suggestions
         self.suggestions.clear();
         self.goto_first_suggestion();
@@ -380,16 +373,6 @@ impl IRust {
             self.print_input()?;
         }
 
-        Ok(())
-    }
-
-    pub fn lock_racer_update(&mut self) -> Result<(), IRustError> {
-        self.racer.as_mut()?.update_lock = true;
-        Ok(())
-    }
-
-    pub fn unlock_racer_update(&mut self) -> Result<(), IRustError> {
-        self.racer.as_mut()?.update_lock = false;
         Ok(())
     }
 }
