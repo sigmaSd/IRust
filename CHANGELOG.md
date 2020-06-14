@@ -1,3 +1,12 @@
+**0.8.5**
+- Improve performance by queuing output and flushing only when needed
+- Handle terminal size change (a bit hacky but works)
+- Remove racer inline callback, this was always a source of problems, and didn't give much value since you can trigger auto-completion with Tab
+- Improve logging
+- Don't clear screen when starting IRust
+- Bug fix: bound adjustment
+- Code improvements
+
 **0.8.4**
 - add `:cd` to racer suggestions
 - expression starting with `pub` dont require ';'
