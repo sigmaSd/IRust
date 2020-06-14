@@ -23,7 +23,7 @@ impl Buffer {
     }
 
     pub fn remove_current_char(&mut self) -> Option<char> {
-        if !self.is_empty() {
+        if !self.is_empty() && self.buffer_pos < self.buffer.len() {
             let character = self.buffer.remove(self.buffer_pos);
             Some(character)
         } else {
