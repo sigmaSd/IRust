@@ -1,3 +1,7 @@
+**0.8.7**
+- Improve start time with cold cache
+- Write a new line at exit (needed for some shells like bash, powershell..)
+
 **0.8.6**
 - Fix regression: racer suggestions cycling
 - Bug-fix: add buffer bound check for remove_current_char

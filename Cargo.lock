@@ -276,7 +276,7 @@ dependencies = [
 
 [[package]]
 name = "irust"
-version = "0.8.6"
+version = "0.8.7"
 dependencies = [
  "crossterm 0.17.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "dirs 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
