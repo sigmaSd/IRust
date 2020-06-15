@@ -11,20 +11,15 @@ use std::process::Command;
 // Move these paths to KnownPaths struct
 pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(temp_dir);
 pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust"));
-pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src/main.rs"));
+pub static CARGO_TOML_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("Cargo.toml"));
+pub static IRUST_SRC_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src"));
+pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs"));
 
 pub fn cargo_new() -> Result<(), io::Error> {
-    let _ = std::fs::remove_dir_all(&*IRUST_DIR);
-
-    Command::new("cargo")
-        .current_dir(&*TMP_DIR)
-        .args(&["new", "irust"])
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .spawn()?
-        .wait()?;
-
+    let _ = std::fs::create_dir_all(&*IRUST_SRC_DIR);
+    clean_cargo_toml()?;
     clean_main_file()?;
+
     cargo_build()?.wait()?;
     Ok(())
 }
@@ -61,10 +56,22 @@ pub fn cargo_build() -> Result<std::process::Child, io::Error> {
         .spawn()?)
 }
 
+fn clean_cargo_toml() -> io::Result<()> {
+    // edition needs to be specified or racer will not be able to autocomplete dependencies
+    // bug maybe?
+    const CARGO_TOML: &str = r#"[package]
+name = "irust"
+version = "0.1.0"
+edition = "2018""#;
+    let mut cargo_toml_file = fs::File::create(&*CARGO_TOML_FILE)?;
+    write!(cargo_toml_file, "{}", CARGO_TOML)?;
+    Ok(())
+}
+
 fn clean_main_file() -> io::Result<()> {
+    const MAIN_SRC: &str = "fn main() {\n\n}";
     let mut main = fs::File::create(&*MAIN_FILE)?;
-    let main_src = "fn main() {\n\n}";
-    write!(main, "{}", main_src)?;
+    write!(main, "{}", MAIN_SRC)?;
     Ok(())
 }
 

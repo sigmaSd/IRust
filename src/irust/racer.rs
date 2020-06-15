@@ -51,7 +51,7 @@ impl Racer {
             "cd".to_string(),
         ];
 
-        let mut racer = Racer {
+        Ok(Racer {
             process,
             main_file,
             cursor,
@@ -59,10 +59,7 @@ impl Racer {
             suggestion_idx: 0,
             cmds,
             update_lock: false,
-        };
-        racer.complete_code()?;
-
-        Ok(racer)
+        })
     }
 
     fn complete_code(&mut self) -> Result<(), IRustError> {
