@@ -10,19 +10,20 @@ pub struct History {
     history: Vec<String>,
     buffer_copy: String,
     cursor: usize,
-    path: path::PathBuf,
+    history_file_path: path::PathBuf,
 }
 
 impl History {
-    pub fn new(path: path::PathBuf) -> Result<Self, IRustError> {
-        let _ = fs::create_dir_all(&path);
+    pub fn new() -> Result<Self, IRustError> {
+        let irust_cache_dir = dirs_next::cache_dir().unwrap().join("irust");
+        let _ = fs::create_dir_all(&irust_cache_dir);
 
-        let path = path.join("history");
-        if !path.exists() {
-            let _ = fs::File::create(&path);
+        let history_file_path = irust_cache_dir.join("history");
+        if !history_file_path.exists() {
+            let _ = fs::File::create(&history_file_path);
         }
 
-        let history: String = fs::read_to_string(&path)?;
+        let history: String = fs::read_to_string(&history_file_path)?;
 
         let history: Vec<String> = if history.starts_with(NEW_HISTORY_MARK) {
             history
@@ -41,7 +42,7 @@ impl History {
             history,
             buffer_copy,
             cursor,
-            path,
+            history_file_path,
         })
     }
     pub fn down(&mut self) -> Option<String> {
@@ -105,7 +106,7 @@ impl History {
             .collect();
         let history = history.join("\n//\n");
 
-        let _ = fs::write(&self.path, history);
+        let _ = fs::write(&self.history_file_path, history);
     }
 
     fn filter(&self) -> Vec<String> {

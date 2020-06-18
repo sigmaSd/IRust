@@ -10,7 +10,7 @@ license = "MIT"
 
 [dependencies]
 crossterm = "0.17.5"
-dirs = "2.0.2"
+dirs-next = "1.0.1"
 once_cell = "1.4.0"
 
 [dependencies.syntect]

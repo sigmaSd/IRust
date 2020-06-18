@@ -278,7 +278,7 @@ impl IRust {
             .to_string();
         match buffer.as_str() {
             "" => {
-                if let Some(dir) = dirs::home_dir() {
+                if let Some(dir) = dirs_next::home_dir() {
                     set_current_dir(dir)?;
                 }
             }

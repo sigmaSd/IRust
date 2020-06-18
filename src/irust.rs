@@ -54,7 +54,7 @@ impl IRust {
         raw_terminal.set_title(&format!("IRust: {}", known_paths.get_cwd().display()));
 
         let repl = Repl::new();
-        let history = History::new(dirs::cache_dir().unwrap().join("irust")).unwrap_or_default();
+        let history = History::new().unwrap_or_default();
         let options = Options::new().unwrap_or_default();
         let racer = if options.enable_racer {
             Racer::start()
