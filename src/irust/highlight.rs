@@ -10,9 +10,11 @@ pub fn highlight(c: String) -> Printer {
             Function(s) => (s, Color::Blue),
             Type(s) => (s, Color::DarkGreen),
             Number(s) => (s, Color::Cyan),
-            Symbol(s) => (s.to_string(), Color::Red),
+            Symbol(c) => (c.to_string(), Color::Red),
             Macro(s) => (s, Color::Yellow),
             StringLiteral(s) => (s, Color::Green),
+            Character(c) => (c.to_string(), Color::Green),
+            LifeTime(s) => (s, Color::DarkMagenta),
             X(s) => (s, Color::White),
             NewLine => {
                 printer.add_new_line(1);
@@ -34,6 +36,8 @@ enum Token {
     Macro(String),
     Symbol(char),
     StringLiteral(String),
+    Character(char),
+    LifeTime(String),
     NewLine,
     X(String),
 }
@@ -99,15 +103,26 @@ fn parse(s: String) -> Vec<Token> {
                 }
                 tokens.push(Token::Symbol(c));
             }
+            '\'' => {
+                if !alphanumeric.is_empty() {
+                    tokens.push(Token::X(alphanumeric.drain(..).collect()));
+                }
+                tokens.push(Token::Character(c));
+                if s.peek().is_some() {
+                    tokens.extend(parse_character_lifetime(&mut s));
+                }
+            }
             '"' => {
                 if !alphanumeric.is_empty() {
                     tokens.push(Token::X(alphanumeric.drain(..).collect()));
                 }
                 if let Some('\\') = previous_char {
-                    tokens.push(Token::Symbol(c));
+                    tokens.push(Token::StringLiteral(c.to_string()));
                 } else {
                     tokens.push(Token::StringLiteral('"'.to_string()));
-                    tokens.extend(parse_string_literal(&mut s));
+                    if s.peek().is_some() {
+                        tokens.extend(parse_string_literal(&mut s));
+                    }
                 }
             }
             ':' => {
@@ -154,6 +169,48 @@ fn parse(s: String) -> Vec<Token> {
         tokens.push(token);
     }
     tokens
+}
+
+fn parse_character_lifetime(s: &mut std::iter::Peekable<impl Iterator<Item = char>>) -> Vec<Token> {
+    // a'  b' c' d' \r' \t'
+    // try as char
+
+    let mut counter = 0;
+    let mut previous_char = None;
+    let mut characters = String::new();
+    while let Some(c) = s.next() {
+        if c == '\'' && previous_char != Some('\\') {
+            // we reached the end
+            characters.push('\'');
+            return characters.chars().map(Token::Character).collect();
+        } else {
+            characters.push(c);
+            if counter == 2 || (counter == 1 && !characters.starts_with('\\')) {
+                // this is not a character
+                break;
+            }
+        }
+        previous_char = Some(c);
+        counter += 1;
+    }
+
+    // try as lifetime
+
+    if let Some(c) = characters.chars().last() {
+        if !c.is_alphabetic() {
+            let end = characters.pop().unwrap();
+            return vec![Token::LifeTime(characters), Token::Symbol(end)];
+        }
+    }
+
+    while let Some(c) = s.peek() {
+        if !c.is_alphabetic() {
+            break;
+        }
+        let c = s.next().unwrap();
+        characters.push(c);
+    }
+    vec![Token::LifeTime(characters)]
 }
 
 fn parse_string_literal(s: &mut impl Iterator<Item = char>) -> Vec<Token> {
