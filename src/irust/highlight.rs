@@ -15,6 +15,7 @@ pub fn highlight(c: String) -> Printer {
             StringLiteral(s) => (s, Color::Green),
             Character(c) => (c.to_string(), Color::Green),
             LifeTime(s) => (s, Color::DarkMagenta),
+            Comment(s) => (s, Color::DarkGrey),
             X(s) => (s, Color::White),
             NewLine => {
                 printer.add_new_line(1);
@@ -38,6 +39,7 @@ enum Token {
     StringLiteral(String),
     Character(char),
     LifeTime(String),
+    Comment(String),
     NewLine,
     X(String),
 }
@@ -140,6 +142,30 @@ fn parse(s: String) -> Vec<Token> {
                     tokens.push(Token::X(alphanumeric.drain(..).collect()));
                 }
                 tokens.extend(vec![Token::Symbol(':'), Token::Symbol(':')]);
+            }
+            '/' => {
+                if !alphanumeric.is_empty() {
+                    let token = parse_as(alphanumeric.drain(..).collect(), vec![TokenName::Number]);
+                    tokens.push(token);
+                }
+                if s.peek() == Some(&'/') {
+                    tokens.push(Token::Comment('/'.to_string()));
+                    let mut comment = String::new();
+                    while let Some(c) = s.next() {
+                        if c == '\n' {
+                            tokens.push(Token::Comment(comment.drain(..).collect()));
+                            tokens.push(Token::NewLine);
+                            break;
+                        } else {
+                            comment.push(c);
+                        }
+                    }
+                    if !comment.is_empty() {
+                        tokens.push(Token::Comment(comment));
+                    }
+                } else {
+                    tokens.push(Token::Symbol('/'));
+                }
             }
             x => {
                 if !alphanumeric.is_empty() {
