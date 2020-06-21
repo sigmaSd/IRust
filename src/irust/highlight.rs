@@ -61,7 +61,7 @@ impl Token {
 }
 
 fn parse(s: String) -> Vec<Token> {
-    let mut s = s.chars();
+    let mut s = s.chars().peekable();
     let mut alphanumeric = String::new();
     let mut tokens = vec![];
     let mut previous_char = None;
@@ -109,6 +109,22 @@ fn parse(s: String) -> Vec<Token> {
                     tokens.push(Token::StringLiteral('"'.to_string()));
                     tokens.extend(parse_string_literal(&mut s));
                 }
+            }
+            ':' => {
+                //collect::<Vec<_>>()
+                if s.peek() == Some(&':') {
+                    s.next();
+                } else {
+                    tokens.push(Token::X(alphanumeric.drain(..).collect()));
+                    tokens.push(Token::Symbol(':'));
+                    continue;
+                }
+                if s.peek() == Some(&'<') {
+                    tokens.push(Token::Function(alphanumeric.drain(..).collect()));
+                } else {
+                    tokens.push(Token::X(alphanumeric.drain(..).collect()));
+                }
+                tokens.extend(vec![Token::Symbol(':'), Token::Symbol(':')]);
             }
             x => {
                 if !alphanumeric.is_empty() {
@@ -206,7 +222,7 @@ const KEYWORDS: &[&str] = &[
     "pub", "in", "const", "static", "match", "fn", "use", "let", "mut", "continue", "loop",
     "break", "if", "else",
 ];
-const SYMBOLS: &[char] = &['&', '?', '+', '-', '*', '/', '=', '!'];
+const SYMBOLS: &[char] = &[':', '&', '?', '+', '-', '*', '/', '=', '!'];
 const TYPES: &[&str] = &[
     "usize", "isize", "u8", "i8", "u32", "i32", "u64", "i64", "u128", "i128", "str", "String",
 ];
