@@ -148,13 +148,21 @@ fn parse(s: String) -> Vec<Token> {
                     let token = parse_as(alphanumeric.drain(..).collect(), vec![TokenName::Number]);
                     tokens.push(token);
                 }
-                if s.peek() == Some(&'/') {
+                if s.peek() == Some(&'/') || s.peek() == Some(&'*') {
+                    let end = if s.peek().unwrap() == &'/' { '\n' } else { '*' };
+
                     tokens.push(Token::Comment('/'.to_string()));
                     let mut comment = String::new();
                     while let Some(c) = s.next() {
-                        if c == '\n' {
+                        if c == end && end == '\n' {
                             tokens.push(Token::Comment(comment.drain(..).collect()));
                             tokens.push(Token::NewLine);
+                            break;
+                        } else if c == end && s.peek() == Some(&'/') {
+                            // consume /
+                            s.next();
+                            tokens.push(Token::Comment(comment.drain(..).collect()));
+                            tokens.push(Token::Comment("*/".to_string()));
                             break;
                         } else {
                             comment.push(c);
