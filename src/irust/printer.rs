@@ -25,7 +25,7 @@ impl Printer {
         self.items.push(output);
     }
 
-    pub fn pop(&mut self) -> Option<PrinterItem> {
+    pub fn _pop(&mut self) -> Option<PrinterItem> {
         self.items.pop()
     }
 
@@ -117,7 +117,7 @@ impl IRust {
         self.raw_terminal.clear(ClearType::FromCursorDown)?;
 
         self.write_from_terminal_start(super::IN, Color::Yellow)?;
-        self.print_inner(highlight(&self.buffer.to_string()))?;
+        self.print_inner(highlight(self.buffer.to_string()))?;
 
         self.cursor.restore_position()?;
         self.cursor.show();

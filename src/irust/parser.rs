@@ -54,7 +54,7 @@ impl IRust {
     }
 
     fn show(&mut self) -> Result<Printer, IRustError> {
-        let repl_code = highlight(&self.repl.show());
+        let repl_code = highlight(self.repl.show());
 
         Ok(repl_code)
     }

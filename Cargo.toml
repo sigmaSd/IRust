@@ -13,10 +13,5 @@ crossterm = "0.17.5"
 dirs-next = "1.0.1"
 once_cell = "1.4.0"
 
-[dependencies.syntect]
-version = "4.2.0"
-default-features = false
-features = ["parsing", "assets", "dump-load-rs", "regex-fancy"]
-
 [target.'cfg(unix)'.dependencies]
 nix = "0.17.0"
