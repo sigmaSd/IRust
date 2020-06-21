@@ -145,7 +145,7 @@ fn parse(s: String) -> Vec<Token> {
                 if !alphanumeric.is_empty() {
                     let token = parse_as(
                         alphanumeric.drain(..).collect(),
-                        vec![TokenName::Number, TokenName::Type],
+                        vec![TokenName::Keyword, TokenName::Number, TokenName::Type],
                     );
                     tokens.push(token);
                 }
@@ -276,7 +276,7 @@ fn is_type(p: &Token) -> bool {
 }
 
 const KEYWORDS: &[&str] = &[
-    "pub", "in", "const", "static", "match", "fn", "use", "let", "mut", "continue", "loop",
+    "type", "pub", "in", "const", "static", "match", "fn", "use", "let", "mut", "continue", "loop",
     "break", "if", "else",
 ];
 const SYMBOLS: &[char] = &[':', '&', '?', '+', '-', '*', '/', '=', '!'];
