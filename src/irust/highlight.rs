@@ -317,7 +317,9 @@ fn is_type(p: &Token) -> bool {
 }
 
 fn is_const(p: &Token) -> bool {
-    p.unparsed_str().chars().all(char::is_uppercase)
+    p.unparsed_str()
+        .chars()
+        .all(|c| c.is_uppercase() || c == '_')
 }
 
 const KEYWORDS: &[&str] = &[
