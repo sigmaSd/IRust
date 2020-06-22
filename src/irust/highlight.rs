@@ -8,14 +8,15 @@ pub fn highlight(c: String) -> Printer {
         let (string, color) = match token {
             Keyword(s) => (s, Color::Magenta),
             Function(s) => (s, Color::Blue),
-            Type(s) => (s, Color::DarkGreen),
-            Number(s) => (s, Color::Cyan),
+            Type(s) => (s, Color::Cyan),
+            Number(s) => (s, Color::DarkYellow),
             Symbol(c) => (c.to_string(), Color::Red),
             Macro(s) => (s, Color::Yellow),
             StringLiteral(s) => (s, Color::Green),
             Character(c) => (c.to_string(), Color::Green),
             LifeTime(s) => (s, Color::DarkMagenta),
             Comment(s) => (s, Color::DarkGrey),
+            Const(s) => (s, Color::DarkGreen),
             X(s) => (s, Color::White),
         };
 
@@ -36,6 +37,7 @@ enum Token {
     Character(char),
     LifeTime(String),
     Comment(String),
+    Const(String),
     X(String),
 }
 
@@ -127,7 +129,8 @@ fn parse(s: String) -> Vec<Token> {
                 if s.peek() == Some(&':') {
                     s.next();
                 } else {
-                    tokens.push(Token::X(alphanumeric.drain(..).collect()));
+                    let token = parse_as(alphanumeric.drain(..).collect(), vec![TokenName::Const]);
+                    tokens.push(token);
                     tokens.push(Token::Symbol(':'));
                     continue;
                 }
@@ -174,7 +177,12 @@ fn parse(s: String) -> Vec<Token> {
                 if !alphanumeric.is_empty() {
                     let token = parse_as(
                         alphanumeric.drain(..).collect(),
-                        vec![TokenName::Keyword, TokenName::Number, TokenName::Type],
+                        vec![
+                            TokenName::Const,
+                            TokenName::Keyword,
+                            TokenName::Number,
+                            TokenName::Type,
+                        ],
                     );
                     tokens.push(token);
                 }
@@ -264,6 +272,7 @@ enum TokenName {
     Keyword,
     Type,
     Number,
+    Const,
 }
 
 fn parse_as(p: String, token_names: Vec<TokenName>) -> Token {
@@ -285,6 +294,11 @@ fn parse_as(p: String, token_names: Vec<TokenName>) -> Token {
                     return Token::Number(p.unparsed_string());
                 }
             }
+            TokenName::Const => {
+                if is_const(&p) {
+                    return Token::Const(p.unparsed_string());
+                }
+            }
         }
     }
     p
@@ -300,6 +314,10 @@ fn is_keyword(p: &Token) -> bool {
 
 fn is_type(p: &Token) -> bool {
     TYPES.contains(&p.unparsed_str())
+}
+
+fn is_const(p: &Token) -> bool {
+    p.unparsed_str().chars().all(char::is_uppercase)
 }
 
 const KEYWORDS: &[&str] = &[
