@@ -187,6 +187,8 @@ impl IRust {
                     let _ = self.raw_terminal.write("\r\n");
                     self.cursor.pos.current_pos.1 += 1;
                 });
+            } else if output.string == '\n'.to_string() {
+                self.cursor.goto_next_row_terminal_start();
             } else {
                 self.raw_terminal.write(&output.string)?;
             }
