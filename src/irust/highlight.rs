@@ -17,10 +17,6 @@ pub fn highlight(c: String) -> Printer {
             LifeTime(s) => (s, Color::DarkMagenta),
             Comment(s) => (s, Color::DarkGrey),
             X(s) => (s, Color::White),
-            NewLine => {
-                printer.add_new_line(1);
-                continue;
-            }
         };
 
         printer.push(PrinterItem::new(string, PrinterItemType::Custom(color)));
@@ -40,7 +36,6 @@ enum Token {
     Character(char),
     LifeTime(String),
     Comment(String),
-    NewLine,
     X(String),
 }
 
@@ -156,7 +151,7 @@ fn parse(s: String) -> Vec<Token> {
                     while let Some(c) = s.next() {
                         if c == end && end == '\n' {
                             tokens.push(Token::Comment(comment.drain(..).collect()));
-                            tokens.push(Token::NewLine);
+                            tokens.push(Token::X('\n'.to_string()));
                             break;
                         } else if c == end && s.peek() == Some(&'/') {
                             // consume /
@@ -186,8 +181,6 @@ fn parse(s: String) -> Vec<Token> {
 
                 if SYMBOLS.contains(&x) {
                     tokens.push(Token::Symbol(x));
-                } else if x == '\n' {
-                    tokens.push(Token::NewLine)
                 } else {
                     tokens.push(Token::X(x.to_string()));
                 }

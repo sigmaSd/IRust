@@ -132,12 +132,18 @@ impl IRust {
                     let _ = self.raw_terminal.set_fg(color);
 
                     for c in elem.string.chars() {
-                        self.write(&c.to_string(), color)?;
-                        if self.cursor.is_at_last_terminal_col() {
+                        if c == '\n' {
                             self.cursor.bound_current_row_at_current_col();
-                        }
-                        if self.cursor.is_at_col(super::INPUT_START_COL) {
-                            self.write_from_terminal_start("..: ", Color::Yellow)?;
+                            self.cursor.goto_next_row_terminal_start();
+                            self.write("..: ", Color::Yellow)?;
+                        } else {
+                            self.write(&c.to_string(), color)?;
+                            if self.cursor.is_at_last_terminal_col() {
+                                self.cursor.bound_current_row_at_current_col();
+                            }
+                            if self.cursor.is_at_col(super::INPUT_START_COL) {
+                                self.write_from_terminal_start("..: ", Color::Yellow)?;
+                            }
                         }
                     }
                 }
