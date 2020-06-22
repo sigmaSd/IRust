@@ -303,10 +303,11 @@ fn is_type(p: &Token) -> bool {
 }
 
 const KEYWORDS: &[&str] = &[
-    "struct", "enum", "impl", "trait", "type", "pub", "in", "const", "static", "match", "fn",
-    "use", "let", "mut", "continue", "loop", "break", "if", "else",
+    "self", "Self", "for", "struct", "enum", "impl", "trait", "type", "pub", "in", "const",
+    "static", "match", "fn", "use", "let", "mut", "continue", "loop", "break", "if", "else",
 ];
-const SYMBOLS: &[char] = &[':', '&', '?', '+', '-', '*', '/', '=', '!'];
+const SYMBOLS: &[char] = &[':', '&', '?', '+', '-', '*', '/', '=', '!', ',', ';'];
 const TYPES: &[&str] = &[
-    "usize", "isize", "u8", "i8", "u32", "i32", "u64", "i64", "u128", "i128", "str", "String",
+    "bool", "char", "usize", "isize", "u8", "i8", "u32", "i32", "u64", "i64", "u128", "i128",
+    "str", "String",
 ];
