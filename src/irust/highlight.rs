@@ -1,26 +1,36 @@
 use super::printer::{Printer, PrinterItem, PrinterItemType};
 use crossterm::style::Color;
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+mod theme;
+
+static THEME: Lazy<HashMap<String, Color>> = Lazy::new(|| theme::theme().unwrap_or_default());
 
 pub fn highlight(c: String) -> Printer {
     let mut printer = Printer::default();
+
     for token in parse(c) {
         use Token::*;
         let (string, color) = match token {
-            Keyword(s) => (s, Color::Magenta),
-            Function(s) => (s, Color::Blue),
-            Type(s) => (s, Color::Cyan),
-            Number(s) => (s, Color::DarkYellow),
-            Symbol(c) => (c.to_string(), Color::Red),
-            Macro(s) => (s, Color::Yellow),
-            StringLiteral(s) => (s, Color::Green),
-            Character(c) => (c.to_string(), Color::Green),
-            LifeTime(s) => (s, Color::DarkMagenta),
-            Comment(s) => (s, Color::DarkGrey),
-            Const(s) => (s, Color::DarkGreen),
-            X(s) => (s, Color::White),
+            Keyword(s) => (s, THEME.get("keyword").unwrap_or(&Color::Magenta)),
+            Keyword2(s) => (s, THEME.get("keyword2").unwrap_or(&Color::DarkRed)),
+            Function(s) => (s, THEME.get("function").unwrap_or(&Color::Blue)),
+            Type(s) => (s, THEME.get("type").unwrap_or(&Color::Cyan)),
+            Number(s) => (s, THEME.get("number").unwrap_or(&Color::DarkYellow)),
+            Symbol(c) => (c.to_string(), THEME.get("symbol").unwrap_or(&Color::Red)),
+            Macro(s) => (s, THEME.get("macro").unwrap_or(&Color::Yellow)),
+            StringLiteral(s) => (s, THEME.get("string_literal").unwrap_or(&Color::Green)),
+            Character(c) => (
+                c.to_string(),
+                THEME.get("character").unwrap_or(&Color::Green),
+            ),
+            LifeTime(s) => (s, THEME.get("lifetime").unwrap_or(&Color::DarkMagenta)),
+            Comment(s) => (s, THEME.get("comment").unwrap_or(&Color::DarkGrey)),
+            Const(s) => (s, THEME.get("const").unwrap_or(&Color::DarkGreen)),
+            X(s) => (s, THEME.get("x").unwrap_or(&Color::White)),
         };
 
-        printer.push(PrinterItem::new(string, PrinterItemType::Custom(color)));
+        printer.push(PrinterItem::new(string, PrinterItemType::Custom(*color)));
     }
     printer
 }
@@ -28,6 +38,7 @@ pub fn highlight(c: String) -> Printer {
 #[derive(Debug)]
 enum Token {
     Keyword(String),
+    Keyword2(String),
     Function(String),
     Type(String),
     Number(String),
@@ -84,7 +95,12 @@ fn parse(s: String) -> Vec<Token> {
                 if !alphanumeric.is_empty() {
                     let token = parse_as(
                         alphanumeric.drain(..).collect(),
-                        vec![TokenName::Keyword, TokenName::Type, TokenName::Number],
+                        vec![
+                            TokenName::Keyword2,
+                            TokenName::Keyword,
+                            TokenName::Type,
+                            TokenName::Number,
+                        ],
                     );
                     tokens.push(token);
                 }
@@ -180,6 +196,7 @@ fn parse(s: String) -> Vec<Token> {
                         vec![
                             TokenName::Const,
                             TokenName::Keyword,
+                            TokenName::Keyword2,
                             TokenName::Number,
                             TokenName::Type,
                         ],
@@ -199,7 +216,12 @@ fn parse(s: String) -> Vec<Token> {
     if !alphanumeric.is_empty() {
         let token = parse_as(
             alphanumeric.drain(..).collect(),
-            vec![TokenName::Keyword, TokenName::Type, TokenName::Number],
+            vec![
+                TokenName::Keyword2,
+                TokenName::Keyword,
+                TokenName::Type,
+                TokenName::Number,
+            ],
         );
         tokens.push(token);
     }
@@ -270,6 +292,7 @@ fn parse_string_literal(s: &mut impl Iterator<Item = char>) -> Vec<Token> {
 
 enum TokenName {
     Keyword,
+    Keyword2,
     Type,
     Number,
     Const,
@@ -282,6 +305,11 @@ fn parse_as(p: String, token_names: Vec<TokenName>) -> Token {
             TokenName::Keyword => {
                 if is_keyword(&p) {
                     return Token::Keyword(p.unparsed_string());
+                }
+            }
+            TokenName::Keyword2 => {
+                if is_keyword2(&p) {
+                    return Token::Keyword2(p.unparsed_string());
                 }
             }
             TokenName::Type => {
@@ -312,6 +340,10 @@ fn is_keyword(p: &Token) -> bool {
     KEYWORDS.contains(&p.unparsed_str())
 }
 
+fn is_keyword2(p: &Token) -> bool {
+    KEYWORDS2.contains(&p.unparsed_str())
+}
+
 fn is_type(p: &Token) -> bool {
     TYPES.contains(&p.unparsed_str())
 }
@@ -322,10 +354,15 @@ fn is_const(p: &Token) -> bool {
         .all(|c| c.is_uppercase() || c == '_')
 }
 
+// Spliting keywords for a nicer coloring
+//      red blue  green     blue red white
+// exp: pub fn    hello()   let  mut var
 const KEYWORDS: &[&str] = &[
-    "self", "Self", "for", "struct", "enum", "impl", "trait", "type", "pub", "in", "const",
-    "static", "match", "fn", "use", "let", "mut", "continue", "loop", "break", "if", "else",
+    "use", "super", "self", "Self", "for", "impl", "trait", "type", "pub", "in", "const", "static",
+    "match", "use", "mut", "continue", "loop", "break", "if", "else",
 ];
+const KEYWORDS2: &[&str] = &["fn", "let", "struct", "enum"];
+
 const SYMBOLS: &[char] = &[':', '&', '?', '+', '-', '*', '/', '=', '!', ',', ';'];
 const TYPES: &[&str] = &[
     "bool", "char", "usize", "isize", "u8", "i8", "u32", "i32", "u64", "i64", "u128", "i128",
