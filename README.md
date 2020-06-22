@@ -93,18 +93,35 @@ IRust config file is located in:
     welcome_msg = Welcome to IRust
     welcome_color = DarkBlue
 
+## Theme
+Since release `0.8.9` `IRust` can now parse a theme file located on `$config_dir/irust/theme` and use it for the highlighting colors.
+
+Example of a theme file:
+
+```
+  keyword: #D027C1
+  keyword2: #BC303F
+  function: #6BF600
+  type: #0ED5FF
+  string_literal: #DEFB24
+  character: #DEFB24
+  symbol: #BC303F
+  const: #9530BC
+
+```
+
 ## Releases
    Automatic releases by github actions are uploaded here https://github.com/sigmaSd/irust/releases
-    
+
 ## Building
     cargo b --release
-    
+
 ## FAQ
 
 **1- Why is autocompletion not working**
-    
+
     -> you need racer installed and configured correctly
         cargo +nightly install racer
         rustup component add rust-src
-    
+
 ## [Changelog](./CHANGELOG.md)

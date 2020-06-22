@@ -1,3 +1,6 @@
+**0.8.9**
+- Add the ability to read a theme file to be used for the repl color highlighting (detail of usage on the README)
+
 **0.8.8**
 - remove syntect, use a custom made parser instead -> big runtime/compile time improvement + big decrease in dependencies
 - use `dirs_next` crate instead of deprecated `dirs`
