@@ -1,3 +1,7 @@
+**0.8.8**
+- remove syntect, use a custom made parser instead -> big runtime/compile time improvement + big decrease in dependencies
+- use `dirs_next` crate instead of deprecated `dirs`
+
 **0.8.7**
 - Improve start time with cold cache
 - Write a new line at exit (needed for some shells like bash, powershell..)
