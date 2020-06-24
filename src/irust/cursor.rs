@@ -15,7 +15,7 @@ pub const INPUT_START_COL: usize = 4;
 #[derive(Clone)]
 pub struct CursorPosition {
     pub current_pos: (usize, usize),
-    pub starting_pos: (usize, usize),
+    pub starting_pos: (usize, isize),
 }
 
 pub struct Cursor {
@@ -32,7 +32,7 @@ impl Cursor {
         Self {
             pos: CursorPosition {
                 current_pos,
-                starting_pos: (0, current_pos.1),
+                starting_pos: (0, current_pos.1 as isize),
             },
             cursor: RawCursor::new(),
             copy: None,
@@ -58,6 +58,7 @@ impl Cursor {
         if self.pos.current_pos.0 == bound {
             self.pos.current_pos.0 = 4;
             self.pos.current_pos.1 += 1;
+            self.pos.current_pos.1 = std::cmp::min(self.pos.current_pos.1, self.bound.height -1);
         } else {
             self.pos.current_pos.0 += 1;
         }
@@ -103,7 +104,7 @@ impl Cursor {
     }
 
     pub fn use_current_row_as_starting_row(&mut self) {
-        self.pos.starting_pos.1 = self.pos.current_pos.1;
+        self.pos.starting_pos.1 = self.pos.current_pos.1 as isize;
     }
 
     pub fn previous_row_bound(&self) -> usize {
@@ -166,16 +167,28 @@ impl Cursor {
         self.cursor.show().unwrap();
     }
 
-    pub fn goto_start(&mut self) {
+    pub fn _goto_start(&mut self) {
+        // self.pos.current_pos.0 = self.pos.starting_pos.0;
+        // self.pos.current_pos.1 = self.pos.starting_pos.1;
+        // let _ = self.goto_internal_pos();
+        todo!()
+    }
+
+    pub fn goto_start_visible(&mut self) {
         self.pos.current_pos.0 = self.pos.starting_pos.0;
-        self.pos.current_pos.1 = self.pos.starting_pos.1;
+        self.pos.current_pos.1 = if self.pos.starting_pos.1 < 0 {
+            0
+        } else {
+            self.pos.starting_pos.1 as usize
+        };
         let _ = self.goto_internal_pos();
     }
 
     pub fn goto_input_start_col(&mut self) {
-        self.pos.current_pos.0 = self.pos.starting_pos.0 + INPUT_START_COL;
-        self.pos.current_pos.1 = self.pos.starting_pos.1;
-        let _ = self.goto_internal_pos();
+        todo!()
+        // self.pos.current_pos.0 = self.pos.starting_pos.0 + INPUT_START_COL;
+        // self.pos.current_pos.1 = self.pos.starting_pos.1;
+        // let _ = self.goto_internal_pos();
     }
 
     pub fn is_at_last_terminal_col(&self) -> bool {
@@ -193,9 +206,13 @@ impl Cursor {
     pub fn input_last_pos(&self, buffer: &Buffer) -> (usize, usize) {
         let relative_pos = buffer.last_buffer_pos_to_relative_cursor_pos(self.bound.width);
         let x = relative_pos.0 + INPUT_START_COL;
-        let y = relative_pos.1 + self.pos.starting_pos.1;
+        let y = relative_pos.1 as isize + self.pos.starting_pos.1;
 
-        (x, y)
+        // if this fail its means everything is redered off screen
+        // which shouldnt happen
+        assert!(y >= 0);
+
+        (x, y as usize)
     }
 
     pub fn move_to_input_last_row(&mut self, buffer: &Buffer) {
@@ -204,7 +221,8 @@ impl Cursor {
     }
 
     pub fn is_at_first_input_line(&self) -> bool {
-        self.pos.current_pos.1 == self.pos.starting_pos.1
+        todo!()
+        //self.pos.current_pos.1 == self.pos.starting_pos.1
     }
 
     pub fn is_at_last_input_line(&self, buffer: &Buffer) -> bool {

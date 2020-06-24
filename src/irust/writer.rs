@@ -35,7 +35,7 @@ impl IRust {
     }
 
     pub fn write_from_terminal_start(&mut self, out: &str, color: Color) -> Result<(), IRustError> {
-        self.cursor.goto(0, self.cursor.pos.current_pos.1);
+        self.cursor.goto(0, self.cursor.pos.current_pos.1 as usize);
         self.write(out, color)?;
         Ok(())
     }
@@ -75,7 +75,7 @@ impl IRust {
     pub fn scroll_up(&mut self, n: usize) {
         let _ = self.raw_terminal.scroll_up(n as u16);
         self.cursor.move_up(n as u16);
-        self.cursor.pos.starting_pos.1 = self.cursor.pos.starting_pos.1.saturating_sub(n);
+        self.cursor.pos.starting_pos.1 = self.cursor.pos.starting_pos.1 - n as isize;
     }
 
     pub fn write_from_next_line(&mut self) -> Result<(), IRustError> {

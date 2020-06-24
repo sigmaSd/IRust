@@ -6,14 +6,16 @@ use crossterm::{event::*, style::Color};
 
 impl super::IRust {
     pub fn handle_up(&mut self) -> Result<(), IRustError> {
-        if self.cursor.is_at_first_input_line() {
-            self.handle_history("up")?;
-        } else {
-            self.cursor.move_up_bounded(1);
-            // set buffer cursor
-            let buffer_pos = self.cursor.cursor_pos_to_buffer_pos();
-            self.buffer.set_buffer_pos(buffer_pos);
-        }
+        // if self.cursor.is_at_first_input_line() {
+        //     self.handle_history("up")?;
+        // } else {
+        self.cursor.move_up_bounded(1);
+        // set buffer cursor
+        let buffer_pos = self.cursor.cursor_pos_to_buffer_pos();
+        //self.buffer.set_buffer_pos(buffer_pos);
+        let (_,visible_i) = self.buffer.visible(self.cursor.pos.starting_pos.1, self.cursor.bound.width -1);
+        self.buffer.set_buffer_pos_from_visible(buffer_pos, visible_i);
+        //}
         Ok(())
     }
 

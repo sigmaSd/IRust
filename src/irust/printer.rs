@@ -113,11 +113,19 @@ impl IRust {
         // scroll if needed before writing the input
         self.scroll_if_needed_for_input();
         self.cursor.save_position()?;
-        self.cursor.goto_start();
+        self.cursor.goto_start_visible();
         self.raw_terminal.clear(ClearType::FromCursorDown)?;
 
-        self.write_from_terminal_start(super::IN, Color::Yellow)?;
-        self.print_inner(highlight(self.buffer.to_string()))?;
+        if self.cursor.pos.starting_pos.1 >= 0 {
+            self.write_from_terminal_start(super::IN, Color::Yellow)?;
+        } else {
+            self.write_from_terminal_start("..: ", Color::Yellow)?;
+        }
+
+        let (v,_) = self
+            .buffer
+            .visible(self.cursor.pos.starting_pos.1, self.cursor.bound.width);
+        self.print_inner(highlight(v))?;
 
         self.cursor.restore_position()?;
         self.cursor.show();

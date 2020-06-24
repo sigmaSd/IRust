@@ -223,9 +223,10 @@ impl IRust {
     }
 
     pub fn handle_home_key(&mut self) -> Result<(), IRustError> {
-        self.buffer.goto_start();
-        self.cursor.goto(4, self.cursor.pos.starting_pos.1);
-        Ok(())
+        todo!()
+        //self.buffer.goto_start();
+        //self.cursor.goto(4, self.cursor.pos.starting_pos.1);
+        //Ok(())
     }
 
     pub fn handle_end_key(&mut self) -> Result<(), IRustError> {

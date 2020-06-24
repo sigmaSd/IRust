@@ -22,6 +22,10 @@ impl Buffer {
         self.buffer_pos = pos;
     }
 
+    pub fn set_buffer_pos_from_visible(&mut self, pos: usize, visible_i: usize) {
+        self.buffer_pos = pos + visible_i;
+    }
+
     pub fn remove_current_char(&mut self) -> Option<char> {
         if !self.is_empty() && self.buffer_pos < self.buffer.len() {
             let character = self.buffer.remove(self.buffer_pos);
@@ -147,6 +151,36 @@ impl Buffer {
 
     pub fn iter(&self) -> impl Iterator<Item = &char> {
         self.buffer.iter()
+    }
+
+    pub fn visible(&self, cursor_start_pos_y: isize, screen_width: usize) -> (String, usize) {
+        if cursor_start_pos_y >= 0 {
+            (self.to_string(),0)
+        } else {
+            crate::log!(cursor_start_pos_y);
+            let max_line_chars = screen_width - super::cursor::INPUT_START_COL;
+            let mut x = 0;
+            let mut y = 0;
+
+            for i in 0..self.len() {
+                match self.buffer.get(i) {
+                    Some('\n') => {
+                        x = 0;
+                        y += 1
+                    }
+                    _ => x += 1,
+                };
+                if x == max_line_chars {
+                    x = 0;
+                    y += 1;
+                }
+                if y == cursor_start_pos_y.abs() {
+                    // +1 to skip last new line or  width
+                    return (self.buffer.iter().skip(i + 1).collect(), i+1)
+                }
+            }
+            (self.to_string(),0)
+        }
     }
 }
 
