@@ -34,6 +34,12 @@ impl From<&mut Self> for IRustError {
     }
 }
 
+impl From<&str> for IRustError {
+    fn from(error: &str) -> Self {
+        Custom(error.to_string())
+    }
+}
+
 impl From<crossterm::ErrorKind> for IRustError {
     fn from(error: crossterm::ErrorKind) -> Self {
         IRustError::CrosstermError(error)

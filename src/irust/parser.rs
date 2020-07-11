@@ -18,7 +18,8 @@ impl IRust {
             cmd if cmd.starts_with("::") => self.run_cmd(),
             cmd if cmd.starts_with(":edit") => self.extern_edit(),
             cmd if cmd.starts_with(":add") => self.add_dep(),
-            cmd if cmd.starts_with(":load") => self.load_script(),
+            cmd if cmd.starts_with(":load") => self.load(),
+            cmd if cmd.starts_with(":reload") => self.reload(),
             cmd if cmd.starts_with(":type") => self.show_type(),
             cmd if cmd.starts_with(":del") => self.del(),
             cmd if cmd.starts_with(":cd") => self.cd(),
@@ -94,13 +95,36 @@ impl IRust {
         Ok(outputs)
     }
 
-    fn load_script(&mut self) -> Result<Printer, IRustError> {
+    fn load(&mut self) -> Result<Printer, IRustError> {
         let buffer = self.buffer.to_string();
-        let script = buffer.split_whitespace().last().unwrap();
+        let path = if let Some(path) = buffer.split_whitespace().nth(1) {
+            std::path::Path::new(&path).to_path_buf()
+        } else {
+            return Err("No path specified").map_err(|e| e.into());
+        };
+        self.load_inner(path)
+    }
 
-        let script_code = std::fs::read(script)?;
-        if let Ok(s) = String::from_utf8(script_code) {
-            // Format script to make `remove_main` function work correctly
+    fn reload(&mut self) -> Result<Printer, IRustError> {
+        let path = if let Some(path) = self.known_paths.get_last_loaded_coded_path() {
+            path
+        } else {
+            return Err("No saved path").map_err(|e| e.into());
+        };
+        self.load_inner(path)
+    }
+
+    fn load_inner(&mut self, path: std::path::PathBuf) -> Result<Printer, IRustError> {
+        // save path
+        self.known_paths.set_last_loaded_coded_path(path.clone());
+
+        // reset repl
+        self.repl.reset();
+
+        // read code
+        let path_code = std::fs::read(path)?;
+        if let Ok(s) = String::from_utf8(path_code) {
+            // Format code to make `remove_main` function work correctly
             let s = cargo_fmt(&s)?;
             let s = remove_main(&s);
 

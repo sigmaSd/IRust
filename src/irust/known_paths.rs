@@ -3,6 +3,7 @@ use std::path::PathBuf;
 pub struct KnownPaths {
     current_working_dir: PathBuf,
     previous_working_dir: PathBuf,
+    last_loaded_code_path: Option<PathBuf>,
 }
 
 impl KnownPaths {
@@ -12,6 +13,7 @@ impl KnownPaths {
         Self {
             current_working_dir: cwd.clone(),
             previous_working_dir: cwd,
+            last_loaded_code_path: None,
         }
     }
 
@@ -26,5 +28,13 @@ impl KnownPaths {
 
     pub fn get_pwd(&self) -> PathBuf {
         self.previous_working_dir.clone()
+    }
+
+    pub fn set_last_loaded_coded_path(&mut self, path: PathBuf) {
+        self.last_loaded_code_path = Some(path);
+    }
+
+    pub fn get_last_loaded_coded_path(&self) -> Option<PathBuf> {
+        self.last_loaded_code_path.clone()
     }
 }
