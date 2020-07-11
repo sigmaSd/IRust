@@ -62,6 +62,7 @@ pub fn cargo_build_output() -> Result<String, io::Error> {
             .current_dir(&*IRUST_DIR)
             .arg("build")
             .args(&["--color", "always"])
+            .env("RUSTFLAGS", "-Awarnings")
             .output()?,
     ))
 }

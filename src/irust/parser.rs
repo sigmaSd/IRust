@@ -128,6 +128,7 @@ impl IRust {
         } else {
             return Err("The specified file is not utf8 encoded").map_err(Into::into);
         };
+
         // Format code to make `remove_main` function work correctly
         let code = cargo_fmt(&code)?;
         let code = remove_main(&code);
