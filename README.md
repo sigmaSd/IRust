@@ -13,7 +13,9 @@ Cross Platform Rust Repl
 
 **:type** *<expression>* => shows the expression type, example `:type vec!(5)`
 
-**:load** => load a rust script into the repl
+**:load** => load a rust file into the repl
+
+**:reload** => reload the last specified file
 
 **:pop** => remove last repl code line
 

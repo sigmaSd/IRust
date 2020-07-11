@@ -1,3 +1,10 @@
+**0.8.10**
+- Match IPython ctrlc and new lines behavior
+- Bunch of changes to `load` command in order to improve the interactive usage of the repl:
+  - `load` now compiles the codes before loading it and output errors if present
+  - `load` resets the repl before importing the code
+  - Add `reload` which reloads the last specified path
+
 **0.8.9**
 - Add the ability to read a theme file to be used for the repl color highlighting (detail of usage on the README)
 
