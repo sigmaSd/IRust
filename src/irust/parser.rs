@@ -1,6 +1,6 @@
 use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE};
 use super::highlight::highlight;
-use crate::irust::format::format_eval_output;
+use crate::irust::format::{format_err, format_eval_output, output_is_err};
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::{remove_main, stdout_and_stderr};
@@ -123,18 +123,27 @@ impl IRust {
 
         // read code
         let path_code = std::fs::read(path)?;
-        if let Ok(s) = String::from_utf8(path_code) {
-            // Format code to make `remove_main` function work correctly
-            let s = cargo_fmt(&s)?;
-            let s = remove_main(&s);
+        let code = if let Ok(code) = String::from_utf8(path_code) {
+            code
+        } else {
+            return Err("The specified file is not utf8 encoded").map_err(Into::into);
+        };
+        // Format code to make `remove_main` function work correctly
+        let code = cargo_fmt(&code)?;
+        let code = remove_main(&code);
 
-            self.repl.insert(s);
+        // build the code
+        let output = self.repl.eval_build(code.clone())?;
+
+        if output_is_err(&output) {
+            Ok(format_err(&output))
+        } else {
+            self.repl.insert(code);
+            let mut outputs =
+                Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+            outputs.add_new_line(1);
+            Ok(outputs)
         }
-
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(1);
-
-        Ok(outputs)
     }
 
     fn show_type(&mut self) -> Result<Printer, IRustError> {

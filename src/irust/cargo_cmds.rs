@@ -56,6 +56,16 @@ pub fn cargo_build() -> Result<std::process::Child, io::Error> {
         .spawn()?)
 }
 
+pub fn cargo_build_output() -> Result<String, io::Error> {
+    Ok(stdout_and_stderr(
+        Command::new("cargo")
+            .current_dir(&*IRUST_DIR)
+            .arg("build")
+            .args(&["--color", "always"])
+            .output()?,
+    ))
+}
+
 fn clean_cargo_toml() -> io::Result<()> {
     // edition needs to be specified or racer will not be able to autocomplete dependencies
     // bug maybe?

@@ -72,6 +72,19 @@ impl Repl {
         Ok(eval_result)
     }
 
+    pub fn eval_build(&mut self, input: String) -> Result<String, IRustError> {
+        let orig_body = self.body.clone();
+        let orig_cursor = self.cursor;
+
+        self.insert(input);
+        self.write()?;
+        let output = cargo_build_output()?;
+
+        self.body = orig_body;
+        self.cursor = orig_cursor;
+        Ok(output)
+    }
+
     pub fn eval_in_tmp_repl(
         &mut self,
         input: String,
