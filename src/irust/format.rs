@@ -4,7 +4,6 @@ use crate::irust::{
 };
 
 pub fn format_eval_output(output: &str) -> Option<Printer> {
-    crate::log!(&output);
     if output.trim() == "()" {
         return None;
     }
