@@ -3,7 +3,11 @@ use crate::irust::{
     OUT,
 };
 
-pub fn format_eval_output(output: &str) -> Printer {
+pub fn format_eval_output(output: &str) -> Option<Printer> {
+    crate::log!(&output);
+    if output.trim() == "()" {
+        return None;
+    }
     let mut eval_output = Printer::default();
     if output.contains("irust v0.1.0 (/tmp/irust)") {
         // Consider this an error
@@ -32,19 +36,10 @@ pub fn format_eval_output(output: &str) -> Printer {
         eval_output.push(PrinterItem::new(actual_error, PrinterItemType::Err));
     } else {
         eval_output.push(PrinterItem::new(OUT.into(), PrinterItemType::Out));
-
-        if output.trim() == "()" {
-            eval_output.push(PrinterItem::new(
-                "IRust: Are you missing a `;` ?".into(),
-                PrinterItemType::Warn,
-            ));
-            eval_output.add_new_line(1);
-        }
-
         eval_output.push(PrinterItem::new(output.into(), PrinterItemType::Eval));
     }
 
-    eval_output
+    Some(eval_output)
 }
 
 fn main_panic(s: &str) -> bool {

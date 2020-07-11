@@ -50,8 +50,8 @@ impl IRust {
         self.history.reset_buffer_copy();
 
         // write out
+        output.add_new_line(1);
         if !output.is_empty() {
-            output.add_new_line(1);
             self.print_output(output)?;
         }
 
@@ -145,12 +145,13 @@ impl IRust {
     }
 
     pub fn handle_ctrl_c(&mut self) -> Result<(), IRustError> {
-        if !self.buffer.is_empty() {
-            self.write_newline()?;
-            self.raw_terminal.clear(ClearType::FromCursorDown)?;
-            self.write_from_terminal_start(super::IN, Color::Yellow)?;
-            self.buffer.clear();
-        }
+        self.buffer.clear();
+        self.cursor.goto_start();
+        self.write_from_terminal_start(super::IN, Color::Yellow)?;
+        self.raw_terminal.clear(ClearType::FromCursorDown)?;
+        //if !self.buffer.is_empty() {
+        //    self.write_newline()?;
+        //}
         Ok(())
     }
 

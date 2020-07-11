@@ -212,10 +212,12 @@ impl IRust {
             Ok(printer)
         } else {
             let mut outputs = Printer::default();
-            let mut eval_output = format_eval_output(&self.repl.eval(self.buffer.to_string())?);
-
-            outputs.append(&mut eval_output);
-            outputs.add_new_line(1);
+            if let Some(mut eval_output) =
+                format_eval_output(&self.repl.eval(self.buffer.to_string())?)
+            {
+                outputs.append(&mut eval_output);
+                outputs.add_new_line(1);
+            }
 
             Ok(outputs)
         }
