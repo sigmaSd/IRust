@@ -25,7 +25,7 @@ Cross Platform Rust Repl
 
 **:cd** => change current working directory
 
-**:color** *<key>* *<value>* => change token highlight color at runtime, for the token list and value representation check the Theme section
+**:color** *<key>* *<value>* => change token highlight color at runtime, for the token list and value representation check the Theme section, exp: `:color function red` `:color macro #ff12ab`
 
 **::** => run a shell command, example `::ls`
 
