@@ -110,6 +110,7 @@ pub fn warn_about_opt_deps(irust: &mut crate::IRust) {
         .dark_blue()
     );
 
+    let mut installed_something = false;
     for dep in &opt_deps {
         if !dep_installed(dep.cmd) {
             println!();
@@ -130,16 +131,26 @@ pub fn warn_about_opt_deps(irust: &mut crate::IRust) {
 
             if answer.is_empty() || answer == "y" || answer == "Y" {
                 match (dep.install)() {
-                    Ok(status) if status.iter().all(process::ExitStatus::success) => println!(
-                        "{}",
-                        format!("{} sucessfully installed!\n", dep.name).green()
-                    ),
+                    Ok(status) if status.iter().all(process::ExitStatus::success) => {
+                        println!(
+                            "{}",
+                            format!("{} sucessfully installed!\n", dep.name).green()
+                        );
+                        installed_something = true;
+                    }
                     _ => println!("{}", format!("error while installing {}", dep.name).red()),
                 };
             }
         }
     }
     irust.options.first_irust_run = false;
+
+    if installed_something {
+        println!(
+            "{}",
+            "You might need to reload the shell inorder to update $PATH".yellow()
+        );
+    }
     println!("{}", "Everthing is set!".green());
 }
 

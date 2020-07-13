@@ -267,7 +267,7 @@ fn parse_character_lifetime(s: &mut std::iter::Peekable<impl Iterator<Item = cha
 fn parse_string_literal(s: &mut impl Iterator<Item = char>) -> Vec<Token> {
     let mut previous_char = None;
     let mut string_literal = String::new();
-    while let Some(c) = s.next() {
+    for c in s {
         if c == '"' && previous_char != Some('\\') {
             // we reached the end
             return vec![
