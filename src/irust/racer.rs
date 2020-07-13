@@ -1,5 +1,4 @@
 use super::IRustError;
-use super::Options;
 use crate::irust::IRust;
 use crate::utils::{read_until_bytes, StringTools};
 use crossterm::terminal::ClearType;
@@ -81,13 +80,12 @@ impl Racer {
         ) {
             Ok(_) => (),
             Err(_) => {
-                let _ = Options::disable_racer();
                 eprintln!(
                     "Error writing to racer, make sure it's properly configuerd\
                      \ncheckout https://github.com/racer-rust/racer/#configuration\
-                     \ndisabling racer.., make sure to reenable it after the proper configuration"
+                     \nOr disable it in the configuration file."
                 );
-                super::RawTerminal::exit(1)
+                super::RawTerminal::exit(1);
             }
         };
 

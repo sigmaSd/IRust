@@ -42,7 +42,7 @@ pub struct IRust {
     repl: Repl,
     cursor: Cursor,
     history: History,
-    options: Options,
+    pub options: Options,
     racer: Result<Racer, IRustError>,
     known_paths: KnownPaths,
 }

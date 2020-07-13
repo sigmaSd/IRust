@@ -197,6 +197,7 @@ impl IRust {
 
     fn exit(&mut self) -> Result<(), IRustError> {
         self.history.save();
+        self.options.save()?;
         self.write_newline()?;
         super::RawTerminal::exit(0);
         Ok(())

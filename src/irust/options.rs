@@ -1,11 +1,9 @@
-use crate::irust::IRust;
-use crate::utils::VecTools;
+use crate::irust::{IRust, IRustError};
 use crossterm::style::Color;
-use std::io::Write;
-mod parser;
-use parser::RacerEnabled;
+use serde::{Deserialize, Serialize};
+use std::io::{Read, Write};
 
-#[derive(Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Options {
     add_irust_cmd_to_history: bool,
     add_shell_cmd_to_history: bool,
@@ -20,18 +18,19 @@ pub struct Options {
     pub insert_color: Color,
     pub welcome_msg: String,
     pub welcome_color: Color,
-    pub enable_racer: bool,
     pub racer_inline_suggestion_color: Color,
     pub racer_suggestions_table_color: Color,
     pub racer_selected_suggestion_color: Color,
     pub racer_max_suggestions: usize,
+    pub first_irust_run: bool,
+    pub enable_racer: bool,
 }
 
 impl Default for Options {
     fn default() -> Self {
         Self {
             // [Histroy]
-            add_irust_cmd_to_history: false,
+            add_irust_cmd_to_history: true,
             add_shell_cmd_to_history: false,
 
             // [Colors]
@@ -51,29 +50,45 @@ impl Default for Options {
 
             // [Racer]
             enable_racer: true,
-
             racer_inline_suggestion_color: Color::Cyan,
             racer_suggestions_table_color: Color::Green,
             racer_selected_suggestion_color: Color::DarkRed,
             racer_max_suggestions: 5,
+
+            //other
+            first_irust_run: true,
         }
     }
 }
 
 impl Options {
-    pub fn new() -> std::io::Result<Self> {
+    pub fn save(&mut self) -> Result<(), IRustError> {
+        if let Some(path) = Self::config_path() {
+            Self::write_config_file(path, &self)?;
+        }
+        Ok(())
+    }
+
+    pub fn new() -> Result<Self, IRustError> {
         if let Some(config_path) = Options::config_path() {
             match std::fs::File::open(&config_path) {
-                Ok(config_file) => Options::parse(config_file),
-                Err(_) => Options::create_config(config_path, RacerEnabled::True),
+                Ok(mut config_file) => {
+                    let mut config_data = String::new();
+                    config_file.read_to_string(&mut config_data)?;
+
+                    toml::from_str(&config_data).map_err(|e| e.into())
+                }
+                Err(_) => Options::reset_config(config_path),
             }
         } else {
             Ok(Options::default())
         }
     }
 
-    pub fn reset_config(config_path: std::path::PathBuf) {
-        let _ = Options::create_config(config_path, RacerEnabled::True);
+    pub fn reset_config(config_path: std::path::PathBuf) -> Result<Self, IRustError> {
+        let default = Options::default();
+        Options::write_config_file(config_path, &default)?;
+        Ok(default)
     }
 
     pub fn config_path() -> Option<std::path::PathBuf> {
@@ -88,89 +103,16 @@ impl Options {
         Some(config_path)
     }
 
-    fn create_config(
+    fn write_config_file(
         config_path: std::path::PathBuf,
-        racer_enabled: RacerEnabled,
-    ) -> std::io::Result<Options> {
-        let config = Options::default_config(racer_enabled);
+        options: &Options,
+    ) -> Result<(), IRustError> {
+        let config = toml::to_string(options)?;
 
         let mut config_file = std::fs::File::create(&config_path)?;
 
         write!(config_file, "{}", config)?;
-
-        Ok(Options::default())
-    }
-
-    pub fn disable_racer() -> std::io::Result<()> {
-        if let Some(config_path) = Options::config_path() {
-            Options::create_config(config_path, RacerEnabled::False)?;
-        }
         Ok(())
-    }
-}
-
-impl Options {
-    fn str_to_bool(value: &str) -> bool {
-        match value {
-            "true" => true,
-            "false" => false,
-            value => {
-                eprintln!("Unknown option value: {}", value);
-                false
-            }
-        }
-    }
-
-    fn str_to_color(value: &str) -> Result<Color, &str> {
-        match value.to_lowercase().as_ref() {
-            "black" => Ok(Color::Black),
-            "red" => Ok(Color::Red),
-            "darkred" => Ok(Color::DarkRed),
-            "green" => Ok(Color::Green),
-            "darkgreen" => Ok(Color::DarkGreen),
-            "yellow" => Ok(Color::Yellow),
-            "darkyellow" => Ok(Color::DarkYellow),
-            "blue" => Ok(Color::Blue),
-            "darkblue" => Ok(Color::DarkBlue),
-            "magenta" => Ok(Color::Magenta),
-            "darkmagenta" => Ok(Color::DarkMagenta),
-            "cyan" => Ok(Color::Cyan),
-            "darkcyan" => Ok(Color::DarkCyan),
-            "grey" => Ok(Color::Grey),
-            "white" => Ok(Color::White),
-            value => {
-                eprintln!("Unknown option value: {}", value);
-                Err("Unknown option value")
-            }
-        }
-    }
-
-    fn get_section(lines: &[String], section_name: String) -> Vec<(String, String)> {
-        let sec_start = match VecTools::index(lines, &section_name).get(0) {
-            Some(idx) => *idx,
-            None => {
-                eprintln!("Section {} not found", section_name);
-                return Vec::new();
-            }
-        };
-
-        let sec_end = VecTools::index(lines, "[")
-            .into_iter()
-            .find(|elem| *elem > sec_start)
-            .unwrap_or_else(|| lines.len());
-
-        lines[sec_start + 1..sec_end]
-            .iter()
-            .filter_map(|line| {
-                let lines_part = line.split('=').map(str::trim).collect::<Vec<&str>>();
-                if lines_part.len() == 2 {
-                    Some((lines_part[0].to_string(), lines_part[1].to_string()))
-                } else {
-                    eprintln!("Unknown line: {}", line);
-                    None
-                }
-            })
-            .collect()
     }
 }
 

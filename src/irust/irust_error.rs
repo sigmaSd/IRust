@@ -8,6 +8,7 @@ pub enum IRustError {
     CrosstermError(crossterm::ErrorKind),
     Custom(String),
     RacerDisabled,
+    ParsingError(String),
 }
 
 impl From<io::Error> for IRustError {
@@ -46,6 +47,18 @@ impl From<crossterm::ErrorKind> for IRustError {
     }
 }
 
+impl From<toml::de::Error> for IRustError {
+    fn from(error: toml::de::Error) -> Self {
+        IRustError::ParsingError(error.to_string())
+    }
+}
+
+impl From<toml::ser::Error> for IRustError {
+    fn from(error: toml::ser::Error) -> Self {
+        IRustError::ParsingError(error.to_string())
+    }
+}
+
 impl ToString for IRustError {
     fn to_string(&self) -> String {
         match self {
@@ -53,6 +66,7 @@ impl ToString for IRustError {
             CrosstermError(e) => e.to_string(),
             Custom(e) => e.to_string(),
             RacerDisabled => "Racer is disabled".to_string(),
+            ParsingError(e) => e.to_string(),
         }
     }
 }

@@ -166,22 +166,6 @@ impl StringTools {
     }
 }
 
-pub struct VecTools {}
-
-impl VecTools {
-    pub fn index(vector: &[String], item: &str) -> Vec<usize> {
-        let mut indices = vec![];
-
-        for (idx, elem) in vector.iter().enumerate() {
-            if elem.starts_with(item) {
-                indices.push(idx);
-            }
-        }
-
-        indices
-    }
-}
-
 pub fn read_until_bytes<R: std::io::BufRead + ?Sized>(
     r: &mut R,
     delim: &[u8],
