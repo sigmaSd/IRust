@@ -25,6 +25,7 @@ use repl::Repl;
 mod buffer;
 use buffer::Buffer;
 mod raw_terminal;
+use highlight::theme::Theme;
 use known_paths::KnownPaths;
 use raw_terminal::RawTerminal;
 
@@ -45,6 +46,7 @@ pub struct IRust {
     pub options: Options,
     racer: Result<Racer, IRustError>,
     known_paths: KnownPaths,
+    theme: Theme,
 }
 
 impl IRust {
@@ -67,6 +69,7 @@ impl IRust {
         };
         let cursor = Cursor::new(size.0, size.1);
         let buffer = Buffer::new();
+        let theme = highlight::theme::theme().unwrap_or_default();
 
         IRust {
             cursor,
@@ -77,6 +80,7 @@ impl IRust {
             racer,
             buffer,
             known_paths,
+            theme,
         }
     }
 

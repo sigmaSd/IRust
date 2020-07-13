@@ -1,36 +1,30 @@
 use super::printer::{Printer, PrinterItem, PrinterItemType};
 use crossterm::style::Color;
-use once_cell::sync::Lazy;
-use std::collections::HashMap;
-mod theme;
+pub mod theme;
 
-static THEME: Lazy<HashMap<String, Color>> = Lazy::new(|| theme::theme().unwrap_or_default());
-
-pub fn highlight(c: String) -> Printer {
+pub fn highlight(c: String, theme: &theme::Theme) -> Printer {
     let mut printer = Printer::default();
 
     for token in parse(c) {
         use Token::*;
         let (string, color) = match token {
-            Keyword(s) => (s, THEME.get("keyword").unwrap_or(&Color::Magenta)),
-            Keyword2(s) => (s, THEME.get("keyword2").unwrap_or(&Color::DarkRed)),
-            Function(s) => (s, THEME.get("function").unwrap_or(&Color::Blue)),
-            Type(s) => (s, THEME.get("type").unwrap_or(&Color::Cyan)),
-            Number(s) => (s, THEME.get("number").unwrap_or(&Color::DarkYellow)),
-            Symbol(c) => (c.to_string(), THEME.get("symbol").unwrap_or(&Color::Red)),
-            Macro(s) => (s, THEME.get("macro").unwrap_or(&Color::Yellow)),
-            StringLiteral(s) => (s, THEME.get("string_literal").unwrap_or(&Color::Green)),
-            Character(c) => (
-                c.to_string(),
-                THEME.get("character").unwrap_or(&Color::Green),
-            ),
-            LifeTime(s) => (s, THEME.get("lifetime").unwrap_or(&Color::DarkMagenta)),
-            Comment(s) => (s, THEME.get("comment").unwrap_or(&Color::DarkGrey)),
-            Const(s) => (s, THEME.get("const").unwrap_or(&Color::DarkGreen)),
-            X(s) => (s, THEME.get("x").unwrap_or(&Color::White)),
+            Keyword(s) => (s, &theme.keyword),
+            Keyword2(s) => (s, &theme.keyword2),
+            Function(s) => (s, &theme.function),
+            Type(s) => (s, &theme.r#type),
+            Number(s) => (s, &theme.number),
+            Symbol(c) => (c.to_string(), &theme.symbol),
+            Macro(s) => (s, &theme.r#macro),
+            StringLiteral(s) => (s, &theme.string_literal),
+            Character(c) => (c.to_string(), &theme.character),
+            LifeTime(s) => (s, &theme.lifetime),
+            Comment(s) => (s, &theme.comment),
+            Const(s) => (s, &theme.r#const),
+            X(s) => (s, &theme.x),
         };
 
-        printer.push(PrinterItem::new(string, PrinterItemType::Custom(*color)));
+        let color = theme::theme_color_to_term_color(color).unwrap_or(Color::White);
+        printer.push(PrinterItem::new(string, PrinterItemType::Custom(color)));
     }
     printer
 }

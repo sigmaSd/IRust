@@ -23,6 +23,7 @@ impl IRust {
             cmd if cmd.starts_with(":type") => self.show_type(),
             cmd if cmd.starts_with(":del") => self.del(),
             cmd if cmd.starts_with(":cd") => self.cd(),
+            cmd if cmd.starts_with(":color") => self.color(),
             _ => self.parse_second_order(),
         }
     }
@@ -55,7 +56,7 @@ impl IRust {
     }
 
     fn show(&mut self) -> Result<Printer, IRustError> {
-        let repl_code = highlight(self.repl.show());
+        let repl_code = highlight(self.repl.show(), &self.theme);
 
         Ok(repl_code)
     }
@@ -91,6 +92,46 @@ impl IRust {
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
         outputs.add_new_line(1);
+
+        Ok(outputs)
+    }
+
+    fn color(&mut self) -> Result<Printer, IRustError> {
+        // ok
+        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+        outputs.add_new_line(1);
+
+        let buffer = self.buffer.to_string();
+        let mut buffer = buffer.split_whitespace().skip(1).peekable();
+
+        // reset theme
+        if buffer.peek() == Some(&"reset") {
+            self.theme.reset();
+            return Ok(outputs);
+        }
+
+        let mut parse = || -> Result<(), IRustError> {
+            let key = buffer.next().ok_or("Key not specified")?;
+            let value = buffer.next().ok_or("Value not specified")?;
+
+            let mut theme = toml::Value::try_from(&self.theme)?;
+            // test key
+            *theme
+                .get_mut(key)
+                .ok_or_else(|| IRustError::Custom("key doesn't exist".into()))? = value.into();
+
+            // test Value
+            if super::highlight::theme::theme_color_to_term_color(value).is_none() {
+                return Err("Value is incorrect".into());
+            }
+
+            self.theme = theme.try_into()?;
+            Ok(())
+        };
+
+        if let Err(e) = parse() {
+            return Err(e);
+        }
 
         Ok(outputs)
     }

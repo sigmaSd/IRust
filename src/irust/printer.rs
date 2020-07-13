@@ -117,7 +117,7 @@ impl IRust {
         self.raw_terminal.clear(ClearType::FromCursorDown)?;
 
         self.write_from_terminal_start(super::IN, Color::Yellow)?;
-        self.print_inner(highlight(self.buffer.to_string()))?;
+        self.print_inner(highlight(self.buffer.to_string(), &self.theme))?;
 
         self.cursor.restore_position()?;
         self.cursor.show();
