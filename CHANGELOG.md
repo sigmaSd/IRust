@@ -1,3 +1,6 @@
+**0.8.12**
+- Fix `rustfmt` install command
+
 **0.8.11**
 - Use `toml/serde` crates to parse irust config file instead of manual parsing, theme and config files are now changed to toml.
 - Add the ability to invoke irust with a path to a file, that will be loaded into the repl automatically, exp: `irust src/lib.rs`
