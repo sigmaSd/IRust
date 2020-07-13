@@ -1,5 +1,6 @@
 **0.8.12**
 - Fix `rustfmt` install command
+- Add a reminder to reload shell after installing a dependency, fix clippy warning
 
 **0.8.11**
 - Use `toml/serde` crates to parse irust config file instead of manual parsing, theme and config files are now changed to toml.
