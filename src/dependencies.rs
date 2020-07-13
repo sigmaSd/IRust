@@ -71,8 +71,15 @@ pub fn warn_about_opt_deps(irust: &mut crate::IRust) {
 
             Ok(exit_status)
         }),
-        Dep::new("cargo-fmt", "cargo-fmt", "beautifying repl code", &|| {
-            let cmd = ["cargo", "install", "cargo-fmt"];
+        Dep::new("rustfmt", "rustfmt", "beautifying repl code", &|| {
+            if !dep_installed("rustup") {
+                println!(
+                    "{}",
+                    "rustup is not installed.\nrustup is required to install rustfmt".red()
+                );
+                std::process::exit(1);
+            }
+            let cmd = ["rustup", "component", "add", "rustfmt"];
             println!("{}", format!("Running: {:?}", cmd).magenta());
 
             Ok(vec![process::Command::new(cmd[0])
