@@ -72,7 +72,7 @@ IRust config file is located in:
 **Mac**: */Users/$USER/Library/Preferences/irust/config*
 
 *default config:*
-
+```
   // history
   add_irust_cmd_to_history = true
   add_shell_cmd_to_history = false
@@ -99,7 +99,7 @@ IRust config file is located in:
 
   // other
   first_irust_run = false
-
+```
 
 ## Theme
 Since release `0.8.9` `IRust` can now parse a theme file located on `$config_dir/irust/theme` and use it for the highlighting colors.
