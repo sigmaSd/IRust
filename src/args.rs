@@ -1,19 +1,15 @@
-use crate::irust::options::Options;
+use crate::irust::IRustError;
+use crate::irust::{options::Options, IRust};
+
 use std::env;
 
 const VERSION: &str = "0.8.10";
 
-pub fn handle_args() -> std::io::Result<()> {
+pub fn handle_args(irust: &mut IRust) -> Result<(), IRustError> {
     let args: Vec<String> = env::args().skip(1).collect();
 
     if !args.is_empty() {
         match args[0].as_str() {
-            "--reset-config" => {
-                if let Some(config_path) = Options::config_path() {
-                    Options::reset_config(config_path);
-                }
-            }
-
             "-h" | "--help" => {
                 println!(
                     "IRust: Cross Platform Rust REPL
@@ -26,14 +22,25 @@ pub fn handle_args() -> std::io::Result<()> {
                         .map(|p| p.to_string_lossy().to_string())
                         .unwrap_or_else(|| "??".into())
                 );
+                std::process::exit(0);
             }
 
-            "-v" | "--version" => println!("{}", VERSION),
+            "-v" | "--version" => {
+                println!("{}", VERSION);
+                std::process::exit(0);
+            }
 
-            _ => (),
+            "--reset-config" => {
+                irust.options.reset();
+            }
+
+            maybe_path => {
+                let path = std::path::Path::new(maybe_path);
+                if path.exists() {
+                    irust.load_inner(path.to_path_buf())?;
+                }
+            }
         }
-
-        std::process::exit(0)
     }
 
     Ok(())

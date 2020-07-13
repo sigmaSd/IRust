@@ -114,7 +114,7 @@ impl IRust {
         self.load_inner(path)
     }
 
-    fn load_inner(&mut self, path: std::path::PathBuf) -> Result<Printer, IRustError> {
+    pub fn load_inner(&mut self, path: std::path::PathBuf) -> Result<Printer, IRustError> {
         // save path
         self.known_paths.set_last_loaded_coded_path(path.clone());
 

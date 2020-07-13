@@ -71,24 +71,18 @@ impl Options {
 
     pub fn new() -> Result<Self, IRustError> {
         if let Some(config_path) = Options::config_path() {
-            match std::fs::File::open(&config_path) {
-                Ok(mut config_file) => {
-                    let mut config_data = String::new();
-                    config_file.read_to_string(&mut config_data)?;
+            let mut config_file = std::fs::File::open(&config_path)?;
+            let mut config_data = String::new();
+            config_file.read_to_string(&mut config_data)?;
 
-                    toml::from_str(&config_data).map_err(|e| e.into())
-                }
-                Err(_) => Options::reset_config(config_path),
-            }
+            toml::from_str(&config_data).map_err(|e| e.into())
         } else {
             Ok(Options::default())
         }
     }
 
-    pub fn reset_config(config_path: std::path::PathBuf) -> Result<Self, IRustError> {
-        let default = Options::default();
-        Options::write_config_file(config_path, &default)?;
-        Ok(default)
+    pub fn reset(&mut self) {
+        *self = Self::default();
     }
 
     pub fn config_path() -> Option<std::path::PathBuf> {

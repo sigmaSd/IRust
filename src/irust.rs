@@ -18,7 +18,7 @@ use crossterm::event::*;
 use crossterm::{style::Color, terminal::enable_raw_mode};
 use cursor::{Cursor, INPUT_START_COL};
 use history::History;
-use irust_error::IRustError;
+pub use irust_error::IRustError;
 use options::Options;
 use racer::Racer;
 use repl::Repl;

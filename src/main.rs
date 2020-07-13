@@ -13,7 +13,7 @@ fn main() {
     check_required_deps();
 
     let mut irust = IRust::new();
-    let _ = handle_args();
+    let _ = handle_args(&mut irust);
     warn_about_opt_deps(&mut irust);
 
     irust.run().expect("IRust Out");
