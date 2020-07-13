@@ -1,3 +1,13 @@
+**0.8.11**
+- Use `toml/serde` crates to parse irust config file instead of manual parsing
+- Add the ability to invoke irust with a path to a file, that will be loaded into the repl automatically, exp: `irust src/lib.rs`
+- Add a check for required dependencies
+- Add a one time warning for optional dependencies, and the ability to install them automatically
+- Add `:color` command -> change highlight color at runtime, exp: `:color function red`, `:color keyword #ffab12`
+
+
+
+
 **0.8.10**
 - Match IPython ctrlc and new lines behavior
 - Bunch of changes to `load` command in order to improve the interactive usage of the repl:

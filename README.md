@@ -25,6 +25,8 @@ Cross Platform Rust Repl
 
 **:cd** => change current working directory
 
+**:color** *<key>* *<value>* => change token highlight color at runtime, for the token list check TODO
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history
@@ -53,6 +55,8 @@ You can use arrow keys to cycle through commands history
 
 ## Cli commands
 
+**irust** *<path_to_file>* starts irust with the specified file loaded into the repl
+
 **--help** prints help message
 
 **--reset-config** reset IRust configuration to default
@@ -69,46 +73,55 @@ IRust config file is located in:
 
 *default config:*
 
-    [History]
-    add_irust_cmd_to_history = false
-    add_shell_cmd_to_history = false
+  // history
+  add_irust_cmd_to_history = true
+  add_shell_cmd_to_history = false
 
-    [Racer]
-    enable_racer = true
-    racer_inline_suggestion_color = Cyan
-    racer_suggestions_table_color = Green
-    racer_selected_suggestion_color = DarkRed
-    racer_max_suggestions = 5
+  // colors
+  ok_color = "Blue"
+  eval_color = "White"
+  irust_color = "DarkBlue"
+  irust_warn_color = "Cyan"
+  out_color = "Red"
+  shell_color = "DarkYellow"
+  err_color = "DarkRed"
+  input_color = "Green"
+  insert_color = "White"
+  welcome_msg = ""
+  welcome_color = "DarkBlue"
 
-    [Colors]
-    insert_color = White
-    input_color = Yellow
-    out_color = Red
-    ok_color = Blue
-    eval_color = White
-    irust_color = DarkBlue
-    irust_warn_color = Cyan
-    shell_color = DarkYellow
-    err_color = DarkRed
+  // racer
+  racer_inline_suggestion_color = "Cyan"
+  racer_suggestions_table_color = "Green"
+  racer_selected_suggestion_color = "DarkRed"
+  racer_max_suggestions = 5
+  enable_racer = true
 
-    [Welcome]
-    welcome_msg = Welcome to IRust
-    welcome_color = DarkBlue
+  // other
+  first_irust_run = false
+
 
 ## Theme
 Since release `0.8.9` `IRust` can now parse a theme file located on `$config_dir/irust/theme` and use it for the highlighting colors.
 
-Example of a theme file:
+Colors can be specified as names ("red") or as hex representation ("#ff12ab").
+
+Default theme file:
 
 ```
-  keyword: #D027C1
-  keyword2: #BC303F
-  function: #6BF600
-  type: #0ED5FF
-  string_literal: #DEFB24
-  character: #DEFB24
-  symbol: #BC303F
-  const: #9530BC
+  keyword = "magenta"
+  keyword2 = "dark_red"
+  function = "blue"
+  type = "cyan"
+  number = "dark_yellow"
+  symbol = "red"
+  macro = "dark_yellow"
+  string_literal = "yellow"
+  character = "green"
+  lifetime = "dark_magenta"
+  comment = "dark_grey"
+  const = "dark_green"
+  x = "white"
 
 ```
 
