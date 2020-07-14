@@ -89,7 +89,7 @@ impl History {
         let is_comment = |s: &str| -> bool { s.trim_start().starts_with("//") };
         let mut history = self.history.clone();
 
-        if history[0] != NEW_HISTORY_MARK {
+        if history.is_empty() || history[0] != NEW_HISTORY_MARK {
             history.insert(0, NEW_HISTORY_MARK.to_string());
         }
 
