@@ -1,3 +1,7 @@
+**0.8.13**
+- Fix crash when history file is first created
+- Update dependencies
+
 **0.8.12**
 - Fix `rustfmt` install command
 - Add a reminder to reload shell after installing a dependency, fix clippy warning

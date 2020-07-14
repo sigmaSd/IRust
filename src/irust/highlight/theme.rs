@@ -2,6 +2,7 @@ use crate::irust::IRustError;
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
 use std::io::Write;
+use std::convert::TryFrom;
 
 pub fn theme() -> Result<Theme, IRustError> {
     let theme_file = dirs_next::config_dir()
@@ -81,32 +82,6 @@ pub fn theme_color_to_term_color(color: &str) -> Option<Color> {
         };
         parse()
     } else {
-        // try color as name
-        try_from(color).ok()
-    }
-}
-
-// To be Removed
-fn try_from(src: &str) -> Result<Color, IRustError> {
-    let src = src.to_lowercase();
-
-    match src.as_ref() {
-        "black" => Ok(Color::Black),
-        "dark_grey" => Ok(Color::DarkGrey),
-        "red" => Ok(Color::Red),
-        "dark_red" => Ok(Color::DarkRed),
-        "green" => Ok(Color::Green),
-        "dark_green" => Ok(Color::DarkGreen),
-        "yellow" => Ok(Color::Yellow),
-        "dark_yellow" => Ok(Color::DarkYellow),
-        "blue" => Ok(Color::Blue),
-        "dark_blue" => Ok(Color::DarkBlue),
-        "magenta" => Ok(Color::Magenta),
-        "dark_magenta" => Ok(Color::DarkMagenta),
-        "cyan" => Ok(Color::Cyan),
-        "dark_cyan" => Ok(Color::DarkCyan),
-        "white" => Ok(Color::White),
-        "grey" => Ok(Color::Grey),
-        _ => Err(IRustError::Custom("Uknown color".into())),
+        Color::try_from(color).ok()
     }
 }
