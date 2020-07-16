@@ -1,8 +1,8 @@
 use crate::irust::IRustError;
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
-use std::io::Write;
 use std::convert::TryFrom;
+use std::io::Write;
 
 pub fn theme() -> Result<Theme, IRustError> {
     let theme_file = dirs_next::config_dir()
