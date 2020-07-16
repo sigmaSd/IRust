@@ -80,10 +80,13 @@ impl Racer {
         ) {
             Ok(_) => (),
             Err(_) => {
+                use crossterm::style::Colorize;
                 eprintln!(
-                    "Error writing to racer, make sure it's properly configuerd\
-                     \ncheckout https://github.com/racer-rust/racer/#configuration\
-                     \nOr disable it in the configuration file."
+                    "{}",
+                    "\n\rError writing to racer, make sure it's properly configured\
+                     \n\rCheckout https://github.com/racer-rust/racer/#configuration\
+                     \n\rOr disable it in the configuration file."
+                        .red()
                 );
                 super::RawTerminal::exit(1);
             }
