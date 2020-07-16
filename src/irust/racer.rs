@@ -18,7 +18,7 @@ pub struct Racer {
     // suggestions: (Name, definition)
     suggestions: Vec<(String, String)>,
     suggestion_idx: usize,
-    cmds: [String; 9],
+    cmds: [String; 11],
     update_lock: bool,
 }
 
@@ -46,8 +46,10 @@ impl Racer {
             "add".to_string(),
             "reset".to_string(),
             "load".to_string(),
+            "reload".to_string(),
             "type".to_string(),
             "cd".to_string(),
+            "color".to_string(),
         ];
 
         Ok(Racer {
