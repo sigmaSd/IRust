@@ -70,17 +70,17 @@ impl IRust {
             .map(ToOwned::to_owned)
             .collect();
 
-        // if user provides a path, for example for cargo add --path
-        // canonicalize that path, since relative directiories wont work
+        // Try to canonicalize all arguments that corresponds to an existing path
+        // This is necessary because `:add relative_path` doesn't work without it
+        // Note this might be a bit too aggressive (an argument might be canonicalized, that the user didn't not intend for it to be considered as a path)
+        // But the usefulness of this trick, outways this possible edge case
         for p in dep.iter_mut() {
-            if p.contains('/') {
-                match std::path::Path::new(p).canonicalize() {
-                    Ok(full_p) => {
-                        if let Some(full_p) = full_p.to_str() {
-                            *p = full_p.to_string();
-                        }
+            let path = std::path::Path::new(p);
+            if path.exists() {
+                if let Ok(full_path) = path.canonicalize() {
+                    if let Some(full_path) = full_path.to_str() {
+                        *p = full_path.to_string();
                     }
-                    Err(e) => return Err(e.into()),
                 }
             }
         }
