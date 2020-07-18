@@ -252,6 +252,8 @@ impl IRust {
     }
 
     fn parse_second_order(&mut self) -> Result<Printer, IRustError> {
+        // these consts are used to detect statements that don't require to be terminated with ';'
+        // `loop` can return a value so we don't add it here, exp: `loop {break 4}`
         const FUNCTION_DEF: &str = "fn ";
         const ASYNC_FUNCTION_DEF: &str = "async fn ";
         const ENUM_DEF: &str = "enum ";
@@ -259,6 +261,7 @@ impl IRust {
         const TRAIT_DEF: &str = "trait ";
         const IMPL: &str = "impl ";
         const PUB: &str = "pub ";
+        const WHILE: &str = "while ";
 
         // attribute exp:
         // #[derive(Debug)]
@@ -279,6 +282,7 @@ impl IRust {
             || buffer.starts_with(IMPL)
             || buffer.starts_with(ATTRIBUTE)
             || buffer.starts_with(PUB)
+            || buffer.starts_with(WHILE)
         {
             self.repl.insert(self.buffer.to_string());
 
