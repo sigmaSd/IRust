@@ -14,6 +14,10 @@ pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust"));
 pub static CARGO_TOML_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("Cargo.toml"));
 pub static IRUST_SRC_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src"));
 pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs"));
+#[cfg(windows)]
+pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust.exe"));
+#[cfg(not(windows))]
+pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust"));
 
 pub fn cargo_new() -> Result<(), io::Error> {
     let _ = std::fs::create_dir_all(&*IRUST_SRC_DIR);
@@ -27,13 +31,23 @@ pub fn cargo_new() -> Result<(), io::Error> {
 pub fn cargo_run(color: bool) -> Result<String, io::Error> {
     let color = if color { "always" } else { "never" };
 
-    Ok(stdout_and_stderr(
+    let output = stdout_and_stderr(
         Command::new("cargo")
             .current_dir(&*IRUST_DIR)
-            .args(&["run", "--color", color])
+            .args(&["build", "--color", color])
             .env("RUSTFLAGS", "-Awarnings")
             .output()?,
-    ))
+    );
+    if super::format::output_is_err(&output) {
+        Ok(output)
+    } else {
+        // Run the exexcutable directly instead of cargo run
+        // This allows to run it without modifying the current working directory
+        // example: std::process::Commmand::new("pwd") will output the expected path instead of `/tmp/irust`
+        Ok(stdout_and_stderr(
+            std::process::Command::new(&*EXE_PATH).output()?,
+        ))
+    }
 }
 
 pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
