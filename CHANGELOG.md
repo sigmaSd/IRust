@@ -1,3 +1,8 @@
+**0.8.14**
+- Save current working directory when using cargo run so now for example: `std::process:Command::new("pwd")` will give the expected output instead of `/tmp/irust`
+- Add `while` keyword to the highlight parser and to the statments that doesn't require `;` at the end
+- Improve error message when reacer is not properly configured
+
 **0.8.13**
 - Fix crash when history file is first created
 - Update dependencies
