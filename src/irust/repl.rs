@@ -61,6 +61,7 @@ impl Repl {
     }
 
     pub fn eval(&mut self, input: String) -> Result<String, IRustError> {
+        // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut eval_result = String::new();
 
