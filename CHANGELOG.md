@@ -1,5 +1,6 @@
 **0.8.14**
 - Save current working directory when using cargo run so now for example: `std::process:Command::new("pwd")` will give the expected output instead of `/tmp/irust`
+- `:load` command now tries to parse paths more agressivly, this is usefull for relative paths like `:load .`
 - Add `while` keyword to the highlight parser and to the statments that doesn't require `;` at the end
 - Improve error message when reacer is not properly configured
 
