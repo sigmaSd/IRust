@@ -123,10 +123,16 @@ impl IRust {
                             self.handle_character(c)?;
                         }
                         KeyEvent {
+                            code: KeyCode::Char('e'),
+                            modifiers: CTRL_KEYMODIFIER,
+                        } => {
+                            self.handle_ctrl_e()?;
+                        }
+                        KeyEvent {
                             code: KeyCode::Enter,
                             ..
                         } => {
-                            self.handle_enter()?;
+                            self.handle_enter(false)?;
                         }
                         KeyEvent {
                             code: KeyCode::Tab, ..

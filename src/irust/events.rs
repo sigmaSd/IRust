@@ -19,10 +19,10 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_enter(&mut self) -> Result<(), IRustError> {
+    pub fn handle_enter(&mut self, force_eval: bool) -> Result<(), IRustError> {
         let buffer = self.buffer.to_string();
 
-        if !self.input_is_cmd_or_shell(&buffer) && self.incomplete_input(&buffer) {
+        if !force_eval && !self.input_is_cmd_or_shell(&buffer) && self.incomplete_input(&buffer) {
             self.write_from_next_line()?;
             return Ok(());
         }
@@ -318,6 +318,10 @@ impl IRust {
                 }
             }
         }
+    }
+
+    pub fn handle_ctrl_e(&mut self) -> Result<(), IRustError> {
+        self.handle_enter(true)
     }
 
     // helper functions
