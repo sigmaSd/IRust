@@ -1,3 +1,8 @@
+**0.8.15**
+- Add `Ctrl-e` to force evaluation (useful for casese where incomplete_input fn can't handle)
+- Add `dyn` to keywrods
+- Upgrade deps
+
 **0.8.14**
 - Save current working directory when using cargo run so now for example: `std::process:Command::new("pwd")` will give the expected output instead of `/tmp/irust`
 - `:add` command now tries to parse paths more agressivly, this is usefull for relative paths like `:add .`
