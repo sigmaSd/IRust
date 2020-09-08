@@ -63,6 +63,9 @@ pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
 
 pub fn cargo_build() -> Result<std::process::Child, io::Error> {
     Ok(Command::new("cargo")
+        // the difference in env flags makes cargo recompiles again!!!
+        // => make  sure all build env flags are the same
+        .env("RUSTFLAGS", "-Awarnings")
         .current_dir(&*IRUST_DIR)
         .arg("build")
         .stdout(std::process::Stdio::null())
