@@ -79,7 +79,7 @@ impl Repl {
 
         self.insert(input);
         self.write()?;
-        let output = cargo_build_output()?;
+        let output = cargo_build_output(true)?;
 
         self.body = orig_body;
         self.cursor = orig_cursor;

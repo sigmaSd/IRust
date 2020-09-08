@@ -29,15 +29,8 @@ pub fn cargo_new() -> Result<(), io::Error> {
 }
 
 pub fn cargo_run(color: bool) -> Result<String, io::Error> {
-    let color = if color { "always" } else { "never" };
+    let output = cargo_build_output(color)?;
 
-    let output = stdout_and_stderr(
-        Command::new("cargo")
-            .current_dir(&*IRUST_DIR)
-            .args(&["build", "--color", color])
-            .env("RUSTFLAGS", "-Awarnings")
-            .output()?,
-    );
     if super::format::output_is_err(&output) {
         Ok(output)
     } else {
@@ -51,7 +44,9 @@ pub fn cargo_run(color: bool) -> Result<String, io::Error> {
 }
 
 pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
+    //TODO is this required?
     clean_main_file()?;
+
     Ok(Command::new("cargo-add")
         .current_dir(&*IRUST_DIR)
         .arg("add")
@@ -73,12 +68,14 @@ pub fn cargo_build() -> Result<std::process::Child, io::Error> {
         .spawn()?)
 }
 
-pub fn cargo_build_output() -> Result<String, io::Error> {
+pub fn cargo_build_output(color: bool) -> Result<String, io::Error> {
+    let color = if color { "always" } else { "never" };
+
     Ok(stdout_and_stderr(
         Command::new("cargo")
             .current_dir(&*IRUST_DIR)
             .arg("build")
-            .args(&["--color", "always"])
+            .args(&["--color", color])
             .env("RUSTFLAGS", "-Awarnings")
             .output()?,
     ))
