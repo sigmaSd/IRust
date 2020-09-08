@@ -1,3 +1,6 @@
+**0.8.16**
+- fix duplicate building after using `:add` command
+
 **0.8.15**
 - Add `Ctrl-e` to force evaluation (useful for casese where incomplete_input fn can't handle)
 - Add `dyn` to keywrods
