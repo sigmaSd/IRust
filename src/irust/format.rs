@@ -4,7 +4,7 @@ use crate::irust::{
 };
 
 pub fn output_is_err(output: &str) -> bool {
-    output.contains("could not compile `irust`.")
+    output.contains(" could not compile `")
 }
 
 pub fn format_err(output: &str) -> Printer {
