@@ -51,6 +51,8 @@ You can use arrow keys to cycle through commands history
 
 **Alt-Enter** add line break
 
+**ctrl-e** force evaluation
+
 <img src="./irust.png" width="80%" height="60%">
 
 ## Cli commands
