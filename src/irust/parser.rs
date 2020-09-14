@@ -196,7 +196,7 @@ impl IRust {
         if output_is_err(&output) {
             Ok(format_err(&output))
         } else {
-            self.repl.insert(code);
+            self.repl.insert(code, false);
             let mut outputs =
                 Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
             outputs.add_new_line(1);
@@ -286,11 +286,20 @@ impl IRust {
         // struct B{}
         const ATTRIBUTE: &str = "#";
 
+        // CRATE_ATTRIBUTE are special in the sense that they should be inserted outside of the main function
+        // #![feature(unboxed_closures)]
+        // fn main() {}
+        const CRATE_ATTRIBUTE: &str = "#!";
+
         let buffer = self.buffer.to_string();
         let buffer = buffer.trim();
 
         if buffer.is_empty() {
             Ok(Printer::default())
+        } else if buffer.starts_with(CRATE_ATTRIBUTE) {
+            self.repl.insert(self.buffer.to_string(), true);
+            let printer = Printer::default();
+            Ok(printer)
         } else if buffer.ends_with(';')
             || buffer.starts_with(FUNCTION_DEF)
             || buffer.starts_with(ASYNC_FUNCTION_DEF)
@@ -303,7 +312,7 @@ impl IRust {
             || buffer.starts_with(WHILE)
             || buffer.starts_with(EXTERN)
         {
-            self.repl.insert(self.buffer.to_string());
+            self.repl.insert(self.buffer.to_string(), false);
 
             let printer = Printer::default();
 

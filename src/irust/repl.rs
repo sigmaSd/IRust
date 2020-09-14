@@ -33,10 +33,17 @@ impl Repl {
         Ok(())
     }
 
-    pub fn insert(&mut self, input: String) {
-        for line in input.lines() {
-            self.body.insert(self.cursor, line.to_owned());
-            self.cursor += 1;
+    pub fn insert(&mut self, input: String, outside_main: bool) {
+        if outside_main {
+            for line in input.lines() {
+                self.body.insert(0, line.to_owned());
+                self.cursor += 1;
+            }
+        } else {
+            for line in input.lines() {
+                self.body.insert(self.cursor, line.to_owned());
+                self.cursor += 1;
+            }
         }
     }
 
@@ -82,7 +89,7 @@ impl Repl {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
-        self.insert(input);
+        self.insert(input, false);
         self.write()?;
         let output = cargo_build_output(true, toolchain)?;
 
@@ -99,7 +106,7 @@ impl Repl {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
-        self.insert(input);
+        self.insert(input, false);
         self.write()?;
         f()?;
 
