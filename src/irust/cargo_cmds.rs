@@ -1,11 +1,41 @@
+use super::IRustError;
 use crate::utils::stdout_and_stderr;
 use once_cell::sync::Lazy;
+use serde::{Deserialize, Serialize};
 use std::env::temp_dir;
 use std::fs;
 use std::io;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Command;
+
+#[derive(Debug, Clone, Serialize, Deserialize, Copy)]
+pub enum ToolChain {
+    Stable,
+    Beta,
+    Nightly,
+}
+
+impl ToolChain {
+    pub fn from_str(s: &str) -> Result<Self, IRustError> {
+        use ToolChain::*;
+        match s.to_lowercase().as_str() {
+            "stable" => Ok(Stable),
+            "beta" => Ok(Beta),
+            "nightly" => Ok(Nightly),
+            _ => Err("Unkown toolchain".into()),
+        }
+    }
+
+    fn as_arg(&self) -> String {
+        use ToolChain::*;
+        match self {
+            Stable => "+stable".to_string(),
+            Beta => "+beta".to_string(),
+            Nightly => "+nightly".to_string(),
+        }
+    }
+}
 
 // TODO:
 // Move these paths to KnownPaths struct
@@ -19,17 +49,17 @@ pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/i
 #[cfg(not(windows))]
 pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust"));
 
-pub fn cargo_new() -> Result<(), io::Error> {
+pub fn cargo_new(toolchain: ToolChain) -> Result<(), io::Error> {
     let _ = std::fs::create_dir_all(&*IRUST_SRC_DIR);
     clean_cargo_toml()?;
     clean_main_file()?;
 
-    cargo_build()?.wait()?;
+    cargo_build(toolchain)?.wait()?;
     Ok(())
 }
 
-pub fn cargo_run(color: bool) -> Result<String, io::Error> {
-    let output = cargo_build_output(color)?;
+pub fn cargo_run(color: bool, toolchain: ToolChain) -> Result<String, io::Error> {
+    let output = cargo_build_output(color, toolchain)?;
 
     if super::format::output_is_err(&output) {
         Ok(output)
@@ -56,24 +86,26 @@ pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
         .spawn()?)
 }
 
-pub fn cargo_build() -> Result<std::process::Child, io::Error> {
+pub fn cargo_build(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
     Ok(Command::new("cargo")
         // the difference in env flags makes cargo recompiles again!!!
         // => make  sure all build env flags are the same
         .env("RUSTFLAGS", "-Awarnings")
         .current_dir(&*IRUST_DIR)
+        .arg(toolchain.as_arg())
         .arg("build")
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn()?)
 }
 
-pub fn cargo_build_output(color: bool) -> Result<String, io::Error> {
+pub fn cargo_build_output(color: bool, toolchain: ToolChain) -> Result<String, io::Error> {
     let color = if color { "always" } else { "never" };
 
     Ok(stdout_and_stderr(
         Command::new("cargo")
             .current_dir(&*IRUST_DIR)
+            .arg(toolchain.as_arg())
             .arg("build")
             .args(&["--color", color])
             .env("RUSTFLAGS", "-Awarnings")

@@ -1,4 +1,4 @@
-use crate::irust::{IRust, IRustError};
+use crate::irust::{cargo_cmds::ToolChain, IRust, IRustError};
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
@@ -24,6 +24,7 @@ pub struct Options {
     pub racer_max_suggestions: usize,
     pub first_irust_run: bool,
     pub enable_racer: bool,
+    pub toolchain: ToolChain,
 }
 
 impl Default for Options {
@@ -57,6 +58,7 @@ impl Default for Options {
 
             //other
             first_irust_run: true,
+            toolchain: ToolChain::Stable,
         }
     }
 }

@@ -1,3 +1,4 @@
+use super::cargo_cmds::ToolChain;
 use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE};
 use super::highlight::highlight;
 use crate::irust::format::{format_err, format_eval_output, output_is_err};
@@ -24,12 +25,13 @@ impl IRust {
             cmd if cmd.starts_with(":del") => self.del(),
             cmd if cmd.starts_with(":cd") => self.cd(),
             cmd if cmd.starts_with(":color") => self.color(),
+            cmd if cmd.starts_with(":toolchain") => self.toolchain(),
             _ => self.parse_second_order(),
         }
     }
 
     fn reset(&mut self) -> Result<Printer, IRustError> {
-        self.repl.reset();
+        self.repl.reset(self.options.toolchain);
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
         outputs.add_new_line(1);
 
@@ -61,6 +63,20 @@ impl IRust {
         Ok(repl_code)
     }
 
+    fn toolchain(&mut self) -> Result<Printer, IRustError> {
+        self.options.toolchain = ToolChain::from_str(
+            self.buffer
+                .to_string()
+                .split_whitespace()
+                .nth(1)
+                .unwrap_or("?"),
+        )?;
+        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+        outputs.add_new_line(1);
+
+        Ok(outputs)
+    }
+
     fn add_dep(&mut self) -> Result<Printer, IRustError> {
         let mut dep: Vec<String> = self
             .buffer
@@ -87,7 +103,7 @@ impl IRust {
 
         self.cursor.save_position()?;
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
-        self.wait_add(self.repl.build()?, "Build")?;
+        self.wait_add(self.repl.build(self.options.toolchain)?, "Build")?;
         self.write_newline()?;
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
@@ -160,7 +176,7 @@ impl IRust {
         self.known_paths.set_last_loaded_coded_path(path.clone());
 
         // reset repl
-        self.repl.reset();
+        self.repl.reset(self.options.toolchain);
 
         // read code
         let path_code = std::fs::read(path)?;
@@ -175,7 +191,7 @@ impl IRust {
         let code = remove_main(&code);
 
         // build the code
-        let output = self.repl.eval_build(code.clone())?;
+        let output = self.repl.eval_build(code.clone(), self.options.toolchain)?;
 
         if output_is_err(&output) {
             Ok(format_err(&output))
@@ -204,9 +220,10 @@ impl IRust {
             .to_string();
         let mut raw_out = String::new();
 
+        let toolchain = self.options.toolchain;
         self.repl
             .eval_in_tmp_repl(variable, || -> Result<(), IRustError> {
-                raw_out = cargo_run(false).unwrap();
+                raw_out = cargo_run(false, toolchain).unwrap();
                 Ok(())
             })?;
 
@@ -291,9 +308,11 @@ impl IRust {
             Ok(printer)
         } else {
             let mut outputs = Printer::default();
-            if let Some(mut eval_output) =
-                format_eval_output(&self.repl.eval(self.buffer.to_string())?)
-            {
+            if let Some(mut eval_output) = format_eval_output(
+                &self
+                    .repl
+                    .eval(self.buffer.to_string(), self.options.toolchain)?,
+            ) {
                 outputs.append(&mut eval_output);
                 outputs.add_new_line(1);
             }
@@ -333,7 +352,7 @@ impl IRust {
                 PrinterItemType::Ok,
             ))),
             Err(e) => {
-                self.repl.reset();
+                self.repl.reset(self.options.toolchain);
                 Err(e)
             }
         }

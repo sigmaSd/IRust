@@ -40,8 +40,9 @@ impl Repl {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.prepare_ground().expect("Error while resetting Repl");
+    pub fn reset(&mut self, toolchain: ToolChain) {
+        self.prepare_ground(toolchain)
+            .expect("Error while resetting Repl");
         *self = Self::new();
     }
 
@@ -55,31 +56,35 @@ impl Repl {
     }
 
     // prepare ground
-    pub fn prepare_ground(&self) -> Result<(), IRustError> {
-        cargo_new()?;
+    pub fn prepare_ground(&self, toolchain: ToolChain) -> Result<(), IRustError> {
+        cargo_new(toolchain)?;
         Ok(())
     }
 
-    pub fn eval(&mut self, input: String) -> Result<String, IRustError> {
+    pub fn eval(&mut self, input: String, toolchain: ToolChain) -> Result<String, IRustError> {
         // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut eval_result = String::new();
 
         self.eval_in_tmp_repl(eval_statement, || -> Result<(), IRustError> {
-            eval_result = cargo_run(true)?;
+            eval_result = cargo_run(true, toolchain)?;
             Ok(())
         })?;
 
         Ok(eval_result)
     }
 
-    pub fn eval_build(&mut self, input: String) -> Result<String, IRustError> {
+    pub fn eval_build(
+        &mut self,
+        input: String,
+        toolchain: ToolChain,
+    ) -> Result<String, IRustError> {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
         self.insert(input);
         self.write()?;
-        let output = cargo_build_output(true)?;
+        let output = cargo_build_output(true, toolchain)?;
 
         self.body = orig_body;
         self.cursor = orig_cursor;
@@ -108,8 +113,8 @@ impl Repl {
         Ok(cargo_add(dep)?)
     }
 
-    pub fn build(&self) -> std::io::Result<std::process::Child> {
-        cargo_build()
+    pub fn build(&self, toolchain: ToolChain) -> std::io::Result<std::process::Child> {
+        cargo_build(toolchain)
     }
 
     pub fn write(&self) -> io::Result<()> {
