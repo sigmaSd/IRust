@@ -279,6 +279,7 @@ impl IRust {
         const IMPL: &str = "impl ";
         const PUB: &str = "pub ";
         const WHILE: &str = "while ";
+        const EXTERN: &str = "extern ";
 
         // attribute exp:
         // #[derive(Debug)]
@@ -300,6 +301,7 @@ impl IRust {
             || buffer.starts_with(ATTRIBUTE)
             || buffer.starts_with(PUB)
             || buffer.starts_with(WHILE)
+            || buffer.starts_with(EXTERN)
         {
             self.repl.insert(self.buffer.to_string());
 
