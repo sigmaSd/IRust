@@ -1,3 +1,10 @@
+**0.8.17**
+- Handle crate_attributes correctly (Insert outside of main)
+- Add `:toolchain` command (supported value: stable, nightly, beta)
+- `extern` keyword doesn't require `;`
+- Detect build error after `:add` command
+- Update dependencies
+
 **0.8.16**
 - fix duplicate building after using `:add` command
 

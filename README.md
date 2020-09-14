@@ -27,6 +27,8 @@ Cross Platform Rust Repl
 
 **:color** *<key>* *<value>* => change token highlight color at runtime, for the token list and value representation check the Theme section, exp: `:color function red` `:color macro #ff12ab` `:color reset`
 
+**:toolchain** *<value>* => switch between toolchains, supported value are: `stable`, `beta`, `nighty`
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history
@@ -101,6 +103,7 @@ IRust config file is located in:
 
   // other
   first_irust_run = false
+  toolchain = "stable"
 ```
 
 ## Theme
