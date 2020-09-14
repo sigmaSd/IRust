@@ -85,7 +85,7 @@ impl IRust {
     }
 
     fn prepare(&mut self) -> Result<(), IRustError> {
-        self.repl.prepare_ground()?;
+        self.repl.prepare_ground(self.options.toolchain)?;
         self.welcome()?;
         self.write_from_terminal_start(IN, Color::Yellow)?;
 
