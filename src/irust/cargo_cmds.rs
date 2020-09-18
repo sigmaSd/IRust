@@ -100,7 +100,18 @@ pub fn cargo_build(toolchain: ToolChain) -> Result<std::process::Child, io::Erro
 }
 
 pub fn cargo_build_output(color: bool, toolchain: ToolChain) -> Result<String, io::Error> {
+    #[cfg(not(windows))]
     let color = if color { "always" } else { "never" };
+    #[cfg(windows)]
+    let color = if crossterm::ansi_support::supports_ansi() {
+        if color {
+            "always"
+        } else {
+            "never"
+        }
+    } else {
+        "never"
+    };
 
     Ok(stdout_and_stderr(
         Command::new("cargo")
