@@ -239,7 +239,17 @@ impl IRust {
                         } => {
                             self.handle_del()?;
                         }
-                        _ => {}
+                        keyevent => {
+                            // Handle AltGr on windows
+                            if keyevent
+                                .modifiers
+                                .contains(CTRL_KEYMODIFIER | ALT_KEYMODIFIER)
+                            {
+                                if let KeyCode::Char(c) = keyevent.code {
+                                    self.handle_character(c)?;
+                                }
+                            }
+                        }
                     },
                 }
             }
