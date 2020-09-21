@@ -41,6 +41,7 @@ impl ToolChain {
 // Move these paths to KnownPaths struct
 pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(temp_dir);
 pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust"));
+pub static IRUST_TARGET_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target"));
 pub static CARGO_TOML_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("Cargo.toml"));
 pub static IRUST_SRC_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src"));
 pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs"));
@@ -86,14 +87,20 @@ pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
         .spawn()?)
 }
 
-pub fn cargo_build(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
-    Ok(Command::new("cargo")
-        // the difference in env flags makes cargo recompiles again!!!
-        // => make  sure all build env flags are the same
+fn cargo_build_common(cmd: &mut Command, toolchain: ToolChain) -> &mut Command {
+    // The difference in env flags makes cargo recompiles again!!!
+    // => make  sure all build env flags are the same
+    //
+    // Make sure to specify CARGO_TARGET_DIR to overwrite custom user one (in case it's set)
+    cmd.env("CARGO_TARGET_DIR", &*IRUST_TARGET_DIR)
         .env("RUSTFLAGS", "-Awarnings")
         .current_dir(&*IRUST_DIR)
         .arg(toolchain.as_arg())
         .arg("build")
+}
+
+pub fn cargo_build(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
+    Ok(cargo_build_common(&mut Command::new("cargo"), toolchain)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn()?)
@@ -114,12 +121,8 @@ pub fn cargo_build_output(color: bool, toolchain: ToolChain) -> Result<String, i
     };
 
     Ok(stdout_and_stderr(
-        Command::new("cargo")
-            .current_dir(&*IRUST_DIR)
-            .arg(toolchain.as_arg())
-            .arg("build")
+        cargo_build_common(&mut Command::new("cargo"), toolchain)
             .args(&["--color", color])
-            .env("RUSTFLAGS", "-Awarnings")
             .output()?,
     ))
 }
