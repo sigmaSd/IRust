@@ -87,20 +87,23 @@ pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
         .spawn()?)
 }
 
-fn cargo_build_common(cmd: &mut Command, toolchain: ToolChain) -> &mut Command {
+macro_rules! cargo_build_common {
     // The difference in env flags makes cargo recompiles again!!!
     // => make  sure all build env flags are the same
     //
     // Make sure to specify CARGO_TARGET_DIR to overwrite custom user one (in case it's set)
-    cmd.env("CARGO_TARGET_DIR", &*IRUST_TARGET_DIR)
-        .env("RUSTFLAGS", "-Awarnings")
-        .current_dir(&*IRUST_DIR)
-        .arg(toolchain.as_arg())
-        .arg("build")
+    ($toolchain: ident) => {
+        Command::new("cargo")
+            .arg($toolchain.as_arg())
+            .arg("build")
+            .env("CARGO_TARGET_DIR", &*IRUST_TARGET_DIR)
+            .env("RUSTFLAGS", "-Awarnings")
+            .current_dir(&*IRUST_DIR)
+    };
 }
 
 pub fn cargo_build(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
-    Ok(cargo_build_common(&mut Command::new("cargo"), toolchain)
+    Ok(cargo_build_common!(toolchain)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn()?)
@@ -121,7 +124,7 @@ pub fn cargo_build_output(color: bool, toolchain: ToolChain) -> Result<String, i
     };
 
     Ok(stdout_and_stderr(
-        cargo_build_common(&mut Command::new("cargo"), toolchain)
+        cargo_build_common!(toolchain)
             .args(&["--color", color])
             .output()?,
     ))
