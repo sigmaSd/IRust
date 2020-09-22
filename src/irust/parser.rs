@@ -352,6 +352,16 @@ impl IRust {
             let _ = cargo_fmt_file(&*MAIN_FILE);
         }
 
+        // some commands are not detected from path but still works  with cmd /C
+        #[cfg(windows)]
+        std::process::Command::new("cmd")
+            .arg("/C")
+            .arg(editor)
+            .arg(&*MAIN_FILE)
+            .spawn()?
+            .wait()?;
+
+        #[cfg(not(windows))]
         std::process::Command::new(editor)
             .arg(&*MAIN_FILE)
             .spawn()?
