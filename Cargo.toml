@@ -9,7 +9,7 @@ repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
 [dependencies]
-crossterm = { version = "0.17.7", features = ["serde"] }
+crossterm = { git = "https://github.com/TimonPost/crossterm", features = ["serde"] }
 dirs-next = "1.0.1"
 once_cell = "1.4.1"
 toml = "0.5.6"
