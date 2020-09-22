@@ -17,7 +17,7 @@ impl Repl {
     }
 
     pub fn update_from_main_file(&mut self) -> Result<(), IRustError> {
-        let main_file = std::fs::read_to_string(&*MAIN_FILE)?;
+        let main_file = std::fs::read_to_string(&*MAIN_FILE_EXTERN)?;
         let lines_num = main_file.lines().count();
         if lines_num < 2 {
             return Err(IRustError::Custom(
@@ -126,6 +126,14 @@ impl Repl {
 
     pub fn write(&self) -> io::Result<()> {
         let mut main_file = std::fs::File::create(&*MAIN_FILE)?;
+        write!(main_file, "{}", self.body.join("\n"))?;
+
+        Ok(())
+    }
+
+    // Used for external editors
+    pub fn write_to_extern(&self) -> io::Result<()> {
+        let mut main_file = std::fs::File::create(&*MAIN_FILE_EXTERN)?;
         write!(main_file, "{}", self.body.join("\n"))?;
 
         Ok(())

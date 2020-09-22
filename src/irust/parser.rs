@@ -1,5 +1,5 @@
 use super::cargo_cmds::ToolChain;
-use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE};
+use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
 use crate::irust::format::{format_err, format_eval_output, output_is_err};
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
@@ -16,6 +16,7 @@ impl IRust {
             ":show" => self.show(),
             ":pop" => self.pop(),
             ":irust" => self.irust(),
+            ":sync" => self.sync(),
             cmd if cmd.starts_with("::") => self.run_cmd(),
             cmd if cmd.starts_with(":edit") => self.extern_edit(),
             cmd if cmd.starts_with(":add") => self.add_dep(),
@@ -314,6 +315,10 @@ impl IRust {
         {
             self.repl.insert(self.buffer.to_string(), false);
 
+            // save repl to main_extern.rs which can be used with external editors
+            self.repl.write_to_extern()?;
+            let _ = cargo_fmt_file(&*MAIN_FILE_EXTERN);
+
             let printer = Printer::default();
 
             Ok(printer)
@@ -332,6 +337,19 @@ impl IRust {
         }
     }
 
+    fn sync(&mut self) -> Result<Printer, IRustError> {
+        match self.repl.update_from_main_file() {
+            Ok(_) => Ok(Printer::new(PrinterItem::new(
+                SUCCESS.to_string(),
+                PrinterItemType::Ok,
+            ))),
+            Err(e) => {
+                self.repl.reset(self.options.toolchain);
+                Err(e)
+            }
+        }
+    }
+
     fn extern_edit(&mut self) -> Result<Printer, IRustError> {
         // exp: :edit vi
         let editor: String = match self.buffer.to_string().split_whitespace().nth(1) {
@@ -345,28 +363,27 @@ impl IRust {
         )?;
         self.write_newline()?;
 
-        // write current repl (to ensure eval leftover is cleaned)
-        self.repl.write()?;
         // beautify code
         if self.repl.body.len() > 2 {
             let _ = cargo_fmt_file(&*MAIN_FILE);
         }
 
-        std::process::Command::new(editor)
-            .arg(&*MAIN_FILE)
+        // some commands are not detected from path but still works  with cmd /C
+        #[cfg(windows)]
+        std::process::Command::new("cmd")
+            .arg("/C")
+            .arg(editor)
+            .arg(&*MAIN_FILE_EXTERN)
             .spawn()?
             .wait()?;
 
-        match self.repl.update_from_main_file() {
-            Ok(_) => Ok(Printer::new(PrinterItem::new(
-                SUCCESS.to_string(),
-                PrinterItemType::Ok,
-            ))),
-            Err(e) => {
-                self.repl.reset(self.options.toolchain);
-                Err(e)
-            }
-        }
+        #[cfg(not(windows))]
+        std::process::Command::new(editor)
+            .arg(&*MAIN_FILE_EXTERN)
+            .spawn()?
+            .wait()?;
+
+        self.sync()
     }
 
     fn irust(&mut self) -> Result<Printer, IRustError> {

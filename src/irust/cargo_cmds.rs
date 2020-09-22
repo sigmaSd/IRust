@@ -45,6 +45,7 @@ pub static IRUST_TARGET_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target
 pub static CARGO_TOML_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("Cargo.toml"));
 pub static IRUST_SRC_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src"));
 pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs"));
+pub static MAIN_FILE_EXTERN: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main_extern.rs"));
 #[cfg(windows)]
 pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust.exe"));
 #[cfg(not(windows))]
@@ -146,6 +147,7 @@ fn clean_main_file() -> io::Result<()> {
     const MAIN_SRC: &str = "fn main() {\n\n}";
     let mut main = fs::File::create(&*MAIN_FILE)?;
     write!(main, "{}", MAIN_SRC)?;
+    std::fs::copy(&*MAIN_FILE, &*MAIN_FILE_EXTERN)?;
     Ok(())
 }
 
