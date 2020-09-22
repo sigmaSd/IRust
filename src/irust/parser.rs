@@ -16,6 +16,7 @@ impl IRust {
             ":show" => self.show(),
             ":pop" => self.pop(),
             ":irust" => self.irust(),
+            ":sync" => self.sync(),
             cmd if cmd.starts_with("::") => self.run_cmd(),
             cmd if cmd.starts_with(":edit") => self.extern_edit(),
             cmd if cmd.starts_with(":add") => self.add_dep(),
@@ -332,6 +333,19 @@ impl IRust {
         }
     }
 
+    fn sync(&mut self) -> Result<Printer, IRustError> {
+        match self.repl.update_from_main_file() {
+            Ok(_) => Ok(Printer::new(PrinterItem::new(
+                SUCCESS.to_string(),
+                PrinterItemType::Ok,
+            ))),
+            Err(e) => {
+                self.repl.reset(self.options.toolchain);
+                Err(e)
+            }
+        }
+    }
+
     fn extern_edit(&mut self) -> Result<Printer, IRustError> {
         // exp: :edit vi
         let editor: String = match self.buffer.to_string().split_whitespace().nth(1) {
@@ -367,16 +381,7 @@ impl IRust {
             .spawn()?
             .wait()?;
 
-        match self.repl.update_from_main_file() {
-            Ok(_) => Ok(Printer::new(PrinterItem::new(
-                SUCCESS.to_string(),
-                PrinterItemType::Ok,
-            ))),
-            Err(e) => {
-                self.repl.reset(self.options.toolchain);
-                Err(e)
-            }
-        }
+        self.sync()
     }
 
     fn irust(&mut self) -> Result<Printer, IRustError> {
