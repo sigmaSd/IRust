@@ -314,8 +314,11 @@ impl IRust {
             || buffer.starts_with(EXTERN)
         {
             self.repl.insert(self.buffer.to_string(), false);
+
+            // save repl to main_extern.rs which can be used with external editors
             self.repl.write_to_extern()?;
             let _ = cargo_fmt_file(&*MAIN_FILE_EXTERN);
+
             let printer = Printer::default();
 
             Ok(printer)

@@ -147,6 +147,7 @@ fn clean_main_file() -> io::Result<()> {
     const MAIN_SRC: &str = "fn main() {\n\n}";
     let mut main = fs::File::create(&*MAIN_FILE)?;
     write!(main, "{}", MAIN_SRC)?;
+    std::fs::copy(&*MAIN_FILE, &*MAIN_FILE_EXTERN)?;
     Ok(())
 }
 
