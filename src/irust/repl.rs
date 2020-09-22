@@ -78,6 +78,9 @@ impl Repl {
             Ok(())
         })?;
 
+        // Don't keep eval fingerprints
+        self.write()?;
+
         Ok(eval_result)
     }
 
