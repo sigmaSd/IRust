@@ -131,6 +131,14 @@ impl Repl {
         Ok(())
     }
 
+    // Used for external editors
+    pub fn write_to_extern(&self) -> io::Result<()> {
+        let mut main_file = std::fs::File::create(&*MAIN_FILE_EXTERN)?;
+        write!(main_file, "{}", self.body.join("\n"))?;
+
+        Ok(())
+    }
+
     pub fn pop(&mut self) {
         if self.body.len() > 2 {
             self.body.remove(self.cursor - 1);

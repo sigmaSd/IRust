@@ -314,7 +314,8 @@ impl IRust {
             || buffer.starts_with(EXTERN)
         {
             self.repl.insert(self.buffer.to_string(), false);
-
+            self.repl.write_to_extern()?;
+            let _ = cargo_fmt_file(&*MAIN_FILE_EXTERN);
             let printer = Printer::default();
 
             Ok(printer)
@@ -359,15 +360,10 @@ impl IRust {
         )?;
         self.write_newline()?;
 
-        // write current repl (to ensure eval leftover is cleaned)
-        self.repl.write()?;
         // beautify code
         if self.repl.body.len() > 2 {
             let _ = cargo_fmt_file(&*MAIN_FILE);
         }
-
-        // copy contents to main_extern.rs which will be the one used by external editors
-        std::fs::copy(&*MAIN_FILE, &*MAIN_FILE_EXTERN)?;
 
         // some commands are not detected from path but still works  with cmd /C
         #[cfg(windows)]
