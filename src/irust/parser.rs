@@ -1,5 +1,5 @@
 use super::cargo_cmds::ToolChain;
-use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE};
+use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
 use crate::irust::format::{format_err, format_eval_output, output_is_err};
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
@@ -366,18 +366,21 @@ impl IRust {
             let _ = cargo_fmt_file(&*MAIN_FILE);
         }
 
+        // copy contents to main_extern.rs which will be the one used by external editors
+        std::fs::copy(&*MAIN_FILE, &*MAIN_FILE_EXTERN)?;
+
         // some commands are not detected from path but still works  with cmd /C
         #[cfg(windows)]
         std::process::Command::new("cmd")
             .arg("/C")
             .arg(editor)
-            .arg(&*MAIN_FILE)
+            .arg(&*MAIN_FILE_EXTERN)
             .spawn()?
             .wait()?;
 
         #[cfg(not(windows))]
         std::process::Command::new(editor)
-            .arg(&*MAIN_FILE)
+            .arg(&*MAIN_FILE_EXTERN)
             .spawn()?
             .wait()?;
 

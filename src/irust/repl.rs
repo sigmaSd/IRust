@@ -17,7 +17,7 @@ impl Repl {
     }
 
     pub fn update_from_main_file(&mut self) -> Result<(), IRustError> {
-        let main_file = std::fs::read_to_string(&*MAIN_FILE)?;
+        let main_file = std::fs::read_to_string(&*MAIN_FILE_EXTERN)?;
         let lines_num = main_file.lines().count();
         if lines_num < 2 {
             return Err(IRustError::Custom(
@@ -77,9 +77,6 @@ impl Repl {
             eval_result = cargo_run(true, toolchain)?;
             Ok(())
         })?;
-
-        // Don't keep eval fingerprints
-        self.write()?;
 
         Ok(eval_result)
     }
