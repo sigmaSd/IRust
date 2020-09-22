@@ -21,7 +21,9 @@ Cross Platform Rust Repl
 
 **:del** *<line_num>* => remove a specific line from repl code (line count starts at 1 from the first expression statement)
 
-**:edit** *\<editor\>* => edit internal buffer using an external editor, example: `:edit micro`
+**:edit** *\<editor\>* => edit internal buffer using an external editor, example: `:edit micro` , some editors have a limited support like electron based one(atom, vs-code) for those check out `:sync` command
+
+**:sync** => load `$temp/irust/src/main_extern.rs` file to the repl, this is useful in combination with `:edit` for unsupported editors, any changes to this file are reflected on the repl after using this command
 
 **:cd** => change current working directory
 
