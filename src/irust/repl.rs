@@ -17,7 +17,20 @@ impl Repl {
     }
 
     pub fn update_from_main_file(&mut self) -> Result<(), IRustError> {
-        let main_file = std::fs::read_to_string(&*MAIN_FILE_EXTERN)?;
+        let mut try_n = 0;
+        let main_file = loop {
+            let main_file = std::fs::read_to_string(&*MAIN_FILE_EXTERN)?;
+            if !main_file.is_empty() || try_n > 1 {
+                break main_file;
+            } else {
+                // Some editors keep the file handle open
+                // Give them some time
+                // Note: why does read_to_string does not return an error??
+                use std::time::Duration;
+                std::thread::sleep(Duration::from_secs(1));
+                try_n += 1;
+            }
+        };
         let lines_num = main_file.lines().count();
         if lines_num < 2 {
             return Err(IRustError::Custom(
