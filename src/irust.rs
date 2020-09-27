@@ -98,7 +98,7 @@ impl IRust {
 
         let (tx, rx) = channel();
         watch(tx.clone()).unwrap();
-        input_read(tx)?;
+        let input_thread = input_read(tx);
 
         loop {
             // flush queued output after each key
@@ -108,6 +108,7 @@ impl IRust {
             match rx.recv() {
                 Ok(IRustEvent::Input(ev)) => {
                     self.handle_input_event(ev)?;
+                    input_thread.thread().unpark();
                 }
                 Ok(IRustEvent::Notify(_ev)) => {
                     self.sync()?;
@@ -293,17 +294,17 @@ fn watch(tx: Sender<IRustEvent>) -> notify::Result<()> {
     Ok(())
 }
 
-fn input_read(tx: Sender<IRustEvent>) -> Result<(), IRustError> {
+use std::thread;
+fn input_read(tx: Sender<IRustEvent>) -> std::thread::JoinHandle<()> {
     std::thread::spawn(move || loop {
         if let Ok(ev) = read() {
             tx.send(IRustEvent::Input(ev)).unwrap();
+            thread::park();
         }
-    });
-
-    Ok(())
+    })
 }
 
-enum IRustEvent {
+pub enum IRustEvent {
     Input(crossterm::event::Event),
     Notify(notify::DebouncedEvent),
 }
