@@ -337,7 +337,7 @@ impl IRust {
         }
     }
 
-    fn sync(&mut self) -> Result<Printer, IRustError> {
+    pub fn sync(&mut self) -> Result<Printer, IRustError> {
         match self.repl.update_from_main_file() {
             Ok(_) => Ok(Printer::new(PrinterItem::new(
                 SUCCESS.to_string(),
