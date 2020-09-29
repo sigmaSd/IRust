@@ -1,3 +1,11 @@
+**0.8.50**
+- Improvement to `:edit` command:
+  - Add a new file $temp/irust/src/main_extern.rs, Any modification to this file will be immediately reflected on the repl (after saving)
+  - On windows use "cmd /C"
+- Make sure to set `CARGO_TARGET_DIR` to the correct path (needed for user who use a custom cargo target dir)
+- Handle AltGr on Windows
+- Update to crossterm 0.18.0, which contains among other cool stuff, fixes for winapi, also disable cargo coloring when using winapi
+
 **0.8.17**
 - Handle crate_attributes correctly (Insert outside of main)
 - Add `:toolchain` command (supported value: stable, nightly, beta)
