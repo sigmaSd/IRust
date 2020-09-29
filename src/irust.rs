@@ -97,7 +97,7 @@ impl IRust {
         self.prepare()?;
 
         let (tx, rx) = channel();
-        watch(tx.clone()).unwrap();
+        watch(tx.clone());
         let input_thread = input_read(tx);
 
         loop {
@@ -277,28 +277,29 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::time::Duration;
 
-fn watch(tx: Sender<IRustEvent>) -> notify::Result<()> {
+fn watch(tx: Sender<IRustEvent>) {
     std::thread::spawn(move || loop {
         let (local_tx, local_rx) = channel();
         let mut watcher: RecommendedWatcher =
-            Watcher::new(local_tx, Duration::from_secs(2)).unwrap();
+            Watcher::new(local_tx, Duration::from_secs(2)).expect("Watcher Thread paniced");
 
         watcher
             .watch(&*cargo_cmds::MAIN_FILE_EXTERN, RecursiveMode::Recursive)
-            .unwrap();
+            .expect("Error while trying to watch main_extern file for changes");
 
         if let Ok(ev) = local_rx.recv() {
-            tx.send(IRustEvent::Notify(ev)).unwrap();
+            tx.send(IRustEvent::Notify(ev))
+                .expect("Error sending notify event to IRust main thread");
         }
     });
-    Ok(())
 }
 
 use std::thread;
 fn input_read(tx: Sender<IRustEvent>) -> std::thread::JoinHandle<()> {
     std::thread::spawn(move || loop {
         if let Ok(ev) = read() {
-            tx.send(IRustEvent::Input(ev)).unwrap();
+            tx.send(IRustEvent::Input(ev))
+                .expect("Error reading input event");
             thread::park();
         }
     })
