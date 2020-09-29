@@ -23,9 +23,8 @@ impl Repl {
             if !main_file.is_empty() || try_n > 1 {
                 break main_file;
             } else {
-                // Some editors keep the file handle open
+                // Some editors trancuate the file before saving (exp: vscode)
                 // Give them some time
-                // Note: why does read_to_string does not return an error??
                 use std::time::Duration;
                 std::thread::sleep(Duration::from_secs(1));
                 try_n += 1;
