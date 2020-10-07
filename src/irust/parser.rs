@@ -105,6 +105,10 @@ impl IRust {
         self.cursor.save_position()?;
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build(self.options.toolchain)?, "Build")?;
+        self.wait_add(
+            super::cargo_cmds::cargo_check(self.options.toolchain)?,
+            "Check",
+        )?;
         self.write_newline()?;
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));

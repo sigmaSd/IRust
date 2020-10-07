@@ -146,7 +146,7 @@ impl Repl {
         let tmp_cursor = self.cursor;
         self.insert(buffer, outside_main);
         self.write()?;
-        let result = cargo_check(toolchain)?;
+        let result = cargo_check_output(toolchain)?;
 
         // restore original file
         self.body = tmp_body;
