@@ -103,6 +103,28 @@ macro_rules! cargo_build_common {
     };
 }
 
+pub fn cargo_check(toolchain: ToolChain) -> Result<String, io::Error> {
+    #[cfg(not(windows))]
+    let color = "always";
+    #[cfg(windows)]
+    let color = if crossterm::ansi_support::supports_ansi() {
+        "always"
+    } else {
+        "never"
+    };
+
+    Ok(stdout_and_stderr(
+        std::process::Command::new("cargo")
+            .arg(toolchain.as_arg())
+            .arg("check")
+            .args(&["--color", color])
+            .env("CARGO_TARGET_DIR", &*IRUST_TARGET_DIR)
+            .env("RUSTFLAGS", "-Awarnings")
+            .current_dir(&*IRUST_DIR)
+            .output()?,
+    ))
+}
+
 pub fn cargo_build(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
     Ok(cargo_build_common!(toolchain)
         .stdout(std::process::Stdio::null())

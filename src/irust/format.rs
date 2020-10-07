@@ -39,3 +39,16 @@ pub fn format_eval_output(output: &str) -> Option<Printer> {
         Some(eval_output)
     }
 }
+
+// Note: Maybe use this for cargo build as well
+fn check_is_err(s: &str) -> bool {
+    !s.contains("dev [unoptimized + debuginfo]")
+}
+
+pub fn format_check_output(output: String) -> Option<Printer> {
+    if check_is_err(&output) {
+        Some(format_err(&output))
+    } else {
+        None
+    }
+}

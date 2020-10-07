@@ -136,6 +136,25 @@ impl Repl {
         cargo_build(toolchain)
     }
 
+    pub fn check(
+        &mut self,
+        buffer: String,
+        toolchain: ToolChain,
+        outside_main: bool,
+    ) -> std::io::Result<String> {
+        let tmp_body = self.body.clone();
+        let tmp_cursor = self.cursor;
+        self.insert(buffer, outside_main);
+        self.write()?;
+        let result = cargo_check(toolchain)?;
+
+        // restore original file
+        self.body = tmp_body;
+        self.cursor = tmp_cursor;
+        self.write()?;
+        Ok(result)
+    }
+
     pub fn write(&self) -> io::Result<()> {
         let mut main_file = std::fs::File::create(&*MAIN_FILE)?;
         write!(main_file, "{}", self.body.join("\n"))?;

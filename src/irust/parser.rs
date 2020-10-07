@@ -1,7 +1,7 @@
 use super::cargo_cmds::ToolChain;
 use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
-use crate::irust::format::{format_err, format_eval_output, output_is_err};
+use crate::irust::format::{format_check_output, format_err, format_eval_output, output_is_err};
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::{remove_main, stdout_and_stderr};
@@ -292,14 +292,23 @@ impl IRust {
         // fn main() {}
         const CRATE_ATTRIBUTE: &str = "#!";
 
+        // This trimed buffer should not be inserted nor evaluated
         let buffer = self.buffer.to_string();
         let buffer = buffer.trim();
 
         if buffer.is_empty() {
             Ok(Printer::default())
         } else if buffer.starts_with(CRATE_ATTRIBUTE) {
-            self.repl.insert(self.buffer.to_string(), true);
-            let printer = Printer::default();
+            let mut printer = Printer::default();
+            if let Some(mut e) = format_check_output(self.repl.check(
+                self.buffer.to_string(),
+                self.options.toolchain,
+                true,
+            )?) {
+                printer.append(&mut e);
+            } else {
+                self.repl.insert(self.buffer.to_string(), true);
+            }
             Ok(printer)
         } else if buffer.ends_with(';')
             || buffer.starts_with(FUNCTION_DEF)
@@ -313,13 +322,21 @@ impl IRust {
             || buffer.starts_with(WHILE)
             || buffer.starts_with(EXTERN)
         {
-            self.repl.insert(self.buffer.to_string(), false);
+            let mut printer = Printer::default();
 
-            // save repl to main_extern.rs which can be used with external editors
-            self.repl.write_to_extern()?;
-            let _ = cargo_fmt_file(&*MAIN_FILE_EXTERN);
+            if let Some(mut e) = format_check_output(self.repl.check(
+                self.buffer.to_string(),
+                self.options.toolchain,
+                false,
+            )?) {
+                printer.append(&mut e);
+            } else {
+                self.repl.insert(self.buffer.to_string(), false);
 
-            let printer = Printer::default();
+                // save repl to main_extern.rs which can be used with external editors
+                self.repl.write_to_extern()?;
+                let _ = cargo_fmt_file(&*MAIN_FILE_EXTERN);
+            }
 
             Ok(printer)
         } else {
