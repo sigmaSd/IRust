@@ -201,7 +201,7 @@ impl IRust {
         if output_is_err(&output) {
             Ok(format_err(&output))
         } else {
-            self.repl.insert(code, false);
+            self.repl.insert(code);
             let mut outputs =
                 Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
             outputs.add_new_line(1);
@@ -227,7 +227,7 @@ impl IRust {
 
         let toolchain = self.options.toolchain;
         self.repl
-            .eval_in_tmp_repl(variable, false, || -> Result<(), IRustError> {
+            .eval_in_tmp_repl(variable, || -> Result<(), IRustError> {
                 raw_out = cargo_run(false, toolchain).unwrap();
                 Ok(())
             })?;
@@ -291,29 +291,12 @@ impl IRust {
         // struct B{}
         const ATTRIBUTE: &str = "#";
 
-        // CRATE_ATTRIBUTE are special in the sense that they should be inserted outside of the main function
-        // #![feature(unboxed_closures)]
-        // fn main() {}
-        const CRATE_ATTRIBUTE: &str = "#!";
-
         // This trimed buffer should not be inserted nor evaluated
         let buffer = self.buffer.to_string();
         let buffer = buffer.trim();
 
         if buffer.is_empty() {
             Ok(Printer::default())
-        } else if buffer.starts_with(CRATE_ATTRIBUTE) {
-            let mut printer = Printer::default();
-            if let Some(mut e) = format_check_output(self.repl.check(
-                self.buffer.to_string(),
-                self.options.toolchain,
-                true,
-            )?) {
-                printer.append(&mut e);
-            } else {
-                self.repl.insert(self.buffer.to_string(), true);
-            }
-            Ok(printer)
         } else if buffer.ends_with(';')
             || buffer.starts_with(FUNCTION_DEF)
             || buffer.starts_with(ASYNC_FUNCTION_DEF)
@@ -328,14 +311,13 @@ impl IRust {
         {
             let mut printer = Printer::default();
 
-            if let Some(mut e) = format_check_output(self.repl.check(
-                self.buffer.to_string(),
-                self.options.toolchain,
-                false,
-            )?) {
+            if let Some(mut e) = format_check_output(
+                self.repl
+                    .check(self.buffer.to_string(), self.options.toolchain)?,
+            ) {
                 printer.append(&mut e);
             } else {
-                self.repl.insert(self.buffer.to_string(), false);
+                self.repl.insert(self.buffer.to_string());
 
                 // save repl to main_extern.rs which can be used with external editors
                 self.repl.write_to_extern()?;
