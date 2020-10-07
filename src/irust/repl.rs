@@ -85,7 +85,7 @@ impl Repl {
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut eval_result = String::new();
 
-        self.eval_in_tmp_repl(eval_statement, || -> Result<(), IRustError> {
+        self.eval_in_tmp_repl(eval_statement, false, || -> Result<(), IRustError> {
             eval_result = cargo_run(true, toolchain)?;
             Ok(())
         })?;
@@ -113,12 +113,13 @@ impl Repl {
     pub fn eval_in_tmp_repl(
         &mut self,
         input: String,
+        outside_main: bool,
         mut f: impl FnMut() -> Result<(), IRustError>,
     ) -> Result<(), IRustError> {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
-        self.insert(input, false);
+        self.insert(input, outside_main);
         self.write()?;
         f()?;
 
@@ -141,17 +142,12 @@ impl Repl {
         buffer: String,
         toolchain: ToolChain,
         outside_main: bool,
-    ) -> std::io::Result<String> {
-        let tmp_body = self.body.clone();
-        let tmp_cursor = self.cursor;
-        self.insert(buffer, outside_main);
-        self.write()?;
-        let result = cargo_check_output(toolchain)?;
-
-        // restore original file
-        self.body = tmp_body;
-        self.cursor = tmp_cursor;
-        self.write()?;
+    ) -> Result<String, IRustError> {
+        let mut result = String::new();
+        self.eval_in_tmp_repl(buffer, outside_main, || {
+            result = cargo_check_output(toolchain)?;
+            Ok(())
+        })?;
         Ok(result)
     }
 

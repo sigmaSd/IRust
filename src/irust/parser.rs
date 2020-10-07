@@ -227,7 +227,7 @@ impl IRust {
 
         let toolchain = self.options.toolchain;
         self.repl
-            .eval_in_tmp_repl(variable, || -> Result<(), IRustError> {
+            .eval_in_tmp_repl(variable, false, || -> Result<(), IRustError> {
                 raw_out = cargo_run(false, toolchain).unwrap();
                 Ok(())
             })?;

@@ -215,7 +215,7 @@ impl IRust {
             }
 
             self.repl
-                .eval_in_tmp_repl(buffer, move || -> Result<(), IRustError> {
+                .eval_in_tmp_repl(buffer, false, move || -> Result<(), IRustError> {
                     racer.complete_code().map_err(From::from)
                 })?;
         }
