@@ -106,6 +106,7 @@ IRust config file is located in:
   // other
   first_irust_run = false
   toolchain = "stable"
+  check_statements = true
 ```
 
 ## Theme
