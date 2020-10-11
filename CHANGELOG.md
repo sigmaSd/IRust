@@ -1,3 +1,6 @@
+**0.8.60**
+- Statements are now checked with cargo_check before being inserted into the repl (this behavior is configurable with `check_statements` command)
+
 **0.8.50**
 - Improvement to `:edit` command:
   - Add a new file $temp/irust/src/main_extern.rs, Any modification to this file will be immediately reflected on the repl (after saving)
