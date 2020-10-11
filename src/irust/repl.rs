@@ -45,7 +45,13 @@ impl Repl {
         Ok(())
     }
 
-    pub fn insert(&mut self, input: String, outside_main: bool) {
+    pub fn insert(&mut self, input: String) {
+        // CRATE_ATTRIBUTE are special in the sense that they should be inserted outside of the main function
+        // #![feature(unboxed_closures)]
+        // fn main() {}
+        const CRATE_ATTRIBUTE: &str = "#!";
+
+        let outside_main = input.trim_start().starts_with(CRATE_ATTRIBUTE);
         if outside_main {
             for line in input.lines() {
                 self.body.insert(0, line.to_owned());
@@ -101,7 +107,7 @@ impl Repl {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
-        self.insert(input, false);
+        self.insert(input);
         self.write()?;
         let output = cargo_build_output(true, toolchain)?;
 
@@ -118,7 +124,7 @@ impl Repl {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
-        self.insert(input, false);
+        self.insert(input);
         self.write()?;
         f()?;
 
@@ -134,6 +140,15 @@ impl Repl {
 
     pub fn build(&self, toolchain: ToolChain) -> std::io::Result<std::process::Child> {
         cargo_build(toolchain)
+    }
+
+    pub fn check(&mut self, buffer: String, toolchain: ToolChain) -> Result<String, IRustError> {
+        let mut result = String::new();
+        self.eval_in_tmp_repl(buffer, || {
+            result = cargo_check_output(toolchain)?;
+            Ok(())
+        })?;
+        Ok(result)
     }
 
     pub fn write(&self) -> io::Result<()> {

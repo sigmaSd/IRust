@@ -88,23 +88,47 @@ pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
         .spawn()?)
 }
 
-macro_rules! cargo_build_common {
+macro_rules! cargo_common {
     // The difference in env flags makes cargo recompiles again!!!
     // => make  sure all build env flags are the same
     //
     // Make sure to specify CARGO_TARGET_DIR to overwrite custom user one (in case it's set)
-    ($toolchain: ident) => {
+    ($cmd: literal, $toolchain: ident) => {
         Command::new("cargo")
             .arg($toolchain.as_arg())
-            .arg("build")
+            .arg($cmd)
             .env("CARGO_TARGET_DIR", &*IRUST_TARGET_DIR)
             .env("RUSTFLAGS", "-Awarnings")
             .current_dir(&*IRUST_DIR)
     };
 }
 
+pub fn cargo_check(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
+    Ok(cargo_common!("check", toolchain)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()?)
+}
+
+pub fn cargo_check_output(toolchain: ToolChain) -> Result<String, io::Error> {
+    #[cfg(not(windows))]
+    let color = "always";
+    #[cfg(windows)]
+    let color = if crossterm::ansi_support::supports_ansi() {
+        "always"
+    } else {
+        "never"
+    };
+
+    Ok(stdout_and_stderr(
+        cargo_common!("check", toolchain)
+            .args(&["--color", color])
+            .output()?,
+    ))
+}
+
 pub fn cargo_build(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
-    Ok(cargo_build_common!(toolchain)
+    Ok(cargo_common!("build", toolchain)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn()?)
@@ -125,7 +149,7 @@ pub fn cargo_build_output(color: bool, toolchain: ToolChain) -> Result<String, i
     };
 
     Ok(stdout_and_stderr(
-        cargo_build_common!(toolchain)
+        cargo_common!("build", toolchain)
             .args(&["--color", color])
             .output()?,
     ))

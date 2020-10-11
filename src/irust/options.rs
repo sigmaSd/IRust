@@ -25,6 +25,7 @@ pub struct Options {
     pub first_irust_run: bool,
     pub enable_racer: bool,
     pub toolchain: ToolChain,
+    pub check_statements: bool,
 }
 
 impl Default for Options {
@@ -59,6 +60,7 @@ impl Default for Options {
             //other
             first_irust_run: true,
             toolchain: ToolChain::Stable,
+            check_statements: true,
         }
     }
 }
