@@ -28,6 +28,8 @@ Cross Platform Rust Repl
 **:color** *<key>* *<value>* => change token highlight color at runtime, for the token list and value representation check the Theme section, exp: `:color function red` `:color macro #ff12ab` `:color reset`
 
 **:toolchain** *<value>* => switch between toolchains, supported value are: `stable`, `beta`, `nighty`
+  
+**:check_statements** *true*/*false* => If its set to true, irust will check each statemnt (input that ends with ;) with cargo_check before inserting it to the repl
 
 **::** => run a shell command, example `::ls`
 
