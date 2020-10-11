@@ -27,6 +27,7 @@ impl IRust {
             cmd if cmd.starts_with(":cd") => self.cd(),
             cmd if cmd.starts_with(":color") => self.color(),
             cmd if cmd.starts_with(":toolchain") => self.toolchain(),
+            cmd if cmd.starts_with(":check_statements") => self.check_statements(),
             _ => self.parse_second_order(),
         }
     }
@@ -41,6 +42,18 @@ impl IRust {
 
     fn pop(&mut self) -> Result<Printer, IRustError> {
         self.repl.pop();
+        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
+        outputs.add_new_line(1);
+
+        Ok(outputs)
+    }
+
+    fn check_statements(&mut self) -> Result<Printer, IRustError> {
+        const ERROR: &str = "Invalid argument, accepted values are `false` `true`";
+        let buffer = self.buffer.to_string();
+        let buffer = buffer.split_whitespace().nth(1).ok_or(ERROR)?;
+        self.options.check_statements = buffer.parse().map_err(|_| ERROR)?;
+
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
         outputs.add_new_line(1);
 
@@ -105,10 +118,13 @@ impl IRust {
         self.cursor.save_position()?;
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build(self.options.toolchain)?, "Build")?;
-        self.wait_add(
-            super::cargo_cmds::cargo_check(self.options.toolchain)?,
-            "Check",
-        )?;
+
+        if self.options.check_statements {
+            self.wait_add(
+                super::cargo_cmds::cargo_check(self.options.toolchain)?,
+                "Check",
+            )?;
+        }
         self.write_newline()?;
 
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
@@ -311,12 +327,20 @@ impl IRust {
         {
             let mut printer = Printer::default();
 
-            if let Some(mut e) = format_check_output(
-                self.repl
-                    .check(self.buffer.to_string(), self.options.toolchain)?,
-            ) {
-                printer.append(&mut e);
-            } else {
+            let mut insert_flag = true;
+
+            if self.options.check_statements {
+                if let Some(mut e) = format_check_output(
+                    self.repl
+                        .check(self.buffer.to_string(), self.options.toolchain)?,
+                ) {
+                    printer.append(&mut e);
+                    insert_flag = false;
+                }
+            }
+
+            // if cargo_check is disabled or if cargo_check is enabled but returned no error
+            if insert_flag {
                 self.repl.insert(self.buffer.to_string());
 
                 // save repl to main_extern.rs which can be used with external editors
