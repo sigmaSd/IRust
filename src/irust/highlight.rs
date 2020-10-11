@@ -48,11 +48,7 @@ enum Token {
 
 impl Token {
     fn _is_x(&self) -> bool {
-        if let Token::X(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Token::X(_))
     }
     fn unparsed_string(self) -> String {
         match self {
