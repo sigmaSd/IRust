@@ -1,3 +1,7 @@
+**0.9.0**
+- Improve error handling
+- Update dependencies
+
 **0.8.60**
 - Statements are now checked with cargo_check before being inserted into the repl (this behavior is configurable with `check_statements` command)
 
