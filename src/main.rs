@@ -7,14 +7,33 @@ mod utils;
 use dependencies::{check_required_deps, warn_about_opt_deps};
 
 use crate::args::handle_args;
+use crossterm::style::Colorize;
 use irust::IRust;
+use std::process::exit;
 
 fn main() {
-    check_required_deps();
+    if !check_required_deps() {
+        exit(1);
+    }
 
     let mut irust = IRust::new();
-    let _ = handle_args(&mut irust);
+
+    let exit_flag = handle_args(&mut irust);
+    if exit_flag {
+        drop(irust);
+        exit(0);
+    }
+
     warn_about_opt_deps(&mut irust);
 
-    irust.run().expect("IRust Out");
+    let err = if let Err(e) = irust.run() {
+        Some(e)
+    } else {
+        None
+    };
+
+    // now IRust has been dropped we can safely print to stderr
+    if let Some(err) = err {
+        eprintln!("{}", format!("\r\nIRust exited with error: {}", err).red());
+    }
 }

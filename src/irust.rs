@@ -15,7 +15,7 @@ mod racer;
 mod repl;
 mod writer;
 use crossterm::event::*;
-use crossterm::{style::Color, terminal::enable_raw_mode};
+use crossterm::style::Color;
 use cursor::{Cursor, INPUT_START_COL};
 use history::History;
 pub use irust_error::IRustError;
@@ -85,6 +85,7 @@ impl IRust {
     }
 
     fn prepare(&mut self) -> Result<(), IRustError> {
+        raw_terminal::RawTerminal::enable_raw_mode()?;
         self.repl.prepare_ground(self.options.toolchain)?;
         self.welcome()?;
         self.write_from_terminal_start(IN, Color::Yellow)?;
@@ -93,7 +94,6 @@ impl IRust {
     }
 
     pub fn run(&mut self) -> Result<(), IRustError> {
-        enable_raw_mode()?;
         self.prepare()?;
 
         let (tx, rx) = channel();
@@ -107,18 +107,28 @@ impl IRust {
 
             match rx.recv() {
                 Ok(IRustEvent::Input(ev)) => {
-                    self.handle_input_event(ev)?;
+                    let exit = self.handle_input_event(ev)?;
+                    if exit {
+                        break;
+                    }
                     input_thread.thread().unpark();
                 }
                 Ok(IRustEvent::Notify(_ev)) => {
                     self.sync()?;
                 }
-                Err(_e) => (),
+                Ok(IRustEvent::Exit(e)) => return Err(e),
+                // tx paniced ?
+                Err(e) => {
+                    return Err(
+                        format!("Error while trying to receive events, error: {}", e).into(),
+                    )
+                }
             }
         }
+        Ok(())
     }
 
-    fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<(), IRustError> {
+    fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<bool, IRustError> {
         // handle input event
         match ev {
             Event::Mouse(_) => (),
@@ -201,7 +211,7 @@ impl IRust {
                     code: KeyCode::Char('d'),
                     modifiers: CTRL_KEYMODIFIER,
                 } => {
-                    self.handle_ctrl_d()?;
+                    return self.handle_ctrl_d();
                 }
                 KeyEvent {
                     code: KeyCode::Char('z'),
@@ -269,9 +279,19 @@ impl IRust {
                 }
             },
         }
-        Ok(())
+        Ok(false)
     }
 }
+
+impl Drop for IRust {
+    fn drop(&mut self) {
+        let _ = self.exit();
+        if std::thread::panicking() {
+            eprintln!("\n\rIRust panicked, to log the error you can redirect stderror to a file, example irust 2>log");
+        }
+    }
+}
+
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
@@ -296,11 +316,22 @@ fn watch(tx: Sender<IRustEvent>) {
 
 use std::thread;
 fn input_read(tx: Sender<IRustEvent>) -> std::thread::JoinHandle<()> {
-    std::thread::spawn(move || loop {
-        if let Ok(ev) = read() {
+    std::thread::spawn(move || {
+        let try_read = || -> Result<(), IRustError> {
+            let ev = read()?;
             tx.send(IRustEvent::Input(ev))
-                .expect("Error reading input event");
+                .map_err(|e| format!("Could not send input event, error: {}", e))?;
             thread::park();
+            Ok(())
+        };
+
+        loop {
+            if let Err(e) = try_read() {
+                // if expect is called, rx should receive an error that the sender is unreachable
+                // so it will handle it properly
+                tx.send(IRustEvent::Exit(e))
+                    .expect("Could not send input event");
+            }
         }
     })
 }
@@ -308,4 +339,5 @@ fn input_read(tx: Sender<IRustEvent>) -> std::thread::JoinHandle<()> {
 pub enum IRustEvent {
     Input(crossterm::event::Event),
     Notify(notify::DebouncedEvent),
+    Exit(IRustError),
 }

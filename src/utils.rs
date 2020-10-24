@@ -116,6 +116,7 @@ impl StringTools {
         let mut double_quote = false;
         let mut previous_char = ' ';
         for character in s.chars() {
+            // safe unwraps ahead
             match character {
                 '(' => {
                     if !quote && !double_quote {

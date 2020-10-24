@@ -59,9 +59,12 @@ impl RawTerminal {
         let _ = queue!(stdout(), SetTitle(title));
     }
 
-    pub fn exit(status: i32) {
-        let _ = disable_raw_mode();
-        std::process::exit(status);
+    pub fn disable_raw_mode() -> Result<(), IRustError> {
+        Ok(crossterm::terminal::disable_raw_mode()?)
+    }
+
+    pub fn enable_raw_mode() -> Result<(), IRustError> {
+        Ok(crossterm::terminal::enable_raw_mode()?)
     }
 
     pub fn flush(&self) -> Result<(), IRustError> {

@@ -1,17 +1,16 @@
-use crate::irust::IRustError;
 use crate::irust::{options::Options, IRust};
 
 use std::env;
 
 const VERSION: &str = "0.8.60";
 
-pub fn handle_args(irust: &mut IRust) -> Result<(), IRustError> {
+pub fn handle_args(irust: &mut IRust) -> bool {
     let args: Vec<String> = env::args().skip(1).collect();
 
     if !args.is_empty() {
         match args[0].as_str() {
             "-h" | "--help" => {
-                println!(
+                print!(
                     "IRust: Cross Platform Rust REPL
         version: {}\n
         config file is in {}\n
@@ -22,12 +21,12 @@ pub fn handle_args(irust: &mut IRust) -> Result<(), IRustError> {
                         .map(|p| p.to_string_lossy().to_string())
                         .unwrap_or_else(|| "??".into())
                 );
-                std::process::exit(0);
+                return true;
             }
 
             "-v" | "--version" => {
-                println!("{}", VERSION);
-                std::process::exit(0);
+                print!("{}", VERSION);
+                return true;
             }
 
             "--reset-config" => {
@@ -37,11 +36,15 @@ pub fn handle_args(irust: &mut IRust) -> Result<(), IRustError> {
             maybe_path => {
                 let path = std::path::Path::new(maybe_path);
                 if path.exists() {
-                    irust.load_inner(path.to_path_buf())?;
+                    if let Err(e) = irust.load_inner(path.to_path_buf()) {
+                        eprintln!("Could not read path {}\n\rError: {}", path.display(), e);
+                    }
+                } else {
+                    eprintln!("Uknown argument: {}", maybe_path)
                 }
             }
         }
     }
 
-    Ok(())
+    false
 }

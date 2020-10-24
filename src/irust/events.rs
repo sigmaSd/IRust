@@ -155,7 +155,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_d(&mut self) -> Result<(), IRustError> {
+    pub fn handle_ctrl_d(&mut self) -> Result<bool, IRustError> {
         if self.buffer.is_empty() {
             self.write_newline()?;
             self.write("Do you really want to exit ([y]/n)? ", Color::Grey)?;
@@ -169,12 +169,12 @@ impl IRust {
                             code: KeyCode::Char(c),
                             modifiers: NO_MODIFIER,
                         }) => match &c {
-                            'y' | 'Y' => self.exit()?,
+                            'y' | 'Y' => return Ok(true),
                             _ => {
                                 self.write_newline()?;
                                 self.write_newline()?;
                                 self.write_from_terminal_start(super::IN, Color::Yellow)?;
-                                return Ok(());
+                                return Ok(false);
                             }
                         },
                         Event::Key(KeyEvent {
@@ -184,23 +184,21 @@ impl IRust {
                         | Event::Key(KeyEvent {
                             code: KeyCode::Enter,
                             ..
-                        }) => {
-                            self.exit()?;
-                        }
+                        }) => return Ok(true),
                         _ => continue,
                     }
                 }
             }
         }
-        Ok(())
+        Ok(false)
     }
 
-    fn exit(&mut self) -> Result<(), IRustError> {
+    pub fn exit(&mut self) -> Result<(), IRustError> {
         self.history.save();
         self.options.save()?;
         self.theme.save()?;
         self.write_newline()?;
-        super::RawTerminal::exit(0);
+        super::RawTerminal::disable_raw_mode()?;
         Ok(())
     }
 

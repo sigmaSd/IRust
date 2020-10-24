@@ -83,16 +83,15 @@ impl Racer {
             self.cursor.0, self.cursor.1, self.main_file
         ) {
             Ok(_) => (),
-            Err(_) => {
-                use crossterm::style::Colorize;
-                eprintln!(
-                    "{}",
+            Err(e) => {
+                return Err(format!(
                     "\n\rError writing to racer, make sure it's properly configured\
                      \n\rCheckout https://github.com/racer-rust/racer/#configuration\
-                     \n\rOr disable it in the configuration file."
-                        .red()
-                );
-                super::RawTerminal::exit(1);
+                     \n\rOr disable it in the configuration file.\
+                     \n\rError: {}",
+                    e
+                )
+                .into());
             }
         };
 

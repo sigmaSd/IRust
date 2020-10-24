@@ -59,14 +59,20 @@ impl From<toml::ser::Error> for IRustError {
     }
 }
 
-impl ToString for IRustError {
-    fn to_string(&self) -> String {
+impl From<String> for IRustError {
+    fn from(error: String) -> Self {
+        IRustError::Custom(error)
+    }
+}
+
+impl std::fmt::Display for IRustError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         match self {
-            IoError(e) => e.to_string(),
-            CrosstermError(e) => e.to_string(),
-            Custom(e) => e.to_string(),
-            RacerDisabled => "Racer is disabled".to_string(),
-            ParsingError(e) => e.to_string(),
+            IoError(e) => write!(f, "{}", e),
+            CrosstermError(e) => write!(f, "{}", e),
+            Custom(e) => write!(f, "{}", e),
+            RacerDisabled => write!(f, "Racer is disabled"),
+            ParsingError(e) => write!(f, "{}", e),
         }
     }
 }

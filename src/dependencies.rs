@@ -24,21 +24,18 @@ impl Dep {
     }
 }
 
-pub fn check_required_deps() {
+pub fn check_required_deps() -> bool {
     const REQUIRED_DEPS: &[&str] = &["cargo"];
     for dep in REQUIRED_DEPS {
         if !dep_installed(&dep) {
-            println!(
-                "{}",
-                format!(
-                    "{0} is not insalled!\n{0} is required for IRust to work.",
-                    dep
-                )
-                .red()
+            eprintln!(
+                "{0} is not insalled!\n{0} is required for IRust to work.",
+                dep
             );
-            std::process::exit(1);
+            return false;
         }
     }
+    true
 }
 
 pub fn warn_about_opt_deps(irust: &mut crate::IRust) {
@@ -57,7 +54,10 @@ pub fn warn_about_opt_deps(irust: &mut crate::IRust) {
                     "rustup is not installed.\nrustup is required to install and configure racer"
                         .red()
                 );
-                std::process::exit(1);
+                return Err(io::Error::new(
+                    io::ErrorKind::Other,
+                    "rustup is not installed",
+                ));
             }
 
             let cmd = ["rustup", "install", "nightly"];
@@ -77,7 +77,10 @@ pub fn warn_about_opt_deps(irust: &mut crate::IRust) {
                     "{}",
                     "rustup is not installed.\nrustup is required to install rustfmt".red()
                 );
-                std::process::exit(1);
+                return Err(io::Error::new(
+                    io::ErrorKind::Other,
+                    "rustup is not installed",
+                ));
             }
             let cmd = ["rustup", "component", "add", "rustfmt"];
             println!("{}", format!("Running: {:?}", cmd).magenta());
