@@ -301,7 +301,7 @@ fn watch(tx: Sender<IRustEvent>) -> Result<(), std::io::Error> {
     std::thread::Builder::new()
         .name("Watcher".into())
         .spawn(move || loop {
-            let _g = Guard;
+            let _g = Guard(tx.clone());
             let (local_tx, local_rx) = channel();
             let mut watcher: RecommendedWatcher =
                 Watcher::new(local_tx, Duration::from_secs(2)).expect("Watcher Thread paniced");
@@ -323,7 +323,7 @@ fn input_read(tx: Sender<IRustEvent>) -> Result<std::thread::JoinHandle<()>, std
     std::thread::Builder::new()
         .name("Input".into())
         .spawn(move || {
-            let _g = Guard;
+            let _g = Guard(tx.clone());
             let try_read = || -> Result<(), IRustError> {
                 let ev = read()?;
                 tx.send(IRustEvent::Input(ev))
@@ -341,16 +341,24 @@ fn input_read(tx: Sender<IRustEvent>) -> Result<std::thread::JoinHandle<()>, std
         })
 }
 
-struct Guard;
+struct Guard(Sender<IRustEvent>);
 impl Drop for Guard {
     fn drop(&mut self) {
         if std::thread::panicking() {
-            let _ = raw_terminal::RawTerminal::disable_raw_mode();
             let t = std::thread::current();
             let name = t.name().unwrap_or("???");
             let msg = format!("\n\rThread {} paniced, to log the error you can redirect stderror to a file, exp: irust 2>log", name);
-            let _ = raw_terminal::RawTerminal::_write(msg);
-            std::process::exit(1);
+
+            // try clean exit
+            match self.0.send(IRustEvent::Exit(msg.clone().into())) {
+                Ok(_) => (),
+                Err(_) => {
+                    // last resort
+                    let _ = raw_terminal::RawTerminal::disable_raw_mode();
+                    let _ = raw_terminal::RawTerminal::_write(msg);
+                    std::process::exit(1);
+                }
+            }
         }
     }
 }
