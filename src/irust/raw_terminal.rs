@@ -20,9 +20,13 @@ impl RawTerminal {
         Ok(())
     }
 
-    pub fn write<D: Display + Clone>(&self, value: D) -> Result<(), IRustError> {
+    pub fn _write<D: Display + Clone>(value: D) -> Result<(), IRustError> {
         queue!(stdout(), Print(value))?;
         Ok(())
+    }
+
+    pub fn write<D: Display + Clone>(&self, value: D) -> Result<(), IRustError> {
+        Self::_write(value)
     }
 
     pub fn write_with_color<D: Display + Clone>(

@@ -97,8 +97,8 @@ impl IRust {
         self.prepare()?;
 
         let (tx, rx) = channel();
-        watch(tx.clone());
-        let input_thread = input_read(tx);
+        watch(tx.clone())?;
+        let input_thread = input_read(tx)?;
 
         loop {
             // flush queued output after each key
@@ -287,7 +287,7 @@ impl Drop for IRust {
     fn drop(&mut self) {
         let _ = self.exit();
         if std::thread::panicking() {
-            eprintln!("\n\rIRust panicked, to log the error you can redirect stderror to a file, example irust 2>log");
+            let _ = self.raw_terminal.write("IRust panicked, to log the error you can redirect stderror to a file, example irust 2>log");
         }
     }
 }
@@ -297,43 +297,62 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Sender;
 use std::time::Duration;
 
-fn watch(tx: Sender<IRustEvent>) {
-    std::thread::spawn(move || loop {
-        let (local_tx, local_rx) = channel();
-        let mut watcher: RecommendedWatcher =
-            Watcher::new(local_tx, Duration::from_secs(2)).expect("Watcher Thread paniced");
+fn watch(tx: Sender<IRustEvent>) -> Result<(), std::io::Error> {
+    std::thread::Builder::new()
+        .name("Watcher".into())
+        .spawn(move || loop {
+            let _g = Guard;
+            let (local_tx, local_rx) = channel();
+            let mut watcher: RecommendedWatcher =
+                Watcher::new(local_tx, Duration::from_secs(2)).expect("Watcher Thread paniced");
 
-        watcher
-            .watch(&*cargo_cmds::MAIN_FILE_EXTERN, RecursiveMode::Recursive)
-            .expect("Error while trying to watch main_extern file for changes");
+            watcher
+                .watch(&*cargo_cmds::MAIN_FILE_EXTERN, RecursiveMode::Recursive)
+                .expect("Error while trying to watch main_extern file for changes");
 
-        if let Ok(ev) = local_rx.recv() {
-            tx.send(IRustEvent::Notify(ev))
-                .expect("Error sending notify event to IRust main thread");
-        }
-    });
+            if let Ok(ev) = local_rx.recv() {
+                tx.send(IRustEvent::Notify(ev))
+                    .expect("Error sending notify event to IRust main thread");
+            }
+        })?;
+    Ok(())
 }
 
 use std::thread;
-fn input_read(tx: Sender<IRustEvent>) -> std::thread::JoinHandle<()> {
-    std::thread::spawn(move || {
-        let try_read = || -> Result<(), IRustError> {
-            let ev = read()?;
-            tx.send(IRustEvent::Input(ev))
-                .map_err(|e| format!("Could not send input event, error: {}", e))?;
-            thread::park();
-            Ok(())
-        };
+fn input_read(tx: Sender<IRustEvent>) -> Result<std::thread::JoinHandle<()>, std::io::Error> {
+    std::thread::Builder::new()
+        .name("Input".into())
+        .spawn(move || {
+            let _g = Guard;
+            let try_read = || -> Result<(), IRustError> {
+                let ev = read()?;
+                tx.send(IRustEvent::Input(ev))
+                    .map_err(|e| format!("Could not send input event, error: {}", e))?;
+                thread::park();
+                Ok(())
+            };
 
-        loop {
-            if let Err(e) = try_read() {
-                // if expect is called, rx should receive an error that the sender is unreachable
-                // so it will handle it properly
-                tx.send(IRustEvent::Exit(e))
-                    .expect("Could not send input event");
+            loop {
+                if let Err(e) = try_read() {
+                    tx.send(IRustEvent::Exit(e))
+                        .expect("Could not send input event");
+                }
             }
+        })
+}
+
+struct Guard;
+impl Drop for Guard {
+    fn drop(&mut self) {
+        if std::thread::panicking() {
+            let _ = raw_terminal::RawTerminal::disable_raw_mode();
+            let t = std::thread::current();
+            let name = t.name().unwrap_or("???");
+            let msg = format!("\n\rThread {} paniced, to log the error you can redirect stderror to a file, exp: irust 2>log", name);
+            let _ = raw_terminal::RawTerminal::_write(msg);
+            std::process::exit(1);
         }
-    })
+    }
 }
 
 pub enum IRustEvent {
