@@ -1,3 +1,6 @@
+**0.9.1**
+- Improve handling of threads panics
+
 **0.9.0**
 - Improve error handling
 - Update dependencies

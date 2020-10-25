@@ -236,7 +236,7 @@ dependencies = [
 
 [[package]]
 name = "irust"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "crossterm",
  "dirs-next",
