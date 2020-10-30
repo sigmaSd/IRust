@@ -187,12 +187,7 @@ pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
 
     write!(fmt_file, "{}", c)?;
 
-    std::process::Command::new("rustfmt")
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .arg(&fmt_path)
-        .spawn()?
-        .wait()?;
+    cargo_fmt_file(&fmt_path)?;
 
     let mut fmt_c = String::new();
     fmt_file.seek(std::io::SeekFrom::Start(0))?;
@@ -205,6 +200,12 @@ pub fn cargo_fmt_file(file: &PathBuf) -> io::Result<()> {
     std::process::Command::new("rustfmt")
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
+        // ensure that main is always spread on two lines
+        // this is needed for inserting the input correctly in the repl
+        // fn main() {
+        // }
+        .arg("--config")
+        .arg("empty_item_single_line=false")
         .arg(file)
         .spawn()?
         .wait()?;
