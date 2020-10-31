@@ -1,3 +1,7 @@
+**0.9.2**
+- Fix a subtle bug (make sure the fn main is always written at least in two lines)
+- More errors handling work
+
 **0.9.1**
 - Improve handling of threads panics
 
