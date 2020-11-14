@@ -128,7 +128,9 @@ pub fn warn_about_opt_deps(irust: &mut crate::IRust) {
             );
             let answer = {
                 let mut a = String::new();
-                let _ = std::io::stdin().read_line(&mut a);
+                std::io::stdin()
+                    .read_line(&mut a)
+                    .expect("failed to read stdin");
                 a.trim().to_string()
             };
 

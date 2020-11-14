@@ -106,7 +106,7 @@ impl IRust {
             self.cursor.move_right();
             self.buffer.move_forward();
         } else {
-            let _ = self.use_suggestion();
+            self.use_suggestion()?;
         }
         Ok(())
     }
@@ -194,7 +194,7 @@ impl IRust {
     }
 
     pub fn exit(&mut self) -> Result<(), IRustError> {
-        self.history.save();
+        self.history.save()?;
         self.options.save()?;
         self.theme.save()?;
         self.write_newline()?;
@@ -210,7 +210,8 @@ impl IRust {
                 unistd::Pid,
             };
             self.raw_terminal.clear(ClearType::All)?;
-            let _ = kill(Pid::this(), Some(Signal::SIGTSTP));
+            kill(Pid::this(), Some(Signal::SIGTSTP))
+                .map_err(|e| format!("failed to sigstop irust. {}", e))?;
 
             // display empty prompt after SIGCONT
             self.clear()?;
@@ -277,12 +278,12 @@ impl IRust {
         }
     }
 
-    pub fn handle_ctrl_right(&mut self) {
+    pub fn handle_ctrl_right(&mut self) -> Result<(), IRustError> {
         if !self.buffer.is_at_end() {
             self.cursor.move_right();
             self.buffer.move_forward();
         } else {
-            let _ = self.use_suggestion();
+            self.use_suggestion()?;
         }
 
         if let Some(current_char) = self.buffer.current_char() {
@@ -316,6 +317,7 @@ impl IRust {
                 }
             }
         }
+        Ok(())
     }
 
     pub fn handle_ctrl_e(&mut self) -> Result<(), IRustError> {

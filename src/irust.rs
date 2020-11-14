@@ -53,7 +53,8 @@ impl IRust {
     pub fn new() -> Self {
         let raw_terminal = RawTerminal::new();
         let known_paths = KnownPaths::new();
-        raw_terminal.set_title(&format!("IRust: {}", known_paths.get_cwd().display()));
+        // title is optional
+        let _ = raw_terminal.set_title(&format!("IRust: {}", known_paths.get_cwd().display()));
 
         let repl = Repl::new();
         let history = History::new().unwrap_or_default();
@@ -258,7 +259,7 @@ impl IRust {
                     code: KeyCode::Right,
                     modifiers: CTRL_KEYMODIFIER,
                 } => {
-                    self.handle_ctrl_right();
+                    self.handle_ctrl_right()?;
                 }
                 KeyEvent {
                     code: KeyCode::Delete,
@@ -285,6 +286,7 @@ impl IRust {
 
 impl Drop for IRust {
     fn drop(&mut self) {
+        // ignore errors on drop with let _
         let _ = self.exit();
         if std::thread::panicking() {
             let _ = self.raw_terminal.write("IRust panicked, to log the error you can redirect stderror to a file, example irust 2>log");
@@ -354,6 +356,7 @@ impl Drop for Guard {
                 Ok(_) => (),
                 Err(_) => {
                     // last resort
+                    // ignore errors on drop with let _
                     let _ = raw_terminal::RawTerminal::disable_raw_mode();
                     let _ = raw_terminal::RawTerminal::_write(msg);
                     std::process::exit(1);

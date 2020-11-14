@@ -69,8 +69,16 @@ impl Racer {
         self.suggestions.clear();
         self.goto_first_suggestion();
 
-        let stdin = self.process.stdin.as_mut().unwrap();
-        let stdout = self.process.stdout.as_mut().unwrap();
+        let stdin = self
+            .process
+            .stdin
+            .as_mut()
+            .ok_or("failed to acess racer stdin")?;
+        let stdout = self
+            .process
+            .stdout
+            .as_mut()
+            .ok_or("faied to acess racer stdout")?;
 
         match writeln!(
             stdin,
@@ -97,7 +105,8 @@ impl Racer {
             b"END",
             &mut raw_output,
         )?;
-        let raw_output = String::from_utf8(raw_output.to_vec()).unwrap();
+        let raw_output = String::from_utf8(raw_output.to_vec())
+            .map_err(|_| "racer output did not contain valid UTF-8")?;
 
         for suggestion in raw_output.lines().skip(1) {
             if suggestion == "END" {
@@ -293,12 +302,12 @@ impl IRust {
             self.scroll_up(height_overflow);
         }
 
-        self.cursor.save_position()?;
+        self.cursor.save_position();
         self.cursor.move_to_input_last_row(&self.buffer);
 
         let max_width = self.cursor.bound.width - 1;
         self.cursor.pos.current_pos.0 = 0;
-        self.cursor.goto_internal_pos()?;
+        self.cursor.goto_internal_pos();
         self.cursor.cursor.move_down(1)?;
         self.raw_terminal.clear(ClearType::FromCursorDown)?;
         self.cursor.cursor.move_up(1)?;
@@ -342,8 +351,8 @@ impl IRust {
 
         // reset to input position and color
         self.raw_terminal.reset_color()?;
-        self.cursor.restore_position()?;
-        self.cursor.goto_internal_pos()?;
+        self.cursor.restore_position();
+        self.cursor.goto_internal_pos();
 
         Ok(())
     }

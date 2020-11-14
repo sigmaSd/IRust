@@ -52,6 +52,7 @@ impl ToolChain {
 }
 
 pub fn cargo_new(toolchain: ToolChain) -> Result<(), io::Error> {
+    // Ignore directory exists error
     let _ = std::fs::create_dir_all(&*IRUST_SRC_DIR);
     clean_cargo_toml()?;
     clean_main_file()?;
@@ -177,6 +178,7 @@ fn clean_main_file() -> io::Result<()> {
 
 pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
     let fmt_path = IRUST_DIR.join("fmt_file");
+    // Ignore file doesn't exist error
     let _ = fs::remove_file(&fmt_path);
 
     let mut fmt_file = fs::OpenOptions::new()
@@ -187,7 +189,7 @@ pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
 
     write!(fmt_file, "{}", c)?;
 
-    cargo_fmt_file(&fmt_path)?;
+    cargo_fmt_file(&fmt_path);
 
     let mut fmt_c = String::new();
     fmt_file.seek(std::io::SeekFrom::Start(0))?;
@@ -196,7 +198,12 @@ pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
     Ok(fmt_c)
 }
 
-pub fn cargo_fmt_file(file: &PathBuf) -> io::Result<()> {
+pub fn cargo_fmt_file(file: &PathBuf) {
+    // Cargo fmt is optional
+    let _ = try_cargo_fmt_file(file);
+}
+
+fn try_cargo_fmt_file(file: &PathBuf) -> io::Result<()> {
     std::process::Command::new("rustfmt")
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())

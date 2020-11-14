@@ -1,5 +1,5 @@
 use super::Buffer;
-use crate::irust::{IRust, IRustError};
+use crate::irust::IRust;
 use crate::utils::StringTools;
 mod bound;
 use bound::Bound;
@@ -40,10 +40,11 @@ impl Cursor {
         }
     }
 
-    pub fn save_position(&mut self) -> Result<(), IRustError> {
+    pub fn save_position(&mut self) {
         self.copy = Some(Box::new(self.pos.clone()));
-        self.cursor.save_position()?;
-        Ok(())
+        self.cursor
+            .save_position()
+            .expect("failed to save cursor position");
     }
 
     pub fn move_right_unbounded(&mut self) {
@@ -61,7 +62,7 @@ impl Cursor {
         } else {
             self.pos.current_pos.0 += 1;
         }
-        let _ = self.goto_internal_pos();
+        self.goto_internal_pos();
     }
 
     pub fn move_left(&mut self) {
@@ -71,18 +72,20 @@ impl Cursor {
         } else {
             self.pos.current_pos.0 -= 1;
         }
-        let _ = self.goto_internal_pos();
+        self.goto_internal_pos();
     }
 
     pub fn move_up_bounded(&mut self, count: u16) {
         self.move_up(count);
         self.pos.current_pos.0 = std::cmp::min(self.pos.current_pos.0, self.current_row_bound());
-        let _ = self.goto_internal_pos();
+        self.goto_internal_pos();
     }
 
     pub fn move_up(&mut self, count: u16) {
         self.pos.current_pos.1 = self.pos.current_pos.1.saturating_sub(count as usize);
-        let _ = self.cursor.move_up(count);
+        self.cursor
+            .move_up(count)
+            .expect("failed to move cursor up");
     }
 
     pub fn move_down_bounded(&mut self, count: u16, buffer: &Buffer) {
@@ -94,12 +97,14 @@ impl Cursor {
         if self.pos.current_pos.1 >= last_pos.1 && self.pos.current_pos.0 >= last_pos.0 {
             self.pos.current_pos = last_pos;
         }
-        let _ = self.goto_internal_pos();
+        self.goto_internal_pos();
     }
 
     pub fn move_down(&mut self, count: u16) {
         self.pos.current_pos.1 += count as usize;
-        let _ = self.cursor.move_down(count);
+        self.cursor
+            .move_down(count)
+            .expect("failed to move cursor down");
     }
 
     pub fn use_current_row_as_starting_row(&mut self) {
@@ -136,46 +141,47 @@ impl Cursor {
         (new_lines + self.pos.current_pos.1).saturating_sub(self.bound.height - 1)
     }
 
-    pub fn restore_position(&mut self) -> Result<(), IRustError> {
+    pub fn restore_position(&mut self) {
         if let Some(copy) = self.copy.take() {
             self.pos = *copy;
             self.copy = Some(Box::new(self.pos.clone()));
         }
-        self.cursor.restore_position()?;
-        Ok(())
+        self.cursor
+            .restore_position()
+            .expect("failed to restore cursor position");
     }
 
-    pub fn goto_internal_pos(&mut self) -> Result<(), IRustError> {
+    pub fn goto_internal_pos(&mut self) {
         self.cursor
-            .goto(self.pos.current_pos.0 as u16, self.pos.current_pos.1 as u16)?;
-        Ok(())
+            .goto(self.pos.current_pos.0 as u16, self.pos.current_pos.1 as u16)
+            .expect("failed to move cursor");
     }
 
     pub fn goto(&mut self, x: usize, y: usize) {
         self.pos.current_pos.0 = x;
         self.pos.current_pos.1 = y;
 
-        let _ = self.goto_internal_pos();
+        self.goto_internal_pos();
     }
 
     pub fn hide(&self) {
-        self.cursor.hide().unwrap();
+        self.cursor.hide().expect("failed to hide cursor");
     }
 
     pub fn show(&self) {
-        self.cursor.show().unwrap();
+        self.cursor.show().expect("failed to show cursor");
     }
 
     pub fn goto_start(&mut self) {
         self.pos.current_pos.0 = self.pos.starting_pos.0;
         self.pos.current_pos.1 = self.pos.starting_pos.1;
-        let _ = self.goto_internal_pos();
+        self.goto_internal_pos();
     }
 
     pub fn goto_input_start_col(&mut self) {
         self.pos.current_pos.0 = self.pos.starting_pos.0 + INPUT_START_COL;
         self.pos.current_pos.1 = self.pos.starting_pos.1;
-        let _ = self.goto_internal_pos();
+        self.goto_internal_pos();
     }
 
     pub fn is_at_last_terminal_col(&self) -> bool {

@@ -73,7 +73,9 @@ impl IRust {
     }
 
     pub fn scroll_up(&mut self, n: usize) {
-        let _ = self.raw_terminal.scroll_up(n as u16);
+        self.raw_terminal
+            .scroll_up(n as u16)
+            .expect("failed to scroll-up");
         self.cursor.move_up(n as u16);
         self.cursor.pos.starting_pos.1 = self.cursor.pos.starting_pos.1.saturating_sub(n);
     }

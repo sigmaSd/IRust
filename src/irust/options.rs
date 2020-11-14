@@ -95,6 +95,7 @@ impl Options {
             None => return None,
         };
 
+        // Ignore directory exists error
         let _ = std::fs::create_dir(&config_dir);
         let config_path = config_dir.join("config");
 

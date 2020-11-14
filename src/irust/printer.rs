@@ -112,14 +112,14 @@ impl IRust {
         self.cursor.hide();
         // scroll if needed before writing the input
         self.scroll_if_needed_for_input();
-        self.cursor.save_position()?;
+        self.cursor.save_position();
         self.cursor.goto_start();
         self.raw_terminal.clear(ClearType::FromCursorDown)?;
 
         self.write_from_terminal_start(super::IN, Color::Yellow)?;
         self.print_inner(highlight(self.buffer.to_string(), &self.theme))?;
 
-        self.cursor.restore_position()?;
+        self.cursor.restore_position();
         self.cursor.show();
 
         Ok(())
@@ -129,7 +129,7 @@ impl IRust {
         for elem in printer {
             match elem.string_type {
                 PrinterItemType::Custom(color) => {
-                    let _ = self.raw_terminal.set_fg(color);
+                    self.raw_terminal.set_fg(color)?;
 
                     for c in elem.string.chars() {
                         if c == '\n' {
@@ -182,11 +182,11 @@ impl IRust {
             self.raw_terminal.set_fg(color)?;
             if StringTools::is_multiline(&output.string) {
                 self.cursor.goto_next_row_terminal_start();
-                output.string.split('\n').for_each(|line| {
-                    let _ = self.raw_terminal.write(line);
-                    let _ = self.raw_terminal.write("\r\n");
+                for line in output.string.split('\n') {
+                    self.raw_terminal.write(line)?;
+                    self.raw_terminal.write("\r\n")?;
                     self.cursor.pos.current_pos.1 += 1;
-                });
+                }
             } else if output.string == '\n'.to_string() {
                 self.cursor.goto_next_row_terminal_start();
             } else {

@@ -153,7 +153,11 @@ fn parse(s: String) -> Vec<Token> {
                     tokens.push(token);
                 }
                 if s.peek() == Some(&'/') || s.peek() == Some(&'*') {
-                    let end = if s.peek().unwrap() == &'/' { '\n' } else { '*' };
+                    let end = if matches!(s.peek(), Some(&'/')) {
+                        '\n'
+                    } else {
+                        '*'
+                    };
 
                     tokens.push(Token::Comment('/'.to_string()));
                     let mut comment = String::new();
@@ -245,6 +249,7 @@ fn parse_character_lifetime(s: &mut std::iter::Peekable<impl Iterator<Item = cha
 
     if let Some(c) = characters.chars().last() {
         if !c.is_alphabetic() {
+            // safe unwrap
             let end = characters.pop().unwrap();
             return vec![Token::LifeTime(characters), Token::Symbol(end)];
         }
@@ -254,6 +259,7 @@ fn parse_character_lifetime(s: &mut std::iter::Peekable<impl Iterator<Item = cha
         if !c.is_alphabetic() {
             break;
         }
+        // safe unwrap
         let c = s.next().unwrap();
         characters.push(c);
     }

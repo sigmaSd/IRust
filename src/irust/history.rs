@@ -15,12 +15,11 @@ pub struct History {
 
 impl History {
     pub fn new() -> Result<Self, IRustError> {
-        let irust_cache_dir = dirs_next::cache_dir().unwrap().join("irust");
-        let _ = fs::create_dir_all(&irust_cache_dir);
-
-        let history_file_path = irust_cache_dir.join("history");
+        let history_file_path = crate::irust::cargo_cmds::IRUST_DIR
+            .join("history")
+            .to_path_buf();
         if !history_file_path.exists() {
-            let _ = fs::File::create(&history_file_path);
+            fs::File::create(&history_file_path)?;
         }
 
         let history: String = fs::read_to_string(&history_file_path)?;
@@ -85,7 +84,7 @@ impl History {
         self.cursor = self.history.len();
     }
 
-    pub fn save(&self) {
+    pub fn save(&self) -> Result<(), IRustError> {
         let is_comment = |s: &str| -> bool { s.trim_start().starts_with("//") };
         let mut history = self.history.clone();
 
@@ -106,7 +105,8 @@ impl History {
             .collect();
         let history = history.join("\n//\n");
 
-        let _ = fs::write(&self.history_file_path, history);
+        fs::write(&self.history_file_path, history)?;
+        Ok(())
     }
 
     fn filter(&self) -> Vec<String> {

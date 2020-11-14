@@ -33,7 +33,7 @@ impl IRust {
     }
 
     fn reset(&mut self) -> Result<Printer, IRustError> {
-        self.repl.reset(self.options.toolchain);
+        self.repl.reset(self.options.toolchain)?;
         let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
         outputs.add_new_line(1);
 
@@ -115,7 +115,7 @@ impl IRust {
             }
         }
 
-        self.cursor.save_position()?;
+        self.cursor.save_position();
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build(self.options.toolchain)?, "Build")?;
 
@@ -197,7 +197,7 @@ impl IRust {
         self.known_paths.set_last_loaded_coded_path(path.clone());
 
         // reset repl
-        self.repl.reset(self.options.toolchain);
+        self.repl.reset(self.options.toolchain)?;
 
         // read code
         let path_code = std::fs::read(path)?;
@@ -244,7 +244,7 @@ impl IRust {
         let toolchain = self.options.toolchain;
         self.repl
             .eval_in_tmp_repl(variable, || -> Result<(), IRustError> {
-                raw_out = cargo_run(false, toolchain).unwrap();
+                raw_out = cargo_run(false, toolchain)?;
                 Ok(())
             })?;
 
@@ -255,9 +255,11 @@ impl IRust {
                 // the second one is more detailed
                 .rev()
                 .find(|l| l.contains("found"))
+                // safe
                 .unwrap()
                 .rsplit("found ")
                 .next()
+                // safe
                 .unwrap()
                 .to_string()
         } else if raw_out.find(EMPTY_TYPE_MSG).is_some() {
@@ -345,7 +347,7 @@ impl IRust {
 
                 // save repl to main_extern.rs which can be used with external editors
                 self.repl.write_to_extern()?;
-                let _ = cargo_fmt_file(&*MAIN_FILE_EXTERN);
+                cargo_fmt_file(&*MAIN_FILE_EXTERN);
             }
 
             Ok(printer)
@@ -371,7 +373,7 @@ impl IRust {
                 PrinterItemType::Ok,
             ))),
             Err(e) => {
-                self.repl.reset(self.options.toolchain);
+                self.repl.reset(self.options.toolchain)?;
                 Err(e)
             }
         }
@@ -392,7 +394,7 @@ impl IRust {
 
         // beautify code
         if self.repl.body.len() > 2 {
-            let _ = cargo_fmt_file(&*MAIN_FILE);
+            cargo_fmt_file(&*MAIN_FILE);
         }
 
         // some commands are not detected from path but still works  with cmd /C
@@ -450,7 +452,7 @@ impl IRust {
         let cwd = current_dir()?;
         self.known_paths.update_cwd(cwd.clone());
         self.raw_terminal
-            .set_title(&format!("IRust: {}", cwd.display()));
+            .set_title(&format!("IRust: {}", cwd.display()))?;
 
         let mut output = Printer::new(PrinterItem::new(
             cwd.display().to_string(),

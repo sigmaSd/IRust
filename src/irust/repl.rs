@@ -65,10 +65,10 @@ impl Repl {
         }
     }
 
-    pub fn reset(&mut self, toolchain: ToolChain) {
-        self.prepare_ground(toolchain)
-            .expect("Error while resetting Repl");
+    pub fn reset(&mut self, toolchain: ToolChain) -> Result<(), IRustError> {
+        self.prepare_ground(toolchain)?;
         *self = Self::new();
+        Ok(())
     }
 
     pub fn show(&self) -> String {

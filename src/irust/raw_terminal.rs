@@ -59,8 +59,9 @@ impl RawTerminal {
         Ok(())
     }
 
-    pub fn set_title(&self, title: &str) {
-        let _ = queue!(stdout(), SetTitle(title));
+    pub fn set_title(&self, title: &str) -> Result<(), IRustError> {
+        queue!(stdout(), SetTitle(title))?;
+        Ok(())
     }
 
     pub fn disable_raw_mode() -> Result<(), IRustError> {

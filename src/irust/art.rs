@@ -63,7 +63,7 @@ impl IRust {
     }
 
     fn clean_art(&mut self) -> Result<(), IRustError> {
-        self.cursor.restore_position()?;
+        self.cursor.restore_position();
         self.write_newline()?;
         self.cursor.show();
         self.raw_terminal.reset_color()?;
