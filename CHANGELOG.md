@@ -1,3 +1,8 @@
+**0.9.3**
+- Use dirs::cache directory for faster cold startup time (falls back to $temp in case its not specified)
+- Un-silence errors (Remove old let = _)
+- update deps
+
 **0.9.2**
 - Fix a subtle bug (make sure the fn main is always written at least in two lines)
 - More errors handling work
