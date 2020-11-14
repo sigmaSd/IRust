@@ -9,6 +9,20 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Command;
 
+// TODO:
+// Move these paths to KnownPaths struct
+pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(|| dirs_next::cache_dir().unwrap_or_else(temp_dir));
+pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust"));
+pub static IRUST_TARGET_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target"));
+pub static CARGO_TOML_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("Cargo.toml"));
+pub static IRUST_SRC_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src"));
+pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs"));
+pub static MAIN_FILE_EXTERN: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main_extern.rs"));
+#[cfg(windows)]
+pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust.exe"));
+#[cfg(not(windows))]
+pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust"));
+
 #[derive(Debug, Clone, Serialize, Deserialize, Copy)]
 pub enum ToolChain {
     Stable,
@@ -36,20 +50,6 @@ impl ToolChain {
         }
     }
 }
-
-// TODO:
-// Move these paths to KnownPaths struct
-pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(temp_dir);
-pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust"));
-pub static IRUST_TARGET_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target"));
-pub static CARGO_TOML_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("Cargo.toml"));
-pub static IRUST_SRC_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src"));
-pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs"));
-pub static MAIN_FILE_EXTERN: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main_extern.rs"));
-#[cfg(windows)]
-pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust.exe"));
-#[cfg(not(windows))]
-pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust"));
 
 pub fn cargo_new(toolchain: ToolChain) -> Result<(), io::Error> {
     let _ = std::fs::create_dir_all(&*IRUST_SRC_DIR);

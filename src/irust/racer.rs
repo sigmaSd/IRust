@@ -1,8 +1,7 @@
-use super::IRustError;
+use super::{cargo_cmds::MAIN_FILE, IRustError};
 use crate::irust::IRust;
 use crate::utils::{read_until_bytes, StringTools};
 use crossterm::terminal::ClearType;
-use std::env::temp_dir;
 use std::io::Write;
 use std::process::{Child, Command, Stdio};
 
@@ -32,11 +31,7 @@ impl Racer {
             .spawn()
             // Disable Racer if unable to start it
             .map_err(|_| IRustError::RacerDisabled)?;
-        let main_file = temp_dir()
-            .join("irust/src/main.rs")
-            .to_str()
-            .unwrap()
-            .to_owned();
+        let main_file = MAIN_FILE.display().to_string();
         let cursor = (2, 0);
         let cmds = [
             "show".to_string(),
