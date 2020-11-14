@@ -12,7 +12,6 @@ pub enum Cycle {
 
 pub struct Racer {
     process: Child,
-    main_file: String,
     cursor: (usize, usize),
     // suggestions: (Name, definition)
     suggestions: Vec<(String, String)>,
@@ -31,7 +30,6 @@ impl Racer {
             .spawn()
             // Disable Racer if unable to start it
             .map_err(|_| IRustError::RacerDisabled)?;
-        let main_file = MAIN_FILE.display().to_string();
         let cursor = (2, 0);
         let cmds = [
             "show".to_string(),
@@ -51,7 +49,6 @@ impl Racer {
 
         Ok(Racer {
             process,
-            main_file,
             cursor,
             suggestions: vec![],
             suggestion_idx: 0,
@@ -83,7 +80,9 @@ impl Racer {
         match writeln!(
             stdin,
             "complete {} {} {}",
-            self.cursor.0, self.cursor.1, self.main_file
+            self.cursor.0,
+            self.cursor.1,
+            MAIN_FILE.display()
         ) {
             Ok(_) => (),
             Err(e) => {
