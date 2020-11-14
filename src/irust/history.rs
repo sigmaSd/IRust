@@ -15,9 +15,7 @@ pub struct History {
 
 impl History {
     pub fn new() -> Result<Self, IRustError> {
-        let history_file_path = crate::irust::cargo_cmds::IRUST_DIR
-            .join("history")
-            .to_path_buf();
+        let history_file_path = crate::irust::cargo_cmds::IRUST_DIR.join("history");
         if !history_file_path.exists() {
             fs::File::create(&history_file_path)?;
         }
