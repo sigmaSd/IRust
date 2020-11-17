@@ -40,7 +40,7 @@ jobs:
           # Apparently, this is the right way to get a tag name. Really?
           #
           # See: https://github.community/t5/GitHub-Actions/How-to-get-just-the-tag-name/m-p/32167/highlight/true#M1027
-          echo "::set-env name=IRUST_VERSION::${GITHUB_REF#refs/tags/}"
+          echo "IRUST_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           echo "version is: ${{ env.IRUST_VERSION }}"
 
       - name: Create GitHub release
@@ -118,10 +118,10 @@ jobs:
       shell: bash
       run: |
         release_upload_url="$(cat artifacts/release-upload-url)"
-        echo "::set-env name=RELEASE_UPLOAD_URL::$release_upload_url"
+        echo "RELEASE_UPLOAD_URL=$release_upload_url" >> $GITHUB_ENV
         echo "release upload url: $RELEASE_UPLOAD_URL"
         release_version="$(cat artifacts/release-version)"
-        echo "::set-env name=RELEASE_VERSION::$release_version"
+        echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
         echo "release version: $RELEASE_VERSION"
       
     - name: Build release binary
@@ -140,11 +140,11 @@ jobs:
         if [ "${{ matrix.os }}" = "windows-2019" ]; then
           cp "target/release/irust.exe" "$staging/"
           7z a "$staging.zip" "$staging"
-          echo "::set-env name=ASSET::$staging.zip"
+          echo "ASSET=$staging.zip" >> $GITHUB_ENV
         else
           cp "target/release/irust" "$staging/"
           tar czf "$staging.tar.gz" "$staging"
-          echo "::set-env name=ASSET::$staging.tar.gz"
+          echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
         fi
 
     - name: Upload release archive
