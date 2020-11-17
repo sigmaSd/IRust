@@ -11,9 +11,9 @@ Cross Platform Rust Repl
 
 **:add** *<dep_list>* => add dependencies (requires [cargo-edit](https://github.com/killercup/cargo-edit)) also it accepts most `cargo-edit` arguments
 
-**:type** *<expression>* => shows the expression type, example `:type vec!(5)`
+**:type** *\<expression\>* => shows the expression type, example `:type vec!(5)`
   
-**:bench** *<expression>* => return the amount of time the expression took to execute. example: `:bech 5+4` `:bench my_fun(arg1,arg2)`
+**:bench** *\<expression\>* => return the amount of time the expression took to execute. example: `:bech 5+4` `:bench my_fun(arg1,arg2)`
 
 **:load** => load a rust file into the repl
 
@@ -27,9 +27,9 @@ Cross Platform Rust Repl
 
 **:cd** => change current working directory
 
-**:color** *<key>* *<value>* => change token highlight color at runtime, for the token list and value representation check the Theme section, exp: `:color function red` `:color macro #ff12ab` `:color reset`
+**:color** *\<key\>* *\<value\>* => change token highlight color at runtime, for the token list and value representation check the Theme section, exp: `:color function red` `:color macro #ff12ab` `:color reset`
 
-**:toolchain** *<value>* => switch between toolchains, supported value are: `stable`, `beta`, `nighty`
+**:toolchain** *\<value\>* => switch between toolchains, supported value are: `stable`, `beta`, `nighty`
   
 **:check_statements** *true*/*false* => If its set to true, irust will check each statemnt (input that ends with ;) with cargo_check before inserting it to the repl
 
