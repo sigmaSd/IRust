@@ -12,6 +12,8 @@ Cross Platform Rust Repl
 **:add** *<dep_list>* => add dependencies (requires [cargo-edit](https://github.com/killercup/cargo-edit)) also it accepts most `cargo-edit` arguments
 
 **:type** *<expression>* => shows the expression type, example `:type vec!(5)`
+  
+**:bench** *<expression>* => return the amount of time the expression took to execute. example: `:bech 5+4` `:bench my_fun(arg1,arg2)`
 
 **:load** => load a rust file into the repl
 
