@@ -1,3 +1,6 @@
+**0.9.4**
+- Add `:bench` command, it measures the time an expression took to execute, example: `:bench my_func(arg1, arg2)`
+
 **0.9.3**
 - Use dirs::cache directory for faster cold startup time (falls back to $temp in case its not specified)
 - Un-silence errors (Remove old let = _)
