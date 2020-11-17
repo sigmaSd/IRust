@@ -28,6 +28,7 @@ impl IRust {
             cmd if cmd.starts_with(":color") => self.color(),
             cmd if cmd.starts_with(":toolchain") => self.toolchain(),
             cmd if cmd.starts_with(":check_statements") => self.check_statements(),
+            cmd if cmd.starts_with(":bench") => self.bench(),
             _ => self.parse_second_order(),
         }
     }
@@ -460,5 +461,37 @@ impl IRust {
         ));
         output.add_new_line(1);
         Ok(output)
+    }
+
+    fn bench(&mut self) -> Result<Printer, IRustError> {
+        let buffer = self.buffer.to_string();
+        let fnn = buffer
+            .splitn(2, ":bench")
+            .nth(1)
+            .ok_or("No function specified")?;
+
+        if fnn.is_empty() {
+            return Err("No function specified".into());
+        }
+
+        let bench = format!(
+            "\
+        use std::time::Instant;
+        let now = Instant::now();
+        {};
+        println!(\"{{:?}}\", now.elapsed());
+        ",
+            fnn,
+        );
+
+        let toolchain = self.options.toolchain;
+        let mut raw_out = String::new();
+        self.repl
+            .eval_in_tmp_repl(bench, || -> Result<(), IRustError> {
+                raw_out = cargo_run(true, toolchain)?;
+                Ok(())
+            })?;
+
+        Ok(format_eval_output(&raw_out).ok_or("failed to bench function")?)
     }
 }
