@@ -1,4 +1,4 @@
-use super::cargo_cmds::ToolChain;
+use super::cargo_cmds::{cargo_bench, ToolChain};
 use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
 use crate::irust::format::{format_check_output, format_err, format_eval_output, output_is_err};
@@ -31,6 +31,7 @@ impl IRust {
             cmd if cmd.starts_with(":check_statements") => self.check_statements(),
             cmd if cmd.starts_with(":time_release") => self.time_release(),
             cmd if cmd.starts_with(":time") => self.time(),
+            cmd if cmd.starts_with(":bench") => self.bench(),
             _ => self.parse_second_order(),
         }
     }
@@ -502,5 +503,12 @@ impl IRust {
             })?;
 
         Ok(format_eval_output(&raw_out).ok_or("failed to bench function")?)
+    }
+
+    fn bench(&mut self) -> Result<Printer, IRustError> {
+        //make sure we have the latest changes in main.rs
+        self.repl.write()?;
+        let out = cargo_bench(self.options.toolchain)?.trim().to_owned();
+        Ok(Printer::new(PrinterItem::new(out, PrinterItemType::Eval)))
     }
 }

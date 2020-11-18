@@ -178,6 +178,14 @@ pub fn cargo_build_output(
     Ok(stdout_and_stderr(output))
 }
 
+pub fn cargo_bench(toolchain: ToolChain) -> Result<String, io::Error> {
+    Ok(stdout_and_stderr(
+        cargo_common!("bench", toolchain)
+            .args(&["--color", "always"])
+            .output()?,
+    ))
+}
+
 fn clean_cargo_toml() -> io::Result<()> {
     // edition needs to be specified or racer will not be able to autocomplete dependencies
     // bug maybe?
