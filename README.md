@@ -13,7 +13,9 @@ Cross Platform Rust Repl
 
 **:type** *\<expression\>* => shows the expression type, example `:type vec!(5)`
   
-**:bench** *\<expression\>* => return the amount of time the expression took to execute. example: `:bech 5+4` `:bench my_fun(arg1,arg2)`
+**:time** *\<expression\>* => return the amount of time the expression took to execute. example: `:time 5+4` `:time my_fun(arg1,arg2)`
+
+**:time_release** *\<expression\>* => same as `time` command but with release mode
 
 **:load** => load a rust file into the repl
 
@@ -32,6 +34,8 @@ Cross Platform Rust Repl
 **:toolchain** *\<value\>* => switch between toolchains, supported value are: `stable`, `beta`, `nighty`
   
 **:check_statements** *true*/*false* => If its set to true, irust will check each statemnt (input that ends with ;) with cargo_check before inserting it to the repl
+
+**:bench** => run `cargo bench`
 
 **::** => run a shell command, example `::ls`
 
