@@ -10,6 +10,7 @@ const SUCCESS: &str = "Ok!";
 
 impl IRust {
     pub fn parse(&mut self) -> Result<Printer, IRustError> {
+        // Order matters in this match
         match self.buffer.to_string().as_str() {
             ":help" => self.help(),
             ":reset" => self.reset(),
@@ -28,7 +29,8 @@ impl IRust {
             cmd if cmd.starts_with(":color") => self.color(),
             cmd if cmd.starts_with(":toolchain") => self.toolchain(),
             cmd if cmd.starts_with(":check_statements") => self.check_statements(),
-            cmd if cmd.starts_with(":bench") => self.bench(),
+            cmd if cmd.starts_with(":time_release") => self.time_release(),
+            cmd if cmd.starts_with(":time") => self.time(),
             _ => self.parse_second_order(),
         }
     }
@@ -245,7 +247,7 @@ impl IRust {
         let toolchain = self.options.toolchain;
         self.repl
             .eval_in_tmp_repl(variable, || -> Result<(), IRustError> {
-                raw_out = cargo_run(false, toolchain)?;
+                raw_out = cargo_run(false, false, toolchain)?;
                 Ok(())
             })?;
 
@@ -463,10 +465,17 @@ impl IRust {
         Ok(output)
     }
 
-    fn bench(&mut self) -> Result<Printer, IRustError> {
+    fn time(&mut self) -> Result<Printer, IRustError> {
+        self.inner_time(":time", false)
+    }
+    fn time_release(&mut self) -> Result<Printer, IRustError> {
+        self.inner_time(":time_release", true)
+    }
+
+    fn inner_time(&mut self, pattern: &str, release: bool) -> Result<Printer, IRustError> {
         let buffer = self.buffer.to_string();
         let fnn = buffer
-            .splitn(2, ":bench")
+            .splitn(2, pattern)
             .nth(1)
             .ok_or("No function specified")?;
 
@@ -474,7 +483,7 @@ impl IRust {
             return Err("No function specified".into());
         }
 
-        let bench = format!(
+        let time = format!(
             "\
         use std::time::Instant;
         let now = Instant::now();
@@ -487,8 +496,8 @@ impl IRust {
         let toolchain = self.options.toolchain;
         let mut raw_out = String::new();
         self.repl
-            .eval_in_tmp_repl(bench, || -> Result<(), IRustError> {
-                raw_out = cargo_run(true, toolchain)?;
+            .eval_in_tmp_repl(time, || -> Result<(), IRustError> {
+                raw_out = cargo_run(true, release, toolchain)?;
                 Ok(())
             })?;
 

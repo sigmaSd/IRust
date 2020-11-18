@@ -92,7 +92,7 @@ impl Repl {
         let mut eval_result = String::new();
 
         self.eval_in_tmp_repl(eval_statement, || -> Result<(), IRustError> {
-            eval_result = cargo_run(true, toolchain)?;
+            eval_result = cargo_run(true, false, toolchain)?;
             Ok(())
         })?;
 
@@ -109,7 +109,7 @@ impl Repl {
 
         self.insert(input);
         self.write()?;
-        let output = cargo_build_output(true, toolchain)?;
+        let output = cargo_build_output(true, false, toolchain)?;
 
         self.body = orig_body;
         self.cursor = orig_cursor;

@@ -20,8 +20,13 @@ pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs")
 pub static MAIN_FILE_EXTERN: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main_extern.rs"));
 #[cfg(windows)]
 pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust.exe"));
+#[cfg(windows)]
+pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
+    Lazy::new(|| IRUST_DIR.join("target/release/irust.exe"));
 #[cfg(not(windows))]
 pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust"));
+#[cfg(not(windows))]
+pub static RELEASE_EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/release/irust"));
 
 #[derive(Debug, Clone, Serialize, Deserialize, Copy)]
 pub enum ToolChain {
@@ -61,8 +66,8 @@ pub fn cargo_new(toolchain: ToolChain) -> Result<(), io::Error> {
     Ok(())
 }
 
-pub fn cargo_run(color: bool, toolchain: ToolChain) -> Result<String, io::Error> {
-    let output = cargo_build_output(color, toolchain)?;
+pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<String, io::Error> {
+    let output = cargo_build_output(color, release, toolchain)?;
 
     if super::format::output_is_err(&output) {
         Ok(output)
@@ -70,9 +75,15 @@ pub fn cargo_run(color: bool, toolchain: ToolChain) -> Result<String, io::Error>
         // Run the exexcutable directly instead of cargo run
         // This allows to run it without modifying the current working directory
         // example: std::process::Commmand::new("pwd") will output the expected path instead of `/tmp/irust`
-        Ok(stdout_and_stderr(
-            std::process::Command::new(&*EXE_PATH).output()?,
-        ))
+        if !release {
+            Ok(stdout_and_stderr(
+                std::process::Command::new(&*EXE_PATH).output()?,
+            ))
+        } else {
+            Ok(stdout_and_stderr(
+                std::process::Command::new(&*RELEASE_EXE_PATH).output()?,
+            ))
+        }
     }
 }
 
@@ -135,7 +146,11 @@ pub fn cargo_build(toolchain: ToolChain) -> Result<std::process::Child, io::Erro
         .spawn()?)
 }
 
-pub fn cargo_build_output(color: bool, toolchain: ToolChain) -> Result<String, io::Error> {
+pub fn cargo_build_output(
+    color: bool,
+    release: bool,
+    toolchain: ToolChain,
+) -> Result<String, io::Error> {
     #[cfg(not(windows))]
     let color = if color { "always" } else { "never" };
     #[cfg(windows)]
@@ -149,11 +164,18 @@ pub fn cargo_build_output(color: bool, toolchain: ToolChain) -> Result<String, i
         "never"
     };
 
-    Ok(stdout_and_stderr(
+    let output = if !release {
         cargo_common!("build", toolchain)
             .args(&["--color", color])
-            .output()?,
-    ))
+            .output()?
+    } else {
+        cargo_common!("build", toolchain)
+            .arg("--release")
+            .args(&["--color", color])
+            .output()?
+    };
+
+    Ok(stdout_and_stderr(output))
 }
 
 fn clean_cargo_toml() -> io::Result<()> {
