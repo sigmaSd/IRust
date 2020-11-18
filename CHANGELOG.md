@@ -1,3 +1,8 @@
+**0.9.5**
+- Changed `:bench` command to `:time`
+- Added `:time_release` => same as time but with release mode
+- Added `:bench` command => runs cargo bench and returns the output
+
 **0.9.4**
 - Add `:bench` command, it measures the time an expression took to execute, example: `:bench my_func(arg1, arg2)`
 
