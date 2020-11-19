@@ -363,7 +363,7 @@ const KEYWORDS: &[&str] = &[
     "async", "while", "use", "super", "self", "Self", "for", "impl", "trait", "type", "pub", "in",
     "const", "static", "match", "use", "mut", "continue", "loop", "break", "if", "else",
 ];
-const KEYWORDS2: &[&str] = &["fn", "let", "struct", "enum", "dyn"];
+const KEYWORDS2: &[&str] = &["move", "fn", "let", "struct", "enum", "dyn"];
 
 const SYMBOLS: &[char] = &[':', '&', '?', '+', '-', '*', '/', '=', '!', ',', ';'];
 const TYPES: &[&str] = &[
