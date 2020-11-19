@@ -1,3 +1,7 @@
+**0.9.6**
+- Highlight matching parenthesis with the same color
+- Clean up and document highlight parsing code
+
 **0.9.5**
 - Changed `:bench` command to `:time`
 - Added `:time_release` => same as time but with release mode
