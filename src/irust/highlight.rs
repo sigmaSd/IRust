@@ -2,25 +2,28 @@ use super::printer::{Printer, PrinterItem, PrinterItemType};
 use crossterm::style::Color;
 pub mod theme;
 
+const PAREN_COLORS: [&str; 4] = ["green", "red", "yellow", "blue"];
 pub fn highlight(c: String, theme: &theme::Theme) -> Printer {
     let mut printer = Printer::default();
 
     for token in parse(c) {
         use Token::*;
         let (string, color) = match token {
-            Keyword(s) => (s, &theme.keyword),
-            Keyword2(s) => (s, &theme.keyword2),
-            Function(s) => (s, &theme.function),
-            Type(s) => (s, &theme.r#type),
-            Number(s) => (s, &theme.number),
-            Symbol(c) => (c.to_string(), &theme.symbol),
-            Macro(s) => (s, &theme.r#macro),
-            StringLiteral(s) => (s, &theme.string_literal),
-            Character(c) => (c.to_string(), &theme.character),
-            LifeTime(s) => (s, &theme.lifetime),
-            Comment(s) => (s, &theme.comment),
-            Const(s) => (s, &theme.r#const),
-            X(s) => (s, &theme.x),
+            Keyword(s) => (s, &theme.keyword[..]),
+            Keyword2(s) => (s, &theme.keyword2[..]),
+            Function(s) => (s, &theme.function[..]),
+            Type(s) => (s, &theme.r#type[..]),
+            Number(s) => (s, &theme.number[..]),
+            Symbol(c) => (c.to_string(), &theme.symbol[..]),
+            Macro(s) => (s, &theme.r#macro[..]),
+            StringLiteral(s) => (s, &theme.string_literal[..]),
+            Character(c) => (c.to_string(), &theme.character[..]),
+            LifeTime(s) => (s, &theme.lifetime[..]),
+            Comment(s) => (s, &theme.comment[..]),
+            Const(s) => (s, &theme.r#const[..]),
+            X(s) => (s, &theme.x[..]),
+            Token::LeftParen(s, idx) => (s.to_string(), PAREN_COLORS[idx.abs() as usize % 4]),
+            Token::RightParen(s, idx) => (s.to_string(), PAREN_COLORS[idx.abs() as usize % 4]),
         };
 
         let color = theme::theme_color_to_term_color(color).unwrap_or(Color::White);
@@ -44,6 +47,8 @@ enum Token {
     Comment(String),
     Const(String),
     X(String),
+    RightParen(char, isize),
+    LeftParen(char, isize),
 }
 
 impl Token {
@@ -69,6 +74,7 @@ fn parse(s: String) -> Vec<Token> {
     let mut alphanumeric = String::new();
     let mut tokens = vec![];
     let mut previous_char = None;
+    let mut paren_idx = 0;
     while let Some(c) = s.next() {
         match c {
             // _ is accepted as variable/function name
@@ -80,7 +86,8 @@ fn parse(s: String) -> Vec<Token> {
                 if !alphanumeric.is_empty() {
                     tokens.push(Token::Function(alphanumeric.drain(..).collect()));
                 }
-                tokens.push(Token::X('('.to_string()));
+                tokens.push(Token::LeftParen('(', paren_idx));
+                paren_idx += 1;
             }
             '<' | '>' => {
                 // maybe type <u8>
@@ -183,7 +190,10 @@ fn parse(s: String) -> Vec<Token> {
             x => {
                 catch_all(&mut alphanumeric, &mut tokens);
 
-                if SYMBOLS.contains(&x) {
+                if x == ')' {
+                    paren_idx -= 1;
+                    tokens.push(Token::RightParen(')', paren_idx));
+                } else if SYMBOLS.contains(&x) {
                     tokens.push(Token::Symbol(x));
                 } else {
                     tokens.push(Token::X(x.to_string()));
