@@ -76,48 +76,39 @@ fn parse(s: String) -> Vec<Token> {
                 alphanumeric.push(c);
             }
             '(' => {
+                // maybe function
                 if !alphanumeric.is_empty() {
                     tokens.push(Token::Function(alphanumeric.drain(..).collect()));
                 }
                 tokens.push(Token::X('('.to_string()));
             }
-            ' ' => {
-                if !alphanumeric.is_empty() {
-                    let token = parse_as(
-                        alphanumeric.drain(..).collect(),
-                        vec![
-                            TokenName::Keyword2,
-                            TokenName::Keyword,
-                            TokenName::Type,
-                            TokenName::Number,
-                        ],
-                    );
-                    tokens.push(token);
-                }
-                tokens.push(Token::X(' '.to_string()));
-            }
             '<' | '>' => {
+                // maybe type <u8>
                 if !alphanumeric.is_empty() {
                     tokens.push(Token::Type(alphanumeric.drain(..).collect()));
                 }
                 tokens.push(Token::Symbol(c));
             }
             '!' => {
+                //maybe macro hello!
                 if !alphanumeric.is_empty() {
                     tokens.push(Token::Macro(alphanumeric.drain(..).collect()));
                 }
                 tokens.push(Token::Symbol(c));
             }
             '\'' => {
+                // maybe character || maybe lifetime
                 if !alphanumeric.is_empty() {
                     tokens.push(Token::X(alphanumeric.drain(..).collect()));
                 }
+                // ' is considered Token::Character in both cases
                 tokens.push(Token::Character(c));
                 if s.peek().is_some() {
                     tokens.extend(parse_character_lifetime(&mut s));
                 }
             }
             '"' => {
+                // maybe literal
                 if !alphanumeric.is_empty() {
                     tokens.push(Token::X(alphanumeric.drain(..).collect()));
                 }
@@ -131,15 +122,20 @@ fn parse(s: String) -> Vec<Token> {
                 }
             }
             ':' => {
-                //collect::<Vec<_>>()
+                // maybe const || maybe function with type annotation
                 if s.peek() == Some(&':') {
+                    // ::
+                    // example: collect::<Vec<_>>()
                     s.next();
                 } else {
+                    // maybe const
+                    // let HELLO: usize =
                     let token = parse_as(alphanumeric.drain(..).collect(), vec![TokenName::Const]);
                     tokens.push(token);
                     tokens.push(Token::Symbol(':'));
                     continue;
                 }
+                // maybe function with type annotation
                 if s.peek() == Some(&'<') {
                     tokens.push(Token::Function(alphanumeric.drain(..).collect()));
                 } else {
@@ -148,6 +144,7 @@ fn parse(s: String) -> Vec<Token> {
                 tokens.extend(vec![Token::Symbol(':'), Token::Symbol(':')]);
             }
             '/' => {
+                // maybe division || maybe comment
                 if !alphanumeric.is_empty() {
                     let token = parse_as(alphanumeric.drain(..).collect(), vec![TokenName::Number]);
                     tokens.push(token);
@@ -184,19 +181,7 @@ fn parse(s: String) -> Vec<Token> {
                 }
             }
             x => {
-                if !alphanumeric.is_empty() {
-                    let token = parse_as(
-                        alphanumeric.drain(..).collect(),
-                        vec![
-                            TokenName::Const,
-                            TokenName::Keyword,
-                            TokenName::Keyword2,
-                            TokenName::Number,
-                            TokenName::Type,
-                        ],
-                    );
-                    tokens.push(token);
-                }
+                catch_all(&mut alphanumeric, &mut tokens);
 
                 if SYMBOLS.contains(&x) {
                     tokens.push(Token::Symbol(x));
@@ -207,19 +192,30 @@ fn parse(s: String) -> Vec<Token> {
         }
         previous_char = Some(c);
     }
+
+    // leftover
+    if !alphanumeric.is_empty() {
+        catch_all(&mut alphanumeric, &mut tokens);
+    }
+
+    tokens
+}
+
+fn catch_all(alphanumeric: &mut String, tokens: &mut Vec<Token>) {
+    // catch all: parse the alphanumeric buffer
     if !alphanumeric.is_empty() {
         let token = parse_as(
             alphanumeric.drain(..).collect(),
             vec![
-                TokenName::Keyword2,
+                TokenName::Const,
                 TokenName::Keyword,
-                TokenName::Type,
+                TokenName::Keyword2,
                 TokenName::Number,
+                TokenName::Type,
             ],
         );
         tokens.push(token);
     }
-    tokens
 }
 
 fn parse_character_lifetime(s: &mut std::iter::Peekable<impl Iterator<Item = char>>) -> Vec<Token> {
