@@ -354,8 +354,8 @@ fn is_const(p: &Token) -> bool {
 //      red blue  green     blue red white
 // exp: pub fn    hello()   let  mut var
 const KEYWORDS: &[&str] = &[
-    "while", "use", "super", "self", "Self", "for", "impl", "trait", "type", "pub", "in", "const",
-    "static", "match", "use", "mut", "continue", "loop", "break", "if", "else",
+    "async", "while", "use", "super", "self", "Self", "for", "impl", "trait", "type", "pub", "in",
+    "const", "static", "match", "use", "mut", "continue", "loop", "break", "if", "else",
 ];
 const KEYWORDS2: &[&str] = &["fn", "let", "struct", "enum", "dyn"];
 
