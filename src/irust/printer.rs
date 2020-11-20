@@ -173,7 +173,6 @@ impl IRust {
 
             self.raw_terminal.set_fg(color)?;
             if StringTools::is_multiline(&output.string) {
-                self.cursor.goto_next_row_terminal_start();
                 for line in output.string.split('\n') {
                     self.raw_terminal.write(line)?;
                     self.raw_terminal.write("\r\n")?;
