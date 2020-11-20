@@ -198,6 +198,7 @@ impl IRust {
         self.theme.save()?;
         self.write_newline()?;
         super::RawTerminal::disable_raw_mode()?;
+        self.cursor.show();
         Ok(())
     }
 
