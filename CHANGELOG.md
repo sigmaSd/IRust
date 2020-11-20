@@ -1,3 +1,6 @@
+**0.9.7**
+- Flamegraph based performance optimizations
+
 **0.9.6**
 - Highlight matching parenthesis with the same color
 - Clean up and document highlight parsing code
