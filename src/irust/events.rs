@@ -55,7 +55,6 @@ impl IRust {
             self.print_output(output)?;
         }
 
-        //self.print_input()?;
         self.write_from_terminal_start(super::IN, Color::Yellow)?;
 
         self.cursor.show();
