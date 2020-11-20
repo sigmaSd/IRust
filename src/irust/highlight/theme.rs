@@ -1,7 +1,6 @@
 use crate::irust::IRustError;
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
-use std::convert::TryFrom;
 use std::io::Write;
 
 pub fn theme() -> Result<Theme, IRustError> {
@@ -82,6 +81,26 @@ pub fn theme_color_to_term_color(color: &str) -> Option<Color> {
         };
         parse()
     } else {
-        Color::try_from(color).ok()
+        // we only support lowercase for performance
+        // because this is a hot path
+        match color {
+            "black" => Some(Color::Black),
+            "dark_grey" => Some(Color::DarkGrey),
+            "red" => Some(Color::Red),
+            "dark_red" => Some(Color::DarkRed),
+            "green" => Some(Color::Green),
+            "dark_green" => Some(Color::DarkGreen),
+            "yellow" => Some(Color::Yellow),
+            "dark_yellow" => Some(Color::DarkYellow),
+            "blue" => Some(Color::Blue),
+            "dark_blue" => Some(Color::DarkBlue),
+            "magenta" => Some(Color::Magenta),
+            "dark_magenta" => Some(Color::DarkMagenta),
+            "cyan" => Some(Color::Cyan),
+            "dark_cyan" => Some(Color::DarkCyan),
+            "white" => Some(Color::White),
+            "grey" => Some(Color::Grey),
+            _ => None,
+        }
     }
 }

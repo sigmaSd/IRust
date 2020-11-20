@@ -18,3 +18,7 @@ notify = "4.0.15"
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.19.0"
+
+# flamegraph
+# [profile.release]
+# debug = true

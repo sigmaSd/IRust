@@ -36,10 +36,6 @@ impl Printer {
     pub fn is_empty(&self) -> bool {
         self.items.is_empty()
     }
-
-    pub fn iter(&self) -> impl Iterator<Item = &PrinterItem> {
-        self.items.iter()
-    }
 }
 
 impl Iterator for Printer {
@@ -129,8 +125,6 @@ impl IRust {
         for elem in printer {
             match elem.string_type {
                 PrinterItemType::Custom(color) => {
-                    self.raw_terminal.set_fg(color)?;
-
                     for c in elem.string.chars() {
                         if c == '\n' {
                             self.cursor.bound_current_row_at_current_col();
@@ -160,8 +154,6 @@ impl IRust {
     }
 
     pub fn print_output(&mut self, printer: Printer) -> Result<(), IRustError> {
-        self.scroll_if_needed_for_printer(&printer);
-
         for output in printer {
             let color = match output.string_type {
                 PrinterItemType::Eval => self.options.eval_color,
@@ -181,7 +173,6 @@ impl IRust {
 
             self.raw_terminal.set_fg(color)?;
             if StringTools::is_multiline(&output.string) {
-                self.cursor.goto_next_row_terminal_start();
                 for line in output.string.split('\n') {
                     self.raw_terminal.write(line)?;
                     self.raw_terminal.write("\r\n")?;
@@ -192,13 +183,13 @@ impl IRust {
             } else {
                 self.raw_terminal.write(&output.string)?;
             }
-            self.scroll_if_needed_for_output(&output.string)?;
         }
+        self.readjust_cursor_pos()?;
 
         Ok(())
     }
 
-    // scrolling fns
+    // helper fns
 
     fn scroll_if_needed_for_input(&mut self) {
         let input_last_row = self.cursor.input_last_pos(&self.buffer).1;
@@ -208,27 +199,14 @@ impl IRust {
         }
     }
 
-    fn scroll_if_needed_for_printer(&mut self, printer: &Printer) {
-        // check if need to scroll
-        let new_lines = printer
-            .iter()
-            .filter(|p| p.string_type == PrinterItemType::NewLine)
-            .count();
-
-        let height_overflow = self.cursor.screen_height_overflow_by_new_lines(new_lines);
-        if height_overflow > 0 {
-            self.scroll_up(height_overflow);
-        }
-    }
-    fn scroll_if_needed_for_output(&mut self, output: &str) -> Result<(), IRustError> {
+    fn readjust_cursor_pos(&mut self) -> Result<(), IRustError> {
         // check if we did scroll automatically
-        // if we did scroll the terminal by another row
-        // and update current_pos.1 to the height of the terminal (-1)
-        let new_lines = StringTools::new_lines_count(output);
-        let height_overflow = self.cursor.screen_height_overflow_by_new_lines(new_lines);
-        if height_overflow > 0 {
+        // if we did scroll, then scroll the terminal by another row
+        // and update current_pos.1  and starting_pos.1 to the height of the terminal (-1)
+        if self.cursor.pos.current_pos.1 > self.cursor.bound.height - 1 {
             self.raw_terminal.scroll_up(1)?;
             self.cursor.pos.current_pos.1 = self.cursor.bound.height - 1;
+            self.cursor.pos.starting_pos.1 = self.cursor.bound.height - 1;
         }
         Ok(())
     }

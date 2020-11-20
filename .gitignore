@@ -13,3 +13,4 @@
 !.gitignore
 !Cargo.lock
 !TODO
+!flamegraph.svg

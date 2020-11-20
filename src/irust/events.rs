@@ -55,7 +55,6 @@ impl IRust {
             self.print_output(output)?;
         }
 
-        self.print_input()?;
         self.write_from_terminal_start(super::IN, Color::Yellow)?;
 
         self.cursor.show();
@@ -199,6 +198,7 @@ impl IRust {
         self.theme.save()?;
         self.write_newline()?;
         super::RawTerminal::disable_raw_mode()?;
+        self.cursor.show();
         Ok(())
     }
 
