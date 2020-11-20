@@ -129,8 +129,6 @@ impl IRust {
         for elem in printer {
             match elem.string_type {
                 PrinterItemType::Custom(color) => {
-                    self.raw_terminal.set_fg(color)?;
-
                     for c in elem.string.chars() {
                         if c == '\n' {
                             self.cursor.bound_current_row_at_current_col();

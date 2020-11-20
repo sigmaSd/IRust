@@ -47,6 +47,7 @@ pub struct IRust {
     racer: Result<Racer, IRustError>,
     known_paths: KnownPaths,
     theme: Theme,
+    writer: Writer,
 }
 
 impl IRust {
@@ -82,6 +83,7 @@ impl IRust {
             buffer,
             known_paths,
             theme,
+            writer: Writer::default(),
         }
     }
 
@@ -321,6 +323,8 @@ fn watch(tx: Sender<IRustEvent>) -> Result<(), std::io::Error> {
 }
 
 use std::thread;
+
+use self::writer::Writer;
 fn input_read(tx: Sender<IRustEvent>) -> Result<std::thread::JoinHandle<()>, std::io::Error> {
     std::thread::Builder::new()
         .name("Input".into())

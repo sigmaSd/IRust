@@ -2,14 +2,23 @@ use crossterm::{style::Color, terminal::ClearType};
 
 use crate::irust::{IRust, IRustError};
 
+#[derive(Default)]
+pub struct Writer {
+    last_color: Option<Color>,
+}
+
 impl IRust {
     pub fn write(&mut self, out: &str, color: Color) -> Result<(), IRustError> {
-        self.raw_terminal.set_fg(color)?;
+        if self.writer.last_color != Some(color) {
+            self.raw_terminal.set_fg(color)?;
+        }
+
         for c in out.chars() {
             self.raw_terminal.write(c)?;
             self.cursor.move_right_unbounded();
         }
-        self.raw_terminal.reset_color()?;
+
+        self.writer.last_color = Some(color);
         Ok(())
     }
 
