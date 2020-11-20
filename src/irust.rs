@@ -28,6 +28,7 @@ mod raw_terminal;
 use highlight::theme::Theme;
 use known_paths::KnownPaths;
 use raw_terminal::RawTerminal;
+use writer::Writer;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
@@ -322,9 +323,6 @@ fn watch(tx: Sender<IRustEvent>) -> Result<(), std::io::Error> {
     Ok(())
 }
 
-use std::thread;
-
-use self::writer::Writer;
 fn input_read(tx: Sender<IRustEvent>) -> Result<std::thread::JoinHandle<()>, std::io::Error> {
     std::thread::Builder::new()
         .name("Input".into())
@@ -334,7 +332,7 @@ fn input_read(tx: Sender<IRustEvent>) -> Result<std::thread::JoinHandle<()>, std
                 let ev = read()?;
                 tx.send(IRustEvent::Input(ev))
                     .map_err(|e| format!("Could not send input event, error: {}", e))?;
-                thread::park();
+                std::thread::park();
                 Ok(())
             };
 

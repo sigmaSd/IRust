@@ -9,6 +9,7 @@ pub struct Writer {
 
 impl IRust {
     pub fn write(&mut self, out: &str, color: Color) -> Result<(), IRustError> {
+        // Performance: set_fg only when needed
         if self.writer.last_color != Some(color) {
             self.raw_terminal.set_fg(color)?;
         }
