@@ -131,7 +131,7 @@ impl IRust {
                             self.cursor.goto_next_row_terminal_start();
                             self.write("..: ", Color::Yellow)?;
                         } else {
-                            self.write(&c.to_string(), color)?;
+                            self.write_char_with_color(c, color)?;
                             if self.cursor.is_at_last_terminal_col() {
                                 self.cursor.bound_current_row_at_current_col();
                             }
@@ -178,7 +178,7 @@ impl IRust {
                     self.raw_terminal.write("\r\n")?;
                     self.cursor.pos.current_pos.1 += 1;
                 }
-            } else if output.string == '\n'.to_string() {
+            } else if &output.string == "\n" {
                 // check if we need to scroll up
                 if self.cursor.pos.current_pos.1 >= self.cursor.bound.height - 1 {
                     self.raw_terminal.scroll_up(1)?;
