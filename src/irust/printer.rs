@@ -179,6 +179,10 @@ impl IRust {
                     self.cursor.pos.current_pos.1 += 1;
                 }
             } else if output.string == '\n'.to_string() {
+                // check if we need to scroll up
+                if self.cursor.pos.current_pos.1 >= self.cursor.bound.height - 1 {
+                    self.raw_terminal.scroll_up(1)?;
+                }
                 self.cursor.goto_next_row_terminal_start();
             } else {
                 self.raw_terminal.write(&output.string)?;
