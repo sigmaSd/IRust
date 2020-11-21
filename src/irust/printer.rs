@@ -2,31 +2,28 @@ use super::highlight::highlight;
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
 use crossterm::{style::Color, terminal::ClearType};
+use std::collections::VecDeque;
 use std::iter::FromIterator;
 
 #[derive(Debug, Default, Clone)]
 pub struct Printer {
-    items: Vec<PrinterItem>,
+    items: VecDeque<PrinterItem>,
 }
 impl Printer {
     pub fn new(output: PrinterItem) -> Self {
-        Self {
-            items: vec![output],
-        }
+        let mut printer = VecDeque::new();
+        printer.push_back(output);
+        Self { items: printer }
     }
 
     pub fn add_new_line(&mut self, num: usize) {
         for _ in 0..num {
-            self.items.push(PrinterItem::default());
+            self.items.push_back(PrinterItem::default());
         }
     }
 
     pub fn push(&mut self, output: PrinterItem) {
-        self.items.push(output);
-    }
-
-    pub fn _pop(&mut self) -> Option<PrinterItem> {
-        self.items.pop()
+        self.items.push_back(output);
     }
 
     pub fn append(&mut self, other: &mut Self) {
@@ -42,11 +39,7 @@ impl Iterator for Printer {
     type Item = PrinterItem;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if !self.items.is_empty() {
-            Some(self.items.remove(0))
-        } else {
-            None
-        }
+        self.items.pop_front()
     }
 }
 
