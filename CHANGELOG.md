@@ -1,3 +1,7 @@
+**0.9.8**
+- More performance optimizations
+- Fix scrolling regression
+
 **0.9.7**
 - Flamegraph based performance optimizations
 
