@@ -1,4 +1,9 @@
 **0.9.8**
+- Fix `:add .` on windows
+- More resilient build errors detection
+- Fix `:load` regression
+
+**0.9.8**
 - More performance optimizations
 - Fix scrolling regression
 
