@@ -3,14 +3,9 @@ use crate::irust::{
     OUT,
 };
 
-pub fn output_is_err(output: &str) -> bool {
-    output.contains(" could not compile `") || output.contains("error: toolchain '")
-}
-
 pub fn format_err(output: &str) -> Printer {
     let mut eval_output = Printer::default();
     let lines_count = output.lines().count();
-
     let actual_error = if lines_count > 8 {
         output
             .lines()
@@ -25,22 +20,20 @@ pub fn format_err(output: &str) -> Printer {
     eval_output
 }
 
-pub fn format_eval_output(output: &str) -> Option<Printer> {
+pub fn format_eval_output(status: std::process::ExitStatus, output: String) -> Option<Printer> {
+    if !status.success() {
+        return Some(format_err(&output));
+    }
     if output.trim() == "()" {
         return None;
     }
 
-    if output_is_err(&output) {
-        Some(format_err(&output))
-    } else {
-        let mut eval_output = Printer::default();
-        eval_output.push(PrinterItem::new(OUT.into(), PrinterItemType::Out));
-        eval_output.push(PrinterItem::new(output.into(), PrinterItemType::Eval));
-        Some(eval_output)
-    }
+    let mut eval_output = Printer::default();
+    eval_output.push(PrinterItem::new(OUT.into(), PrinterItemType::Out));
+    eval_output.push(PrinterItem::new(output, PrinterItemType::Eval));
+    Some(eval_output)
 }
 
-// Note: Maybe use this for cargo build as well
 fn check_is_err(s: &str) -> bool {
     !s.contains("dev [unoptimized + debuginfo]")
 }

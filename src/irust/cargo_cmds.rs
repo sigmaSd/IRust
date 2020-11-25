@@ -7,7 +7,7 @@ use std::fs;
 use std::io;
 use std::io::prelude::*;
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, ExitStatus};
 
 // TODO:
 // Move these paths to KnownPaths struct
@@ -66,22 +66,28 @@ pub fn cargo_new(toolchain: ToolChain) -> Result<(), io::Error> {
     Ok(())
 }
 
-pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<String, io::Error> {
-    let output = cargo_build_output(color, release, toolchain)?;
+pub fn cargo_run(
+    color: bool,
+    release: bool,
+    toolchain: ToolChain,
+) -> Result<(ExitStatus, String), IRustError> {
+    let (status, output) = cargo_build_output(color, release, toolchain)?;
 
-    if super::format::output_is_err(&output) {
-        Ok(output)
+    if !status.success() {
+        Ok((status, output))
     } else {
         // Run the exexcutable directly instead of cargo run
         // This allows to run it without modifying the current working directory
         // example: std::process::Commmand::new("pwd") will output the expected path instead of `/tmp/irust`
         if !release {
-            Ok(stdout_and_stderr(
-                std::process::Command::new(&*EXE_PATH).output()?,
+            Ok((
+                status,
+                stdout_and_stderr(std::process::Command::new(&*EXE_PATH).output()?),
             ))
         } else {
-            Ok(stdout_and_stderr(
-                std::process::Command::new(&*RELEASE_EXE_PATH).output()?,
+            Ok((
+                status,
+                stdout_and_stderr(std::process::Command::new(&*RELEASE_EXE_PATH).output()?),
             ))
         }
     }
@@ -150,7 +156,7 @@ pub fn cargo_build_output(
     color: bool,
     release: bool,
     toolchain: ToolChain,
-) -> Result<String, io::Error> {
+) -> Result<(ExitStatus, String), io::Error> {
     #[cfg(not(windows))]
     let color = if color { "always" } else { "never" };
     #[cfg(windows)]
@@ -174,8 +180,9 @@ pub fn cargo_build_output(
             .args(&["--color", color])
             .output()?
     };
+    let status = output.status;
 
-    Ok(stdout_and_stderr(output))
+    Ok((status, stdout_and_stderr(output)))
 }
 
 pub fn cargo_bench(toolchain: ToolChain) -> Result<String, io::Error> {

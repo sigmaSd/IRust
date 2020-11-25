@@ -1,7 +1,7 @@
 use super::cargo_cmds::{cargo_bench, ToolChain};
 use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
-use crate::irust::format::{format_check_output, format_err, format_eval_output, output_is_err};
+use crate::irust::format::{format_check_output, format_err, format_eval_output};
 use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
 use crate::irust::{IRust, IRustError};
 use crate::utils::{remove_main, stdout_and_stderr};
@@ -230,9 +230,9 @@ impl IRust {
         let code = remove_main(&code);
 
         // build the code
-        let output = self.repl.eval_build(code.clone(), self.options.toolchain)?;
+        let (status, output) = self.repl.eval_build(code.clone(), self.options.toolchain)?;
 
-        if output_is_err(&output) {
+        if !status.success() {
             Ok(format_err(&output))
         } else {
             self.repl.insert(code);
@@ -262,7 +262,8 @@ impl IRust {
         let toolchain = self.options.toolchain;
         self.repl
             .eval_in_tmp_repl(variable, || -> Result<(), IRustError> {
-                raw_out = cargo_run(false, false, toolchain)?;
+                let (_status, out) = cargo_run(false, false, toolchain)?;
+                raw_out = out;
                 Ok(())
             })?;
 
@@ -371,11 +372,10 @@ impl IRust {
             Ok(printer)
         } else {
             let mut outputs = Printer::default();
-            if let Some(mut eval_output) = format_eval_output(
-                &self
-                    .repl
-                    .eval(self.buffer.to_string(), self.options.toolchain)?,
-            ) {
+            let (status, out) = self
+                .repl
+                .eval(self.buffer.to_string(), self.options.toolchain)?;
+            if let Some(mut eval_output) = format_eval_output(status, out) {
                 outputs.append(&mut eval_output);
                 outputs.add_new_line(1);
             }
@@ -510,13 +510,17 @@ impl IRust {
 
         let toolchain = self.options.toolchain;
         let mut raw_out = String::new();
+        let mut status = None;
         self.repl
             .eval_in_tmp_repl(time, || -> Result<(), IRustError> {
-                raw_out = cargo_run(true, release, toolchain)?;
+                let (s, out) = cargo_run(true, release, toolchain)?;
+                raw_out = out;
+                status = Some(s);
                 Ok(())
             })?;
 
-        Ok(format_eval_output(&raw_out).ok_or("failed to bench function")?)
+        // safe unwrap
+        Ok(format_eval_output(status.unwrap(), raw_out).ok_or("failed to bench function")?)
     }
 
     fn bench(&mut self) -> Result<Printer, IRustError> {

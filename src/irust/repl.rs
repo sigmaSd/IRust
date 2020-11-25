@@ -1,6 +1,7 @@
 use super::cargo_cmds::*;
 use super::IRustError;
 use std::io::{self, Write};
+use std::process::ExitStatus;
 
 #[derive(Clone)]
 pub struct Repl {
@@ -86,34 +87,42 @@ impl Repl {
         Ok(())
     }
 
-    pub fn eval(&mut self, input: String, toolchain: ToolChain) -> Result<String, IRustError> {
+    pub fn eval(
+        &mut self,
+        input: String,
+        toolchain: ToolChain,
+    ) -> Result<(ExitStatus, String), IRustError> {
         // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut eval_result = String::new();
+        let mut status = None;
 
         self.eval_in_tmp_repl(eval_statement, || -> Result<(), IRustError> {
-            eval_result = cargo_run(true, false, toolchain)?;
+            let (s, result) = cargo_run(true, false, toolchain)?;
+            eval_result = result;
+            status = Some(s);
             Ok(())
         })?;
+        // status is guarenteed to be some
 
-        Ok(eval_result)
+        Ok((status.unwrap(), eval_result))
     }
 
     pub fn eval_build(
         &mut self,
         input: String,
         toolchain: ToolChain,
-    ) -> Result<String, IRustError> {
+    ) -> Result<(ExitStatus, String), IRustError> {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
         self.insert(input);
         self.write()?;
-        let output = cargo_build_output(true, false, toolchain)?;
+        let (status, output) = cargo_build_output(true, false, toolchain)?;
 
         self.body = orig_body;
         self.cursor = orig_cursor;
-        Ok(output)
+        Ok((status, output))
     }
 
     pub fn eval_in_tmp_repl(
