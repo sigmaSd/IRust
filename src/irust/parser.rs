@@ -108,6 +108,8 @@ impl IRust {
         // This is necessary because `:add relative_path` doesn't work without it
         // Note this might be a bit too aggressive (an argument might be canonicalized, that the user didn't not intend for it to be considered as a path)
         // But the usefulness of this trick, outways this possible edge case
+        // canonicalize is problamatic on windows -> need to handle extended path
+        #[cfg(unix)]
         for p in dep.iter_mut() {
             let path = std::path::Path::new(p);
             if path.exists() {
@@ -116,6 +118,18 @@ impl IRust {
                         *p = full_path.to_string();
                     }
                 }
+            }
+        }
+        // But still the most common case is `:add .` so we can special case that
+        #[cfg(windows)]
+        for p in dep.iter_mut() {
+            if p == "." {
+                *p = self
+                    .known_paths
+                    .get_cwd()
+                    .to_str()
+                    .ok_or("Error parsing path to dependecy")?
+                    .to_string();
             }
         }
 
