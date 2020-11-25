@@ -236,6 +236,10 @@ impl IRust {
             Ok(format_err(&output))
         } else {
             self.repl.insert(code);
+            // save repl to main_extern.rs which can be used with external editors
+            self.repl.write_to_extern()?;
+            cargo_fmt_file(&*MAIN_FILE_EXTERN);
+
             let mut outputs =
                 Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
             outputs.add_new_line(1);

@@ -46,6 +46,9 @@ impl Repl {
         Ok(())
     }
 
+    // Note: Insert must be followed by write_to_extern if persistance is needed
+    // Or else it will be overwritten by the main_extern thread
+    // Fix this
     pub fn insert(&mut self, input: String) {
         // CRATE_ATTRIBUTE are special in the sense that they should be inserted outside of the main function
         // #![feature(unboxed_closures)]
