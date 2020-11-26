@@ -1,6 +1,6 @@
 use super::racer::Cycle;
 use super::{CTRL_KEYMODIFIER, NO_MODIFIER};
-use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
+use crate::irust::printer::{Printer, PrinterItem};
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
 use crossterm::{event::*, style::Color, terminal::ClearType};
@@ -40,7 +40,11 @@ impl IRust {
         // parse and handle errors
         let mut output = match self.parse() {
             Ok(out) => out,
-            Err(e) => Printer::new(PrinterItem::new(e.to_string(), PrinterItemType::Err)),
+            Err(e) => {
+                let mut printer = Printer::new();
+                printer.push(PrinterItem::String(e.to_string(), self.options.err_color));
+                printer
+            }
         };
 
         // ensure buffer is cleaned
