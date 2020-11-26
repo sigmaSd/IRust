@@ -26,11 +26,14 @@ pub fn highlight(c: String, theme: &theme::Theme) -> Printer {
             Symbol(c) => push_char_to_printer(&mut printer, c, &theme.symbol[..]),
             Macro(s) => push_str_to_printer(&mut printer, s, &theme.r#macro[..]),
             StringLiteral(s) => push_str_to_printer(&mut printer, s, &theme.string_literal[..]),
+            StringLiteralC(c) => push_char_to_printer(&mut printer, c, &theme.string_literal[..]),
             Character(c) => push_char_to_printer(&mut printer, c, &theme.character[..]),
             LifeTime(s) => push_str_to_printer(&mut printer, s, &theme.lifetime[..]),
             Comment(s) => push_str_to_printer(&mut printer, s, &theme.comment[..]),
+            CommentC(c) => push_char_to_printer(&mut printer, c, &theme.comment[..]),
             Const(s) => push_str_to_printer(&mut printer, s, &theme.r#const[..]),
             X(s) => push_str_to_printer(&mut printer, s, &theme.x[..]),
+            XC(c) => push_char_to_printer(&mut printer, c, &theme.x[..]),
             Token::LeftParen(s, idx) => {
                 push_char_to_printer(&mut printer, s, PAREN_COLORS[idx.abs() as usize % 4])
             }
@@ -55,11 +58,14 @@ enum Token {
     Macro(String),
     Symbol(char),
     StringLiteral(String),
+    StringLiteralC(char),
     Character(char),
     LifeTime(String),
     Comment(String),
+    CommentC(char),
     Const(String),
     X(String),
+    XC(char),
     RightParen(char, isize),
     LeftParen(char, isize),
     NewLine,
@@ -134,9 +140,9 @@ fn parse(s: String) -> Vec<Token> {
                     tokens.push(Token::X(alphanumeric.drain(..).collect()));
                 }
                 if let Some('\\') = previous_char {
-                    tokens.push(Token::StringLiteral(c.to_string()));
+                    tokens.push(Token::StringLiteralC(c));
                 } else {
-                    tokens.push(Token::StringLiteral('"'.to_string()));
+                    tokens.push(Token::StringLiteralC('"'));
                     if s.peek().is_some() {
                         tokens.extend(parse_string_literal(&mut s));
                     }
@@ -177,12 +183,12 @@ fn parse(s: String) -> Vec<Token> {
                         '*'
                     };
 
-                    tokens.push(Token::Comment('/'.to_string()));
+                    tokens.push(Token::CommentC('/'));
                     let mut comment = String::new();
                     while let Some(c) = s.next() {
                         if c == end && end == '\n' {
                             tokens.push(Token::Comment(comment.drain(..).collect()));
-                            tokens.push(Token::X('\n'.to_string()));
+                            tokens.push(Token::NewLine);
                             break;
                         } else if c == end && s.peek() == Some(&'/') {
                             // consume /
@@ -212,7 +218,7 @@ fn parse(s: String) -> Vec<Token> {
                 } else if SYMBOLS.contains(&x) {
                     tokens.push(Token::Symbol(x));
                 } else {
-                    tokens.push(Token::X(x.to_string()));
+                    tokens.push(Token::XC(x));
                 }
             }
         }
@@ -296,7 +302,7 @@ fn parse_string_literal(s: &mut impl Iterator<Item = char>) -> Vec<Token> {
             // we reached the end
             return vec![
                 Token::StringLiteral(string_literal),
-                Token::StringLiteral('"'.to_string()),
+                Token::StringLiteralC('"'),
             ];
         } else {
             string_literal.push(c);
