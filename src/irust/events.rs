@@ -41,7 +41,7 @@ impl IRust {
         let mut output = match self.parse() {
             Ok(out) => out,
             Err(e) => {
-                let mut printer = Printer::new();
+                let mut printer = Printer::default();
                 printer.push(PrinterItem::String(e.to_string(), self.options.err_color));
                 printer
             }

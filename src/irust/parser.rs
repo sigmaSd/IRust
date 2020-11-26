@@ -12,7 +12,7 @@ const SUCCESS: &str = "Ok!";
 
 macro_rules! printer {
     ($item: expr, $color: expr) => {{
-        let mut printer = Printer::new();
+        let mut printer = Printer::default();
         printer.push(PrinterItem::String($item, $color));
         printer.add_new_line(1);
 

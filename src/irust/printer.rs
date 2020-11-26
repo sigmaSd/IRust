@@ -8,12 +8,6 @@ pub struct Printer {
     items: VecDeque<PrinterItem>,
 }
 impl Printer {
-    pub fn new() -> Self {
-        Self {
-            items: VecDeque::new(),
-        }
-    }
-
     pub fn add_new_line(&mut self, num: usize) {
         for _ in 0..num {
             self.items.push_back(PrinterItem::NewLine);
