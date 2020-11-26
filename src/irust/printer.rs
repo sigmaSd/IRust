@@ -39,6 +39,7 @@ impl Iterator for Printer {
 pub enum PrinterItem {
     Char(char, Color),
     String(String, Color),
+    Str(&'static str, Color),
     NewLine,
 }
 
@@ -64,9 +65,10 @@ impl IRust {
         for item in printer {
             match item {
                 PrinterItem::String(string, color) => {
-                    for c in string.chars() {
-                        self.print_char(c, color)?;
-                    }
+                    self.print_str(&string, color)?;
+                }
+                PrinterItem::Str(string, color) => {
+                    self.print_str(&string, color)?;
                 }
                 PrinterItem::Char(c, color) => {
                     self.print_char(c, color)?;
@@ -79,6 +81,13 @@ impl IRust {
             }
         }
 
+        Ok(())
+    }
+
+    fn print_str(&mut self, string: &str, color: Color) -> Result<(), IRustError> {
+        for c in string.chars() {
+            self.print_char(c, color)?;
+        }
         Ok(())
     }
 
@@ -101,10 +110,10 @@ impl IRust {
                     self.raw_terminal.write(c)?;
                 }
                 PrinterItem::String(string, color) => {
-                    self.raw_terminal.set_fg(color)?;
-                    self.raw_terminal.write(&string.replace('\n', "\r\n"))?;
-                    let rows = string.match_indices('\n').count();
-                    self.cursor.pos.current_pos.1 += rows;
+                    self.print_out_str(&string, color)?;
+                }
+                PrinterItem::Str(string, color) => {
+                    self.print_out_str(&string, color)?;
                 }
                 PrinterItem::NewLine => {
                     if self.cursor.pos.current_pos.1 >= self.cursor.bound.height - 1 {
@@ -120,7 +129,13 @@ impl IRust {
         Ok(())
     }
 
-    // helper fns
+    fn print_out_str(&mut self, string: &str, color: Color) -> Result<(), IRustError> {
+        self.raw_terminal.set_fg(color)?;
+        self.raw_terminal.write(&string.replace('\n', "\r\n"))?;
+        let rows = string.match_indices('\n').count();
+        self.cursor.pos.current_pos.1 += rows;
+        Ok(())
+    }
 
     fn scroll_if_needed_for_input(&mut self) {
         let input_last_row = self.cursor.input_last_pos(&self.buffer).1;

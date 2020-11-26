@@ -32,7 +32,7 @@ pub fn format_eval_output(status: std::process::ExitStatus, output: String) -> O
     }
 
     let mut eval_output = Printer::default();
-    eval_output.push(PrinterItem::String(OUT.into(), Color::Red));
+    eval_output.push(PrinterItem::Str(OUT, Color::Red));
     eval_output.push(PrinterItem::String(output, Color::White));
     Some(eval_output)
 }

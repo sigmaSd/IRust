@@ -10,6 +10,15 @@ use crate::utils::{remove_main, stdout_and_stderr};
 
 const SUCCESS: &str = "Ok!";
 
+macro_rules! success {
+    () => {{
+        let mut printer = Printer::default();
+        printer.push(PrinterItem::Str(SUCCESS, Color::Blue));
+        printer.add_new_line(1);
+
+        Ok(printer)
+    }};
+}
 macro_rules! printer {
     ($item: expr, $color: expr) => {{
         let mut printer = Printer::default();
@@ -50,12 +59,12 @@ impl IRust {
 
     fn reset(&mut self) -> Result<Printer, IRustError> {
         self.repl.reset(self.options.toolchain)?;
-        printer!(SUCCESS.into(), self.options.ok_color)
+        success!()
     }
 
     fn pop(&mut self) -> Result<Printer, IRustError> {
         self.repl.pop();
-        printer!(SUCCESS.into(), self.options.ok_color)
+        success!()
     }
 
     fn check_statements(&mut self) -> Result<Printer, IRustError> {
@@ -63,14 +72,14 @@ impl IRust {
         let buffer = self.buffer.to_string();
         let buffer = buffer.split_whitespace().nth(1).ok_or(ERROR)?;
         self.options.check_statements = buffer.parse().map_err(|_| ERROR)?;
-        printer!(SUCCESS.into(), self.options.ok_color)
+        success!()
     }
 
     fn del(&mut self) -> Result<Printer, IRustError> {
         if let Some(line_num) = self.buffer.to_string().split_whitespace().last() {
             self.repl.del(line_num)?;
         }
-        printer!(SUCCESS.into(), self.options.ok_color)
+        success!()
     }
 
     fn show(&mut self) -> Result<Printer, IRustError> {
@@ -86,7 +95,7 @@ impl IRust {
                 .nth(1)
                 .unwrap_or("?"),
         )?;
-        printer!(SUCCESS.into(), self.options.ok_color)
+        success!()
     }
 
     fn add_dep(&mut self) -> Result<Printer, IRustError> {
@@ -139,7 +148,7 @@ impl IRust {
         }
         self.write_newline()?;
 
-        printer!(SUCCESS.into(), self.options.ok_color)
+        success!()
     }
 
     fn color(&mut self) -> Result<Printer, IRustError> {
@@ -149,7 +158,7 @@ impl IRust {
         // reset theme
         if buffer.peek() == Some(&"reset") {
             self.theme.reset();
-            return printer!(SUCCESS.into(), self.options.ok_color);
+            return success!();
         }
 
         let mut parse = || -> Result<(), IRustError> {
@@ -175,7 +184,7 @@ impl IRust {
             return Err(e);
         }
 
-        printer!(SUCCESS.into(), self.options.ok_color)
+        success!()
     }
 
     fn load(&mut self) -> Result<Printer, IRustError> {
@@ -227,7 +236,7 @@ impl IRust {
             self.repl.write_to_extern()?;
             cargo_fmt_file(&*MAIN_FILE_EXTERN);
 
-            printer!(SUCCESS.into(), self.options.ok_color)
+            success!()
         }
     }
 
@@ -367,7 +376,7 @@ impl IRust {
 
     pub fn sync(&mut self) -> Result<Printer, IRustError> {
         match self.repl.update_from_main_file() {
-            Ok(_) => printer!(SUCCESS.into(), self.options.ok_color),
+            Ok(_) => success!(),
             Err(e) => {
                 self.repl.reset(self.options.toolchain)?;
                 Err(e)

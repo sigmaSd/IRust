@@ -5,40 +5,39 @@ pub mod theme;
 const PAREN_COLORS: [&str; 4] = ["green", "red", "yellow", "blue"];
 pub fn highlight(c: String, theme: &theme::Theme) -> Printer {
     let mut printer = Printer::default();
-    let push_str_to_printer = |printer: &mut Printer, item, color| {
-        let color = theme::theme_color_to_term_color(color).unwrap_or(Color::White);
-        printer.push(PrinterItem::String(item, color));
-    };
 
-    let push_char_to_printer = |printer: &mut Printer, item, color| {
-        let color = theme::theme_color_to_term_color(color).unwrap_or(Color::White);
-        printer.push(PrinterItem::Char(item, color));
-    };
+    macro_rules! push_to_printer {
+        ($item_type: ident, $item: expr, $color: expr) => {{
+            let color = theme::theme_color_to_term_color($color).unwrap_or(Color::White);
+            printer.push(PrinterItem::$item_type($item, color));
+        }};
+    }
 
     for token in parse(c) {
         use Token::*;
         match token {
-            Keyword(s) => push_str_to_printer(&mut printer, s, &theme.keyword[..]),
-            Keyword2(s) => push_str_to_printer(&mut printer, s, &theme.keyword2[..]),
-            Function(s) => push_str_to_printer(&mut printer, s, &theme.function[..]),
-            Type(s) => push_str_to_printer(&mut printer, s, &theme.r#type[..]),
-            Number(s) => push_str_to_printer(&mut printer, s, &theme.number[..]),
-            Symbol(c) => push_char_to_printer(&mut printer, c, &theme.symbol[..]),
-            Macro(s) => push_str_to_printer(&mut printer, s, &theme.r#macro[..]),
-            StringLiteral(s) => push_str_to_printer(&mut printer, s, &theme.string_literal[..]),
-            StringLiteralC(c) => push_char_to_printer(&mut printer, c, &theme.string_literal[..]),
-            Character(c) => push_char_to_printer(&mut printer, c, &theme.character[..]),
-            LifeTime(s) => push_str_to_printer(&mut printer, s, &theme.lifetime[..]),
-            Comment(s) => push_str_to_printer(&mut printer, s, &theme.comment[..]),
-            CommentC(c) => push_char_to_printer(&mut printer, c, &theme.comment[..]),
-            Const(s) => push_str_to_printer(&mut printer, s, &theme.r#const[..]),
-            X(s) => push_str_to_printer(&mut printer, s, &theme.x[..]),
-            XC(c) => push_char_to_printer(&mut printer, c, &theme.x[..]),
+            Keyword(s) => push_to_printer!(String, s, &theme.keyword[..]),
+            Keyword2(s) => push_to_printer!(String, s, &theme.keyword2[..]),
+            Function(s) => push_to_printer!(String, s, &theme.function[..]),
+            Type(s) => push_to_printer!(String, s, &theme.r#type[..]),
+            Number(s) => push_to_printer!(String, s, &theme.number[..]),
+            Symbol(c) => push_to_printer!(Char, c, &theme.symbol[..]),
+            Macro(s) => push_to_printer!(String, s, &theme.r#macro[..]),
+            StringLiteral(s) => push_to_printer!(String, s, &theme.string_literal[..]),
+            StringLiteralC(c) => push_to_printer!(Char, c, &theme.string_literal[..]),
+            Character(c) => push_to_printer!(Char, c, &theme.character[..]),
+            LifeTime(s) => push_to_printer!(String, s, &theme.lifetime[..]),
+            Comment(s) => push_to_printer!(String, s, &theme.comment[..]),
+            CommentS(s) => push_to_printer!(Str, s, &theme.comment[..]),
+            CommentC(c) => push_to_printer!(Char, c, &theme.comment[..]),
+            Const(s) => push_to_printer!(String, s, &theme.r#const[..]),
+            X(s) => push_to_printer!(String, s, &theme.x[..]),
+            XC(c) => push_to_printer!(Char, c, &theme.x[..]),
             Token::LeftParen(s, idx) => {
-                push_char_to_printer(&mut printer, s, PAREN_COLORS[idx.abs() as usize % 4])
+                push_to_printer!(Char, s, PAREN_COLORS[idx.abs() as usize % 4])
             }
             Token::RightParen(s, idx) => {
-                push_char_to_printer(&mut printer, s, PAREN_COLORS[idx.abs() as usize % 4])
+                push_to_printer!(Char, s, PAREN_COLORS[idx.abs() as usize % 4])
             }
             Token::NewLine => {
                 printer.push(PrinterItem::NewLine);
@@ -63,6 +62,7 @@ enum Token {
     LifeTime(String),
     Comment(String),
     CommentC(char),
+    CommentS(&'static str),
     Const(String),
     X(String),
     XC(char),
@@ -194,7 +194,7 @@ fn parse(s: String) -> Vec<Token> {
                             // consume /
                             s.next();
                             tokens.push(Token::Comment(comment.drain(..).collect()));
-                            tokens.push(Token::Comment("*/".to_string()));
+                            tokens.push(Token::CommentS("*/"));
                             break;
                         } else {
                             comment.push(c);
