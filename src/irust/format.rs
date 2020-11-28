@@ -1,10 +1,12 @@
+use crossterm::style::Color;
+
 use crate::irust::{
-    printer::{Printer, PrinterItem, PrinterItemType},
+    printer::{Printer, PrinterItem},
     OUT,
 };
 
 pub fn format_err(output: &str) -> Printer {
-    let mut eval_output = Printer::default();
+    let mut error = Printer::default();
     let lines_count = output.lines().count();
     let actual_error = if lines_count > 8 {
         output
@@ -16,8 +18,9 @@ pub fn format_err(output: &str) -> Printer {
     } else {
         output.to_string()
     };
-    eval_output.push(PrinterItem::new(actual_error, PrinterItemType::Err));
-    eval_output
+    error.push(PrinterItem::String(actual_error, Color::Red));
+    error.add_new_line(1);
+    error
 }
 
 pub fn format_eval_output(status: std::process::ExitStatus, output: String) -> Option<Printer> {
@@ -29,8 +32,8 @@ pub fn format_eval_output(status: std::process::ExitStatus, output: String) -> O
     }
 
     let mut eval_output = Printer::default();
-    eval_output.push(PrinterItem::new(OUT.into(), PrinterItemType::Out));
-    eval_output.push(PrinterItem::new(output, PrinterItemType::Eval));
+    eval_output.push(PrinterItem::Str(OUT, Color::Red));
+    eval_output.push(PrinterItem::String(output, Color::White));
     Some(eval_output)
 }
 

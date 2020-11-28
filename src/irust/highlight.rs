@@ -1,4 +1,4 @@
-use super::printer::{Printer, PrinterItem, PrinterItemType};
+use super::printer::{Printer, PrinterItem};
 use crossterm::style::Color;
 pub mod theme;
 
@@ -6,28 +6,43 @@ const PAREN_COLORS: [&str; 4] = ["green", "red", "yellow", "blue"];
 pub fn highlight(c: String, theme: &theme::Theme) -> Printer {
     let mut printer = Printer::default();
 
+    macro_rules! push_to_printer {
+        ($item_type: ident, $item: expr, $color: expr) => {{
+            let color = theme::theme_color_to_term_color($color).unwrap_or(Color::White);
+            printer.push(PrinterItem::$item_type($item, color));
+        }};
+    }
+
     for token in parse(c) {
         use Token::*;
-        let (string, color) = match token {
-            Keyword(s) => (s, &theme.keyword[..]),
-            Keyword2(s) => (s, &theme.keyword2[..]),
-            Function(s) => (s, &theme.function[..]),
-            Type(s) => (s, &theme.r#type[..]),
-            Number(s) => (s, &theme.number[..]),
-            Symbol(c) => (c.to_string(), &theme.symbol[..]),
-            Macro(s) => (s, &theme.r#macro[..]),
-            StringLiteral(s) => (s, &theme.string_literal[..]),
-            Character(c) => (c.to_string(), &theme.character[..]),
-            LifeTime(s) => (s, &theme.lifetime[..]),
-            Comment(s) => (s, &theme.comment[..]),
-            Const(s) => (s, &theme.r#const[..]),
-            X(s) => (s, &theme.x[..]),
-            Token::LeftParen(s, idx) => (s.to_string(), PAREN_COLORS[idx.abs() as usize % 4]),
-            Token::RightParen(s, idx) => (s.to_string(), PAREN_COLORS[idx.abs() as usize % 4]),
+        match token {
+            Keyword(s) => push_to_printer!(String, s, &theme.keyword[..]),
+            Keyword2(s) => push_to_printer!(String, s, &theme.keyword2[..]),
+            Function(s) => push_to_printer!(String, s, &theme.function[..]),
+            Type(s) => push_to_printer!(String, s, &theme.r#type[..]),
+            Number(s) => push_to_printer!(String, s, &theme.number[..]),
+            Symbol(c) => push_to_printer!(Char, c, &theme.symbol[..]),
+            Macro(s) => push_to_printer!(String, s, &theme.r#macro[..]),
+            StringLiteral(s) => push_to_printer!(String, s, &theme.string_literal[..]),
+            StringLiteralC(c) => push_to_printer!(Char, c, &theme.string_literal[..]),
+            Character(c) => push_to_printer!(Char, c, &theme.character[..]),
+            LifeTime(s) => push_to_printer!(String, s, &theme.lifetime[..]),
+            Comment(s) => push_to_printer!(String, s, &theme.comment[..]),
+            CommentS(s) => push_to_printer!(Str, s, &theme.comment[..]),
+            CommentC(c) => push_to_printer!(Char, c, &theme.comment[..]),
+            Const(s) => push_to_printer!(String, s, &theme.r#const[..]),
+            X(s) => push_to_printer!(String, s, &theme.x[..]),
+            XC(c) => push_to_printer!(Char, c, &theme.x[..]),
+            Token::LeftParen(s, idx) => {
+                push_to_printer!(Char, s, PAREN_COLORS[idx.abs() as usize % 4])
+            }
+            Token::RightParen(s, idx) => {
+                push_to_printer!(Char, s, PAREN_COLORS[idx.abs() as usize % 4])
+            }
+            Token::NewLine => {
+                printer.push(PrinterItem::NewLine);
+            }
         };
-
-        let color = theme::theme_color_to_term_color(color).unwrap_or(Color::White);
-        printer.push(PrinterItem::new(string, PrinterItemType::Custom(color)));
     }
     printer
 }
@@ -42,13 +57,18 @@ enum Token {
     Macro(String),
     Symbol(char),
     StringLiteral(String),
+    StringLiteralC(char),
     Character(char),
     LifeTime(String),
     Comment(String),
+    CommentC(char),
+    CommentS(&'static str),
     Const(String),
     X(String),
+    XC(char),
     RightParen(char, isize),
     LeftParen(char, isize),
+    NewLine,
 }
 
 impl Token {
@@ -120,9 +140,9 @@ fn parse(s: String) -> Vec<Token> {
                     tokens.push(Token::X(alphanumeric.drain(..).collect()));
                 }
                 if let Some('\\') = previous_char {
-                    tokens.push(Token::StringLiteral(c.to_string()));
+                    tokens.push(Token::StringLiteralC(c));
                 } else {
-                    tokens.push(Token::StringLiteral('"'.to_string()));
+                    tokens.push(Token::StringLiteralC('"'));
                     if s.peek().is_some() {
                         tokens.extend(parse_string_literal(&mut s));
                     }
@@ -163,18 +183,18 @@ fn parse(s: String) -> Vec<Token> {
                         '*'
                     };
 
-                    tokens.push(Token::Comment('/'.to_string()));
+                    tokens.push(Token::CommentC('/'));
                     let mut comment = String::new();
                     while let Some(c) = s.next() {
                         if c == end && end == '\n' {
                             tokens.push(Token::Comment(comment.drain(..).collect()));
-                            tokens.push(Token::X('\n'.to_string()));
+                            tokens.push(Token::NewLine);
                             break;
                         } else if c == end && s.peek() == Some(&'/') {
                             // consume /
                             s.next();
                             tokens.push(Token::Comment(comment.drain(..).collect()));
-                            tokens.push(Token::Comment("*/".to_string()));
+                            tokens.push(Token::CommentS("*/"));
                             break;
                         } else {
                             comment.push(c);
@@ -193,10 +213,12 @@ fn parse(s: String) -> Vec<Token> {
                 if x == ')' {
                     paren_idx -= 1;
                     tokens.push(Token::RightParen(')', paren_idx));
+                } else if x == '\n' {
+                    tokens.push(Token::NewLine);
                 } else if SYMBOLS.contains(&x) {
                     tokens.push(Token::Symbol(x));
                 } else {
-                    tokens.push(Token::X(x.to_string()));
+                    tokens.push(Token::XC(x));
                 }
             }
         }
@@ -280,7 +302,7 @@ fn parse_string_literal(s: &mut impl Iterator<Item = char>) -> Vec<Token> {
             // we reached the end
             return vec![
                 Token::StringLiteral(string_literal),
-                Token::StringLiteral('"'.to_string()),
+                Token::StringLiteralC('"'),
             ];
         } else {
             string_literal.push(c);

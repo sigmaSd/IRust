@@ -1,29 +1,21 @@
 use super::highlight::highlight;
 use crate::irust::{IRust, IRustError};
-use crate::utils::StringTools;
 use crossterm::{style::Color, terminal::ClearType};
 use std::collections::VecDeque;
-use std::iter::FromIterator;
 
 #[derive(Debug, Default, Clone)]
 pub struct Printer {
     items: VecDeque<PrinterItem>,
 }
 impl Printer {
-    pub fn new(output: PrinterItem) -> Self {
-        let mut printer = VecDeque::new();
-        printer.push_back(output);
-        Self { items: printer }
-    }
-
     pub fn add_new_line(&mut self, num: usize) {
         for _ in 0..num {
-            self.items.push_back(PrinterItem::default());
+            self.items.push_back(PrinterItem::NewLine);
         }
     }
 
-    pub fn push(&mut self, output: PrinterItem) {
-        self.items.push_back(output);
+    pub fn push(&mut self, item: PrinterItem) {
+        self.items.push_back(item);
     }
 
     pub fn append(&mut self, other: &mut Self) {
@@ -43,57 +35,12 @@ impl Iterator for Printer {
     }
 }
 
-impl FromIterator<PrinterItem> for Printer {
-    fn from_iter<I: IntoIterator<Item = PrinterItem>>(printer_items: I) -> Self {
-        let mut printer = Printer::default();
-        for printer_item in printer_items {
-            printer.push(printer_item);
-        }
-        printer
-    }
-}
-
 #[derive(Debug, Clone)]
-pub struct PrinterItem {
-    string: String,
-    string_type: PrinterItemType,
-}
-
-impl Default for PrinterItem {
-    fn default() -> Self {
-        Self {
-            string: String::new(),
-            string_type: PrinterItemType::NewLine,
-        }
-    }
-}
-
-impl PrinterItem {
-    pub fn new(string: String, string_type: PrinterItemType) -> Self {
-        Self {
-            string,
-            string_type,
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum PrinterItemType {
-    Eval,
-    Ok,
-    _IRust,
-    _Warn,
-    Out,
-    Shell,
-    Err,
+pub enum PrinterItem {
+    Char(char, Color),
+    String(String, Color),
+    Str(&'static str, Color),
     NewLine,
-    Custom(Color),
-}
-
-impl Default for PrinterItemType {
-    fn default() -> Self {
-        PrinterItemType::NewLine
-    }
 }
 
 impl IRust {
@@ -115,70 +62,66 @@ impl IRust {
     }
 
     fn print_inner(&mut self, printer: Printer) -> Result<(), IRustError> {
-        for elem in printer {
-            match elem.string_type {
-                PrinterItemType::Custom(color) => {
-                    for c in elem.string.chars() {
-                        if c == '\n' {
-                            self.cursor.bound_current_row_at_current_col();
-                            self.cursor.goto_next_row_terminal_start();
-                            self.write("..: ", Color::Yellow)?;
-                        } else {
-                            self.write_char_with_color(c, color)?;
-                            if self.cursor.is_at_last_terminal_col() {
-                                self.cursor.bound_current_row_at_current_col();
-                            }
-                            if self.cursor.is_at_col(super::INPUT_START_COL) {
-                                self.write_from_terminal_start("..: ", Color::Yellow)?;
-                            }
-                        }
-                    }
+        for item in printer {
+            match item {
+                PrinterItem::String(string, color) => {
+                    self.print_str(&string, color)?;
                 }
-                PrinterItemType::NewLine => {
+                PrinterItem::Str(string, color) => {
+                    self.print_str(&string, color)?;
+                }
+                PrinterItem::Char(c, color) => {
+                    self.print_char(c, color)?;
+                }
+                PrinterItem::NewLine => {
                     self.cursor.bound_current_row_at_current_col();
                     self.cursor.goto_next_row_terminal_start();
                     self.write("..: ", Color::Yellow)?;
                 }
-                _ => {}
             }
         }
 
         Ok(())
     }
 
+    fn print_str(&mut self, string: &str, color: Color) -> Result<(), IRustError> {
+        for c in string.chars() {
+            self.print_char(c, color)?;
+        }
+        Ok(())
+    }
+
+    fn print_char(&mut self, c: char, color: Color) -> Result<(), IRustError> {
+        self.write_char_with_color(c, color)?;
+        if self.cursor.is_at_last_terminal_col() {
+            self.cursor.bound_current_row_at_current_col();
+        }
+        if self.cursor.is_at_col(super::INPUT_START_COL) {
+            self.write_from_terminal_start("..: ", Color::Yellow)?;
+        }
+        Ok(())
+    }
+
     pub fn print_output(&mut self, printer: Printer) -> Result<(), IRustError> {
-        for output in printer {
-            let color = match output.string_type {
-                PrinterItemType::Eval => self.options.eval_color,
-                PrinterItemType::Ok => self.options.ok_color,
-                PrinterItemType::_IRust => self.options.irust_color,
-                PrinterItemType::_Warn => self.options.irust_warn_color,
-                PrinterItemType::Out => self.options.out_color,
-                PrinterItemType::Shell => self.options.shell_color,
-                PrinterItemType::Err => self.options.err_color,
-                PrinterItemType::Custom(color) => color,
-                PrinterItemType::NewLine => {
+        for item in printer {
+            match item {
+                PrinterItem::Char(c, color) => {
+                    self.raw_terminal.set_fg(color)?;
+                    self.raw_terminal.write(c)?;
+                }
+                PrinterItem::String(string, color) => {
+                    self.print_out_str(&string, color)?;
+                }
+                PrinterItem::Str(string, color) => {
+                    self.print_out_str(&string, color)?;
+                }
+                PrinterItem::NewLine => {
+                    if self.cursor.pos.current_pos.1 >= self.cursor.bound.height - 1 {
+                        self.raw_terminal.scroll_up(1)?;
+                    }
                     self.cursor.goto_next_row_terminal_start();
                     self.cursor.use_current_row_as_starting_row();
-                    continue;
                 }
-            };
-
-            self.raw_terminal.set_fg(color)?;
-            if StringTools::is_multiline(&output.string) {
-                for line in output.string.split('\n') {
-                    self.raw_terminal.write(line)?;
-                    self.raw_terminal.write("\r\n")?;
-                    self.cursor.pos.current_pos.1 += 1;
-                }
-            } else if &output.string == "\n" {
-                // check if we need to scroll up
-                if self.cursor.pos.current_pos.1 >= self.cursor.bound.height - 1 {
-                    self.raw_terminal.scroll_up(1)?;
-                }
-                self.cursor.goto_next_row_terminal_start();
-            } else {
-                self.raw_terminal.write(&output.string)?;
             }
         }
         self.readjust_cursor_pos()?;
@@ -186,7 +129,13 @@ impl IRust {
         Ok(())
     }
 
-    // helper fns
+    fn print_out_str(&mut self, string: &str, color: Color) -> Result<(), IRustError> {
+        self.raw_terminal.set_fg(color)?;
+        self.raw_terminal.write(&string.replace('\n', "\r\n"))?;
+        let rows = string.match_indices('\n').count();
+        self.cursor.pos.current_pos.1 += rows;
+        Ok(())
+    }
 
     fn scroll_if_needed_for_input(&mut self) {
         let input_last_row = self.cursor.input_last_pos(&self.buffer).1;
@@ -198,10 +147,8 @@ impl IRust {
 
     fn readjust_cursor_pos(&mut self) -> Result<(), IRustError> {
         // check if we did scroll automatically
-        // if we did scroll, then scroll the terminal by another row
-        // and update current_pos.1  and starting_pos.1 to the height of the terminal (-1)
+        // if we did update current_pos.1  and starting_pos.1 to the height of the terminal (-1)
         if self.cursor.pos.current_pos.1 > self.cursor.bound.height - 1 {
-            self.raw_terminal.scroll_up(1)?;
             self.cursor.pos.current_pos.1 = self.cursor.bound.height - 1;
             self.cursor.pos.starting_pos.1 = self.cursor.bound.height - 1;
         }

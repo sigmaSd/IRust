@@ -1,4 +1,4 @@
-use super::printer::{Printer, PrinterItem, PrinterItemType};
+use super::printer::{Printer, PrinterItem};
 use crate::irust::{IRust, IRustError};
 use crossterm::style::Color;
 
@@ -8,7 +8,7 @@ pub trait ColoredPrinterItem {
 
 impl<T: ToString> ColoredPrinterItem for T {
     fn to_output(&self, color: Color) -> PrinterItem {
-        PrinterItem::new(self.to_string(), PrinterItemType::Custom(color))
+        PrinterItem::String(self.to_string(), color)
     }
 }
 

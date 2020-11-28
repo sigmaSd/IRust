@@ -79,7 +79,7 @@ impl StringTools {
         buffer.chars().filter(|c| c == &'\n').count()
     }
 
-    pub fn is_multiline(string: &str) -> bool {
+    pub fn _is_multiline(string: &str) -> bool {
         string.chars().filter(|c| *c == '\n').count() > 1
     }
 

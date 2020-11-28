@@ -1,12 +1,33 @@
+use crossterm::style::Color;
+
 use super::cargo_cmds::{cargo_bench, ToolChain};
 use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
 use crate::irust::format::{format_check_output, format_err, format_eval_output};
-use crate::irust::printer::{Printer, PrinterItem, PrinterItemType};
+use crate::irust::printer::{Printer, PrinterItem};
 use crate::irust::{IRust, IRustError};
 use crate::utils::{remove_main, stdout_and_stderr};
 
 const SUCCESS: &str = "Ok!";
+
+macro_rules! success {
+    () => {{
+        let mut printer = Printer::default();
+        printer.push(PrinterItem::Str(SUCCESS, Color::Blue));
+        printer.add_new_line(1);
+
+        Ok(printer)
+    }};
+}
+macro_rules! printer {
+    ($item: expr, $color: expr) => {{
+        let mut printer = Printer::default();
+        printer.push(PrinterItem::String($item, $color));
+        printer.add_new_line(1);
+
+        Ok(printer)
+    }};
+}
 
 impl IRust {
     pub fn parse(&mut self) -> Result<Printer, IRustError> {
@@ -38,18 +59,12 @@ impl IRust {
 
     fn reset(&mut self) -> Result<Printer, IRustError> {
         self.repl.reset(self.options.toolchain)?;
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(1);
-
-        Ok(outputs)
+        success!()
     }
 
     fn pop(&mut self) -> Result<Printer, IRustError> {
         self.repl.pop();
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(1);
-
-        Ok(outputs)
+        success!()
     }
 
     fn check_statements(&mut self) -> Result<Printer, IRustError> {
@@ -57,27 +72,18 @@ impl IRust {
         let buffer = self.buffer.to_string();
         let buffer = buffer.split_whitespace().nth(1).ok_or(ERROR)?;
         self.options.check_statements = buffer.parse().map_err(|_| ERROR)?;
-
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(1);
-
-        Ok(outputs)
+        success!()
     }
 
     fn del(&mut self) -> Result<Printer, IRustError> {
         if let Some(line_num) = self.buffer.to_string().split_whitespace().last() {
             self.repl.del(line_num)?;
         }
-
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(1);
-
-        Ok(outputs)
+        success!()
     }
 
     fn show(&mut self) -> Result<Printer, IRustError> {
         let repl_code = highlight(self.repl.show(), &self.theme);
-
         Ok(repl_code)
     }
 
@@ -89,10 +95,7 @@ impl IRust {
                 .nth(1)
                 .unwrap_or("?"),
         )?;
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(1);
-
-        Ok(outputs)
+        success!()
     }
 
     fn add_dep(&mut self) -> Result<Printer, IRustError> {
@@ -145,24 +148,17 @@ impl IRust {
         }
         self.write_newline()?;
 
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(1);
-
-        Ok(outputs)
+        success!()
     }
 
     fn color(&mut self) -> Result<Printer, IRustError> {
-        // ok
-        let mut outputs = Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-        outputs.add_new_line(1);
-
         let buffer = self.buffer.to_string();
         let mut buffer = buffer.split_whitespace().skip(1).peekable();
 
         // reset theme
         if buffer.peek() == Some(&"reset") {
             self.theme.reset();
-            return Ok(outputs);
+            return success!();
         }
 
         let mut parse = || -> Result<(), IRustError> {
@@ -188,7 +184,7 @@ impl IRust {
             return Err(e);
         }
 
-        Ok(outputs)
+        success!()
     }
 
     fn load(&mut self) -> Result<Printer, IRustError> {
@@ -240,10 +236,7 @@ impl IRust {
             self.repl.write_to_extern()?;
             cargo_fmt_file(&*MAIN_FILE_EXTERN);
 
-            let mut outputs =
-                Printer::new(PrinterItem::new(SUCCESS.to_string(), PrinterItemType::Ok));
-            outputs.add_new_line(1);
-            Ok(outputs)
+            success!()
         }
     }
 
@@ -291,10 +284,7 @@ impl IRust {
             "Uknown".into()
         };
 
-        Ok(Printer::new(PrinterItem::new(
-            var_type,
-            PrinterItemType::Ok,
-        )))
+        printer!(var_type, self.options.ok_color)
     }
 
     fn run_cmd(&mut self) -> Result<Printer, IRustError> {
@@ -308,10 +298,7 @@ impl IRust {
                 .output()?,
         );
 
-        Ok(Printer::new(PrinterItem::new(
-            output,
-            PrinterItemType::Shell,
-        )))
+        printer!(output, self.options.shell_color)
     }
 
     fn parse_second_order(&mut self) -> Result<Printer, IRustError> {
@@ -381,7 +368,6 @@ impl IRust {
                 .eval(self.buffer.to_string(), self.options.toolchain)?;
             if let Some(mut eval_output) = format_eval_output(status, out) {
                 outputs.append(&mut eval_output);
-                outputs.add_new_line(1);
             }
 
             Ok(outputs)
@@ -390,10 +376,7 @@ impl IRust {
 
     pub fn sync(&mut self) -> Result<Printer, IRustError> {
         match self.repl.update_from_main_file() {
-            Ok(_) => Ok(Printer::new(PrinterItem::new(
-                SUCCESS.to_string(),
-                PrinterItemType::Ok,
-            ))),
+            Ok(_) => success!(),
             Err(e) => {
                 self.repl.reset(self.options.toolchain)?;
                 Err(e)
@@ -438,12 +421,7 @@ impl IRust {
     }
 
     fn irust(&mut self) -> Result<Printer, IRustError> {
-        let irust = self.ferris();
-
-        Ok(Printer::new(PrinterItem::new(
-            irust,
-            PrinterItemType::Custom(crossterm::style::Color::Red),
-        )))
+        printer!(self.ferris(), Color::Red)
     }
 
     fn cd(&mut self) -> Result<Printer, IRustError> {
@@ -476,12 +454,7 @@ impl IRust {
         self.raw_terminal
             .set_title(&format!("IRust: {}", cwd.display()))?;
 
-        let mut output = Printer::new(PrinterItem::new(
-            cwd.display().to_string(),
-            PrinterItemType::Ok,
-        ));
-        output.add_new_line(1);
-        Ok(output)
+        printer!(cwd.display().to_string(), self.options.ok_color)
     }
 
     fn time(&mut self) -> Result<Printer, IRustError> {
@@ -531,6 +504,7 @@ impl IRust {
         //make sure we have the latest changes in main.rs
         self.repl.write()?;
         let out = cargo_bench(self.options.toolchain)?.trim().to_owned();
-        Ok(Printer::new(PrinterItem::new(out, PrinterItemType::Eval)))
+
+        printer!(out, self.options.eval_color)
     }
 }
