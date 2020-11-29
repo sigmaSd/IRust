@@ -43,15 +43,10 @@ pub struct IRust {
     history: History,
 }
 
-impl IRust {
-    pub fn new() -> Self {
-        let mut printer = printer::Printer::default();
+impl Default for IRust {
+    fn default() -> Self {
+        let printer = printer::Printer::default();
         let known_paths = KnownPaths::new();
-        // title is optional
-        let _ = printer
-            .writer
-            .raw
-            .set_title(&format!("IRust: {}", known_paths.get_cwd().display()));
 
         let repl = Repl::new();
         let options = Options::new().unwrap_or_default();
@@ -75,8 +70,15 @@ impl IRust {
             history,
         }
     }
+}
 
+impl IRust {
     fn prepare(&mut self) -> Result<(), IRustError> {
+        // title is optional
+        self.printer
+            .writer
+            .raw
+            .set_title(&format!("IRust: {}", self.known_paths.get_cwd().display()))?;
         self.repl.prepare_ground(self.options.toolchain)?;
         self.welcome()?;
         self.printer.write_from_terminal_start(IN, Color::Yellow)?;

@@ -97,7 +97,7 @@ impl Buffer {
         self.buffer_pos = self.buffer.len();
     }
 
-    pub fn from_str(str: &str) -> Self {
+    pub fn from_string(str: &str) -> Self {
         Self {
             buffer: str.chars().collect(),
             buffer_pos: 0,

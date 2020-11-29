@@ -166,7 +166,6 @@ impl<W: std::io::Write> Cursor<W> {
 
     pub fn restore_position(&mut self) {
         self.pos = self.copy;
-        self.copy = self.pos;
         self.raw
             .restore_position()
             .expect("failed to restore cursor position");

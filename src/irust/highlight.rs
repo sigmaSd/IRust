@@ -3,7 +3,7 @@ use crossterm::style::Color;
 pub mod theme;
 
 const PAREN_COLORS: [&str; 4] = ["green", "red", "yellow", "blue"];
-pub fn highlight(c: &Vec<char>, theme: &theme::Theme) -> PrintQueue {
+pub fn highlight(c: &[char], theme: &theme::Theme) -> PrintQueue {
     let mut print_queue = PrintQueue::default();
 
     macro_rules! push_to_printer {
@@ -89,7 +89,7 @@ impl Token {
     }
 }
 
-fn parse(s: &Vec<char>) -> Vec<Token> {
+fn parse(s: &[char]) -> Vec<Token> {
     let mut s = s.iter().peekable();
     let mut alphanumeric = String::new();
     let mut tokens = vec![];

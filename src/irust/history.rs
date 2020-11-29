@@ -43,9 +43,9 @@ impl History {
             last_buffer: Vec::new(),
         })
     }
-    pub fn down(&mut self, buffer: &Vec<char>) -> Option<String> {
+    pub fn down(&mut self, buffer: &[char]) -> Option<String> {
         if !self.lock {
-            self.last_buffer = buffer.clone();
+            self.last_buffer = buffer.to_owned();
             self.cursor = 1;
         }
 
@@ -59,9 +59,9 @@ impl History {
         filtered.map(ToOwned::to_owned)
     }
 
-    pub fn up(&mut self, buffer: &Vec<char>) -> Option<String> {
+    pub fn up(&mut self, buffer: &[char]) -> Option<String> {
         if !self.lock {
-            self.last_buffer = buffer.clone();
+            self.last_buffer = buffer.to_owned();
             self.cursor = 0;
         }
         self.cursor += 1;
@@ -108,7 +108,7 @@ impl History {
         Ok(())
     }
 
-    fn filter(&self, buffer: &Vec<char>) -> (Option<&String>, usize) {
+    fn filter(&self, buffer: &[char]) -> (Option<&String>, usize) {
         let mut f: Vec<&String> = self
             .history
             .iter()

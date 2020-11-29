@@ -83,7 +83,7 @@ impl IRust {
     }
 
     fn show(&mut self) -> Result<PrintQueue, IRustError> {
-        let code = self.repl.show().chars().collect();
+        let code: Vec<char> = self.repl.show().chars().collect();
         let repl_code = highlight(&code, &self.theme);
         Ok(repl_code)
     }

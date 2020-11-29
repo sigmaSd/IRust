@@ -51,7 +51,7 @@ impl super::IRust {
         };
 
         if let Some(history) = history {
-            self.buffer = Buffer::from_str(&history);
+            self.buffer = Buffer::from_string(&history);
         } else {
             self.buffer.buffer = buffer;
         }
@@ -100,7 +100,7 @@ impl super::IRust {
                         needle.push(c);
                         // search history
                         if let Some(hit) = self.history.find(&needle) {
-                            self.buffer = Buffer::from_str(&hit);
+                            self.buffer = Buffer::from_string(&hit);
                         } else {
                             self.buffer = Buffer::new();
                         }
@@ -127,7 +127,7 @@ impl super::IRust {
                         // search history
                         if !needle.is_empty() {
                             if let Some(hit) = self.history.find(&needle) {
-                                self.buffer = Buffer::from_str(&hit);
+                                self.buffer = Buffer::from_string(&hit);
                             } else {
                                 self.buffer = Buffer::new();
                             }

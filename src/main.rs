@@ -16,7 +16,7 @@ fn main() {
         exit(1);
     }
 
-    let mut irust = IRust::new();
+    let mut irust = IRust::default();
 
     let exit_flag = handle_args(&mut irust);
     if exit_flag {
