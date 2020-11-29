@@ -1,3 +1,11 @@
+**1.0.0**
+- Under-the-hood: 
+  - Refactor most of the code base
+  - Extract Printer as a an independent unit 
+  - Add some tests now that its finally possible to do so
+- Multiple Bug fixes
+- Maybe new bugs?
+
 **0.9.8**
 - Fix `:add .` on windows
 - More resilient build errors detection
