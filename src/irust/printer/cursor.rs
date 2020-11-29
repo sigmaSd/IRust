@@ -1,48 +1,73 @@
-use super::Buffer;
+use crate::irust::Buffer;
 use crate::irust::IRust;
 use crate::utils::StringTools;
+use std::{cell::RefCell, rc::Rc};
 mod bound;
 use bound::Bound;
-
-use super::raw_terminal::RawCursor;
-
+mod raw;
+use raw::Raw;
 /// input is shown with x in this example
 /// |In: x
 /// |    x
 /// |    x
 pub const INPUT_START_COL: usize = 4;
 
-#[derive(Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct CursorPosition {
     pub current_pos: (usize, usize),
     pub starting_pos: (usize, usize),
 }
 
-pub struct Cursor {
+#[derive(Debug, Clone)]
+pub struct Cursor<W: std::io::Write> {
     pub pos: CursorPosition,
-    pub cursor: RawCursor,
-    copy: Option<Box<CursorPosition>>,
+    copy: CursorPosition,
     pub bound: Bound,
+    pub raw: Raw<W>,
 }
 
-impl Cursor {
-    pub fn new(width: usize, height: usize) -> Self {
-        let current_pos = RawCursor::get_current_pos().expect("Error getting cursor position");
+impl Default for Cursor<std::io::Stdout> {
+    fn default() -> Self {
+        let mut raw = Raw {
+            raw: Rc::new(RefCell::new(std::io::stdout())),
+        };
+        let (width, height) = raw.size().unwrap_or((400, 400));
+        let current_pos = raw.get_current_pos().unwrap_or((0, 0));
 
+        let pos = CursorPosition {
+            current_pos,
+            starting_pos: (0, current_pos.1),
+        };
         Self {
-            pos: CursorPosition {
-                current_pos,
-                starting_pos: (0, current_pos.1),
-            },
-            cursor: RawCursor::new(),
-            copy: None,
-            bound: Bound::new(width, height),
+            pos,
+            copy: pos,
+            bound: Bound::new(width as usize, height as usize),
+            raw,
+        }
+    }
+}
+
+impl<W: std::io::Write> Cursor<W> {
+    pub fn _new(raw: Rc<RefCell<W>>) -> Cursor<W> {
+        let mut raw = Raw { raw };
+        let (width, height) = raw.size().unwrap_or((400, 400));
+        let current_pos = raw.get_current_pos().unwrap_or((0, 0));
+
+        let pos = CursorPosition {
+            current_pos,
+            starting_pos: (0, current_pos.1),
+        };
+        Self {
+            pos,
+            copy: pos,
+            bound: Bound::new(width as usize, height as usize),
+            raw,
         }
     }
 
     pub fn save_position(&mut self) {
-        self.copy = Some(Box::new(self.pos.clone()));
-        self.cursor
+        self.copy = self.pos;
+        self.raw
             .save_position()
             .expect("failed to save cursor position");
     }
@@ -57,7 +82,7 @@ impl Cursor {
 
     fn move_right_inner(&mut self, bound: usize) {
         if self.pos.current_pos.0 == bound {
-            self.pos.current_pos.0 = 4;
+            self.pos.current_pos.0 = INPUT_START_COL;
             self.pos.current_pos.1 += 1;
         } else {
             self.pos.current_pos.0 += 1;
@@ -66,7 +91,7 @@ impl Cursor {
     }
 
     pub fn move_left(&mut self) {
-        if self.pos.current_pos.0 == 4 {
+        if self.pos.current_pos.0 == INPUT_START_COL {
             self.pos.current_pos.0 = self.previous_row_bound();
             self.pos.current_pos.1 -= 1;
         } else {
@@ -83,9 +108,7 @@ impl Cursor {
 
     pub fn move_up(&mut self, count: u16) {
         self.pos.current_pos.1 = self.pos.current_pos.1.saturating_sub(count as usize);
-        self.cursor
-            .move_up(count)
-            .expect("failed to move cursor up");
+        self.raw.move_up(count).expect("failed to move cursor up");
     }
 
     pub fn move_down_bounded(&mut self, count: u16, buffer: &Buffer) {
@@ -102,7 +125,7 @@ impl Cursor {
 
     pub fn move_down(&mut self, count: u16) {
         self.pos.current_pos.1 += count as usize;
-        self.cursor
+        self.raw
             .move_down(count)
             .expect("failed to move cursor down");
     }
@@ -137,22 +160,20 @@ impl Cursor {
     }
 
     pub fn screen_height_overflow_by_new_lines(&self, new_lines: usize) -> usize {
-        // if current row  + new lines < self.cursor.bound.height there is no overflow so unwrap to 0
+        // if current row  + new lines < self.raw..bound.height there is no overflow so unwrap to 0
         (new_lines + self.pos.current_pos.1).saturating_sub(self.bound.height - 1)
     }
 
     pub fn restore_position(&mut self) {
-        if let Some(copy) = self.copy.take() {
-            self.pos = *copy;
-            self.copy = Some(Box::new(self.pos.clone()));
-        }
-        self.cursor
+        self.pos = self.copy;
+        self.copy = self.pos;
+        self.raw
             .restore_position()
             .expect("failed to restore cursor position");
     }
 
     pub fn goto_internal_pos(&mut self) {
-        self.cursor
+        self.raw
             .goto(self.pos.current_pos.0 as u16, self.pos.current_pos.1 as u16)
             .expect("failed to move cursor");
     }
@@ -164,12 +185,12 @@ impl Cursor {
         self.goto_internal_pos();
     }
 
-    pub fn hide(&self) {
-        self.cursor.hide().expect("failed to hide cursor");
+    pub fn hide(&mut self) {
+        self.raw.hide().expect("failed to hide cursor");
     }
 
-    pub fn show(&self) {
-        self.cursor.show().expect("failed to show cursor");
+    pub fn show(&mut self) {
+        self.raw.show().expect("failed to show cursor");
     }
 
     pub fn goto_start(&mut self) {
@@ -196,8 +217,34 @@ impl Cursor {
         self.pos.current_pos.0 == col
     }
 
+    pub fn buffer_pos_to_cursor_pos(&self, buffer: &Buffer) -> (usize, usize) {
+        let last_buffer_pos = buffer.len();
+        let max_line_chars = self.bound.width - INPUT_START_COL;
+
+        let mut y = buffer
+            .iter()
+            .take(last_buffer_pos)
+            .filter(|c| **c == '\n')
+            .count();
+
+        let mut x = 0;
+        for i in 0..last_buffer_pos {
+            match buffer.get(i) {
+                Some('\n') => x = 0,
+                _ => x += 1,
+            };
+            if x == max_line_chars {
+                x = 0;
+                y += 1;
+            }
+        }
+
+        (x, y)
+    }
+
     pub fn input_last_pos(&self, buffer: &Buffer) -> (usize, usize) {
-        let relative_pos = buffer.last_buffer_pos_to_relative_cursor_pos(self.bound.width);
+        let relative_pos = self.buffer_pos_to_cursor_pos(buffer);
+        //let relative_pos = buffer.last_buffer_pos_to_relative_cursor_pos(self.bound.width);
         let x = relative_pos.0 + INPUT_START_COL;
         let y = relative_pos.1 + self.pos.starting_pos.1;
 

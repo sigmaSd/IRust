@@ -1,4 +1,4 @@
-use super::printer::{Printer, PrinterItem};
+use super::printer::{PrintQueue, PrinterItem};
 use crate::irust::{IRust, IRustError};
 use crossterm::style::Color;
 
@@ -13,8 +13,8 @@ impl<T: ToString> ColoredPrinterItem for T {
 }
 
 impl IRust {
-    pub fn help(&mut self) -> Result<Printer, IRustError> {
-        let mut outputs = Printer::default();
+    pub fn help(&mut self) -> Result<PrintQueue, IRustError> {
+        let mut outputs = PrintQueue::default();
 
         outputs.push("### Keywords / Tips & Tricks ###".to_output(Color::DarkYellow));
         outputs.push(

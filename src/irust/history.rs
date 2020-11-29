@@ -8,9 +8,10 @@ const NEW_HISTORY_MARK: &str = "##NewHistoryMark##\n//\n";
 #[derive(Default)]
 pub struct History {
     history: Vec<String>,
-    buffer_copy: String,
     cursor: usize,
     history_file_path: path::PathBuf,
+    pub lock: bool,
+    last_buffer: Vec<char>,
 }
 
 impl History {
@@ -32,54 +33,54 @@ impl History {
             history.lines().map(ToOwned::to_owned).collect()
         };
 
-        let cursor = history.len();
-        let buffer_copy = String::new();
+        let cursor = 0;
 
         Ok(Self {
             history,
-            buffer_copy,
             cursor,
             history_file_path,
+            lock: false,
+            last_buffer: Vec::new(),
         })
     }
-    pub fn down(&mut self) -> Option<String> {
-        let filtered = self.filter();
-        self.cursor += 1;
-        if self.cursor >= filtered.len() {
-            self.cursor = filtered.len();
-            Some(self.buffer_copy.clone())
-        } else {
-            Some(filtered[self.cursor].clone())
+    pub fn down(&mut self, buffer: &Vec<char>) -> Option<String> {
+        if !self.lock {
+            self.last_buffer = buffer.clone();
+            self.cursor = 1;
         }
+
+        self.cursor = self.cursor.saturating_sub(1);
+        if self.cursor == 0 {
+            return Some(self.last_buffer.iter().copied().collect());
+        }
+
+        let (filtered, _filtered_len) = self.filter(&self.last_buffer);
+
+        filtered.map(ToOwned::to_owned)
     }
 
-    pub fn up(&mut self) -> Option<String> {
-        let filtered = self.filter();
-        self.cursor = std::cmp::min(self.cursor, filtered.len());
-        if self.cursor == 0 || filtered.is_empty() {
-            None
-        } else {
-            self.cursor = self.cursor.saturating_sub(1);
-            Some(filtered[self.cursor].clone())
+    pub fn up(&mut self, buffer: &Vec<char>) -> Option<String> {
+        if !self.lock {
+            self.last_buffer = buffer.clone();
+            self.cursor = 0;
         }
+        self.cursor += 1;
+
+        let (filtered, filtered_len) = self.filter(&self.last_buffer);
+        let res = filtered.map(ToOwned::to_owned);
+
+        if self.cursor + 1 >= filtered_len {
+            self.cursor = filtered_len;
+        }
+
+        res
     }
 
     pub fn push(&mut self, buffer: String) {
         if !buffer.is_empty() && Some(&buffer) != self.history.last() {
-            self.buffer_copy.clear();
             self.history.push(buffer);
             self.go_to_last();
         }
-    }
-
-    pub fn update_buffer_copy(&mut self, buffer: &str) {
-        self.buffer_copy = buffer.to_string();
-        self.cursor = self.history.len();
-    }
-
-    pub fn reset_buffer_copy(&mut self) {
-        self.buffer_copy.clear();
-        self.cursor = self.history.len();
     }
 
     pub fn save(&self) -> Result<(), IRustError> {
@@ -107,21 +108,37 @@ impl History {
         Ok(())
     }
 
-    fn filter(&self) -> Vec<String> {
-        self.history
+    fn filter(&self, buffer: &Vec<char>) -> (Option<&String>, usize) {
+        let mut f: Vec<&String> = self
+            .history
             .iter()
-            .filter(|h| h.contains(&self.buffer_copy))
-            .map(ToOwned::to_owned)
-            .collect()
+            .filter(|h| h.contains(&buffer.iter().collect::<String>()))
+            .rev()
+            .collect();
+        f.dedup();
+
+        let len = f.len();
+        (
+            f.get(self.cursor.saturating_sub(1)).map(ToOwned::to_owned),
+            len,
+        )
     }
 
     fn go_to_last(&mut self) {
         if !self.history.is_empty() {
-            self.cursor = self.history.len();
+            self.cursor = 0;
         }
     }
 
     pub fn find(&self, needle: &str) -> Option<&String> {
         self.history.iter().find(|h| h.contains(needle))
+    }
+
+    pub fn lock(&mut self) {
+        self.lock = true;
+    }
+
+    pub fn unlock(&mut self) {
+        self.lock = false;
     }
 }

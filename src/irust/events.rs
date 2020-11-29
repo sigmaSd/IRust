@@ -1,6 +1,6 @@
 use super::racer::Cycle;
 use super::{CTRL_KEYMODIFIER, NO_MODIFIER};
-use crate::irust::printer::{Printer, PrinterItem};
+use crate::irust::printer::{PrintQueue, PrinterItem};
 use crate::irust::{IRust, IRustError};
 use crate::utils::StringTools;
 use crossterm::{event::*, style::Color, terminal::ClearType};
@@ -10,9 +10,9 @@ mod history_events;
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> Result<(), IRustError> {
         self.buffer.insert(c);
-        self.history.update_buffer_copy(&self.buffer.to_string());
-        self.print_input()?;
-        self.cursor.move_right_unbounded();
+        self.printer.print_input(&self.buffer, &self.theme)?;
+        self.printer.cursor.move_right_unbounded();
+        self.history.unlock();
         // Ignore RacerDisabled error
         let _ = self.unlock_racer_update();
 
@@ -20,17 +20,21 @@ impl IRust {
     }
 
     pub fn handle_enter(&mut self, force_eval: bool) -> Result<(), IRustError> {
+        self.history.unlock();
+
         let buffer = self.buffer.to_string();
 
         if !force_eval && !self.input_is_cmd_or_shell(&buffer) && self.incomplete_input(&buffer) {
-            self.write_from_next_line()?;
+            self.buffer.insert('\n');
+            self.printer.print_input(&self.buffer, &self.theme)?;
+            self.printer.cursor.move_right();
             return Ok(());
         }
 
-        self.cursor.hide();
+        self.printer.cursor.hide();
 
         // create a new line
-        self.write_newline()?;
+        self.printer.write_newline(&self.buffer)?;
 
         // add commands to history
         if self.should_push_to_history(&buffer) {
@@ -41,7 +45,7 @@ impl IRust {
         let mut output = match self.parse() {
             Ok(out) => out,
             Err(e) => {
-                let mut printer = Printer::default();
+                let mut printer = PrintQueue::default();
                 printer.push(PrinterItem::String(e.to_string(), self.options.err_color));
                 printer
             }
@@ -50,23 +54,27 @@ impl IRust {
         // ensure buffer is cleaned
         self.buffer.clear();
 
-        // reset history current
-        self.history.reset_buffer_copy();
-
         // write out
         output.add_new_line(1);
         if !output.is_empty() {
-            self.print_output(output)?;
+            self.printer.print_output(output)?;
         }
 
-        self.write_from_terminal_start(super::IN, Color::Yellow)?;
+        self.printer
+            .write_from_terminal_start(super::IN, Color::Yellow)?;
 
-        self.cursor.show();
+        self.printer.cursor.show();
         Ok(())
     }
 
     pub fn handle_alt_enter(&mut self) -> Result<(), IRustError> {
-        self.write_from_next_line()
+        self.buffer.insert('\n');
+        self.printer
+            .cursor
+            .goto(4, self.printer.cursor.pos.current_pos.1 + 1);
+        self.printer.print_input(&self.buffer, &self.theme)?;
+        self.printer.cursor.move_right();
+        Ok(())
     }
 
     pub fn handle_tab(&mut self) -> Result<(), IRustError> {
@@ -74,9 +82,9 @@ impl IRust {
             const TAB: &str = "   \t";
 
             self.buffer.insert_str(TAB);
-            self.print_input()?;
+            self.printer.print_input(&self.buffer, &self.theme)?;
             for _ in 0..4 {
-                self.cursor.move_right_unbounded();
+                self.printer.cursor.move_right_unbounded();
             }
             return Ok(());
         }
@@ -106,7 +114,7 @@ impl IRust {
 
     pub fn handle_right(&mut self) -> Result<(), IRustError> {
         if !self.buffer.is_at_end() {
-            self.cursor.move_right();
+            self.printer.cursor.move_right();
             self.buffer.move_forward();
         } else {
             self.use_suggestion()?;
@@ -116,7 +124,7 @@ impl IRust {
 
     pub fn handle_left(&mut self) -> Result<(), IRustError> {
         if !self.buffer.is_at_start() && !self.buffer.is_empty() {
-            self.cursor.move_left();
+            self.printer.cursor.move_left();
             self.buffer.move_backward();
         }
         Ok(())
@@ -125,12 +133,11 @@ impl IRust {
     pub fn handle_backspace(&mut self) -> Result<(), IRustError> {
         if !self.buffer.is_at_start() {
             self.buffer.move_backward();
-            self.cursor.move_left();
+            self.printer.cursor.move_left();
             self.buffer.remove_current_char();
-            // update histroy current
-            self.history.update_buffer_copy(&self.buffer.to_string());
-            self.print_input()?;
+            self.printer.print_input(&self.buffer, &self.theme)?;
             // Ignore RacerDisabled error
+            self.history.unlock();
             let _ = self.unlock_racer_update();
         }
         Ok(())
@@ -139,9 +146,9 @@ impl IRust {
     pub fn handle_del(&mut self) -> Result<(), IRustError> {
         if !self.buffer.is_empty() {
             self.buffer.remove_current_char();
-            self.history.update_buffer_copy(&self.buffer.to_string());
-            self.print_input()?;
+            self.printer.print_input(&self.buffer, &self.theme)?;
             // Ignore RacerDisabled error
+            self.history.unlock();
             let _ = self.unlock_racer_update();
         }
         Ok(())
@@ -149,22 +156,25 @@ impl IRust {
 
     pub fn handle_ctrl_c(&mut self) -> Result<(), IRustError> {
         self.buffer.clear();
-        self.cursor.goto_start();
-        self.write_from_terminal_start(super::IN, Color::Yellow)?;
-        self.raw_terminal.clear(ClearType::FromCursorDown)?;
-        //if !self.buffer.is_empty() {
-        //    self.write_newline()?;
-        //}
+        self.history.unlock();
+        let _ = self.unlock_racer_update();
+        self.printer.cursor.goto_start();
+        self.printer
+            .write_from_terminal_start(super::IN, Color::Yellow)?;
+        self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
+        self.printer.print_input(&self.buffer, &self.theme)?;
         Ok(())
     }
 
     pub fn handle_ctrl_d(&mut self) -> Result<bool, IRustError> {
         if self.buffer.is_empty() {
-            self.write_newline()?;
-            self.write("Do you really want to exit ([y]/n)? ", Color::Grey)?;
+            self.printer.write_newline(&self.buffer)?;
+            self.printer
+                .write("Do you really want to exit ([y]/n)? ", Color::Grey)?;
 
+            use std::io::Write;
             loop {
-                self.raw_terminal.flush()?;
+                self.printer.writer.raw.flush()?;
 
                 if let Ok(key_event) = read() {
                     match key_event {
@@ -174,9 +184,10 @@ impl IRust {
                         }) => match &c {
                             'y' | 'Y' => return Ok(true),
                             _ => {
-                                self.write_newline()?;
-                                self.write_newline()?;
-                                self.write_from_terminal_start(super::IN, Color::Yellow)?;
+                                self.printer.write_newline(&self.buffer)?;
+                                self.printer.write_newline(&self.buffer)?;
+                                self.printer
+                                    .write_from_terminal_start(super::IN, Color::Yellow)?;
                                 return Ok(false);
                             }
                         },
@@ -200,9 +211,9 @@ impl IRust {
         self.history.save()?;
         self.options.save()?;
         self.theme.save()?;
-        self.write_newline()?;
-        super::RawTerminal::disable_raw_mode()?;
-        self.cursor.show();
+        self.printer.write_newline(&self.buffer)?;
+        self.printer.writer.raw.disable_raw_mode()?;
+        self.printer.cursor.show();
         Ok(())
     }
 
@@ -213,31 +224,36 @@ impl IRust {
                 sys::signal::{kill, Signal},
                 unistd::Pid,
             };
-            self.raw_terminal.clear(ClearType::All)?;
+            self.printer.writer.raw.clear(ClearType::All)?;
             kill(Pid::this(), Some(Signal::SIGTSTP))
                 .map_err(|e| format!("failed to sigstop irust. {}", e))?;
 
             // display empty prompt after SIGCONT
-            self.clear()?;
+            self.handle_ctrl_l()?;
         }
         Ok(())
     }
 
     pub fn handle_ctrl_l(&mut self) -> Result<(), IRustError> {
-        self.clear()?;
+        self.buffer.clear();
+        self.buffer.goto_start();
+        self.printer.clear()?;
+        self.printer.print_input(&self.buffer, &self.theme)?;
         Ok(())
     }
 
     pub fn handle_home_key(&mut self) -> Result<(), IRustError> {
         self.buffer.goto_start();
-        self.cursor.goto(4, self.cursor.pos.starting_pos.1);
+        self.printer
+            .cursor
+            .goto(4, self.printer.cursor.pos.starting_pos.1);
         Ok(())
     }
 
     pub fn handle_end_key(&mut self) -> Result<(), IRustError> {
-        let last_input_pos = self.cursor.input_last_pos(&self.buffer);
+        let last_input_pos = self.printer.cursor.input_last_pos(&self.buffer);
         self.buffer.goto_end();
-        self.cursor.goto(last_input_pos.0, last_input_pos.1);
+        self.printer.cursor.goto(last_input_pos.0, last_input_pos.1);
         Ok(())
     }
 
@@ -246,21 +262,21 @@ impl IRust {
             return;
         }
 
-        self.cursor.move_left();
+        self.printer.cursor.move_left();
         self.buffer.move_backward();
 
         if let Some(current_char) = self.buffer.current_char() {
             match *current_char {
                 ' ' => {
                     while self.buffer.previous_char() == Some(&' ') {
-                        self.cursor.move_left();
+                        self.printer.cursor.move_left();
                         self.buffer.move_backward()
                     }
                 }
                 c if c.is_alphanumeric() => {
                     while let Some(previous_char) = self.buffer.previous_char() {
                         if previous_char.is_alphanumeric() {
-                            self.cursor.move_left();
+                            self.printer.cursor.move_left();
                             self.buffer.move_backward()
                         } else {
                             break;
@@ -271,7 +287,7 @@ impl IRust {
                 _ => {
                     while let Some(previous_char) = self.buffer.previous_char() {
                         if !previous_char.is_alphanumeric() && *previous_char != ' ' {
-                            self.cursor.move_left();
+                            self.printer.cursor.move_left();
                             self.buffer.move_backward()
                         } else {
                             break;
@@ -284,7 +300,7 @@ impl IRust {
 
     pub fn handle_ctrl_right(&mut self) -> Result<(), IRustError> {
         if !self.buffer.is_at_end() {
-            self.cursor.move_right();
+            self.printer.cursor.move_right();
             self.buffer.move_forward();
         } else {
             self.use_suggestion()?;
@@ -294,10 +310,10 @@ impl IRust {
             match *current_char {
                 ' ' => {
                     while self.buffer.next_char() == Some(&' ') {
-                        self.cursor.move_right();
+                        self.printer.cursor.move_right();
                         self.buffer.move_forward();
                     }
-                    self.cursor.move_right();
+                    self.printer.cursor.move_right();
                     self.buffer.move_forward();
                 }
                 c if c.is_alphanumeric() => {
@@ -305,7 +321,7 @@ impl IRust {
                         if !character.is_alphanumeric() {
                             break;
                         }
-                        self.cursor.move_right();
+                        self.printer.cursor.move_right();
                         self.buffer.move_forward();
                     }
                 }
@@ -315,7 +331,7 @@ impl IRust {
                         if character.is_alphanumeric() || *character == ' ' {
                             break;
                         }
-                        self.cursor.move_right();
+                        self.printer.cursor.move_right();
                         self.buffer.move_forward();
                     }
                 }

@@ -179,7 +179,7 @@ impl IRust {
         let buffer: String = self.buffer.iter().take(self.buffer.buffer_pos).collect();
 
         // return if we're not at the end of the line
-        if !self.cursor.is_at_line_end(&self) {
+        if !self.printer.cursor.is_at_line_end(&self) {
             return Ok(());
         }
 
@@ -244,12 +244,12 @@ impl IRust {
     }
 
     fn write_current_suggestion(&mut self) -> Result<(), IRustError> {
-        if !self.cursor.is_at_line_end(&self) {
+        if !self.printer.cursor.is_at_line_end(&self) {
             return Ok(());
         }
 
         if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
-            self.raw_terminal.clear(ClearType::UntilNewLine)?;
+            self.printer.writer.raw.clear(ClearType::UntilNewLine)?;
 
             let mut suggestion = suggestion.0;
 
@@ -257,27 +257,37 @@ impl IRust {
             StringTools::strings_unique(&buffer, &mut suggestion);
 
             // scroll if needed
-            let height_overflow = self.cursor.screen_height_overflow_by_str(&suggestion);
+            let height_overflow = self
+                .printer
+                .cursor
+                .screen_height_overflow_by_str(&suggestion);
             if height_overflow > 0 {
-                self.scroll_up(height_overflow);
+                self.printer.scroll_up(height_overflow);
             }
 
-            self.cursor.hide();
-            self.raw_terminal
+            self.printer.cursor.hide();
+            self.printer
+                .writer
+                .raw
                 .set_fg(self.options.racer_inline_suggestion_color)?;
-            self.cursor.cursor.save_position()?;
+            self.printer.cursor.raw.save_position()?;
 
-            self.raw_terminal.write(&suggestion)?;
+            self.printer.writer.raw.write(&suggestion)?;
 
-            self.cursor.cursor.restore_position()?;
-            self.raw_terminal.reset_color()?;
-            self.cursor.show();
+            self.printer.cursor.raw.restore_position()?;
+            self.printer.writer.raw.reset_color()?;
+            self.printer.cursor.show();
         }
 
         Ok(())
     }
 
     pub fn cycle_suggestions(&mut self, cycle: Cycle) -> Result<(), IRustError> {
+        // return if we're not at the end of the line
+        if !self.printer.cursor.is_at_line_end(&self) {
+            return Ok(());
+        }
+
         // Write inline suggestion
         match cycle {
             Cycle::Down => self.write_next_suggestion()?,
@@ -297,24 +307,27 @@ impl IRust {
 
         // Handle screen height overflow
         let height_overflow = self
+            .printer
             .cursor
             .screen_height_overflow_by_new_lines(suggestions_num + 1);
 
         if height_overflow != 0 {
-            self.scroll_up(height_overflow);
+            self.printer.scroll_up(height_overflow);
         }
 
-        self.cursor.save_position();
-        self.cursor.move_to_input_last_row(&self.buffer);
+        self.printer.cursor.save_position();
+        self.printer.cursor.move_to_input_last_row(&self.buffer);
 
-        let max_width = self.cursor.bound.width - 1;
-        self.cursor.pos.current_pos.0 = 0;
-        self.cursor.goto_internal_pos();
-        self.cursor.cursor.move_down(1)?;
-        self.raw_terminal.clear(ClearType::FromCursorDown)?;
-        self.cursor.cursor.move_up(1)?;
+        let max_width = self.printer.cursor.bound.width - 1;
+        self.printer.cursor.pos.current_pos.0 = 0;
+        self.printer.cursor.goto_internal_pos();
+        self.printer.cursor.raw.move_down(1)?;
+        self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
+        self.printer.cursor.raw.move_up(1)?;
 
-        self.raw_terminal
+        self.printer
+            .writer
+            .raw
             .set_fg(self.options.racer_suggestions_table_color)?;
         let current_suggestion = self.racer.as_ref()?.current_suggestion();
 
@@ -335,26 +348,31 @@ impl IRust {
                 suggestion.push_str("...");
             }
             // move one + idx row down
-            self.cursor.cursor.move_down(idx as u16 + 1)?;
+            self.printer.cursor.raw.move_down(idx as u16 + 1)?;
 
             // write suggestion
-            self.cursor.cursor.save_position()?;
+            self.printer.cursor.raw.save_position()?;
 
             if Some(&suggestion_c) == current_suggestion.as_ref() {
-                self.raw_terminal
+                self.printer
+                    .writer
+                    .raw
                     .set_bg(self.options.racer_selected_suggestion_color)?;
             }
 
-            self.raw_terminal.write(&suggestion)?;
-            self.raw_terminal.set_bg(crossterm::style::Color::Reset)?;
-            self.cursor.cursor.restore_position()?;
-            self.cursor.move_up(idx as u16 + 1);
+            self.printer.writer.raw.write(&suggestion)?;
+            self.printer
+                .writer
+                .raw
+                .set_bg(crossterm::style::Color::Reset)?;
+            self.printer.cursor.raw.restore_position()?;
+            self.printer.cursor.move_up(idx as u16 + 1);
         }
 
         // reset to input position and color
-        self.raw_terminal.reset_color()?;
-        self.cursor.restore_position();
-        self.cursor.goto_internal_pos();
+        self.printer.writer.raw.reset_color()?;
+        self.printer.cursor.restore_position();
+        self.printer.cursor.goto_internal_pos();
 
         Ok(())
     }
@@ -380,10 +398,10 @@ impl IRust {
             let chars_count = StringTools::chars_count(&suggestion);
 
             for _ in 0..chars_count {
-                self.cursor.move_right_unbounded();
+                self.printer.cursor.move_right_unbounded();
             }
 
-            self.print_input()?;
+            self.printer.print_input(&self.buffer, &self.theme)?;
         }
 
         Ok(())

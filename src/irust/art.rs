@@ -8,8 +8,9 @@ impl IRust {
         mut add_cmd: std::process::Child,
         msg: &str,
     ) -> Result<(), IRustError> {
-        self.cursor.hide();
-        self.raw_terminal.set_fg(Color::Cyan)?;
+        self.printer.cursor.save_position();
+        self.printer.cursor.hide();
+        self.printer.writer.raw.set_fg(Color::Cyan)?;
 
         match self.wait_add_inner(&mut add_cmd, msg) {
             Ok(()) => {
@@ -36,22 +37,54 @@ impl IRust {
         add_cmd: &mut std::process::Child,
         msg: &str,
     ) -> Result<(), IRustError> {
-        self.write_at(
+        self.printer.write_at(
             &format!(" {}ing dep [\\]", msg),
             0,
-            self.cursor.pos.current_pos.1,
+            self.printer.cursor.pos.current_pos.1,
         )?;
         loop {
             match add_cmd.try_wait() {
                 Ok(None) => {
-                    self.write_at("\\", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_at("|", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_at("/", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_at("-", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_at("\\", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_at("|", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_at("/", msg.len() + 10, self.cursor.pos.current_pos.1)?;
-                    self.write_at("-", msg.len() + 10, self.cursor.pos.current_pos.1)?;
+                    self.printer.write_at(
+                        "\\",
+                        msg.len() + 10,
+                        self.printer.cursor.pos.current_pos.1,
+                    )?;
+                    self.printer.write_at(
+                        "|",
+                        msg.len() + 10,
+                        self.printer.cursor.pos.current_pos.1,
+                    )?;
+                    self.printer.write_at(
+                        "/",
+                        msg.len() + 10,
+                        self.printer.cursor.pos.current_pos.1,
+                    )?;
+                    self.printer.write_at(
+                        "-",
+                        msg.len() + 10,
+                        self.printer.cursor.pos.current_pos.1,
+                    )?;
+                    self.printer.write_at(
+                        "\\",
+                        msg.len() + 10,
+                        self.printer.cursor.pos.current_pos.1,
+                    )?;
+                    self.printer.write_at(
+                        "|",
+                        msg.len() + 10,
+                        self.printer.cursor.pos.current_pos.1,
+                    )?;
+                    self.printer.write_at(
+                        "/",
+                        msg.len() + 10,
+                        self.printer.cursor.pos.current_pos.1,
+                    )?;
+                    self.printer.write_at(
+                        "-",
+                        msg.len() + 10,
+                        self.printer.cursor.pos.current_pos.1,
+                    )?;
                     continue;
                 }
                 Err(e) => {
@@ -63,10 +96,10 @@ impl IRust {
     }
 
     fn clean_art(&mut self) -> Result<(), IRustError> {
-        self.cursor.restore_position();
-        self.write_newline()?;
-        self.cursor.show();
-        self.raw_terminal.reset_color()?;
+        self.printer.cursor.restore_position();
+        self.printer.write_newline(&self.buffer)?;
+        self.printer.cursor.show();
+        self.printer.writer.raw.reset_color()?;
         Ok(())
     }
 
@@ -78,12 +111,12 @@ impl IRust {
             self.fit_msg(&default_msg)
         };
 
-        self.raw_terminal.set_fg(self.options.welcome_color)?;
-        self.raw_terminal.write(&msg)?;
-        self.raw_terminal.reset_color()?;
+        self.printer.writer.raw.set_fg(self.options.welcome_color)?;
+        self.printer.writer.raw.write(&msg)?;
+        self.printer.writer.raw.reset_color()?;
 
-        self.write_newline()?;
-        self.write_newline()?;
+        self.printer.write_newline(&self.buffer)?;
+        self.printer.write_newline(&self.buffer)?;
 
         Ok(())
     }
@@ -102,7 +135,7 @@ impl IRust {
     }
 
     fn fit_msg(&mut self, msg: &str) -> String {
-        let slash_num = self.cursor.bound.width - msg.len();
+        let slash_num = self.printer.cursor.bound.width - msg.len();
         let slash = std::iter::repeat('-')
             .take(slash_num / 2)
             .collect::<String>();

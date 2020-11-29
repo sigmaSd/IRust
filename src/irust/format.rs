@@ -1,12 +1,12 @@
 use crossterm::style::Color;
 
 use crate::irust::{
-    printer::{Printer, PrinterItem},
+    printer::{PrintQueue, PrinterItem},
     OUT,
 };
 
-pub fn format_err(output: &str) -> Printer {
-    let mut error = Printer::default();
+pub fn format_err(output: &str) -> PrintQueue {
+    let mut error = PrintQueue::default();
     let lines_count = output.lines().count();
     let actual_error = if lines_count > 8 {
         output
@@ -23,7 +23,7 @@ pub fn format_err(output: &str) -> Printer {
     error
 }
 
-pub fn format_eval_output(status: std::process::ExitStatus, output: String) -> Option<Printer> {
+pub fn format_eval_output(status: std::process::ExitStatus, output: String) -> Option<PrintQueue> {
     if !status.success() {
         return Some(format_err(&output));
     }
@@ -31,7 +31,7 @@ pub fn format_eval_output(status: std::process::ExitStatus, output: String) -> O
         return None;
     }
 
-    let mut eval_output = Printer::default();
+    let mut eval_output = PrintQueue::default();
     eval_output.push(PrinterItem::Str(OUT, Color::Red));
     eval_output.push(PrinterItem::String(output, Color::White));
     Some(eval_output)
@@ -41,7 +41,7 @@ fn check_is_err(s: &str) -> bool {
     !s.contains("dev [unoptimized + debuginfo]")
 }
 
-pub fn format_check_output(output: String) -> Option<Printer> {
+pub fn format_check_output(output: String) -> Option<PrintQueue> {
     if check_is_err(&output) {
         Some(format_err(&output))
     } else {

@@ -1,3 +1,4 @@
+#[derive(Debug, Default, Clone)]
 pub struct Bound {
     pub bound: Vec<usize>,
     pub width: usize,
