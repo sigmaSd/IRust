@@ -19,7 +19,7 @@ fn write_from_terminal_start_cursor_pos_correct() -> Result<()> {
 fn write_new_line_no_scroll() -> Result<()> {
     let mut p = Printer::_new(std::io::sink());
 
-    let b = Buffer::from_str("Hello world");
+    let b = Buffer::from_string("Hello world");
 
     p.cursor.pos.starting_pos.0 = 0;
     p.cursor.pos.starting_pos.1 = 0;
@@ -38,7 +38,7 @@ fn write_new_line_no_scroll() -> Result<()> {
 #[test]
 fn write_new_line_with_scroll() -> Result<()> {
     let mut p = Printer::_new(std::io::sink());
-    let b = Buffer::from_str("Hello world");
+    let b = Buffer::from_string("Hello world");
 
     p.cursor.pos.starting_pos.0 = 0;
     p.cursor.pos.starting_pos.1 = p.cursor.bound.height - 1;
@@ -77,7 +77,7 @@ fn scroll_up() -> Result<()> {
 #[test]
 fn scroll_because_input_needs_scroll() -> Result<()> {
     let mut p = Printer::_new(std::io::sink());
-    let b = Buffer::from_str("\n\n\n");
+    let b = Buffer::from_string("\n\n\n");
 
     p.cursor.pos.starting_pos.0 = 0;
     p.cursor.pos.starting_pos.1 = p.cursor.bound.height - 1;
@@ -93,7 +93,7 @@ fn scroll_because_input_needs_scroll() -> Result<()> {
 #[test]
 fn dont_scroll_because_input_doesent_need_scroll() -> Result<()> {
     let mut p = Printer::_new(std::io::sink());
-    let b = Buffer::from_str("\n\n\n");
+    let b = Buffer::from_string("\n\n\n");
 
     p.cursor.pos.starting_pos.0 = 0;
     p.cursor.pos.starting_pos.1 = 0;
