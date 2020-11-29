@@ -63,7 +63,7 @@ You can use arrow keys to cycle through commands history
 
 **ctrl-e** force evaluation
 
-<img src="./irust.png" width="80%" height="60%">
+<img src="./irust.png" width="200%" height="60%">
 
 ## Cli commands
 
