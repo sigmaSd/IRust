@@ -1,6 +1,5 @@
 mod art;
 mod cargo_cmds;
-mod cursor;
 mod events;
 mod format;
 mod help;
@@ -10,25 +9,20 @@ mod irust_error;
 mod known_paths;
 pub mod options;
 mod parser;
-mod printer;
+pub mod printer;
 mod racer;
 mod repl;
-mod writer;
 use crossterm::event::*;
 use crossterm::style::Color;
-use cursor::{Cursor, INPUT_START_COL};
 use history::History;
 pub use irust_error::IRustError;
 use options::Options;
 use racer::Racer;
 use repl::Repl;
-mod buffer;
+pub mod buffer;
 use buffer::Buffer;
-mod raw_terminal;
 use highlight::theme::Theme;
 use known_paths::KnownPaths;
-use raw_terminal::RawTerminal;
-use writer::Writer;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
@@ -39,60 +33,55 @@ const SHIFT_KEYMODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyM
 pub const NO_MODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::empty();
 
 pub struct IRust {
-    raw_terminal: RawTerminal,
     buffer: Buffer,
     repl: Repl,
-    cursor: Cursor,
-    history: History,
+    printer: printer::Printer<std::io::Stdout>,
     pub options: Options,
     racer: Result<Racer, IRustError>,
     known_paths: KnownPaths,
     theme: Theme,
-    writer: Writer,
+    history: History,
 }
 
-impl IRust {
-    pub fn new() -> Self {
-        let raw_terminal = RawTerminal::new();
+impl Default for IRust {
+    fn default() -> Self {
+        let printer = printer::Printer::default();
         let known_paths = KnownPaths::new();
-        // title is optional
-        let _ = raw_terminal.set_title(&format!("IRust: {}", known_paths.get_cwd().display()));
 
         let repl = Repl::new();
-        let history = History::new().unwrap_or_default();
         let options = Options::new().unwrap_or_default();
         let racer = if options.enable_racer {
             Racer::start()
         } else {
             Err(IRustError::RacerDisabled)
         };
-        let size = {
-            let (width, height) = raw_terminal.size().expect("Error getting terminal size");
-            (width as usize, height as usize)
-        };
-        let cursor = Cursor::new(size.0, size.1);
         let buffer = Buffer::new();
         let theme = highlight::theme::theme().unwrap_or_default();
+        let history = History::new().unwrap_or_default();
 
         IRust {
-            cursor,
-            raw_terminal,
             repl,
-            history,
+            printer,
             options,
             racer,
             buffer,
             known_paths,
             theme,
-            writer: Writer::default(),
+            history,
         }
     }
+}
 
+impl IRust {
     fn prepare(&mut self) -> Result<(), IRustError> {
-        raw_terminal::RawTerminal::enable_raw_mode()?;
+        // title is optional
+        self.printer
+            .writer
+            .raw
+            .set_title(&format!("IRust: {}", self.known_paths.get_cwd().display()))?;
         self.repl.prepare_ground(self.options.toolchain)?;
         self.welcome()?;
-        self.write_from_terminal_start(IN, Color::Yellow)?;
+        self.printer.write_from_terminal_start(IN, Color::Yellow)?;
 
         Ok(())
     }
@@ -104,10 +93,11 @@ impl IRust {
         watch(tx.clone())?;
         let input_thread = input_read(tx)?;
 
+        use std::io::Write;
         loop {
             // flush queued output after each key
             // some events that have an inner input loop like ctrl-r/ ctrl-d require flushing inside their respective handler function
-            self.raw_terminal.flush()?;
+            self.printer.writer.raw.flush()?;
 
             match rx.recv() {
                 Ok(IRustEvent::Input(ev)) => {
@@ -137,10 +127,9 @@ impl IRust {
         match ev {
             Event::Mouse(_) => (),
             Event::Resize(width, height) => {
-                // ctrlc so we can ignore a lot of position adjusting
-                // TODO fix this
+                self.printer.update_dimensions(width, height);
+                //Hack
                 self.handle_ctrl_c()?;
-                self.cursor = Cursor::new(width.into(), height.into());
             }
             Event::Key(key_event) => match key_event {
                 KeyEvent {
@@ -292,7 +281,7 @@ impl Drop for IRust {
         // ignore errors on drop with let _
         let _ = self.exit();
         if std::thread::panicking() {
-            let _ = self.raw_terminal.write("IRust panicked, to log the error you can redirect stderror to a file, example irust 2>log");
+            let _ = self.printer.writer.raw.write("IRust panicked, to log the error you can redirect stderror to a file, example irust 2>log");
         }
     }
 }
@@ -359,8 +348,8 @@ impl Drop for Guard {
                 Err(_) => {
                     // last resort
                     // ignore errors on drop with let _
-                    let _ = raw_terminal::RawTerminal::disable_raw_mode();
-                    let _ = raw_terminal::RawTerminal::_write(msg);
+                    let _ = crossterm::terminal::disable_raw_mode();
+                    eprintln!("{}", msg);
                     std::process::exit(1);
                 }
             }

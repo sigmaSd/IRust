@@ -4,11 +4,11 @@ mod irust;
 // mod log;
 mod dependencies;
 mod utils;
+use crate::irust::IRust;
 use dependencies::{check_required_deps, warn_about_opt_deps};
 
 use crate::args::handle_args;
 use crossterm::style::Colorize;
-use irust::IRust;
 use std::process::exit;
 
 fn main() {
@@ -16,7 +16,7 @@ fn main() {
         exit(1);
     }
 
-    let mut irust = IRust::new();
+    let mut irust = IRust::default();
 
     let exit_flag = handle_args(&mut irust);
     if exit_flag {

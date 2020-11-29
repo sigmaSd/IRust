@@ -97,47 +97,14 @@ impl Buffer {
         self.buffer_pos = self.buffer.len();
     }
 
-    pub fn buffer_pos_to_relative_cursor_pos(
-        &self,
-        buffer_pos: usize,
-        screen_width: usize,
-    ) -> (usize, usize) {
-        let max_line_chars = screen_width - super::cursor::INPUT_START_COL;
-
-        let mut y = self
-            .buffer
-            .iter()
-            .take(buffer_pos)
-            .filter(|c| **c == '\n')
-            .count();
-
-        let mut x = 0;
-        for i in 0..buffer_pos {
-            match self.buffer.get(i) {
-                Some('\n') => x = 0,
-                _ => x += 1,
-            };
-            if x == max_line_chars {
-                x = 0;
-                y += 1;
-            }
-        }
-
-        (x, y)
-    }
-
-    pub fn last_buffer_pos_to_relative_cursor_pos(&self, screen_width: usize) -> (usize, usize) {
-        self.buffer_pos_to_relative_cursor_pos(self.buffer.len(), screen_width)
-    }
-
-    pub fn from_str(str: &str) -> Self {
+    pub fn from_string(str: &str) -> Self {
         Self {
             buffer: str.chars().collect(),
             buffer_pos: 0,
         }
     }
 
-    pub fn _get(&self, idx: usize) -> Option<&char> {
+    pub fn get(&self, idx: usize) -> Option<&char> {
         self.buffer.get(idx)
     }
 
@@ -147,6 +114,13 @@ impl Buffer {
 
     pub fn iter(&self) -> impl Iterator<Item = &char> {
         self.buffer.iter()
+    }
+
+    pub fn take(&mut self) -> Vec<char> {
+        let buffer = std::mem::take(&mut self.buffer);
+        self.clear();
+        self.goto_start();
+        buffer
     }
 }
 

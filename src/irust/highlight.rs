@@ -1,15 +1,15 @@
-use super::printer::{Printer, PrinterItem};
+use super::printer::{PrintQueue, PrinterItem};
 use crossterm::style::Color;
 pub mod theme;
 
 const PAREN_COLORS: [&str; 4] = ["green", "red", "yellow", "blue"];
-pub fn highlight(c: String, theme: &theme::Theme) -> Printer {
-    let mut printer = Printer::default();
+pub fn highlight(c: &[char], theme: &theme::Theme) -> PrintQueue {
+    let mut print_queue = PrintQueue::default();
 
     macro_rules! push_to_printer {
         ($item_type: ident, $item: expr, $color: expr) => {{
             let color = theme::theme_color_to_term_color($color).unwrap_or(Color::White);
-            printer.push(PrinterItem::$item_type($item, color));
+            print_queue.push(PrinterItem::$item_type($item, color));
         }};
     }
 
@@ -40,11 +40,11 @@ pub fn highlight(c: String, theme: &theme::Theme) -> Printer {
                 push_to_printer!(Char, s, PAREN_COLORS[idx.abs() as usize % 4])
             }
             Token::NewLine => {
-                printer.push(PrinterItem::NewLine);
+                print_queue.push(PrinterItem::NewLine);
             }
         };
     }
-    printer
+    print_queue
 }
 
 #[derive(Debug)]
@@ -89,13 +89,14 @@ impl Token {
     }
 }
 
-fn parse(s: String) -> Vec<Token> {
-    let mut s = s.chars().peekable();
+fn parse(s: &[char]) -> Vec<Token> {
+    let mut s = s.iter().peekable();
     let mut alphanumeric = String::new();
     let mut tokens = vec![];
     let mut previous_char = None;
     let mut paren_idx = 0;
     while let Some(c) = s.next() {
+        let c = *c;
         match c {
             // _ is accepted as variable/function name
             c if c.is_alphanumeric() || c == '_' => {
@@ -150,7 +151,7 @@ fn parse(s: String) -> Vec<Token> {
             }
             ':' => {
                 // maybe const || maybe function with type annotation
-                if s.peek() == Some(&':') {
+                if s.peek() == Some(&&':') {
                     // ::
                     // example: collect::<Vec<_>>()
                     s.next();
@@ -163,7 +164,7 @@ fn parse(s: String) -> Vec<Token> {
                     continue;
                 }
                 // maybe function with type annotation
-                if s.peek() == Some(&'<') {
+                if s.peek() == Some(&&'<') {
                     tokens.push(Token::Function(alphanumeric.drain(..).collect()));
                 } else {
                     tokens.push(Token::X(alphanumeric.drain(..).collect()));
@@ -176,7 +177,7 @@ fn parse(s: String) -> Vec<Token> {
                     let token = parse_as(alphanumeric.drain(..).collect(), vec![TokenName::Number]);
                     tokens.push(token);
                 }
-                if s.peek() == Some(&'/') || s.peek() == Some(&'*') {
+                if s.peek() == Some(&&'/') || s.peek() == Some(&&'*') {
                     let end = if matches!(s.peek(), Some(&'/')) {
                         '\n'
                     } else {
@@ -186,18 +187,18 @@ fn parse(s: String) -> Vec<Token> {
                     tokens.push(Token::CommentC('/'));
                     let mut comment = String::new();
                     while let Some(c) = s.next() {
-                        if c == end && end == '\n' {
+                        if c == &end && end == '\n' {
                             tokens.push(Token::Comment(comment.drain(..).collect()));
                             tokens.push(Token::NewLine);
                             break;
-                        } else if c == end && s.peek() == Some(&'/') {
+                        } else if c == &end && s.peek() == Some(&&'/') {
                             // consume /
                             s.next();
                             tokens.push(Token::Comment(comment.drain(..).collect()));
                             tokens.push(Token::CommentS("*/"));
                             break;
                         } else {
-                            comment.push(c);
+                            comment.push(*c);
                         }
                     }
                     if !comment.is_empty() {
@@ -250,7 +251,9 @@ fn catch_all(alphanumeric: &mut String, tokens: &mut Vec<Token>) {
     }
 }
 
-fn parse_character_lifetime(s: &mut std::iter::Peekable<impl Iterator<Item = char>>) -> Vec<Token> {
+fn parse_character_lifetime<'a>(
+    s: &mut std::iter::Peekable<impl Iterator<Item = &'a char>>,
+) -> Vec<Token> {
     // a'  b' c' d' \r' \t'
     // try as char
 
@@ -258,18 +261,18 @@ fn parse_character_lifetime(s: &mut std::iter::Peekable<impl Iterator<Item = cha
     let mut previous_char = None;
     let mut characters = String::new();
     while let Some(c) = s.next() {
-        if c == '\'' && previous_char != Some('\\') {
+        if c == &'\'' && previous_char != Some('\\') {
             // we reached the end
             characters.push('\'');
             return characters.chars().map(Token::Character).collect();
         } else {
-            characters.push(c);
+            characters.push(*c);
             if counter == 2 || (counter == 1 && !characters.starts_with('\\')) {
                 // this is not a character
                 break;
             }
         }
-        previous_char = Some(c);
+        previous_char = Some(*c);
         counter += 1;
     }
 
@@ -289,26 +292,26 @@ fn parse_character_lifetime(s: &mut std::iter::Peekable<impl Iterator<Item = cha
         }
         // safe unwrap
         let c = s.next().unwrap();
-        characters.push(c);
+        characters.push(*c);
     }
     vec![Token::LifeTime(characters)]
 }
 
-fn parse_string_literal(s: &mut impl Iterator<Item = char>) -> Vec<Token> {
+fn parse_string_literal<'a>(s: &mut impl Iterator<Item = &'a char>) -> Vec<Token> {
     let mut previous_char = None;
     let mut string_literal = String::new();
     for c in s {
-        if c == '"' && previous_char != Some('\\') {
+        if c == &'"' && previous_char != Some('\\') {
             // we reached the end
             return vec![
                 Token::StringLiteral(string_literal),
                 Token::StringLiteralC('"'),
             ];
         } else {
-            string_literal.push(c);
+            string_literal.push(*c);
         }
 
-        previous_char = Some(c);
+        previous_char = Some(*c);
     }
 
     vec![Token::StringLiteral(string_literal)]

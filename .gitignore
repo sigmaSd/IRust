@@ -1,16 +1,2 @@
-# Ignore
-*
-
-# Dont Ignore
-!/src/
-!/src/*
-!/src/irust/*
-!*.rs
-!Cargo.toml
-!CHANGELOG.md
-!README.md
-!LICENSE
-!.gitignore
-!Cargo.lock
-!TODO
-!flamegraph.svg
+.vscode
+target/

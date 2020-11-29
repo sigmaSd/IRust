@@ -4,7 +4,7 @@ use super::cargo_cmds::{cargo_bench, ToolChain};
 use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
 use crate::irust::format::{format_check_output, format_err, format_eval_output};
-use crate::irust::printer::{Printer, PrinterItem};
+use crate::irust::printer::{PrintQueue, PrinterItem};
 use crate::irust::{IRust, IRustError};
 use crate::utils::{remove_main, stdout_and_stderr};
 
@@ -12,25 +12,25 @@ const SUCCESS: &str = "Ok!";
 
 macro_rules! success {
     () => {{
-        let mut printer = Printer::default();
-        printer.push(PrinterItem::Str(SUCCESS, Color::Blue));
-        printer.add_new_line(1);
+        let mut print_queue = PrintQueue::default();
+        print_queue.push(PrinterItem::Str(SUCCESS, Color::Blue));
+        print_queue.add_new_line(1);
 
-        Ok(printer)
+        Ok(print_queue)
     }};
 }
-macro_rules! printer {
+macro_rules! print_queue {
     ($item: expr, $color: expr) => {{
-        let mut printer = Printer::default();
-        printer.push(PrinterItem::String($item, $color));
-        printer.add_new_line(1);
+        let mut print_queue = PrintQueue::default();
+        print_queue.push(PrinterItem::String($item, $color));
+        print_queue.add_new_line(1);
 
-        Ok(printer)
+        Ok(print_queue)
     }};
 }
 
 impl IRust {
-    pub fn parse(&mut self) -> Result<Printer, IRustError> {
+    pub fn parse(&mut self) -> Result<PrintQueue, IRustError> {
         // Order matters in this match
         match self.buffer.to_string().as_str() {
             ":help" => self.help(),
@@ -57,17 +57,17 @@ impl IRust {
         }
     }
 
-    fn reset(&mut self) -> Result<Printer, IRustError> {
+    fn reset(&mut self) -> Result<PrintQueue, IRustError> {
         self.repl.reset(self.options.toolchain)?;
         success!()
     }
 
-    fn pop(&mut self) -> Result<Printer, IRustError> {
+    fn pop(&mut self) -> Result<PrintQueue, IRustError> {
         self.repl.pop();
         success!()
     }
 
-    fn check_statements(&mut self) -> Result<Printer, IRustError> {
+    fn check_statements(&mut self) -> Result<PrintQueue, IRustError> {
         const ERROR: &str = "Invalid argument, accepted values are `false` `true`";
         let buffer = self.buffer.to_string();
         let buffer = buffer.split_whitespace().nth(1).ok_or(ERROR)?;
@@ -75,19 +75,20 @@ impl IRust {
         success!()
     }
 
-    fn del(&mut self) -> Result<Printer, IRustError> {
+    fn del(&mut self) -> Result<PrintQueue, IRustError> {
         if let Some(line_num) = self.buffer.to_string().split_whitespace().last() {
             self.repl.del(line_num)?;
         }
         success!()
     }
 
-    fn show(&mut self) -> Result<Printer, IRustError> {
-        let repl_code = highlight(self.repl.show(), &self.theme);
+    fn show(&mut self) -> Result<PrintQueue, IRustError> {
+        let code: Vec<char> = self.repl.show().chars().collect();
+        let repl_code = highlight(&code, &self.theme);
         Ok(repl_code)
     }
 
-    fn toolchain(&mut self) -> Result<Printer, IRustError> {
+    fn toolchain(&mut self) -> Result<PrintQueue, IRustError> {
         self.options.toolchain = ToolChain::from_str(
             self.buffer
                 .to_string()
@@ -98,7 +99,7 @@ impl IRust {
         success!()
     }
 
-    fn add_dep(&mut self) -> Result<Printer, IRustError> {
+    fn add_dep(&mut self) -> Result<PrintQueue, IRustError> {
         let mut dep: Vec<String> = self
             .buffer
             .to_string()
@@ -136,7 +137,6 @@ impl IRust {
             }
         }
 
-        self.cursor.save_position();
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build(self.options.toolchain)?, "Build")?;
 
@@ -146,12 +146,11 @@ impl IRust {
                 "Check",
             )?;
         }
-        self.write_newline()?;
 
         success!()
     }
 
-    fn color(&mut self) -> Result<Printer, IRustError> {
+    fn color(&mut self) -> Result<PrintQueue, IRustError> {
         let buffer = self.buffer.to_string();
         let mut buffer = buffer.split_whitespace().skip(1).peekable();
 
@@ -187,7 +186,7 @@ impl IRust {
         success!()
     }
 
-    fn load(&mut self) -> Result<Printer, IRustError> {
+    fn load(&mut self) -> Result<PrintQueue, IRustError> {
         let buffer = self.buffer.to_string();
         let path = if let Some(path) = buffer.split_whitespace().nth(1) {
             std::path::Path::new(&path).to_path_buf()
@@ -197,7 +196,7 @@ impl IRust {
         self.load_inner(path)
     }
 
-    fn reload(&mut self) -> Result<Printer, IRustError> {
+    fn reload(&mut self) -> Result<PrintQueue, IRustError> {
         let path = if let Some(path) = self.known_paths.get_last_loaded_coded_path() {
             path
         } else {
@@ -206,7 +205,7 @@ impl IRust {
         self.load_inner(path)
     }
 
-    pub fn load_inner(&mut self, path: std::path::PathBuf) -> Result<Printer, IRustError> {
+    pub fn load_inner(&mut self, path: std::path::PathBuf) -> Result<PrintQueue, IRustError> {
         // save path
         self.known_paths.set_last_loaded_coded_path(path.clone());
 
@@ -240,7 +239,7 @@ impl IRust {
         }
     }
 
-    fn show_type(&mut self) -> Result<Printer, IRustError> {
+    fn show_type(&mut self) -> Result<PrintQueue, IRustError> {
         // TODO
         // We should probably use the `Any` trait instead of the current method
         // Current method might break with compiler updates
@@ -284,10 +283,10 @@ impl IRust {
             "Uknown".into()
         };
 
-        printer!(var_type, self.options.ok_color)
+        print_queue!(var_type, self.options.ok_color)
     }
 
-    fn run_cmd(&mut self) -> Result<Printer, IRustError> {
+    fn run_cmd(&mut self) -> Result<PrintQueue, IRustError> {
         // remove ::
         let buffer = &self.buffer.to_string()[2..];
 
@@ -298,10 +297,10 @@ impl IRust {
                 .output()?,
         );
 
-        printer!(output, self.options.shell_color)
+        print_queue!(output, self.options.shell_color)
     }
 
-    fn parse_second_order(&mut self) -> Result<Printer, IRustError> {
+    fn parse_second_order(&mut self) -> Result<PrintQueue, IRustError> {
         // these consts are used to detect statements that don't require to be terminated with ';'
         // `loop` can return a value so we don't add it here, exp: `loop {break 4}`
         const FUNCTION_DEF: &str = "fn ";
@@ -324,7 +323,7 @@ impl IRust {
         let buffer = buffer.trim();
 
         if buffer.is_empty() {
-            Ok(Printer::default())
+            Ok(PrintQueue::default())
         } else if buffer.ends_with(';')
             || buffer.starts_with(FUNCTION_DEF)
             || buffer.starts_with(ASYNC_FUNCTION_DEF)
@@ -337,7 +336,7 @@ impl IRust {
             || buffer.starts_with(WHILE)
             || buffer.starts_with(EXTERN)
         {
-            let mut printer = Printer::default();
+            let mut print_queue = PrintQueue::default();
 
             let mut insert_flag = true;
 
@@ -346,7 +345,7 @@ impl IRust {
                     self.repl
                         .check(self.buffer.to_string(), self.options.toolchain)?,
                 ) {
-                    printer.append(&mut e);
+                    print_queue.append(&mut e);
                     insert_flag = false;
                 }
             }
@@ -360,9 +359,9 @@ impl IRust {
                 cargo_fmt_file(&*MAIN_FILE_EXTERN);
             }
 
-            Ok(printer)
+            Ok(print_queue)
         } else {
-            let mut outputs = Printer::default();
+            let mut outputs = PrintQueue::default();
             let (status, out) = self
                 .repl
                 .eval(self.buffer.to_string(), self.options.toolchain)?;
@@ -374,7 +373,7 @@ impl IRust {
         }
     }
 
-    pub fn sync(&mut self) -> Result<Printer, IRustError> {
+    pub fn sync(&mut self) -> Result<PrintQueue, IRustError> {
         match self.repl.update_from_main_file() {
             Ok(_) => success!(),
             Err(e) => {
@@ -384,18 +383,17 @@ impl IRust {
         }
     }
 
-    fn extern_edit(&mut self) -> Result<Printer, IRustError> {
+    fn extern_edit(&mut self) -> Result<PrintQueue, IRustError> {
         // exp: :edit vi
         let editor: String = match self.buffer.to_string().split_whitespace().nth(1) {
             Some(ed) => ed.to_string(),
             None => return Err(IRustError::Custom("No editor specified".to_string())),
         };
 
-        self.raw_terminal.write_with_color(
+        self.printer.writer.raw.write_with_color(
             format!("waiting for {}...", editor),
             crossterm::style::Color::Magenta,
         )?;
-        self.write_newline()?;
 
         // beautify code
         if self.repl.body.len() > 2 {
@@ -420,11 +418,11 @@ impl IRust {
         self.sync()
     }
 
-    fn irust(&mut self) -> Result<Printer, IRustError> {
-        printer!(self.ferris(), Color::Red)
+    fn irust(&mut self) -> Result<PrintQueue, IRustError> {
+        print_queue!(self.ferris(), Color::Red)
     }
 
-    fn cd(&mut self) -> Result<Printer, IRustError> {
+    fn cd(&mut self) -> Result<PrintQueue, IRustError> {
         use std::env::*;
         let buffer = self.buffer.to_string();
         let buffer = buffer
@@ -451,20 +449,22 @@ impl IRust {
         // Update cwd and the terminal title accordingly
         let cwd = current_dir()?;
         self.known_paths.update_cwd(cwd.clone());
-        self.raw_terminal
+        self.printer
+            .writer
+            .raw
             .set_title(&format!("IRust: {}", cwd.display()))?;
 
-        printer!(cwd.display().to_string(), self.options.ok_color)
+        print_queue!(cwd.display().to_string(), self.options.ok_color)
     }
 
-    fn time(&mut self) -> Result<Printer, IRustError> {
+    fn time(&mut self) -> Result<PrintQueue, IRustError> {
         self.inner_time(":time", false)
     }
-    fn time_release(&mut self) -> Result<Printer, IRustError> {
+    fn time_release(&mut self) -> Result<PrintQueue, IRustError> {
         self.inner_time(":time_release", true)
     }
 
-    fn inner_time(&mut self, pattern: &str, release: bool) -> Result<Printer, IRustError> {
+    fn inner_time(&mut self, pattern: &str, release: bool) -> Result<PrintQueue, IRustError> {
         let buffer = self.buffer.to_string();
         let fnn = buffer
             .splitn(2, pattern)
@@ -500,11 +500,11 @@ impl IRust {
         Ok(format_eval_output(status.unwrap(), raw_out).ok_or("failed to bench function")?)
     }
 
-    fn bench(&mut self) -> Result<Printer, IRustError> {
+    fn bench(&mut self) -> Result<PrintQueue, IRustError> {
         //make sure we have the latest changes in main.rs
         self.repl.write()?;
         let out = cargo_bench(self.options.toolchain)?.trim().to_owned();
 
-        printer!(out, self.options.eval_color)
+        print_queue!(out, self.options.eval_color)
     }
 }

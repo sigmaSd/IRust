@@ -11,6 +11,8 @@ pub enum IRustError {
     ParsingError(String),
 }
 
+impl std::error::Error for IRustError {}
+
 impl From<io::Error> for IRustError {
     fn from(error: io::Error) -> Self {
         IRustError::IoError(error)
