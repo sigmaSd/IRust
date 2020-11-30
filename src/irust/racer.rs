@@ -149,7 +149,7 @@ impl Racer {
         }
     }
 
-    fn current_suggestion(&self) -> Option<(String, String)> {
+    pub fn current_suggestion(&self) -> Option<(String, String)> {
         if self.suggestion_idx > 1 {
             self.suggestions
                 .get(self.suggestion_idx - 1)
@@ -390,42 +390,6 @@ impl Racer {
         printer.writer.raw.reset_color()?;
         printer.cursor.restore_position();
         printer.cursor.goto_internal_pos();
-
-        Ok(())
-    }
-
-    pub fn use_suggestion(
-        &mut self,
-        printer: &mut super::printer::Printer<impl Write>,
-        buffer: &mut super::Buffer,
-        theme: &super::Theme,
-    ) -> Result<(), IRustError> {
-        if let Some(suggestion) = self.current_suggestion() {
-            // suggestion => `name: definition`
-            // suggestion example => `assert!: macro_rules! assert {`
-
-            // get the name
-            let mut suggestion = suggestion.0;
-
-            // get the unique part of the name
-            StringTools::strings_unique(
-                &buffer
-                    .buffer
-                    .iter()
-                    .take(buffer.buffer_pos)
-                    .collect::<String>(),
-                &mut suggestion,
-            );
-
-            buffer.insert_str(&suggestion);
-            let chars_count = StringTools::chars_count(&suggestion);
-
-            for _ in 0..chars_count {
-                printer.cursor.move_right_unbounded();
-            }
-
-            printer.print_input(&buffer, &theme)?;
-        }
 
         Ok(())
     }

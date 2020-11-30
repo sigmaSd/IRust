@@ -135,11 +135,7 @@ impl IRust {
             self.printer.cursor.move_right();
             self.buffer.move_forward();
         } else {
-            self.racer.as_mut()?.use_suggestion(
-                &mut self.printer,
-                &mut self.buffer,
-                &self.theme,
-            )?;
+            self.use_racer_suggestion()?;
         }
         Ok(())
     }
@@ -325,11 +321,7 @@ impl IRust {
             self.printer.cursor.move_right();
             self.buffer.move_forward();
         } else {
-            self.racer.as_mut()?.use_suggestion(
-                &mut self.printer,
-                &mut self.buffer,
-                &self.theme,
-            )?;
+            self.use_racer_suggestion()?;
         }
 
         if let Some(current_char) = self.buffer.current_char() {
@@ -368,6 +360,37 @@ impl IRust {
 
     pub fn handle_ctrl_e(&mut self) -> Result<(), IRustError> {
         self.handle_enter(true)
+    }
+
+    pub fn use_racer_suggestion(&mut self) -> Result<(), IRustError> {
+        if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
+            // suggestion => `name: definition`
+            // suggestion example => `assert!: macro_rules! assert {`
+
+            // get the name
+            let mut suggestion = suggestion.0;
+
+            // get the unique part of the name
+            StringTools::strings_unique(
+                &self
+                    .buffer
+                    .buffer
+                    .iter()
+                    .take(self.buffer.buffer_pos)
+                    .collect::<String>(),
+                &mut suggestion,
+            );
+
+            self.buffer.insert_str(&suggestion);
+            let chars_count = StringTools::chars_count(&suggestion);
+
+            for _ in 0..chars_count {
+                self.printer.cursor.move_right_unbounded();
+            }
+
+            self.printer.print_input(&self.buffer, &self.theme)?;
+        }
+        Ok(())
     }
 
     // helper functions
