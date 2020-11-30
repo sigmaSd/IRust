@@ -15,7 +15,11 @@ use std::process::exit;
 fn main() {
     let mut options = Options::new().unwrap_or_default();
 
-    handle_args(&mut options);
+    let exit_flag = handle_args(&mut options);
+    if exit_flag {
+        exit(0)
+    }
+
     if !check_required_deps() {
         exit(1);
     }
