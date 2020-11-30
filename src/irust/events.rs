@@ -232,7 +232,6 @@ impl IRust {
         self.options.save()?;
         self.theme.save()?;
         self.printer.write_newline(&self.buffer)?;
-        self.printer.writer.raw.disable_raw_mode()?;
         self.printer.cursor.show();
         Ok(())
     }

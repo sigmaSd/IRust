@@ -15,6 +15,7 @@ pub struct Printer<W: std::io::Write> {
 
 impl Default for Printer<std::io::Stdout> {
     fn default() -> Self {
+        crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
         Self {
             printer: Default::default(),
             writer: writer::Writer::default(),
@@ -26,12 +27,19 @@ impl Default for Printer<std::io::Stdout> {
 impl<W: std::io::Write> Printer<W> {
     // for tests
     pub fn _new(raw: W) -> Printer<W> {
+        crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
         let raw = Rc::new(RefCell::new(raw));
         Self {
             printer: PrintQueue::default(),
             writer: writer::Writer::_new(raw.clone()),
             cursor: cursor::Cursor::_new(raw),
         }
+    }
+}
+
+impl<W: std::io::Write> Drop for Printer<W> {
+    fn drop(&mut self) {
+        let _ = crossterm::terminal::disable_raw_mode();
     }
 }
 

@@ -66,12 +66,4 @@ impl<W: std::io::Write> Raw<W> {
         queue!(self, SetTitle(title))?;
         Ok(())
     }
-
-    pub fn disable_raw_mode(&self) -> Result<(), IRustError> {
-        Ok(crossterm::terminal::disable_raw_mode()?)
-    }
-
-    pub fn enable_raw_mode(&self) -> Result<(), IRustError> {
-        Ok(crossterm::terminal::enable_raw_mode()?)
-    }
 }

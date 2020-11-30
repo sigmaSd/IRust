@@ -14,7 +14,6 @@ impl Default for Writer<std::io::Stdout> {
     fn default() -> Self {
         let raw = Rc::new(RefCell::new(std::io::stdout()));
         let raw = Raw { raw };
-        raw.enable_raw_mode().expect("failed to enable raw mode");
         Self {
             last_color: None,
             raw,
@@ -22,16 +21,9 @@ impl Default for Writer<std::io::Stdout> {
     }
 }
 
-impl<W: std::io::Write> Drop for Writer<W> {
-    fn drop(&mut self) {
-        let _ = self.raw.disable_raw_mode();
-    }
-}
-
 impl<W: std::io::Write> Writer<W> {
     pub fn _new(raw: Rc<RefCell<W>>) -> Writer<W> {
         let raw = Raw { raw };
-        raw.enable_raw_mode().expect("failed to enable raw mode");
         Self {
             last_color: None,
             raw,
