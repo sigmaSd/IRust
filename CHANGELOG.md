@@ -1,3 +1,6 @@
+**1.1.1**
+- Hotfix: Add missing exit after (irust -x)
+
 **1.1.0**
 - Add `:asm` command => shows the assembly of the specified function(requires[cargo-asm](https://github.com/gnzlbg/cargo-asm))
 - More refactoring
