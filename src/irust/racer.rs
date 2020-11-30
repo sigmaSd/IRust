@@ -1,7 +1,6 @@
 use super::{cargo_cmds::MAIN_FILE, IRustError};
-use crate::irust::IRust;
 use crate::utils::{read_until_bytes, StringTools};
-use crossterm::terminal::ClearType;
+use crossterm::{style::Color, terminal::ClearType};
 use std::io::Write;
 use std::process::{Child, Command, Stdio};
 
@@ -173,32 +172,39 @@ impl Racer {
     }
 }
 
-impl IRust {
-    pub fn update_suggestions(&mut self) -> Result<(), IRustError> {
-        // get the buffer as string
-        let buffer: String = self.buffer.iter().take(self.buffer.buffer_pos).collect();
-
+impl Racer {
+    pub fn update_suggestions(
+        &mut self,
+        buffer: &super::Buffer,
+        printer: &mut super::printer::Printer<impl std::io::Write>,
+        repl: &mut crate::irust::repl::Repl,
+    ) -> Result<(), IRustError> {
         // return if we're not at the end of the line
-        if !self.printer.cursor.is_at_line_end(&self) {
+        if !printer.cursor.is_at_line_end(&buffer) {
             return Ok(());
         }
+
+        // get the buffer as string
+        let buffer: String = buffer.iter().take(buffer.buffer_pos).collect();
 
         // don't autocomplete shell commands
         if buffer.starts_with("::") {
             return Ok(());
         }
 
-        self.show_suggestions_inner(buffer)?;
+        self.show_suggestions_inner(buffer, repl)?;
 
         Ok(())
     }
 
-    fn show_suggestions_inner(&mut self, buffer: String) -> Result<(), IRustError> {
+    fn show_suggestions_inner(
+        &mut self,
+        buffer: String,
+        repl: &mut crate::irust::repl::Repl,
+    ) -> Result<(), IRustError> {
         if buffer.starts_with(':') {
             // Auto complete IRust commands
-            self.racer.as_mut()?.suggestions = self
-                .racer
-                .as_ref()?
+            self.suggestions = self
                 .cmds
                 .iter()
                 .filter(|c| c.starts_with(&buffer[1..]))
@@ -207,9 +213,9 @@ impl IRust {
                 .collect();
         } else {
             // Auto complete rust code
-            let mut racer = self.racer.as_mut()?;
+            let mut racer = self;
 
-            racer.cursor.0 = self.repl.body.len() + StringTools::new_lines_count(&buffer);
+            racer.cursor.0 = repl.body.len() + StringTools::new_lines_count(&buffer);
 
             racer.cursor.1 = 0;
             for c in buffer.chars() {
@@ -220,123 +226,137 @@ impl IRust {
                 }
             }
 
-            self.repl
-                .eval_in_tmp_repl(buffer, move || -> Result<(), IRustError> {
-                    racer.complete_code().map_err(From::from)
-                })?;
+            repl.eval_in_tmp_repl(buffer, move || -> Result<(), IRustError> {
+                racer.complete_code().map_err(From::from)
+            })?;
         }
 
         Ok(())
     }
 
-    fn write_next_suggestion(&mut self) -> Result<(), IRustError> {
-        self.racer.as_mut()?.goto_next_suggestion();
-        self.write_current_suggestion()?;
+    fn write_next_suggestion(
+        &mut self,
+        printer: &mut super::printer::Printer<impl std::io::Write>,
+        buffer: &super::Buffer,
+        color: Color,
+    ) -> Result<(), IRustError> {
+        self.goto_next_suggestion();
+        self.write_current_suggestion(printer, buffer, color)?;
 
         Ok(())
     }
 
-    fn write_previous_suggestion(&mut self) -> Result<(), IRustError> {
-        self.racer.as_mut()?.goto_previous_suggestion();
-        self.write_current_suggestion()?;
+    fn write_previous_suggestion(
+        &mut self,
+        printer: &mut super::printer::Printer<impl std::io::Write>,
+        buffer: &super::Buffer,
+        color: Color,
+    ) -> Result<(), IRustError> {
+        self.goto_previous_suggestion();
+        self.write_current_suggestion(printer, buffer, color)?;
 
         Ok(())
     }
 
-    fn write_current_suggestion(&mut self) -> Result<(), IRustError> {
-        if !self.printer.cursor.is_at_line_end(&self) {
+    fn write_current_suggestion(
+        &mut self,
+        printer: &mut crate::irust::printer::Printer<impl std::io::Write>,
+        buffer: &super::Buffer,
+        color: Color,
+    ) -> Result<(), IRustError> {
+        if !printer.cursor.is_at_line_end(&buffer) {
             return Ok(());
         }
 
-        if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
-            self.printer.writer.raw.clear(ClearType::UntilNewLine)?;
+        if let Some(suggestion) = self.current_suggestion() {
+            printer.writer.raw.clear(ClearType::UntilNewLine)?;
 
             let mut suggestion = suggestion.0;
 
-            let buffer: String = self.buffer.iter().take(self.buffer.buffer_pos).collect();
+            let buffer: String = buffer.iter().take(buffer.buffer_pos).collect();
             StringTools::strings_unique(&buffer, &mut suggestion);
 
             // scroll if needed
-            let height_overflow = self
-                .printer
-                .cursor
-                .screen_height_overflow_by_str(&suggestion);
+            let height_overflow = printer.cursor.screen_height_overflow_by_str(&suggestion);
             if height_overflow > 0 {
-                self.printer.scroll_up(height_overflow);
+                printer.scroll_up(height_overflow);
             }
 
-            self.printer.cursor.hide();
-            self.printer
-                .writer
-                .raw
-                .set_fg(self.options.racer_inline_suggestion_color)?;
-            self.printer.cursor.raw.save_position()?;
+            printer.cursor.hide();
+            printer.writer.raw.set_fg(color)?;
+            printer.cursor.raw.save_position()?;
 
-            self.printer.writer.raw.write(&suggestion)?;
+            printer.writer.raw.write(&suggestion)?;
 
-            self.printer.cursor.raw.restore_position()?;
-            self.printer.writer.raw.reset_color()?;
-            self.printer.cursor.show();
+            printer.cursor.raw.restore_position()?;
+            printer.writer.raw.reset_color()?;
+            printer.cursor.show();
         }
 
         Ok(())
     }
 
-    pub fn cycle_suggestions(&mut self, cycle: Cycle) -> Result<(), IRustError> {
+    pub fn cycle_suggestions(
+        &mut self,
+        printer: &mut super::printer::Printer<impl Write>,
+        buffer: &super::Buffer,
+        cycle: Cycle,
+        options: &super::options::Options,
+    ) -> Result<(), IRustError> {
         // return if we're not at the end of the line
-        if !self.printer.cursor.is_at_line_end(&self) {
+        if !printer.cursor.is_at_line_end(&buffer) {
             return Ok(());
         }
 
         // Write inline suggestion
         match cycle {
-            Cycle::Down => self.write_next_suggestion()?,
-            Cycle::Up => self.write_previous_suggestion()?,
+            Cycle::Down => {
+                self.write_next_suggestion(printer, buffer, options.racer_inline_suggestion_color)?
+            }
+            Cycle::Up => self.write_previous_suggestion(
+                printer,
+                buffer,
+                options.racer_inline_suggestion_color,
+            )?,
         }
 
         // No suggestions to show
-        if self.racer.as_ref()?.suggestions.is_empty() {
+        if self.suggestions.is_empty() {
             return Ok(());
         }
 
         // Max suggestions number to show
-        let suggestions_num = std::cmp::min(
-            self.racer.as_ref()?.suggestions.len(),
-            self.options.racer_max_suggestions,
-        );
+        let suggestions_num = std::cmp::min(self.suggestions.len(), options.racer_max_suggestions);
 
         // Handle screen height overflow
-        let height_overflow = self
-            .printer
+        let height_overflow = printer
             .cursor
             .screen_height_overflow_by_new_lines(suggestions_num + 1);
 
         if height_overflow != 0 {
-            self.printer.scroll_up(height_overflow);
+            printer.scroll_up(height_overflow);
         }
 
-        self.printer.cursor.save_position();
-        self.printer.cursor.move_to_input_last_row(&self.buffer);
+        printer.cursor.save_position();
+        printer.cursor.move_to_input_last_row(&buffer);
 
-        let max_width = self.printer.cursor.bound.width - 1;
-        self.printer.cursor.pos.current_pos.0 = 0;
-        self.printer.cursor.goto_internal_pos();
-        self.printer.cursor.raw.move_down(1)?;
-        self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
-        self.printer.cursor.raw.move_up(1)?;
+        let max_width = printer.cursor.bound.width - 1;
+        printer.cursor.pos.current_pos.0 = 0;
+        printer.cursor.goto_internal_pos();
+        printer.cursor.raw.move_down(1)?;
+        printer.writer.raw.clear(ClearType::FromCursorDown)?;
+        printer.cursor.raw.move_up(1)?;
 
-        self.printer
+        printer
             .writer
             .raw
-            .set_fg(self.options.racer_suggestions_table_color)?;
-        let current_suggestion = self.racer.as_ref()?.current_suggestion();
+            .set_fg(options.racer_suggestions_table_color)?;
+        let current_suggestion = self.current_suggestion();
 
         for (idx, suggestion) in self
-            .racer
-            .as_ref()?
             .suggestions
             .iter()
-            .skip(((self.racer.as_ref()?.suggestion_idx - 1) / suggestions_num) * suggestions_num)
+            .skip(((self.suggestion_idx - 1) / suggestions_num) * suggestions_num)
             .take(suggestions_num)
             .enumerate()
         {
@@ -348,37 +368,39 @@ impl IRust {
                 suggestion.push_str("...");
             }
             // move one + idx row down
-            self.printer.cursor.raw.move_down(idx as u16 + 1)?;
+            printer.cursor.raw.move_down(idx as u16 + 1)?;
 
             // write suggestion
-            self.printer.cursor.raw.save_position()?;
+            printer.cursor.raw.save_position()?;
 
             if Some(&suggestion_c) == current_suggestion.as_ref() {
-                self.printer
+                printer
                     .writer
                     .raw
-                    .set_bg(self.options.racer_selected_suggestion_color)?;
+                    .set_bg(options.racer_selected_suggestion_color)?;
             }
 
-            self.printer.writer.raw.write(&suggestion)?;
-            self.printer
-                .writer
-                .raw
-                .set_bg(crossterm::style::Color::Reset)?;
-            self.printer.cursor.raw.restore_position()?;
-            self.printer.cursor.move_up(idx as u16 + 1);
+            printer.writer.raw.write(&suggestion)?;
+            printer.writer.raw.set_bg(crossterm::style::Color::Reset)?;
+            printer.cursor.raw.restore_position()?;
+            printer.cursor.move_up(idx as u16 + 1);
         }
 
         // reset to input position and color
-        self.printer.writer.raw.reset_color()?;
-        self.printer.cursor.restore_position();
-        self.printer.cursor.goto_internal_pos();
+        printer.writer.raw.reset_color()?;
+        printer.cursor.restore_position();
+        printer.cursor.goto_internal_pos();
 
         Ok(())
     }
 
-    pub fn use_suggestion(&mut self) -> Result<(), IRustError> {
-        if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
+    pub fn use_suggestion(
+        &mut self,
+        printer: &mut super::printer::Printer<impl Write>,
+        buffer: &mut super::Buffer,
+        theme: &super::Theme,
+    ) -> Result<(), IRustError> {
+        if let Some(suggestion) = self.current_suggestion() {
             // suggestion => `name: definition`
             // suggestion example => `assert!: macro_rules! assert {`
 
@@ -386,34 +408,35 @@ impl IRust {
             let mut suggestion = suggestion.0;
 
             // get the unique part of the name
-            let buffer: String = self
-                .buffer
-                .buffer
-                .iter()
-                .take(self.buffer.buffer_pos)
-                .collect();
-            StringTools::strings_unique(&buffer, &mut suggestion);
+            StringTools::strings_unique(
+                &buffer
+                    .buffer
+                    .iter()
+                    .take(buffer.buffer_pos)
+                    .collect::<String>(),
+                &mut suggestion,
+            );
 
-            self.buffer.insert_str(&suggestion);
+            buffer.insert_str(&suggestion);
             let chars_count = StringTools::chars_count(&suggestion);
 
             for _ in 0..chars_count {
-                self.printer.cursor.move_right_unbounded();
+                printer.cursor.move_right_unbounded();
             }
 
-            self.printer.print_input(&self.buffer, &self.theme)?;
+            printer.print_input(&buffer, &theme)?;
         }
 
         Ok(())
     }
 
     pub fn lock_racer_update(&mut self) -> Result<(), IRustError> {
-        self.racer.as_mut()?.update_lock = true;
+        self.update_lock = true;
         Ok(())
     }
 
     pub fn unlock_racer_update(&mut self) -> Result<(), IRustError> {
-        self.racer.as_mut()?.update_lock = false;
+        self.update_lock = false;
         Ok(())
     }
 }

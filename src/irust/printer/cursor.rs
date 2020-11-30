@@ -1,5 +1,4 @@
 use crate::irust::Buffer;
-use crate::irust::IRust;
 use crate::utils::StringTools;
 use std::{cell::RefCell, rc::Rc};
 mod bound;
@@ -147,8 +146,8 @@ impl<W: std::io::Write> Cursor<W> {
             .set_bound(self.pos.current_pos.1, self.pos.current_pos.0);
     }
 
-    pub fn is_at_line_end(&self, irust: &IRust) -> bool {
-        irust.buffer.is_at_end()
+    pub fn is_at_line_end(&self, buffer: &crate::irust::Buffer) -> bool {
+        buffer.is_at_end()
             || self.pos.current_pos.0 == *self.bound.get_bound(self.pos.current_pos.1)
     }
 

@@ -14,7 +14,7 @@ impl IRust {
         self.printer.cursor.move_right_unbounded();
         self.history.unlock();
         // Ignore RacerDisabled error
-        let _ = self.unlock_racer_update();
+        let _ = self.racer.as_mut()?.unlock_racer_update();
 
         Ok(())
     }
@@ -90,9 +90,18 @@ impl IRust {
         }
 
         match || -> Result<(), IRustError> {
-            self.update_suggestions()?;
-            self.lock_racer_update()?;
-            self.cycle_suggestions(Cycle::Down)?;
+            self.racer.as_mut()?.update_suggestions(
+                &self.buffer,
+                &mut self.printer,
+                &mut self.repl,
+            )?;
+            self.racer.as_mut()?.lock_racer_update()?;
+            self.racer.as_mut()?.cycle_suggestions(
+                &mut self.printer,
+                &self.buffer,
+                Cycle::Down,
+                &self.options,
+            )?;
             Ok(())
         }() {
             Ok(_) | Err(IRustError::RacerDisabled) => Ok(()),
@@ -102,9 +111,18 @@ impl IRust {
 
     pub fn handle_back_tab(&mut self) -> Result<(), IRustError> {
         match || -> Result<(), IRustError> {
-            self.update_suggestions()?;
-            self.lock_racer_update()?;
-            self.cycle_suggestions(Cycle::Up)?;
+            self.racer.as_mut()?.update_suggestions(
+                &self.buffer,
+                &mut self.printer,
+                &mut self.repl,
+            )?;
+            self.racer.as_mut()?.lock_racer_update()?;
+            self.racer.as_mut()?.cycle_suggestions(
+                &mut self.printer,
+                &self.buffer,
+                Cycle::Up,
+                &self.options,
+            )?;
             Ok(())
         }() {
             Ok(_) | Err(IRustError::RacerDisabled) => Ok(()),
@@ -117,7 +135,11 @@ impl IRust {
             self.printer.cursor.move_right();
             self.buffer.move_forward();
         } else {
-            self.use_suggestion()?;
+            self.racer.as_mut()?.use_suggestion(
+                &mut self.printer,
+                &mut self.buffer,
+                &self.theme,
+            )?;
         }
         Ok(())
     }
@@ -138,7 +160,7 @@ impl IRust {
             self.printer.print_input(&self.buffer, &self.theme)?;
             // Ignore RacerDisabled error
             self.history.unlock();
-            let _ = self.unlock_racer_update();
+            let _ = self.racer.as_mut()?.unlock_racer_update();
         }
         Ok(())
     }
@@ -149,7 +171,7 @@ impl IRust {
             self.printer.print_input(&self.buffer, &self.theme)?;
             // Ignore RacerDisabled error
             self.history.unlock();
-            let _ = self.unlock_racer_update();
+            let _ = self.racer.as_mut()?.unlock_racer_update();
         }
         Ok(())
     }
@@ -157,7 +179,7 @@ impl IRust {
     pub fn handle_ctrl_c(&mut self) -> Result<(), IRustError> {
         self.buffer.clear();
         self.history.unlock();
-        let _ = self.unlock_racer_update();
+        let _ = self.racer.as_mut()?.unlock_racer_update();
         self.printer.cursor.goto_start();
         self.printer
             .write_from_terminal_start(super::IN, Color::Yellow)?;
@@ -303,7 +325,11 @@ impl IRust {
             self.printer.cursor.move_right();
             self.buffer.move_forward();
         } else {
-            self.use_suggestion()?;
+            self.racer.as_mut()?.use_suggestion(
+                &mut self.printer,
+                &mut self.buffer,
+                &self.theme,
+            )?;
         }
 
         if let Some(current_char) = self.buffer.current_char() {
