@@ -18,6 +18,7 @@ pub static CARGO_TOML_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("Cargo.t
 pub static IRUST_SRC_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src"));
 pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs"));
 pub static MAIN_FILE_EXTERN: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main_extern.rs"));
+pub static LIB_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("lib.rs"));
 #[cfg(windows)]
 pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust.exe"));
 #[cfg(windows)]
@@ -60,7 +61,7 @@ pub fn cargo_new(toolchain: ToolChain) -> Result<(), io::Error> {
     // Ignore directory exists error
     let _ = std::fs::create_dir_all(&*IRUST_SRC_DIR);
     clean_cargo_toml()?;
-    clean_main_file()?;
+    clean_files()?;
 
     cargo_build(toolchain)?.wait()?;
     Ok(())
@@ -95,7 +96,7 @@ pub fn cargo_run(
 
 pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
     //TODO is this required?
-    clean_main_file()?;
+    clean_files()?;
 
     Ok(Command::new("cargo-add")
         .current_dir(&*IRUST_DIR)
@@ -205,11 +206,12 @@ edition = "2018""#;
     Ok(())
 }
 
-fn clean_main_file() -> io::Result<()> {
+fn clean_files() -> io::Result<()> {
     const MAIN_SRC: &str = "fn main() {\n\n}";
     let mut main = fs::File::create(&*MAIN_FILE)?;
     write!(main, "{}", MAIN_SRC)?;
     std::fs::copy(&*MAIN_FILE, &*MAIN_FILE_EXTERN)?;
+    let _ = std::fs::remove_file(&*LIB_FILE);
     Ok(())
 }
 
@@ -238,6 +240,15 @@ pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
 pub fn cargo_fmt_file(file: &PathBuf) {
     // Cargo fmt is optional
     let _ = try_cargo_fmt_file(file);
+}
+
+pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String, IRustError> {
+    Ok(stdout_and_stderr(
+        cargo_common!("asm", toolchain)
+            .arg("--lib")
+            .arg(format!("irust::{}", fnn))
+            .output()?,
+    ))
 }
 
 fn try_cargo_fmt_file(file: &PathBuf) -> io::Result<()> {

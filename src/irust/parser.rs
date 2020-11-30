@@ -1,6 +1,6 @@
 use crossterm::style::Color;
 
-use super::cargo_cmds::{cargo_bench, ToolChain};
+use super::cargo_cmds::{cargo_asm, cargo_bench, ToolChain};
 use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
 use crate::irust::format::{format_check_output, format_err, format_eval_output};
@@ -53,6 +53,7 @@ impl IRust {
             cmd if cmd.starts_with(":time_release") => self.time_release(),
             cmd if cmd.starts_with(":time") => self.time(),
             cmd if cmd.starts_with(":bench") => self.bench(),
+            cmd if cmd.starts_with(":asm") => self.asm(),
             _ => self.parse_second_order(),
         }
     }
@@ -506,5 +507,18 @@ impl IRust {
         let out = cargo_bench(self.options.toolchain)?.trim().to_owned();
 
         print_queue!(out, self.options.eval_color)
+    }
+
+    fn asm(&mut self) -> Result<PrintQueue, IRustError> {
+        let buffer = self.buffer.to_string();
+        let fnn = buffer.strip_prefix(":asm").expect("already checked").trim();
+        if fnn.is_empty() {
+            return Err("No function specified".into());
+        }
+
+        self.repl.write_lib()?;
+        let asm = cargo_asm(fnn, self.options.toolchain)?;
+
+        print_queue!(asm, self.options.eval_color)
     }
 }

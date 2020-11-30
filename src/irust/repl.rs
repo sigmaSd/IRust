@@ -178,6 +178,18 @@ impl Repl {
         Ok(())
     }
 
+    pub fn write_lib(&self) -> io::Result<()> {
+        let mut lib_file = std::fs::File::create(&*LIB_FILE)?;
+        let mut body = self.body.clone();
+        // remove fn main
+        body.remove(0);
+        body.pop();
+
+        write!(lib_file, "{}", body.join("\n"))?;
+
+        Ok(())
+    }
+
     pub fn pop(&mut self) {
         if self.body.len() > 2 {
             self.body.remove(self.cursor - 1);

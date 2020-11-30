@@ -2,6 +2,8 @@ use crossterm::style::Colorize;
 use std::io;
 use std::process;
 
+use crate::irust::options::Options;
+
 struct Dep {
     name: &'static str,
     cmd: &'static str,
@@ -38,8 +40,8 @@ pub fn check_required_deps() -> bool {
     true
 }
 
-pub fn warn_about_opt_deps(irust: &mut crate::IRust) {
-    let opt_deps: [Dep; 3] = [
+pub fn warn_about_opt_deps(options: &mut Options) {
+    let opt_deps: [Dep; 4] = [
         Dep::new("racer", "racer", "auto_completion", &|| {
             let mut exit_status = vec![];
             let mut run_cmd = |cmd: &[&str]| -> io::Result<()> {
@@ -97,10 +99,23 @@ pub fn warn_about_opt_deps(irust: &mut crate::IRust) {
                 .args(&cmd[1..])
                 .status()?])
         }),
+        Dep::new(
+            "cargo-asm",
+            "cargo-asm",
+            "viewing functions assembly",
+            &|| {
+                let cmd = ["cargo", "install", "cargo-asm"];
+                println!("{}", format!("Running: {:?}", cmd).magenta());
+
+                Ok(vec![process::Command::new(cmd[0])
+                    .args(&cmd[1..])
+                    .status()?])
+            },
+        ),
     ];
 
     // only warn when irust is first used
-    if !irust.options.first_irust_run {
+    if !options.first_irust_run {
         return;
     }
 
@@ -148,7 +163,7 @@ pub fn warn_about_opt_deps(irust: &mut crate::IRust) {
             }
         }
     }
-    irust.options.first_irust_run = false;
+    options.first_irust_run = false;
 
     if installed_something {
         println!(
