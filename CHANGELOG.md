@@ -1,3 +1,6 @@
+**1.1.2**
+- Hotfix: Actually Add missing exit after (irust -x)
+
 **1.1.1**
 - Hotfix: Add missing exit after (irust -x)
 
