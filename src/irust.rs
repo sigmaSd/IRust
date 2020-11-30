@@ -3,7 +3,7 @@ mod cargo_cmds;
 mod events;
 mod format;
 mod help;
-mod highlight;
+pub mod highlight;
 mod history;
 mod irust_error;
 mod known_paths;
