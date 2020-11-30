@@ -37,6 +37,8 @@ Cross Platform Rust Repl
 
 **:bench** => run `cargo bench`
 
+**:asm** *\<function\>* => shows assembly of the specified function, note that the function needs to be public (requires [cargo-asm](https://github.com/gnzlbg/cargo-asm))
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history
