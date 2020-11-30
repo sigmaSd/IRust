@@ -216,6 +216,52 @@ impl<W: std::io::Write> Printer<W> {
             Ok(false)
         }
     }
+
+    fn adjust(&mut self) {
+        self.cursor.move_right_unbounded();
+        if self.cursor.is_at_last_terminal_col() {
+            self.cursor.bound_current_row_at_current_col();
+        }
+        if self.cursor.is_at_col(cursor::INPUT_START_COL) {
+            for _ in 0..4 {
+                self.cursor.move_right_unbounded();
+            }
+        }
+    }
+    pub fn recalculate_bounds(&mut self, printer: PrintQueue) -> Result<(), IRustError> {
+        self.cursor.save_position();
+        self.cursor.goto_start();
+        for _ in 0..4 {
+            self.cursor.move_right_unbounded();
+        }
+        for item in printer {
+            match item {
+                PrinterItem::String(string, _) => {
+                    for _ in string.chars() {
+                        self.adjust();
+                    }
+                }
+                PrinterItem::Str(string, _) => {
+                    for _ in string.chars() {
+                        self.adjust();
+                    }
+                }
+                PrinterItem::Char(_, _) => {
+                    self.adjust();
+                }
+                PrinterItem::NewLine => {
+                    self.cursor.bound_current_row_at_current_col();
+                    self.cursor.goto_next_row_terminal_start();
+                    for _ in 0..4 {
+                        self.cursor.move_right_unbounded();
+                    }
+                }
+            }
+        }
+        self.cursor.restore_position();
+
+        Ok(())
+    }
 }
 
 impl<W: std::io::Write> Printer<W> {

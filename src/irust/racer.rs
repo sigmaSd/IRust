@@ -1,4 +1,4 @@
-use super::{cargo_cmds::MAIN_FILE, IRustError};
+use super::{cargo_cmds::MAIN_FILE, highlight::highlight, IRustError};
 use crate::utils::{read_until_bytes, StringTools};
 use crossterm::{style::Color, terminal::ClearType};
 use std::io::Write;
@@ -300,6 +300,7 @@ impl Racer {
         &mut self,
         printer: &mut super::printer::Printer<impl Write>,
         buffer: &super::Buffer,
+        theme: &super::Theme,
         cycle: Cycle,
         options: &super::options::Options,
     ) -> Result<(), IRustError> {
@@ -390,6 +391,7 @@ impl Racer {
         printer.writer.raw.reset_color()?;
         printer.cursor.restore_position();
         printer.cursor.goto_internal_pos();
+        printer.recalculate_bounds(highlight(&buffer.buffer, &theme))?;
 
         Ok(())
     }

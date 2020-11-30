@@ -16,7 +16,6 @@ impl super::IRust {
             self.handle_history(Dir::Up, buffer)?;
             self.history.lock();
         } else {
-            self.printer.print_input(&self.buffer, &self.theme)?;
             self.printer.cursor.move_up_bounded(1);
             // set buffer cursor
             let buffer_pos = self.printer.cursor.cursor_pos_to_buffer_pos();
@@ -34,8 +33,6 @@ impl super::IRust {
             self.handle_history(Dir::Down, buffer)?;
             self.history.lock();
         } else {
-            // Note maybe print only if racer is unlocked
-            self.printer.print_input(&self.buffer, &self.theme)?;
             self.printer.cursor.move_down_bounded(1, &self.buffer);
             // set buffer cursor
             let buffer_pos = self.printer.cursor.cursor_pos_to_buffer_pos();

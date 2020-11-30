@@ -99,6 +99,7 @@ impl IRust {
             self.racer.as_mut()?.cycle_suggestions(
                 &mut self.printer,
                 &self.buffer,
+                &self.theme,
                 Cycle::Down,
                 &self.options,
             )?;
@@ -120,6 +121,7 @@ impl IRust {
             self.racer.as_mut()?.cycle_suggestions(
                 &mut self.printer,
                 &self.buffer,
+                &self.theme,
                 Cycle::Up,
                 &self.options,
             )?;
