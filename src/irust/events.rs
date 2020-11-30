@@ -69,9 +69,6 @@ impl IRust {
 
     pub fn handle_alt_enter(&mut self) -> Result<(), IRustError> {
         self.buffer.insert('\n');
-        self.printer
-            .cursor
-            .goto(4, self.printer.cursor.pos.current_pos.1 + 1);
         self.printer.print_input(&self.buffer, &self.theme)?;
         self.printer.cursor.move_right();
         Ok(())
