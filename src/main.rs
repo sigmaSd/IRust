@@ -4,6 +4,7 @@ mod irust;
 // mod log;
 mod dependencies;
 mod utils;
+use crate::irust::options::Options;
 use crate::irust::IRust;
 use dependencies::{check_required_deps, warn_about_opt_deps};
 
@@ -12,20 +13,15 @@ use crossterm::style::Colorize;
 use std::process::exit;
 
 fn main() {
+    let mut options = Options::new().unwrap_or_default();
+
+    handle_args(&mut options);
     if !check_required_deps() {
         exit(1);
     }
+    warn_about_opt_deps(&mut options);
 
-    let mut irust = IRust::default();
-
-    let exit_flag = handle_args(&mut irust);
-    if exit_flag {
-        drop(irust);
-        exit(0);
-    }
-
-    warn_about_opt_deps(&mut irust);
-
+    let mut irust = IRust::new(options);
     let err = if let Err(e) = irust.run() {
         Some(e)
     } else {

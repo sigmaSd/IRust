@@ -1,10 +1,10 @@
-use crate::irust::{options::Options, IRust};
+use crate::irust::options::Options;
 
 use std::env;
 
 const VERSION: &str = "1.0.0";
 
-pub fn handle_args(irust: &mut IRust) -> bool {
+pub fn handle_args(options: &mut Options) -> bool {
     let args: Vec<String> = env::args().skip(1).collect();
 
     if !args.is_empty() {
@@ -30,18 +30,11 @@ pub fn handle_args(irust: &mut IRust) -> bool {
             }
 
             "--reset-config" => {
-                irust.options.reset();
+                options.reset();
             }
 
-            maybe_path => {
-                let path = std::path::Path::new(maybe_path);
-                if path.exists() {
-                    if let Err(e) = irust.load_inner(path.to_path_buf()) {
-                        eprintln!("Could not read path {}\n\rError: {}", path.display(), e);
-                    }
-                } else {
-                    eprintln!("Uknown argument: {}", maybe_path)
-                }
+            x => {
+                eprintln!("Unknown argument: {}", x);
             }
         }
     }

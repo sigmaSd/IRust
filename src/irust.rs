@@ -43,13 +43,12 @@ pub struct IRust {
     history: History,
 }
 
-impl Default for IRust {
-    fn default() -> Self {
+impl IRust {
+    pub fn new(options: Options) -> Self {
         let printer = printer::Printer::default();
         let known_paths = KnownPaths::new();
 
         let repl = Repl::new();
-        let options = Options::new().unwrap_or_default();
         let racer = if options.enable_racer {
             Racer::start()
         } else {
@@ -70,9 +69,7 @@ impl Default for IRust {
             history,
         }
     }
-}
 
-impl IRust {
     fn prepare(&mut self) -> Result<(), IRustError> {
         // title is optional
         self.printer
