@@ -1,3 +1,8 @@
+**1.1.0**
+- Add `:asm` command => shows the assembly of the specified function(requires[cargo-asm](https://github.com/gnzlbg/cargo-asm))
+- More refactoring
+- Bug fixes
+
 **1.0.0**
 - Under-the-hood: 
   - Refactor most of the code base
