@@ -1,6 +1,8 @@
 use crossterm::style::Color;
-use irust::irust::buffer::Buffer;
+use irust::irust::highlight::highlight;
 use irust::irust::printer::Printer;
+use irust::irust::{buffer::Buffer, highlight::theme::Theme};
+use std::io::Write;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[test]
@@ -104,4 +106,55 @@ fn dont_scroll_because_input_doesent_need_scroll() -> Result<()> {
 
     assert_eq!(original_pos.starting_pos.1, p.cursor.pos.starting_pos.1);
     Ok(())
+}
+
+#[test]
+fn calculate_bounds_correctly() -> Result<()> {
+    const INPUT_START: usize = 4;
+    let mut p = Printer::_new(std::io::sink());
+    let width = p.cursor.bound.width;
+    let height = p.cursor.bound.height;
+    let queue = highlight(
+        &"alloc\nprint".chars().collect::<Vec<_>>(),
+        &Theme::default(),
+    );
+
+    // 1
+    move_to_and_modify_start(&mut p, 0, 0);
+    p.recalculate_bounds(queue.clone())?;
+
+    let expected_bound = {
+        let mut v = vec![width - 1; height];
+        v[0] = INPUT_START + 5;
+        v
+    };
+    assert_eq!(expected_bound, p.cursor.bound.bound);
+    Ok(())
+}
+pub fn calculate_bounds_correctly2() -> Result<()> {
+    const INPUT_START: usize = 4;
+    let mut p = Printer::_new(std::io::sink());
+    let width = p.cursor.bound.width;
+    let height = p.cursor.bound.height;
+    let queue = highlight(&"A\t\nBC\n".chars().collect::<Vec<_>>(), &Theme::default());
+    // 2
+    move_to_and_modify_start(&mut p, 0, height - 5);
+    p.recalculate_bounds(queue)?;
+
+    let expected_bound = {
+        let mut v = vec![width - 1; height];
+        v[height - 5] = INPUT_START + 5;
+        v[height - 4] = INPUT_START + 2;
+        v
+    };
+    assert_eq!(expected_bound, p.cursor.bound.bound);
+
+    Ok(())
+}
+
+// helper
+fn move_to_and_modify_start(printer: &mut Printer<impl Write>, x: usize, y: usize) {
+    printer.cursor.pos.starting_pos.0 = x;
+    printer.cursor.pos.starting_pos.1 = y;
+    printer.cursor.goto_start();
 }
