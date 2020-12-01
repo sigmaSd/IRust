@@ -10,18 +10,14 @@ pub struct Writer<W: std::io::Write> {
     pub raw: Raw<W>,
 }
 
-impl Default for Writer<std::io::Stdout> {
-    fn default() -> Self {
-        let raw = Rc::new(RefCell::new(std::io::stdout()));
+impl<W: std::io::Write> Writer<W> {
+    pub fn new(raw: Rc<RefCell<W>>) -> Self {
         let raw = Raw { raw };
         Self {
             last_color: None,
             raw,
         }
     }
-}
-
-impl<W: std::io::Write> Writer<W> {
     pub fn _new(raw: Rc<RefCell<W>>) -> Writer<W> {
         let raw = Raw { raw };
         Self {

@@ -25,11 +25,9 @@ pub struct Cursor<W: std::io::Write> {
     pub raw: Raw<W>,
 }
 
-impl Default for Cursor<std::io::Stdout> {
-    fn default() -> Self {
-        let mut raw = Raw {
-            raw: Rc::new(RefCell::new(std::io::stdout())),
-        };
+impl<W: std::io::Write> Cursor<W> {
+    pub fn new(raw: Rc<RefCell<W>>) -> Self {
+        let mut raw = Raw { raw };
         let (width, height) = raw.size().unwrap_or((400, 400));
         let current_pos = raw.get_current_pos().unwrap_or((0, 0));
 
@@ -44,9 +42,6 @@ impl Default for Cursor<std::io::Stdout> {
             raw,
         }
     }
-}
-
-impl<W: std::io::Write> Cursor<W> {
     pub fn _new(raw: Rc<RefCell<W>>) -> Cursor<W> {
         let mut raw = Raw { raw };
         let (width, height) = raw.size().unwrap_or((400, 400));

@@ -16,10 +16,11 @@ pub struct Printer<W: std::io::Write> {
 impl Default for Printer<std::io::Stdout> {
     fn default() -> Self {
         crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
+        let raw = Rc::new(RefCell::new(std::io::stdout()));
         Self {
             printer: Default::default(),
-            writer: writer::Writer::default(),
-            cursor: cursor::Cursor::default(),
+            writer: writer::Writer::new(raw.clone()),
+            cursor: cursor::Cursor::new(raw),
         }
     }
 }
