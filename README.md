@@ -69,8 +69,6 @@ You can use arrow keys to cycle through commands history
 
 ## Cli commands
 
-**irust** *<path_to_file>* starts irust with the specified file loaded into the repl
-
 **--help** prints help message
 
 **--reset-config** reset IRust configuration to default
