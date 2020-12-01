@@ -18,13 +18,6 @@ impl<W: std::io::Write> Writer<W> {
             raw,
         }
     }
-    pub fn _new(raw: Rc<RefCell<W>>) -> Writer<W> {
-        let raw = Raw { raw };
-        Self {
-            last_color: None,
-            raw,
-        }
-    }
 
     pub fn write(
         &mut self,

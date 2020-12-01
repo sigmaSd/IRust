@@ -13,27 +13,14 @@ pub struct Printer<W: std::io::Write> {
     pub cursor: cursor::Cursor<W>,
 }
 
-impl Default for Printer<std::io::Stdout> {
-    fn default() -> Self {
-        crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
-        let raw = Rc::new(RefCell::new(std::io::stdout()));
-        Self {
-            printer: Default::default(),
-            writer: writer::Writer::new(raw.clone()),
-            cursor: cursor::Cursor::new(raw),
-        }
-    }
-}
-
 impl<W: std::io::Write> Printer<W> {
-    // for tests
-    pub fn _new(raw: W) -> Printer<W> {
+    pub fn new(raw: W) -> Printer<W> {
         crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
         let raw = Rc::new(RefCell::new(raw));
         Self {
             printer: PrintQueue::default(),
-            writer: writer::Writer::_new(raw.clone()),
-            cursor: cursor::Cursor::_new(raw),
+            writer: writer::Writer::new(raw.clone()),
+            cursor: cursor::Cursor::new(raw),
         }
     }
 }

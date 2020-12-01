@@ -7,7 +7,7 @@ use std::io::Write;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[test]
 fn write_from_terminal_start_cursor_pos_correct() -> Result<()> {
-    let mut p = Printer::_new(std::io::sink());
+    let mut p = Printer::new(std::io::sink());
 
     let origin_pos = p.cursor.pos;
     p.write_from_terminal_start("hello", Color::Red)?;
@@ -18,8 +18,8 @@ fn write_from_terminal_start_cursor_pos_correct() -> Result<()> {
 }
 
 #[test]
-fn write_new_line_no_scroll() -> Result<()> {
-    let mut p = Printer::_new(std::io::sink());
+fn writenew_line_no_scroll() -> Result<()> {
+    let mut p = Printer::new(std::io::sink());
 
     let b = Buffer::from_string("Hello world");
 
@@ -38,8 +38,8 @@ fn write_new_line_no_scroll() -> Result<()> {
 }
 
 #[test]
-fn write_new_line_with_scroll() -> Result<()> {
-    let mut p = Printer::_new(std::io::sink());
+fn writenew_line_with_scroll() -> Result<()> {
+    let mut p = Printer::new(std::io::sink());
     let b = Buffer::from_string("Hello world");
 
     p.cursor.pos.starting_pos.0 = 0;
@@ -59,7 +59,7 @@ fn write_new_line_with_scroll() -> Result<()> {
 
 #[test]
 fn scroll_up() -> Result<()> {
-    let mut p = Printer::_new(std::io::sink());
+    let mut p = Printer::new(std::io::sink());
 
     let origin_pos = p.cursor.pos;
     p.scroll_up(3);
@@ -78,7 +78,7 @@ fn scroll_up() -> Result<()> {
 
 #[test]
 fn scroll_because_input_needs_scroll() -> Result<()> {
-    let mut p = Printer::_new(std::io::sink());
+    let mut p = Printer::new(std::io::sink());
     let b = Buffer::from_string("\n\n\n");
 
     p.cursor.pos.starting_pos.0 = 0;
@@ -94,7 +94,7 @@ fn scroll_because_input_needs_scroll() -> Result<()> {
 
 #[test]
 fn dont_scroll_because_input_doesent_need_scroll() -> Result<()> {
-    let mut p = Printer::_new(std::io::sink());
+    let mut p = Printer::new(std::io::sink());
     let b = Buffer::from_string("\n\n\n");
 
     p.cursor.pos.starting_pos.0 = 0;
@@ -111,7 +111,7 @@ fn dont_scroll_because_input_doesent_need_scroll() -> Result<()> {
 #[test]
 fn calculate_bounds_correctly() -> Result<()> {
     const INPUT_START: usize = 4;
-    let mut p = Printer::_new(std::io::sink());
+    let mut p = Printer::new(std::io::sink());
     let width = p.cursor.bound.width;
     let height = p.cursor.bound.height;
     let queue = highlight(
@@ -133,7 +133,7 @@ fn calculate_bounds_correctly() -> Result<()> {
 }
 pub fn calculate_bounds_correctly2() -> Result<()> {
     const INPUT_START: usize = 4;
-    let mut p = Printer::_new(std::io::sink());
+    let mut p = Printer::new(std::io::sink());
     let width = p.cursor.bound.width;
     let height = p.cursor.bound.height;
     let queue = highlight(&"A\t\nBC\n".chars().collect::<Vec<_>>(), &Theme::default());

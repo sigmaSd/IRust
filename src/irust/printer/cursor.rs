@@ -42,22 +42,6 @@ impl<W: std::io::Write> Cursor<W> {
             raw,
         }
     }
-    pub fn _new(raw: Rc<RefCell<W>>) -> Cursor<W> {
-        let mut raw = Raw { raw };
-        let (width, height) = raw.size().unwrap_or((400, 400));
-        let current_pos = raw.get_current_pos().unwrap_or((0, 0));
-
-        let pos = CursorPosition {
-            current_pos,
-            starting_pos: (0, current_pos.1),
-        };
-        Self {
-            pos,
-            copy: pos,
-            bound: Bound::new(width as usize, height as usize),
-            raw,
-        }
-    }
 
     pub fn save_position(&mut self) {
         self.copy = self.pos;

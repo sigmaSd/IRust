@@ -23,6 +23,7 @@ pub mod buffer;
 use buffer::Buffer;
 use highlight::theme::Theme;
 use known_paths::KnownPaths;
+use once_cell::sync::Lazy;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
@@ -32,11 +33,13 @@ const ALT_KEYMODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyMod
 const SHIFT_KEYMODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::SHIFT;
 pub const NO_MODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::empty();
 
+static SOUT: Lazy<std::io::Stdout> = Lazy::new(std::io::stdout);
+
 pub struct IRust {
     buffer: Buffer,
     repl: Repl,
-    printer: printer::Printer<std::io::Stdout>,
-    pub options: Options,
+    printer: printer::Printer<std::io::StdoutLock<'static>>,
+    options: Options,
     racer: Result<Racer, IRustError>,
     known_paths: KnownPaths,
     theme: Theme,
@@ -45,7 +48,9 @@ pub struct IRust {
 
 impl IRust {
     pub fn new(options: Options) -> Self {
-        let printer = printer::Printer::default();
+        let out = SOUT.lock();
+        let printer = printer::Printer::new(out);
+
         let known_paths = KnownPaths::new();
 
         let repl = Repl::new();
