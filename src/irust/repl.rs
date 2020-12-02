@@ -3,6 +3,8 @@ use super::IRustError;
 use std::io::{self, Write};
 use std::process::ExitStatus;
 
+const FN_MAIN: &str = "fn main() {";
+
 #[derive(Clone)]
 pub struct Repl {
     pub body: Vec<String>,
@@ -13,7 +15,7 @@ impl Repl {
     pub fn new() -> Self {
         Self {
             body: vec![
-                "fn main() {".to_string(),
+                FN_MAIN.to_string(),
                 "} // Do not write past this line (it will corrupt the repl)".to_string(),
             ],
             cursor: 1,
@@ -184,9 +186,11 @@ impl Repl {
     pub fn write_lib(&self) -> io::Result<()> {
         let mut lib_file = std::fs::File::create(&*LIB_FILE)?;
         let mut body = self.body.clone();
-        // remove fn main
-        body.remove(0);
-        body.pop();
+
+        // safe unwrap
+        let main_idx = body.iter().position(|l| l == FN_MAIN).unwrap();
+        body.remove(main_idx); // remove fn main
+        body.pop(); // remove last }
 
         write!(lib_file, "{}", body.join("\n"))?;
 
