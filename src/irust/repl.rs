@@ -23,19 +23,7 @@ impl Repl {
     }
 
     pub fn update_from_extern_main_file(&mut self) -> Result<(), IRustError> {
-        let mut try_n = 0;
-        let main_file = loop {
-            let main_file = std::fs::read_to_string(&*MAIN_FILE_EXTERN)?;
-            if !main_file.is_empty() || try_n > 1 {
-                break main_file;
-            } else {
-                // Some editors trancuate the file before saving (exp: vscode)
-                // Give them some time
-                use std::time::Duration;
-                std::thread::sleep(Duration::from_secs(1));
-                try_n += 1;
-            }
-        };
+        let main_file = std::fs::read_to_string(&*MAIN_FILE_EXTERN)?;
         let lines_num = main_file.lines().count();
         if lines_num < 2 {
             return Err(IRustError::Custom(
