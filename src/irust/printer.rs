@@ -225,6 +225,7 @@ impl<W: std::io::Write> Printer<W> {
         }
     }
     pub fn recalculate_bounds(&mut self, printer: PrintQueue) -> Result<(), IRustError> {
+        self.cursor.hide();
         self.cursor.save_position();
         self.cursor.goto_start();
         for _ in 0..4 {
@@ -255,6 +256,7 @@ impl<W: std::io::Write> Printer<W> {
             }
         }
         self.cursor.restore_position();
+        self.cursor.show();
 
         Ok(())
     }
