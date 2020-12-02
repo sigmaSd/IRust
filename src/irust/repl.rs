@@ -12,7 +12,10 @@ pub struct Repl {
 impl Repl {
     pub fn new() -> Self {
         Self {
-            body: vec!["fn main() {".to_string(), "}".to_string()],
+            body: vec![
+                "fn main() {".to_string(),
+                "} // Do not write past this line (it will corrupt the repl)".to_string(),
+            ],
             cursor: 1,
         }
     }

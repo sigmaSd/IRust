@@ -91,37 +91,21 @@ impl IRust {
     pub fn run(&mut self) -> Result<(), IRustError> {
         self.prepare()?;
 
-        let (tx, rx) = channel();
-        watch(tx.clone())?;
-        let input_thread = input_read(tx)?;
-
-        use std::io::Write;
         loop {
             // flush queued output after each key
             // some events that have an inner input loop like ctrl-r/ ctrl-d require flushing inside their respective handler function
-            self.printer.writer.raw.flush()?;
+            std::io::Write::flush(&mut self.printer.writer.raw)?;
 
-            match rx.recv() {
-                Ok(IRustEvent::Input(ev)) => {
+            match crossterm::event::read() {
+                Ok(ev) => {
                     let exit = self.handle_input_event(ev)?;
                     if exit {
-                        break;
+                        break Ok(());
                     }
-                    input_thread.thread().unpark();
                 }
-                Ok(IRustEvent::Notify(_ev)) => {
-                    self.sync()?;
-                }
-                Ok(IRustEvent::Exit(e)) => return Err(e),
-                // tx paniced ?
-                Err(e) => {
-                    return Err(
-                        format!("Error while trying to receive events, error: {}", e).into(),
-                    )
-                }
+                Err(e) => break Err(format!("failed to read input. error: {}", e).into()),
             }
         }
-        Ok(())
     }
 
     fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<bool, IRustError> {
@@ -286,81 +270,4 @@ impl Drop for IRust {
             let _ = self.printer.writer.raw.write("IRust panicked, to log the error you can redirect stderror to a file, example irust 2>log");
         }
     }
-}
-
-use notify::{RecommendedWatcher, RecursiveMode, Watcher};
-use std::sync::mpsc::channel;
-use std::sync::mpsc::Sender;
-use std::time::Duration;
-
-fn watch(tx: Sender<IRustEvent>) -> Result<(), std::io::Error> {
-    std::thread::Builder::new()
-        .name("Watcher".into())
-        .spawn(move || loop {
-            let _g = Guard(tx.clone());
-            let (local_tx, local_rx) = channel();
-            let mut watcher: RecommendedWatcher =
-                Watcher::new(local_tx, Duration::from_secs(2)).expect("Watcher Thread paniced");
-
-            watcher
-                .watch(&*cargo_cmds::MAIN_FILE_EXTERN, RecursiveMode::Recursive)
-                .expect("Error while trying to watch main_extern file for changes");
-
-            if let Ok(ev) = local_rx.recv() {
-                tx.send(IRustEvent::Notify(ev))
-                    .expect("Error sending notify event to IRust main thread");
-            }
-        })?;
-    Ok(())
-}
-
-fn input_read(tx: Sender<IRustEvent>) -> Result<std::thread::JoinHandle<()>, std::io::Error> {
-    std::thread::Builder::new()
-        .name("Input".into())
-        .spawn(move || {
-            let _g = Guard(tx.clone());
-            let try_read = || -> Result<(), IRustError> {
-                let ev = read()?;
-                tx.send(IRustEvent::Input(ev))
-                    .map_err(|e| format!("Could not send input event, error: {}", e))?;
-                std::thread::park();
-                Ok(())
-            };
-
-            loop {
-                if let Err(e) = try_read() {
-                    tx.send(IRustEvent::Exit(e))
-                        .expect("Could not send input event");
-                }
-            }
-        })
-}
-
-struct Guard(Sender<IRustEvent>);
-impl Drop for Guard {
-    fn drop(&mut self) {
-        if std::thread::panicking() {
-            let t = std::thread::current();
-            let name = t.name().unwrap_or("???");
-            let msg = format!("\n\rThread {} paniced, to log the error you can redirect stderror to a file, exp: irust 2>log", name);
-
-            // try clean exit
-            match self.0.send(IRustEvent::Exit(msg.clone().into())) {
-                Ok(_) => (),
-                Err(_) => {
-                    // last resort
-                    // ignore errors on drop with let _
-                    let _ = crossterm::terminal::disable_raw_mode();
-                    eprintln!("{}", msg);
-                    std::process::exit(1);
-                }
-            }
-        }
-    }
-}
-
-pub enum IRustEvent {
-    Input(crossterm::event::Event),
-    Notify(notify::DebouncedEvent),
-    Exit(IRustError),
 }

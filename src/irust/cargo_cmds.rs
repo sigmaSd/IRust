@@ -237,11 +237,6 @@ pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
     Ok(fmt_c)
 }
 
-pub fn cargo_fmt_file(file: &PathBuf) {
-    // Cargo fmt is optional
-    let _ = try_cargo_fmt_file(file);
-}
-
 pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String, IRustError> {
     Ok(stdout_and_stderr(
         cargo_common!("asm", toolchain)
@@ -249,6 +244,11 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String, IRustError> 
             .arg(format!("irust::{}", fnn))
             .output()?,
     ))
+}
+
+pub fn cargo_fmt_file(file: &PathBuf) {
+    // Cargo fmt is optional
+    let _ = try_cargo_fmt_file(file);
 }
 
 fn try_cargo_fmt_file(file: &PathBuf) -> io::Result<()> {

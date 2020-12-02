@@ -189,9 +189,8 @@ impl IRust {
             self.printer
                 .write("Do you really want to exit ([y]/n)? ", Color::Grey)?;
 
-            use std::io::Write;
             loop {
-                self.printer.writer.raw.flush()?;
+                std::io::Write::flush(&mut self.printer.writer.raw)?;
 
                 if let Ok(key_event) = read() {
                     match key_event {

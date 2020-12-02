@@ -1,7 +1,7 @@
 use crossterm::style::Color;
 
 use super::cargo_cmds::{cargo_asm, cargo_bench, ToolChain};
-use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE, MAIN_FILE_EXTERN};
+use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
 use crate::irust::format::{format_check_output, format_err, format_eval_output};
 use crate::irust::printer::{PrintQueue, PrinterItem};
@@ -396,10 +396,11 @@ impl IRust {
             crossterm::style::Color::Magenta,
         )?;
 
+        // Write repl to disk
+        self.repl.write_to_extern()?;
+
         // beautify code
-        if self.repl.body.len() > 2 {
-            cargo_fmt_file(&*MAIN_FILE);
-        }
+        cargo_fmt_file(&*MAIN_FILE_EXTERN);
 
         // some commands are not detected from path but still works  with cmd /C
         #[cfg(windows)]
