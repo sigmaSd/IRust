@@ -2,7 +2,7 @@ use crate::irust::options::Options;
 
 use std::env;
 
-const VERSION: &str = "1.1.2";
+const VERSION: &str = "1.2.0";
 
 pub fn handle_args(options: &mut Options) -> bool {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -10,7 +10,7 @@ pub fn handle_args(options: &mut Options) -> bool {
     if !args.is_empty() {
         match args[0].as_str() {
             "-h" | "--help" => {
-                print!(
+                println!(
                     "IRust: Cross Platform Rust REPL
         version: {}\n
         config file is in {}\n
@@ -25,7 +25,7 @@ pub fn handle_args(options: &mut Options) -> bool {
             }
 
             "-v" | "--version" => {
-                print!("{}", VERSION);
+                println!("{}", VERSION);
                 return true;
             }
 
