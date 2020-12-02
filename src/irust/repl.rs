@@ -20,7 +20,7 @@ impl Repl {
         }
     }
 
-    pub fn update_from_main_file(&mut self) -> Result<(), IRustError> {
+    pub fn update_from_extern_main_file(&mut self) -> Result<(), IRustError> {
         let mut try_n = 0;
         let main_file = loop {
             let main_file = std::fs::read_to_string(&*MAIN_FILE_EXTERN)?;

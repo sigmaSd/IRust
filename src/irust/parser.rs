@@ -232,10 +232,6 @@ impl IRust {
             Ok(format_err(&output))
         } else {
             self.repl.insert(code);
-            // save repl to main_extern.rs which can be used with external editors
-            self.repl.write_to_extern()?;
-            cargo_fmt_file(&*MAIN_FILE_EXTERN);
-
             success!()
         }
     }
@@ -354,10 +350,6 @@ impl IRust {
             // if cargo_check is disabled or if cargo_check is enabled but returned no error
             if insert_flag {
                 self.repl.insert(self.buffer.to_string());
-
-                // save repl to main_extern.rs which can be used with external editors
-                self.repl.write_to_extern()?;
-                cargo_fmt_file(&*MAIN_FILE_EXTERN);
             }
 
             Ok(print_queue)
@@ -375,7 +367,7 @@ impl IRust {
     }
 
     pub fn sync(&mut self) -> Result<PrintQueue, IRustError> {
-        match self.repl.update_from_main_file() {
+        match self.repl.update_from_extern_main_file() {
             Ok(_) => success!(),
             Err(e) => {
                 self.repl.reset(self.options.toolchain)?;
