@@ -25,7 +25,9 @@ Cross Platform Rust Repl
 
 **:del** *<line_num>* => remove a specific line from repl code (line count starts at 1 from the first expression statement)
 
-**:edit** *\<editor\>* => edit internal buffer using an external editor, example: `:edit micro`, Note that any edit made to [$cache](https://docs.rs/dirs-next/2.0.0/dirs_next/fn.cache_dir.html)`/irust/src/main_extern.rs` file will be immediatly reflected on the repl (after saving)
+**:edit** *\<editor\>* => edit internal buffer using an external editor, example: `:edit micro`, Note some gui terminal requires using `:sync` command after the edit (vscode)
+
+**:sync** sync the changes written after using :edit with a gui editor (vscode) to the repl
 
 **:cd** => change current working directory
 
