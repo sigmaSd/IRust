@@ -18,6 +18,9 @@ serde = { version = "1.0.117", features = ["derive"] }
 [target.'cfg(unix)'.dependencies]
 nix = "0.19.0"
 
+[features]
+ui-test = []
+
 # flamegraph
 # [profile.release]
 # debug = true

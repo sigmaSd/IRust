@@ -1,3 +1,4 @@
+#![cfg(feature = "ui-test")]
 use crossterm::style::Color;
 use irust::irust::highlight::highlight;
 use irust::irust::printer::Printer;
