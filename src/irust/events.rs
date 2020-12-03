@@ -47,6 +47,7 @@ impl IRust {
             Err(e) => {
                 let mut printer = PrintQueue::default();
                 printer.push(PrinterItem::String(e.to_string(), self.options.err_color));
+                printer.add_new_line(1);
                 printer
             }
         };
