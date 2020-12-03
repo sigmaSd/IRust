@@ -53,9 +53,9 @@ jobs:
       continue-on-error: ${{ matrix.can-fail }}
 
       # ci fails when trying to acess raw_input
-      #- name: Test default features
-      #run: cargo test
-      #continue-on-error: ${{ matrix.can-fail }}
+      - name: Test default features
+      run: cargo test
+      continue-on-error: ${{ matrix.can-fail }}
 
     - name: Test Packaging
       if: matrix.rust == 'stable'
