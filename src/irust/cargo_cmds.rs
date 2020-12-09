@@ -6,28 +6,35 @@ use std::env::temp_dir;
 use std::fs;
 use std::io;
 use std::io::prelude::*;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
 
 // TODO:
 // Move these paths to KnownPaths struct
 pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(|| dirs_next::cache_dir().unwrap_or_else(temp_dir));
 pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust"));
-pub static IRUST_TARGET_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target"));
+pub static IRUST_TARGET_DIR: Lazy<PathBuf> = Lazy::new(|| {
+    if let Ok(p) = std::env::var("CARGO_TARGET_DIR") {
+        if !p.is_empty() {
+            return Path::new(&p).to_path_buf();
+        }
+    }
+    IRUST_DIR.join("target")
+});
 pub static CARGO_TOML_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("Cargo.toml"));
 pub static IRUST_SRC_DIR: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("src"));
 pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs"));
 pub static MAIN_FILE_EXTERN: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main_extern.rs"));
 pub static LIB_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("lib.rs"));
 #[cfg(windows)]
-pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust.exe"));
+pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust.exe"));
 #[cfg(windows)]
 pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
-    Lazy::new(|| IRUST_DIR.join("target/release/irust.exe"));
+    Lazy::new(|| IRUST_TARGET_DIR.join("release/irust.exe"));
 #[cfg(not(windows))]
-pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/debug/irust"));
+pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust"));
 #[cfg(not(windows))]
-pub static RELEASE_EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_DIR.join("target/release/irust"));
+pub static RELEASE_EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("release/irust"));
 
 #[derive(Debug, Clone, Serialize, Deserialize, Copy)]
 pub enum ToolChain {
@@ -110,14 +117,13 @@ pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
 macro_rules! cargo_common {
     // The difference in env flags makes cargo recompiles again!!!
     // => make  sure all build env flags are the same
-    //
-    // Make sure to specify CARGO_TARGET_DIR to overwrite custom user one (in case it's set)
+    // Or even better dont use any
     ($cmd: literal, $toolchain: ident) => {
         Command::new("cargo")
             .arg($toolchain.as_arg())
             .arg($cmd)
             .env("CARGO_TARGET_DIR", &*IRUST_TARGET_DIR)
-            .env("RUSTFLAGS", "-Awarnings")
+            //.env("RUSTFLAGS", "-Awarnings") // Not required anymore
             .current_dir(&*IRUST_DIR)
     };
 }
