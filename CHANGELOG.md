@@ -1,3 +1,6 @@
+**1.2.2**
+- Fix regression: Handle multiline string
+
 **1.2.1**
 - Use `CARGO_TARGET_DIR` path if set instead of overwriting it 
 
