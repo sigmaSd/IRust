@@ -1,3 +1,6 @@
+**1.2.1**
+- Use `CARGO_TARGET_DIR` path if set instead of overwriting it 
+
 **1.2.0**
 - Remove notify
 - :edit command work as usual with terminal editors, for gui editors like vs code, the `:sync` command needs to be used after the writing
