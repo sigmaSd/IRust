@@ -1,3 +1,41 @@
+pub fn split_args(s: String) -> Vec<String> {
+    let mut args = vec![];
+    let mut tmp = String::new();
+    let mut quote = false;
+
+    for c in s.chars() {
+        match c {
+            ' ' => {
+                if !quote && !tmp.is_empty() {
+                    args.push(tmp.drain(..).collect());
+                } else {
+                    tmp.push(' ');
+                }
+            }
+            '"' => {
+                quote = !quote;
+            }
+            _ => tmp.push(c),
+        }
+    }
+    if !tmp.is_empty() {
+        args.push(tmp);
+    }
+    args
+}
+
+#[test]
+fn split_args_test() {
+    let cmd = r#":add crate --no-default --features "a b c""#.to_string();
+    assert_eq!(
+        vec![":add", "crate", "--no-default", "--features", "a b c",]
+            .into_iter()
+            .map(ToOwned::to_owned)
+            .collect::<Vec<String>>(),
+        split_args(cmd)
+    );
+}
+
 pub fn stdout_and_stderr(out: std::process::Output) -> String {
     let out = if !out.stdout.is_empty() {
         out.stdout

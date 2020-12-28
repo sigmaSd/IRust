@@ -101,13 +101,8 @@ impl IRust {
     }
 
     fn add_dep(&mut self) -> Result<PrintQueue, IRustError> {
-        let mut dep: Vec<String> = self
-            .buffer
-            .to_string()
-            .split_whitespace()
-            .skip(1)
-            .map(ToOwned::to_owned)
-            .collect();
+        let mut dep: Vec<String> = crate::utils::split_args(self.buffer.to_string());
+        dep.remove(0); //drop :add
 
         // Try to canonicalize all arguments that corresponds to an existing path
         // This is necessary because `:add relative_path` doesn't work without it
