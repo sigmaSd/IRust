@@ -136,6 +136,12 @@ impl IRust {
                 }
                 KeyEvent {
                     code: KeyCode::Enter,
+                    modifiers: ALT_KEYMODIFIER,
+                } => {
+                    self.handle_alt_enter()?;
+                }
+                KeyEvent {
+                    code: KeyCode::Enter,
                     ..
                 } => {
                     self.handle_enter(false)?;
@@ -209,12 +215,6 @@ impl IRust {
                     modifiers: CTRL_KEYMODIFIER,
                 } => {
                     self.handle_ctrl_r()?;
-                }
-                KeyEvent {
-                    code: KeyCode::Char('\r'),
-                    modifiers: ALT_KEYMODIFIER,
-                } => {
-                    self.handle_alt_enter()?;
                 }
                 KeyEvent {
                     code: KeyCode::Home,
