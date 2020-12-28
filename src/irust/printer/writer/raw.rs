@@ -1,4 +1,6 @@
 use crate::irust::IRustError;
+use crossterm::{queue, style::*, terminal::*};
+use std::{cell::RefCell, fmt::Display, rc::Rc};
 #[derive(Debug, Clone)]
 pub struct Raw<W> {
     pub raw: Rc<RefCell<W>>,
@@ -11,10 +13,6 @@ impl<W: std::io::Write> std::io::Write for Raw<W> {
         self.raw.borrow_mut().flush()
     }
 }
-
-use crossterm::{queue, style::*, terminal::*};
-use std::io::Write;
-use std::{cell::RefCell, fmt::Display, rc::Rc};
 
 impl<W: std::io::Write> Raw<W> {
     pub fn scroll_up(&mut self, n: u16) -> Result<(), IRustError> {

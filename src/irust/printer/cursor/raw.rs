@@ -1,7 +1,6 @@
 use crate::irust::IRustError;
 use crossterm::cursor::*;
 use crossterm::queue;
-use std::io::Write;
 use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug, Clone)]
