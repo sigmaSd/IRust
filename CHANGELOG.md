@@ -1,3 +1,7 @@
+**1.2.3**
+- Update crossterm to 0.19
+- Handle quoted arguments in :add command(useful specifying multiple features, example: `:add --features "a b"`)
+
 **1.2.2**
 - Fix regression: Handle multiline string
 

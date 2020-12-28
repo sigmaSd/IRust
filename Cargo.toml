@@ -1,6 +1,6 @@
 [package]
 name = "irust"
-version = "1.2.2"
+version = "1.2.3"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -9,7 +9,7 @@ repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
 [dependencies]
-crossterm = { git="https://github.com/crossterm-rs/crossterm", features = ["serde"] }
+crossterm = { version="0.19.0", features = ["serde"] }
 dirs-next = "2.0.0"
 once_cell = "1.5.2"
 toml = "0.5.8"
