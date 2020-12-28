@@ -24,7 +24,7 @@ fn bench_print_input(b: &mut Bencher) {
     let theme = Theme::default();
 
     //b.iter(|| highlight(&buffer.buffer, &theme));
-    b.iter(|| Printer::_new(std::io::sink()).print_input(&buffer, &theme));
+    b.iter(|| Printer::new(std::io::sink()).print_input(&buffer, &theme));
 }
 
 // last run 13ns/iter
