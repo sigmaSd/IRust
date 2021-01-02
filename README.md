@@ -154,5 +154,9 @@ Default theme file:
     -> you need racer installed and configured correctly
         cargo +nightly install racer
         rustup component add rust-src
+        
+**2- Racer fails to build**
+
+You can try `rustup update --force` https://github.com/racer-rust/racer/issues/1141
 
 ## [Changelog](./CHANGELOG.md)
