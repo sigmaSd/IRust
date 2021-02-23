@@ -26,6 +26,7 @@ pub struct Options {
     pub enable_racer: bool,
     pub toolchain: ToolChain,
     pub check_statements: bool,
+    pub auto_insert_semicolon: bool,
 }
 
 impl Default for Options {
@@ -61,6 +62,7 @@ impl Default for Options {
             first_irust_run: true,
             toolchain: ToolChain::Stable,
             check_statements: true,
+            auto_insert_semicolon: true,
         }
     }
 }

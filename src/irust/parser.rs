@@ -317,16 +317,17 @@ impl IRust {
         if buffer.is_empty() {
             Ok(PrintQueue::default())
         } else if buffer.ends_with(';')
-            || buffer.starts_with(FUNCTION_DEF)
-            || buffer.starts_with(ASYNC_FUNCTION_DEF)
-            || buffer.starts_with(ENUM_DEF)
-            || buffer.starts_with(STRUCT_DEF)
-            || buffer.starts_with(TRAIT_DEF)
-            || buffer.starts_with(IMPL)
-            || buffer.starts_with(ATTRIBUTE)
-            || buffer.starts_with(PUB)
-            || buffer.starts_with(WHILE)
-            || buffer.starts_with(EXTERN)
+            || self.options.auto_insert_semicolon
+                && (buffer.starts_with(FUNCTION_DEF)
+                    || buffer.starts_with(ASYNC_FUNCTION_DEF)
+                    || buffer.starts_with(ENUM_DEF)
+                    || buffer.starts_with(STRUCT_DEF)
+                    || buffer.starts_with(TRAIT_DEF)
+                    || buffer.starts_with(IMPL)
+                    || buffer.starts_with(ATTRIBUTE)
+                    || buffer.starts_with(PUB)
+                    || buffer.starts_with(WHILE)
+                    || buffer.starts_with(EXTERN))
         {
             let mut print_queue = PrintQueue::default();
 
