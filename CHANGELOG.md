@@ -1,3 +1,8 @@
+**1.2.4**
+- Output can now be cancelled with Ctrl-c (in case of an infinite loop for example)
+- Auto inserting semicolons is now configurable
+- Update dependencies
+
 **1.2.3**
 - Update crossterm to 0.19
 - Handle quoted arguments in :add command(useful specifying multiple features, example: `:add --features "a b"`)
