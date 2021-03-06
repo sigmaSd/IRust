@@ -1,13 +1,14 @@
 use super::IRustError;
 use crate::utils::stdout_and_stderr;
+use crate::utils::ProcessUtils;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use std::env::temp_dir;
 use std::fs;
 use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
+use std::{env::temp_dir, process::Stdio};
 
 // TODO:
 // Move these paths to KnownPaths struct
@@ -90,12 +91,24 @@ pub fn cargo_run(
         if !release {
             Ok((
                 status,
-                stdout_and_stderr(std::process::Command::new(&*EXE_PATH).output()?),
+                stdout_and_stderr(
+                    std::process::Command::new(&*EXE_PATH)
+                        .stdout(Stdio::piped())
+                        .stderr(Stdio::piped())
+                        .spawn()?
+                        .output_with_ctrlc_cancel()?,
+                ),
             ))
         } else {
             Ok((
                 status,
-                stdout_and_stderr(std::process::Command::new(&*RELEASE_EXE_PATH).output()?),
+                stdout_and_stderr(
+                    std::process::Command::new(&*RELEASE_EXE_PATH)
+                        .stdout(Stdio::piped())
+                        .stderr(Stdio::piped())
+                        .spawn()?
+                        .output_with_ctrlc_cancel()?,
+                ),
             ))
         }
     }

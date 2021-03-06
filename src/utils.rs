@@ -1,3 +1,5 @@
+use crate::irust::IRustError;
+
 pub fn split_args(s: String) -> Vec<String> {
     let mut args = vec![];
     let mut tmp = String::new();
@@ -281,4 +283,30 @@ fn remove_comments(s: &str) -> String {
 
 fn balanced_quotes(s: &str) -> bool {
     s.match_indices(|p| p == '"' || p == '\'').count() % 2 == 0
+}
+
+pub trait ProcessUtils {
+    fn output_with_ctrlc_cancel(self) -> Result<std::process::Output, IRustError>;
+}
+
+impl ProcessUtils for std::process::Child {
+    fn output_with_ctrlc_cancel(mut self) -> Result<std::process::Output, IRustError> {
+        use crossterm::event::{Event, KeyCode, KeyEvent};
+
+        while self.try_wait()?.is_none() {
+            if let Ok(event) = crossterm::event::poll(std::time::Duration::from_millis(100)) {
+                if event {
+                    if let Ok(Event::Key(KeyEvent {
+                        code: KeyCode::Char('c'),
+                        modifiers: crate::irust::CTRL_KEYMODIFIER,
+                    })) = crossterm::event::read()
+                    {
+                        self.kill()?;
+                        return Err("Tiemd out!".into());
+                    }
+                }
+            }
+        }
+        self.wait_with_output().map_err(Into::into)
+    }
 }
