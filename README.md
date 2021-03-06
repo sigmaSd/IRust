@@ -115,6 +115,7 @@ IRust config file is located in:
   first_irust_run = false
   toolchain = "stable"
   check_statements = true
+  auto_insert_semicolon = true
 ```
 
 ## Theme
