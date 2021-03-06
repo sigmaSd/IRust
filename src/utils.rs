@@ -302,7 +302,7 @@ impl ProcessUtils for std::process::Child {
                     })) = crossterm::event::read()
                     {
                         self.kill()?;
-                        return Err("Tiemd out!".into());
+                        return Err("Cancelled!".into());
                     }
                 }
             }
