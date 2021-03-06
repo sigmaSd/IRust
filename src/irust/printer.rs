@@ -174,7 +174,7 @@ impl<W: std::io::Write> Printer<W> {
                 }
             }
         }
-        self.readjust_cursor_pos()?;
+        self.readjust_cursor_pos();
 
         Ok(())
     }
@@ -196,14 +196,13 @@ impl<W: std::io::Write> Printer<W> {
         }
     }
 
-    fn readjust_cursor_pos(&mut self) -> Result<(), IRustError> {
+    fn readjust_cursor_pos(&mut self) {
         // check if we did scroll automatically
         // if we did update current_pos.1  and starting_pos.1 to the height of the terminal (-1)
         if self.cursor.pos.current_pos.1 > self.cursor.bound.height - 1 {
             self.cursor.pos.current_pos.1 = self.cursor.bound.height - 1;
             self.cursor.pos.starting_pos.1 = self.cursor.bound.height - 1;
         }
-        Ok(())
     }
 
     fn check_for_offscreen_render_hack(

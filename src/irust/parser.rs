@@ -35,7 +35,7 @@ impl IRust {
         match self.buffer.to_string().as_str() {
             ":help" => self.help(),
             ":reset" => self.reset(),
-            ":show" => self.show(),
+            ":show" => Ok(self.show()),
             ":pop" => self.pop(),
             ":irust" => self.irust(),
             ":sync" => self.sync(),
@@ -83,10 +83,9 @@ impl IRust {
         success!()
     }
 
-    fn show(&mut self) -> Result<PrintQueue, IRustError> {
+    fn show(&mut self) -> PrintQueue {
         let code: Vec<char> = self.repl.show().chars().collect();
-        let repl_code = highlight(&code, &self.theme);
-        Ok(repl_code)
+        highlight(&code, &self.theme)
     }
 
     fn toolchain(&mut self) -> Result<PrintQueue, IRustError> {
@@ -255,7 +254,7 @@ impl IRust {
                 Ok(())
             })?;
 
-        let var_type = if raw_out.find(TYPE_FOUND_MSG).is_some() {
+        let var_type = if raw_out.contains(TYPE_FOUND_MSG) {
             raw_out
                 .lines()
                 // there is a case where there could be 2 found msg
@@ -269,7 +268,7 @@ impl IRust {
                 // safe
                 .unwrap()
                 .to_string()
-        } else if raw_out.find(EMPTY_TYPE_MSG).is_some() {
+        } else if raw_out.contains(EMPTY_TYPE_MSG) {
             "()".into()
         } else {
             "Uknown".into()
