@@ -21,17 +21,17 @@ use racer::Racer;
 use repl::Repl;
 pub mod buffer;
 use buffer::Buffer;
+use crossterm::event::KeyModifiers;
 use highlight::theme::Theme;
 use known_paths::KnownPaths;
 use once_cell::sync::Lazy;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
-pub const CTRL_KEYMODIFIER: crossterm::event::KeyModifiers =
-    crossterm::event::KeyModifiers::CONTROL;
-const ALT_KEYMODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::ALT;
-const SHIFT_KEYMODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::SHIFT;
-pub const NO_MODIFIER: crossterm::event::KeyModifiers = crossterm::event::KeyModifiers::empty();
+pub const CTRL_KEYMODIFIER: KeyModifiers = KeyModifiers::CONTROL;
+const ALT_KEYMODIFIER: KeyModifiers = KeyModifiers::ALT;
+const SHIFT_KEYMODIFIER: KeyModifiers = KeyModifiers::SHIFT;
+pub const NO_MODIFIER: KeyModifiers = KeyModifiers::empty();
 
 static SOUT: Lazy<std::io::Stdout> = Lazy::new(std::io::stdout);
 
