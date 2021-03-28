@@ -97,28 +97,6 @@ impl<W: std::io::Write> Printer<W> {
 
         Ok(())
     }
-    pub fn recalculate_bounds(
-        &mut self,
-        buffer: &Buffer,
-        theme: &super::Theme,
-    ) -> Result<(), IRustError> {
-        self.cursor.hide();
-        // scroll if needed before writing the input
-        self.scroll_if_needed_for_input(&buffer);
-        self.cursor.save_position();
-        self.cursor.goto_start();
-        for _ in 0..4 {
-            self.cursor.move_right_unbounded();
-        }
-        self.recalculate_bounds_inner(highlight(&buffer.buffer, theme))?;
-        // bound the last row to the final position
-        self.cursor.bound_current_row_at_current_col();
-
-        self.cursor.restore_position();
-        self.cursor.show();
-
-        Ok(())
-    }
 
     fn print_input_inner(&mut self, printer: PrintQueue) -> Result<(), IRustError> {
         for item in printer {
@@ -236,46 +214,6 @@ impl<W: std::io::Write> Printer<W> {
         } else {
             Ok(false)
         }
-    }
-
-    fn adjust(&mut self) {
-        self.cursor.move_right_unbounded();
-        if self.cursor.is_at_last_terminal_col() {
-            self.cursor.bound_current_row_at_current_col();
-        }
-        if self.cursor.is_at_col(cursor::INPUT_START_COL) {
-            for _ in 0..4 {
-                self.cursor.move_right_unbounded();
-            }
-        }
-    }
-    pub fn recalculate_bounds_inner(&mut self, printer: PrintQueue) -> Result<(), IRustError> {
-        for item in printer {
-            match item {
-                PrinterItem::String(string, _) => {
-                    for _ in string.chars() {
-                        self.adjust();
-                    }
-                }
-                PrinterItem::Str(string, _) => {
-                    for _ in string.chars() {
-                        self.adjust();
-                    }
-                }
-                PrinterItem::Char(_, _) => {
-                    self.adjust();
-                }
-                PrinterItem::NewLine => {
-                    self.cursor.bound_current_row_at_current_col();
-                    self.cursor.goto_next_row_terminal_start();
-                    for _ in 0..4 {
-                        self.cursor.move_right_unbounded();
-                    }
-                }
-            }
-        }
-
-        Ok(())
     }
 }
 

@@ -51,6 +51,14 @@ impl Bound {
             BoundType::Unbounded => &self.width,
         }
     }
+    pub fn _shiftl(&mut self, n: usize) {
+        self.sorted = self
+            .bound
+            .iter()
+            .map(|(i, v)| (i.saturating_sub(n), *v))
+            .collect();
+        self.bound = self.sorted.iter().copied().collect();
+    }
     // pub fn _get_mut_bound(&mut self, row: usize) -> &mut usize {
     //     self.bound.get_mut(row).unwrap()
     // }
