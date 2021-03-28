@@ -242,13 +242,11 @@ impl<W: std::io::Write> Cursor<W> {
     }
 
     pub fn cursor_pos_to_buffer_pos(&mut self) -> usize {
-        dbg!(
-            self.pos.current_pos.0
-                + self
-                    .bound
-                    .bounds_sum(self.pos.starting_pos.1, self.pos.current_pos.1)
-                - INPUT_START_COL * (self.pos.current_pos.1 - self.pos.starting_pos.1 + 1)
-        )
+        self.pos.current_pos.0
+            + self
+                .bound
+                .bounds_sum(self.pos.starting_pos.1, self.pos.current_pos.1)
+            - INPUT_START_COL * (self.pos.current_pos.1 - self.pos.starting_pos.1 + 1)
     }
 
     pub fn goto_next_row_terminal_start(&mut self) {

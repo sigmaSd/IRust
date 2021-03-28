@@ -70,12 +70,11 @@ impl Bound {
     pub fn bounds_sum(&mut self, start_row: usize, end_row: usize) -> usize {
         self.sorted = self.bound.iter().map(|(i, v)| (*i, *v)).collect();
         self.sorted.sort_by_key(|(idx, _)| *idx);
-        dbg!(&self.sorted);
         self.sorted
             .iter()
             .map(|(_, v)| v)
             .take(end_row - start_row)
-            .map(|b| dbg!(self.bound_to_usize(b) + 1)) //- super::INPUT_START_COL)
+            .map(|b| self.bound_to_usize(b) + 1)
             .sum()
     }
 }
