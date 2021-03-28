@@ -1,5 +1,5 @@
 use super::highlight::highlight;
-use crate::irust::IRustError;
+use crate::irust::{Buffer, IRustError};
 use crossterm::{style::Color, terminal::ClearType};
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
@@ -73,13 +73,8 @@ pub enum PrinterItem {
 }
 
 impl<W: std::io::Write> Printer<W> {
-    pub fn print_input(
-        &mut self,
-        buffer: &crate::irust::Buffer,
-
-        theme: &super::Theme,
-    ) -> Result<(), IRustError> {
-        if self.check_for_offscreen_render_hack(&buffer)? {
+    pub fn print_input(&mut self, buffer: &Buffer, theme: &super::Theme) -> Result<(), IRustError> {
+        if self.check_for_offscreen_render_hack(buffer, theme)? {
             return Ok(());
         }
 
@@ -187,7 +182,7 @@ impl<W: std::io::Write> Printer<W> {
         Ok(())
     }
 
-    pub fn scroll_if_needed_for_input(&mut self, buffer: &crate::irust::Buffer) {
+    pub fn scroll_if_needed_for_input(&mut self, buffer: &Buffer) {
         let input_last_row = self.cursor.input_last_pos(&buffer).1;
 
         let height_overflow = input_last_row.saturating_sub(self.cursor.bound.height - 1);
@@ -207,13 +202,12 @@ impl<W: std::io::Write> Printer<W> {
 
     fn check_for_offscreen_render_hack(
         &mut self,
-        buffer: &crate::irust::Buffer,
+        buffer: &Buffer,
+        theme: &super::Theme,
     ) -> Result<bool, IRustError> {
         // Hack
         if self.cursor.buffer_pos_to_cursor_pos(&buffer).1 >= self.cursor.bound.height {
-            let mut p = PrintQueue::default();
-            p.push(PrinterItem::Str("\rIt looks like the input is larger then the termnial, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue", Color::Red));
-            self.print_output(p)?;
+            self.print_input(&Buffer::from_string("It looks like the input is larger then the termnial, this is not currently supported, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue"), theme)?;
             Ok(true)
         } else {
             Ok(false)
