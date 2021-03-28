@@ -77,13 +77,13 @@ impl IRust {
                         msg.len() + 10,
                         self.printer.cursor.pos.current_pos.1,
                     )?;
-                    continue;
                 }
                 Err(e) => {
                     return Err(e.into());
                 }
                 Ok(Some(_)) => return Ok(()),
             }
+            std::thread::sleep(std::time::Duration::from_millis(100));
         }
     }
 
