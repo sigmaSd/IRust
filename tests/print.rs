@@ -127,25 +127,29 @@ fn calculate_bounds_correctly() -> Result<()> {
     let expected_bound = {
         let mut v = vec![width - 1; height];
         v[0] = INPUT_START + 5;
+        v[1] = INPUT_START + 5;
         v
     };
     assert_eq!(expected_bound, p.cursor.bound.bound);
     Ok(())
 }
+
+#[test]
 pub fn calculate_bounds_correctly2() -> Result<()> {
     const INPUT_START: usize = 4;
     let mut p = Printer::new(std::io::sink());
     let width = p.cursor.bound.width;
     let height = p.cursor.bound.height;
-    let queue = highlight(&"A\t\nBC\n".chars().collect::<Vec<_>>(), &Theme::default());
+    let queue = highlight(&"A\tz\nBC\n".chars().collect::<Vec<_>>(), &Theme::default());
     // 2
     move_to_and_modify_start(&mut p, 0, height - 5);
     p.recalculate_bounds(queue)?;
 
     let expected_bound = {
         let mut v = vec![width - 1; height];
-        v[height - 5] = INPUT_START + 5;
+        v[height - 5] = INPUT_START + 3;
         v[height - 4] = INPUT_START + 2;
+        v[height - 3] = INPUT_START;
         v
     };
     assert_eq!(expected_bound, p.cursor.bound.bound);
