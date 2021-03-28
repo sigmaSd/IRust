@@ -13,7 +13,7 @@ pub struct Racer {
     process: Child,
     cursor: (usize, usize),
     // suggestions: (Name, definition)
-    suggestions: Vec<(String, String)>,
+    pub suggestions: Vec<(String, String)>,
     suggestion_idx: usize,
     cmds: [String; 16],
     update_lock: bool,
@@ -391,7 +391,7 @@ impl Racer {
         printer.writer.raw.reset_color()?;
         printer.cursor.restore_position();
         printer.cursor.goto_internal_pos();
-        printer.recalculate_bounds(highlight(&buffer.buffer, &theme))?;
+        printer.recalculate_bounds(buffer, theme)?;
 
         Ok(())
     }

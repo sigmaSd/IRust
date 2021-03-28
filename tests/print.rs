@@ -1,8 +1,10 @@
 #![cfg(feature = "ui-test")]
 use crossterm::style::Color;
 use irust::irust::highlight::highlight;
+use irust::irust::printer::cursor::bound::BoundType;
 use irust::irust::printer::Printer;
 use irust::irust::{buffer::Buffer, highlight::theme::Theme};
+use std::collections::HashMap;
 use std::io::Write;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -124,14 +126,17 @@ fn calculate_bounds_correctly() -> Result<()> {
     move_to_and_modify_start(&mut p, 0, 0);
     p.recalculate_bounds(queue.clone())?;
 
-    let expected_bound = {
-        let mut v = vec![width - 1; height];
-        v[0] = INPUT_START + 5;
-        v
-    };
+    let expected_bound: HashMap<usize, BoundType> = vec![
+        (0, BoundType::Bounded(INPUT_START + 5)),
+        (1, BoundType::Bounded(INPUT_START + 5)),
+    ]
+    .into_iter()
+    .collect();
     assert_eq!(expected_bound, p.cursor.bound.bound);
     Ok(())
 }
+
+#[test]
 pub fn calculate_bounds_correctly2() -> Result<()> {
     const INPUT_START: usize = 4;
     let mut p = Printer::new(std::io::sink());
@@ -142,12 +147,13 @@ pub fn calculate_bounds_correctly2() -> Result<()> {
     move_to_and_modify_start(&mut p, 0, height - 5);
     p.recalculate_bounds(queue)?;
 
-    let expected_bound = {
-        let mut v = vec![width - 1; height];
-        v[height - 5] = INPUT_START + 5;
-        v[height - 4] = INPUT_START + 2;
-        v
-    };
+    let expected_bound: HashMap<usize, BoundType> = vec![
+        (height - 5, BoundType::Bounded(INPUT_START + 2)),
+        (height - 4, BoundType::Bounded(INPUT_START + 2)),
+        (height - 3, BoundType::Bounded(INPUT_START)),
+    ]
+    .into_iter()
+    .collect();
     assert_eq!(expected_bound, p.cursor.bound.bound);
 
     Ok(())

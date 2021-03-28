@@ -1,7 +1,7 @@
 use crate::irust::Buffer;
 use crate::utils::StringTools;
 use std::{cell::RefCell, rc::Rc};
-mod bound;
+pub mod bound;
 use bound::Bound;
 mod raw;
 use raw::Raw;

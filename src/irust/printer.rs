@@ -3,7 +3,7 @@ use crate::irust::{Buffer, IRustError};
 use crossterm::{style::Color, terminal::ClearType};
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-mod cursor;
+pub mod cursor;
 mod writer;
 
 #[derive(Debug, Clone)]
@@ -89,6 +89,30 @@ impl<W: std::io::Write> Printer<W> {
             .write_from_terminal_start(super::IN, Color::Yellow, &mut self.cursor)?;
 
         self.print_input_inner(highlight(&buffer.buffer, theme))?;
+        // bound the last row to the final position
+        self.cursor.bound_current_row_at_current_col();
+
+        self.cursor.restore_position();
+        self.cursor.show();
+
+        Ok(())
+    }
+    pub fn recalculate_bounds(
+        &mut self,
+        buffer: &Buffer,
+        theme: &super::Theme,
+    ) -> Result<(), IRustError> {
+        self.cursor.hide();
+        // scroll if needed before writing the input
+        self.scroll_if_needed_for_input(&buffer);
+        self.cursor.save_position();
+        self.cursor.goto_start();
+        for _ in 0..4 {
+            self.cursor.move_right_unbounded();
+        }
+        self.recalculate_bounds_inner(highlight(&buffer.buffer, theme))?;
+        // bound the last row to the final position
+        self.cursor.bound_current_row_at_current_col();
 
         self.cursor.restore_position();
         self.cursor.show();
@@ -225,13 +249,7 @@ impl<W: std::io::Write> Printer<W> {
             }
         }
     }
-    pub fn recalculate_bounds(&mut self, printer: PrintQueue) -> Result<(), IRustError> {
-        self.cursor.hide();
-        self.cursor.save_position();
-        self.cursor.goto_start();
-        for _ in 0..4 {
-            self.cursor.move_right_unbounded();
-        }
+    pub fn recalculate_bounds_inner(&mut self, printer: PrintQueue) -> Result<(), IRustError> {
         for item in printer {
             match item {
                 PrinterItem::String(string, _) => {
@@ -256,8 +274,6 @@ impl<W: std::io::Write> Printer<W> {
                 }
             }
         }
-        self.cursor.restore_position();
-        self.cursor.show();
 
         Ok(())
     }

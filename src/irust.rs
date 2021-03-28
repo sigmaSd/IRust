@@ -231,7 +231,7 @@ impl IRust {
                     code: KeyCode::Left,
                     modifiers: CTRL_KEYMODIFIER,
                 } => {
-                    self.handle_ctrl_left();
+                    self.handle_ctrl_left()?;
                 }
                 KeyEvent {
                     code: KeyCode::Right,

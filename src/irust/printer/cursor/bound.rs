@@ -7,7 +7,7 @@ pub struct Bound {
     pub height: usize,
     sorted: Vec<(usize, BoundType)>,
 }
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BoundType {
     Bounded(usize),
     Unbounded,

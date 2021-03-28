@@ -15,6 +15,7 @@ impl IRust {
         self.history.unlock();
         // Ignore RacerDisabled error
         let _ = self.racer.as_mut()?.unlock_racer_update();
+        let _ = self.racer.as_mut()?.suggestions.clear();
 
         Ok(())
     }
@@ -137,6 +138,7 @@ impl IRust {
         } else {
             self.use_racer_suggestion()?;
         }
+
         Ok(())
     }
 
@@ -145,6 +147,7 @@ impl IRust {
             self.printer.cursor.move_left();
             self.buffer.move_backward();
         }
+        dbg!(self.buffer.buffer_pos);
         Ok(())
     }
 
@@ -273,13 +276,8 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_left(&mut self) {
-        if self.buffer.is_empty() || self.buffer.is_at_start() {
-            return;
-        }
-
-        self.printer.cursor.move_left();
-        self.buffer.move_backward();
+    pub fn handle_ctrl_left(&mut self) -> Result<(), IRustError> {
+        self.handle_left()?;
 
         if let Some(current_char) = self.buffer.current_char() {
             match *current_char {
@@ -312,15 +310,11 @@ impl IRust {
                 }
             }
         }
+        Ok(())
     }
 
     pub fn handle_ctrl_right(&mut self) -> Result<(), IRustError> {
-        if !self.buffer.is_at_end() {
-            self.printer.cursor.move_right();
-            self.buffer.move_forward();
-        } else {
-            self.use_racer_suggestion()?;
-        }
+        self.handle_right()?;
 
         if let Some(current_char) = self.buffer.current_char() {
             match *current_char {
@@ -361,7 +355,7 @@ impl IRust {
     }
 
     pub fn use_racer_suggestion(&mut self) -> Result<(), IRustError> {
-        if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
+        if let Some(suggestion) = dbg!(self.racer.as_ref()?.current_suggestion()) {
             // suggestion => `name: definition`
             // suggestion example => `assert!: macro_rules! assert {`
 
