@@ -89,6 +89,8 @@ impl<W: std::io::Write> Printer<W> {
             .write_from_terminal_start(super::IN, Color::Yellow, &mut self.cursor)?;
 
         self.print_input_inner(highlight(&buffer.buffer, theme))?;
+        //bound last row to last position
+        self.cursor.bound_current_row_at_current_col();
 
         self.cursor.restore_position();
         self.cursor.show();
@@ -256,6 +258,8 @@ impl<W: std::io::Write> Printer<W> {
                 }
             }
         }
+        //bound last row to last position
+        self.cursor.bound_current_row_at_current_col();
         self.cursor.restore_position();
         self.cursor.show();
 
