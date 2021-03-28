@@ -118,13 +118,13 @@ pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
     //TODO is this required?
     clean_files()?;
 
-    Ok(Command::new("cargo-add")
+    Command::new("cargo-add")
         .current_dir(&*IRUST_DIR)
         .arg("add")
         .args(dep)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::piped())
-        .spawn()?)
+        .spawn()
 }
 
 macro_rules! cargo_common {
@@ -142,10 +142,10 @@ macro_rules! cargo_common {
 }
 
 pub fn cargo_check(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
-    Ok(cargo_common!("check", toolchain)
+    cargo_common!("check", toolchain)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
-        .spawn()?)
+        .spawn()
 }
 
 pub fn cargo_check_output(toolchain: ToolChain) -> Result<String, io::Error> {
@@ -166,10 +166,10 @@ pub fn cargo_check_output(toolchain: ToolChain) -> Result<String, io::Error> {
 }
 
 pub fn cargo_build(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
-    Ok(cargo_common!("build", toolchain)
+    cargo_common!("build", toolchain)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
-        .spawn()?)
+        .spawn()
 }
 
 pub fn cargo_build_output(
@@ -265,12 +265,12 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String, IRustError> 
     ))
 }
 
-pub fn cargo_fmt_file(file: &PathBuf) {
+pub fn cargo_fmt_file(file: &Path) {
     // Cargo fmt is optional
     let _ = try_cargo_fmt_file(file);
 }
 
-fn try_cargo_fmt_file(file: &PathBuf) -> io::Result<()> {
+fn try_cargo_fmt_file(file: &Path) -> io::Result<()> {
     std::process::Command::new("rustfmt")
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())

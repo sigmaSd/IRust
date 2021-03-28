@@ -140,7 +140,7 @@ impl Repl {
     }
 
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
-        Ok(cargo_add(dep)?)
+        cargo_add(dep)
     }
 
     pub fn build(&self, toolchain: ToolChain) -> std::io::Result<std::process::Child> {

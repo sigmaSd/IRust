@@ -32,7 +32,7 @@ pub fn highlight(c: &[char], theme: &theme::Theme) -> PrintQueue {
             CommentC(c) => push_to_printer!(Char, c, &theme.comment[..]),
             Const(s) => push_to_printer!(String, s, &theme.r#const[..]),
             X(s) => push_to_printer!(String, s, &theme.x[..]),
-            XC(c) => push_to_printer!(Char, c, &theme.x[..]),
+            Xc(c) => push_to_printer!(Char, c, &theme.x[..]),
             Token::LeftParen(s, idx) => {
                 push_to_printer!(Char, s, PAREN_COLORS[idx.abs() as usize % 4])
             }
@@ -65,7 +65,7 @@ enum Token {
     CommentS(&'static str),
     Const(String),
     X(String),
-    XC(char),
+    Xc(char),
     RightParen(char, isize),
     LeftParen(char, isize),
     NewLine,
@@ -219,7 +219,7 @@ fn parse(s: &[char]) -> Vec<Token> {
                 } else if SYMBOLS.contains(&x) {
                     tokens.push(Token::Symbol(x));
                 } else {
-                    tokens.push(Token::XC(x));
+                    tokens.push(Token::Xc(x));
                 }
             }
         }
