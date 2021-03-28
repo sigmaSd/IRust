@@ -1,4 +1,4 @@
-use super::IRustError;
+use super::Result;
 use std::fs;
 use std::path;
 
@@ -15,7 +15,7 @@ pub struct History {
 }
 
 impl History {
-    pub fn new() -> Result<Self, IRustError> {
+    pub fn new() -> Result<Self> {
         let history_file_path = crate::irust::cargo_cmds::IRUST_DIR.join("history");
         if !history_file_path.exists() {
             fs::File::create(&history_file_path)?;
@@ -83,7 +83,7 @@ impl History {
         }
     }
 
-    pub fn save(&self) -> Result<(), IRustError> {
+    pub fn save(&self) -> Result<()> {
         let is_comment = |s: &str| -> bool { s.trim_start().starts_with("//") };
         let mut history = self.history.clone();
 

@@ -1,5 +1,5 @@
 use super::highlight::highlight;
-use crate::irust::{Buffer, IRustError};
+use crate::irust::{Buffer, Result};
 use crossterm::{style::Color, terminal::ClearType};
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
@@ -73,7 +73,7 @@ pub enum PrinterItem {
 }
 
 impl<W: std::io::Write> Printer<W> {
-    pub fn print_input(&mut self, buffer: &Buffer, theme: &super::Theme) -> Result<(), IRustError> {
+    pub fn print_input(&mut self, buffer: &Buffer, theme: &super::Theme) -> Result<()> {
         if self.check_for_offscreen_render_hack(buffer, theme)? {
             return Ok(());
         }
@@ -98,7 +98,7 @@ impl<W: std::io::Write> Printer<W> {
         Ok(())
     }
 
-    fn print_input_inner(&mut self, printer: PrintQueue) -> Result<(), IRustError> {
+    fn print_input_inner(&mut self, printer: PrintQueue) -> Result<()> {
         for item in printer {
             match item {
                 PrinterItem::String(string, color) => {
@@ -121,14 +121,14 @@ impl<W: std::io::Write> Printer<W> {
         Ok(())
     }
 
-    fn print_input_str(&mut self, string: &str, color: Color) -> Result<(), IRustError> {
+    fn print_input_str(&mut self, string: &str, color: Color) -> Result<()> {
         for c in string.chars() {
             self.print_input_char(c, color)?;
         }
         Ok(())
     }
 
-    fn print_input_char(&mut self, c: char, color: Color) -> Result<(), IRustError> {
+    fn print_input_char(&mut self, c: char, color: Color) -> Result<()> {
         if c == '\n' {
             // this can happen if the user uses a multiline string
             self.cursor.bound_current_row_at_current_col();
@@ -149,7 +149,7 @@ impl<W: std::io::Write> Printer<W> {
         Ok(())
     }
 
-    pub fn print_output(&mut self, printer: PrintQueue) -> Result<(), IRustError> {
+    pub fn print_output(&mut self, printer: PrintQueue) -> Result<()> {
         for item in printer {
             match item {
                 PrinterItem::Char(c, color) => {
@@ -176,7 +176,7 @@ impl<W: std::io::Write> Printer<W> {
         Ok(())
     }
 
-    fn print_out_str(&mut self, string: &str, color: Color) -> Result<(), IRustError> {
+    fn print_out_str(&mut self, string: &str, color: Color) -> Result<()> {
         self.writer.raw.set_fg(color)?;
         self.writer.raw.write(&string.replace('\n', "\r\n"))?;
         let rows = string.match_indices('\n').count();
@@ -206,7 +206,7 @@ impl<W: std::io::Write> Printer<W> {
         &mut self,
         buffer: &Buffer,
         theme: &super::Theme,
-    ) -> Result<bool, IRustError> {
+    ) -> Result<bool> {
         // Hack
         if self.cursor.buffer_pos_to_cursor_pos(&buffer).1 >= self.cursor.bound.height {
             self.print_input(&Buffer::from_string("It looks like the input is larger then the termnial, this is not currently supported, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue"), theme)?;
@@ -227,7 +227,7 @@ impl<W: std::io::Write> Printer<W> {
             }
         }
     }
-    pub fn recalculate_bounds(&mut self, printer: PrintQueue) -> Result<(), IRustError> {
+    pub fn recalculate_bounds(&mut self, printer: PrintQueue) -> Result<()> {
         self.cursor.hide();
         self.cursor.save_position();
         self.cursor.goto_start();
@@ -268,38 +268,29 @@ impl<W: std::io::Write> Printer<W> {
 }
 
 impl<W: std::io::Write> Printer<W> {
-    pub fn write_from_terminal_start(&mut self, out: &str, color: Color) -> Result<(), IRustError> {
+    pub fn write_from_terminal_start(&mut self, out: &str, color: Color) -> Result<()> {
         self.writer
             .write_from_terminal_start(out, color, &mut self.cursor)
     }
-    pub fn clear(&mut self) -> Result<(), IRustError> {
+    pub fn clear(&mut self) -> Result<()> {
         self.writer.clear(&mut self.cursor)
     }
-    pub fn clear_last_line(&mut self) -> Result<(), IRustError> {
+    pub fn clear_last_line(&mut self) -> Result<()> {
         self.writer.clear_last_line(&mut self.cursor)
     }
 
-    pub fn write_newline(
-        &mut self,
-        buffer: &crate::irust::buffer::Buffer,
-    ) -> Result<(), IRustError> {
+    pub fn write_newline(&mut self, buffer: &crate::irust::buffer::Buffer) -> Result<()> {
         self.writer.write_newline(&mut self.cursor, buffer)
     }
 
-    pub fn write(&mut self, out: &str, color: Color) -> Result<(), IRustError> {
+    pub fn write(&mut self, out: &str, color: Color) -> Result<()> {
         self.writer.write(out, color, &mut self.cursor)
     }
 
-    pub fn write_at(&mut self, s: &str, x: usize, y: usize) -> Result<(), IRustError> {
+    pub fn write_at(&mut self, s: &str, x: usize, y: usize) -> Result<()> {
         self.writer.write_at(s, x, y, &mut self.cursor)
     }
-    pub fn write_at_no_cursor(
-        &mut self,
-        s: &str,
-        color: Color,
-        x: usize,
-        y: usize,
-    ) -> Result<(), IRustError> {
+    pub fn write_at_no_cursor(&mut self, s: &str, color: Color, x: usize, y: usize) -> Result<()> {
         self.writer
             .write_at_no_cursor(s, color, x, y, &mut self.cursor)
     }

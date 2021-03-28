@@ -1,5 +1,5 @@
 use super::printer::{PrintQueue, PrinterItem};
-use crate::irust::{IRust, IRustError};
+use crate::irust::{IRust, Result};
 use crossterm::style::Color;
 
 pub trait ColoredPrinterItem {
@@ -13,7 +13,7 @@ impl<T: ToString> ColoredPrinterItem for T {
 }
 
 impl IRust {
-    pub fn help(&mut self) -> Result<PrintQueue, IRustError> {
+    pub fn help(&mut self) -> Result<PrintQueue> {
         let mut outputs = PrintQueue::default();
 
         outputs.push("### Keywords / Tips & Tricks ###".to_output(Color::DarkYellow));

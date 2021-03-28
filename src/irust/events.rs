@@ -1,25 +1,25 @@
-use super::racer::Cycle;
+use super::racer::{Cycle, Racer};
 use super::{CTRL_KEYMODIFIER, NO_MODIFIER};
 use crate::irust::printer::{PrintQueue, PrinterItem};
-use crate::irust::{IRust, IRustError};
+use crate::irust::{IRust, Result};
 use crate::utils::StringTools;
 use crossterm::{event::*, style::Color, terminal::ClearType};
 
 mod history_events;
 
 impl IRust {
-    pub fn handle_character(&mut self, c: char) -> Result<(), IRustError> {
+    pub fn handle_character(&mut self, c: char) -> Result<()> {
         self.buffer.insert(c);
         self.printer.print_input(&self.buffer, &self.theme)?;
         self.printer.cursor.move_right_unbounded();
         self.history.unlock();
         // Ignore RacerDisabled error
-        let _ = self.racer.as_mut()?.unlock_racer_update();
+        let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
 
         Ok(())
     }
 
-    pub fn handle_enter(&mut self, force_eval: bool) -> Result<(), IRustError> {
+    pub fn handle_enter(&mut self, force_eval: bool) -> Result<()> {
         self.history.unlock();
 
         let buffer = self.buffer.to_string();
@@ -68,14 +68,14 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_alt_enter(&mut self) -> Result<(), IRustError> {
+    pub fn handle_alt_enter(&mut self) -> Result<()> {
         self.buffer.insert('\n');
         self.printer.print_input(&self.buffer, &self.theme)?;
         self.printer.cursor.move_right();
         Ok(())
     }
 
-    pub fn handle_tab(&mut self) -> Result<(), IRustError> {
+    pub fn handle_tab(&mut self) -> Result<()> {
         if self.buffer.is_at_string_line_start() {
             const TAB: &str = "   \t";
 
@@ -87,50 +87,36 @@ impl IRust {
             return Ok(());
         }
 
-        match || -> Result<(), IRustError> {
-            self.racer.as_mut()?.update_suggestions(
-                &self.buffer,
-                &mut self.printer,
-                &mut self.repl,
-            )?;
-            self.racer.as_mut()?.lock_racer_update()?;
-            self.racer.as_mut()?.cycle_suggestions(
+        if let Some(racer) = self.racer.as_mut() {
+            racer.update_suggestions(&self.buffer, &mut self.printer, &mut self.repl)?;
+            racer.lock_racer_update()?;
+            racer.cycle_suggestions(
                 &mut self.printer,
                 &self.buffer,
                 &self.theme,
                 Cycle::Down,
                 &self.options,
             )?;
-            Ok(())
-        }() {
-            Ok(_) | Err(IRustError::RacerDisabled) => Ok(()),
-            Err(e) => Err(e),
         }
+        Ok(())
     }
 
-    pub fn handle_back_tab(&mut self) -> Result<(), IRustError> {
-        match || -> Result<(), IRustError> {
-            self.racer.as_mut()?.update_suggestions(
-                &self.buffer,
-                &mut self.printer,
-                &mut self.repl,
-            )?;
-            self.racer.as_mut()?.lock_racer_update()?;
-            self.racer.as_mut()?.cycle_suggestions(
+    pub fn handle_back_tab(&mut self) -> Result<()> {
+        if let Some(racer) = self.racer.as_mut() {
+            racer.update_suggestions(&self.buffer, &mut self.printer, &mut self.repl)?;
+            racer.lock_racer_update()?;
+            racer.cycle_suggestions(
                 &mut self.printer,
                 &self.buffer,
                 &self.theme,
                 Cycle::Up,
                 &self.options,
             )?;
-            Ok(())
-        }() {
-            Ok(_) | Err(IRustError::RacerDisabled) => Ok(()),
-            Err(e) => Err(e),
         }
+        Ok(())
     }
 
-    pub fn handle_right(&mut self) -> Result<(), IRustError> {
+    pub fn handle_right(&mut self) -> Result<()> {
         if !self.buffer.is_at_end() {
             self.printer.cursor.move_right();
             self.buffer.move_forward();
@@ -140,7 +126,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_left(&mut self) -> Result<(), IRustError> {
+    pub fn handle_left(&mut self) -> Result<()> {
         if !self.buffer.is_at_start() && !self.buffer.is_empty() {
             self.printer.cursor.move_left();
             self.buffer.move_backward();
@@ -148,7 +134,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_backspace(&mut self) -> Result<(), IRustError> {
+    pub fn handle_backspace(&mut self) -> Result<()> {
         if !self.buffer.is_at_start() {
             self.buffer.move_backward();
             self.printer.cursor.move_left();
@@ -156,26 +142,26 @@ impl IRust {
             self.printer.print_input(&self.buffer, &self.theme)?;
             // Ignore RacerDisabled error
             self.history.unlock();
-            let _ = self.racer.as_mut()?.unlock_racer_update();
+            let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
         }
         Ok(())
     }
 
-    pub fn handle_del(&mut self) -> Result<(), IRustError> {
+    pub fn handle_del(&mut self) -> Result<()> {
         if !self.buffer.is_empty() {
             self.buffer.remove_current_char();
             self.printer.print_input(&self.buffer, &self.theme)?;
             // Ignore RacerDisabled error
             self.history.unlock();
-            let _ = self.racer.as_mut()?.unlock_racer_update();
+            let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
         }
         Ok(())
     }
 
-    pub fn handle_ctrl_c(&mut self) -> Result<(), IRustError> {
+    pub fn handle_ctrl_c(&mut self) -> Result<()> {
         self.buffer.clear();
         self.history.unlock();
-        let _ = self.racer.as_mut()?.unlock_racer_update();
+        let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
         self.printer.cursor.goto_start();
         self.printer
             .write_from_terminal_start(super::IN, Color::Yellow)?;
@@ -184,7 +170,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_d(&mut self) -> Result<bool, IRustError> {
+    pub fn handle_ctrl_d(&mut self) -> Result<bool> {
         if self.buffer.is_empty() {
             self.printer.write_newline(&self.buffer)?;
             self.printer
@@ -224,7 +210,7 @@ impl IRust {
         Ok(false)
     }
 
-    pub fn exit(&mut self) -> Result<(), IRustError> {
+    pub fn exit(&mut self) -> Result<()> {
         self.history.save()?;
         self.options.save()?;
         self.theme.save()?;
@@ -233,7 +219,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_z(&mut self) -> Result<(), IRustError> {
+    pub fn handle_ctrl_z(&mut self) -> Result<()> {
         #[cfg(unix)]
         {
             use nix::{
@@ -250,7 +236,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_l(&mut self) -> Result<(), IRustError> {
+    pub fn handle_ctrl_l(&mut self) -> Result<()> {
         self.buffer.clear();
         self.buffer.goto_start();
         self.printer.clear()?;
@@ -258,7 +244,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_home_key(&mut self) -> Result<(), IRustError> {
+    pub fn handle_home_key(&mut self) -> Result<()> {
         self.buffer.goto_start();
         self.printer
             .cursor
@@ -266,7 +252,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_end_key(&mut self) -> Result<(), IRustError> {
+    pub fn handle_end_key(&mut self) -> Result<()> {
         let last_input_pos = self.printer.cursor.input_last_pos(&self.buffer);
         self.buffer.goto_end();
         self.printer.cursor.goto(last_input_pos.0, last_input_pos.1);
@@ -314,7 +300,7 @@ impl IRust {
         }
     }
 
-    pub fn handle_ctrl_right(&mut self) -> Result<(), IRustError> {
+    pub fn handle_ctrl_right(&mut self) -> Result<()> {
         if !self.buffer.is_at_end() {
             self.printer.cursor.move_right();
             self.buffer.move_forward();
@@ -356,12 +342,12 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_e(&mut self) -> Result<(), IRustError> {
+    pub fn handle_ctrl_e(&mut self) -> Result<()> {
         self.handle_enter(true)
     }
 
-    pub fn use_racer_suggestion(&mut self) -> Result<(), IRustError> {
-        if let Some(suggestion) = self.racer.as_ref()?.current_suggestion() {
+    pub fn use_racer_suggestion(&mut self) -> Result<()> {
+        if let Some(suggestion) = self.racer.as_ref().map(Racer::current_suggestion).flatten() {
             // suggestion => `name: definition`
             // suggestion example => `assert!: macro_rules! assert {`
 

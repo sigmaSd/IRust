@@ -1,4 +1,4 @@
-use crate::irust::IRustError;
+use crate::irust::Result;
 use crossterm::{style::Color, terminal::ClearType};
 mod raw;
 use raw::Raw;
@@ -24,7 +24,7 @@ impl<W: std::io::Write> Writer<W> {
         out: &str,
         color: Color,
         cursor: &mut super::cursor::Cursor<W>,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         // Performance: set_fg only when needed
         if self.last_color != Some(color) {
             self.raw.set_fg(color)?;
@@ -43,7 +43,7 @@ impl<W: std::io::Write> Writer<W> {
         c: char,
         color: Color,
         cursor: &mut super::cursor::Cursor<W>,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         // Performance: set_fg only when needed
         if self.last_color != Some(color) {
             self.raw.set_fg(color)?;
@@ -53,11 +53,7 @@ impl<W: std::io::Write> Writer<W> {
         Ok(())
     }
 
-    pub fn write_char(
-        &mut self,
-        c: char,
-        cursor: &mut super::cursor::Cursor<W>,
-    ) -> Result<(), IRustError> {
+    pub fn write_char(&mut self, c: char, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
         self.raw.write(c)?;
         // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because it moves automatically
         if cursor.pos.current_pos.0 == cursor.bound.width - 1 {
@@ -81,7 +77,7 @@ impl<W: std::io::Write> Writer<W> {
         x: usize,
         y: usize,
         cursor: &mut super::cursor::Cursor<W>,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         cursor.goto(x, y);
         self.raw.write(s)?;
         Ok(())
@@ -94,7 +90,7 @@ impl<W: std::io::Write> Writer<W> {
         x: usize,
         y: usize,
         cursor: &mut super::cursor::Cursor<W>,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         self.raw.set_fg(color)?;
         let origin_pos = cursor.pos.current_pos;
         self.write_at(s, x, y, cursor)?;
@@ -108,7 +104,7 @@ impl<W: std::io::Write> Writer<W> {
         out: &str,
         color: Color,
         cursor: &mut super::cursor::Cursor<W>,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         cursor.goto(0, cursor.pos.current_pos.1);
         self.write(out, color, cursor)?;
         Ok(())
@@ -118,7 +114,7 @@ impl<W: std::io::Write> Writer<W> {
         &mut self,
         cursor: &mut super::cursor::Cursor<W>,
         buffer: &crate::irust::buffer::Buffer,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         cursor.move_to_input_last_row(buffer);
 
         // check for scroll
@@ -132,7 +128,7 @@ impl<W: std::io::Write> Writer<W> {
         Ok(())
     }
 
-    pub fn clear(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<(), IRustError> {
+    pub fn clear(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
         self.raw.clear(ClearType::All)?;
 
         cursor.pos.starting_pos = (0, 0);
@@ -142,10 +138,7 @@ impl<W: std::io::Write> Writer<W> {
         Ok(())
     }
 
-    pub fn clear_last_line(
-        &mut self,
-        cursor: &mut super::cursor::Cursor<W>,
-    ) -> Result<(), IRustError> {
+    pub fn clear_last_line(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
         let origin_pos = cursor.pos.current_pos;
         cursor.goto(0, cursor.bound.height - 1);
         self.raw.clear(ClearType::CurrentLine)?;

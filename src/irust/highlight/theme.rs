@@ -1,9 +1,9 @@
-use crate::irust::IRustError;
+use crate::irust::Result;
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 
-pub fn theme() -> Result<Theme, IRustError> {
+pub fn theme() -> Result<Theme> {
     let theme_file = dirs_next::config_dir()
         .ok_or("Error accessing config_dir")?
         .join("irust")
@@ -32,7 +32,7 @@ pub struct Theme {
 }
 
 impl Theme {
-    pub fn save(&self) -> Result<(), IRustError> {
+    pub fn save(&self) -> Result<()> {
         let theme_path = dirs_next::config_dir()
             .ok_or("Error accessing config_dir")?
             .join("irust")

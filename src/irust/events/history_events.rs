@@ -1,6 +1,5 @@
 use crate::irust::buffer::Buffer;
-use crate::irust::irust_error::IRustError;
-use crate::irust::{CTRL_KEYMODIFIER, NO_MODIFIER};
+use crate::irust::{Result, CTRL_KEYMODIFIER, NO_MODIFIER};
 use crate::utils::StringTools;
 use crossterm::{event::*, style::Color};
 
@@ -10,7 +9,7 @@ enum Dir {
 }
 
 impl super::IRust {
-    pub fn handle_up(&mut self) -> Result<(), IRustError> {
+    pub fn handle_up(&mut self) -> Result<()> {
         if self.printer.cursor.is_at_first_input_line() {
             let buffer = self.buffer.take();
             self.handle_history(Dir::Up, buffer)?;
@@ -24,7 +23,7 @@ impl super::IRust {
         Ok(())
     }
 
-    pub fn handle_down(&mut self) -> Result<(), IRustError> {
+    pub fn handle_down(&mut self) -> Result<()> {
         if self.buffer.is_empty() {
             return Ok(());
         }
@@ -41,7 +40,7 @@ impl super::IRust {
         Ok(())
     }
 
-    fn handle_history(&mut self, direction: Dir, buffer: Vec<char>) -> Result<(), IRustError> {
+    fn handle_history(&mut self, direction: Dir, buffer: Vec<char>) -> Result<()> {
         let history = match direction {
             Dir::Up => self.history.up(&buffer),
             Dir::Down => self.history.down(&buffer),
@@ -60,7 +59,7 @@ impl super::IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_r(&mut self) -> Result<(), IRustError> {
+    pub fn handle_ctrl_r(&mut self) -> Result<()> {
         // make space for the search bar
         if self.printer.cursor.is_at_last_terminal_row() {
             self.printer.scroll_up(1);

@@ -1,4 +1,4 @@
-use super::IRustError;
+use super::Result;
 use crate::utils::stdout_and_stderr;
 use crate::utils::ProcessUtils;
 use once_cell::sync::Lazy;
@@ -45,7 +45,7 @@ pub enum ToolChain {
 }
 
 impl ToolChain {
-    pub fn from_str(s: &str) -> Result<Self, IRustError> {
+    pub fn from_str(s: &str) -> Result<Self> {
         use ToolChain::*;
         match s.to_lowercase().as_str() {
             "stable" => Ok(Stable),
@@ -65,7 +65,7 @@ impl ToolChain {
     }
 }
 
-pub fn cargo_new(toolchain: ToolChain) -> Result<(), io::Error> {
+pub fn cargo_new(toolchain: ToolChain) -> std::result::Result<(), io::Error> {
     // Ignore directory exists error
     let _ = std::fs::create_dir_all(&*IRUST_SRC_DIR);
     clean_cargo_toml()?;
@@ -75,11 +75,7 @@ pub fn cargo_new(toolchain: ToolChain) -> Result<(), io::Error> {
     Ok(())
 }
 
-pub fn cargo_run(
-    color: bool,
-    release: bool,
-    toolchain: ToolChain,
-) -> Result<(ExitStatus, String), IRustError> {
+pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<(ExitStatus, String)> {
     let (status, output) = cargo_build_output(color, release, toolchain)?;
 
     if !status.success() {
@@ -141,14 +137,14 @@ macro_rules! cargo_common {
     };
 }
 
-pub fn cargo_check(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
+pub fn cargo_check(toolchain: ToolChain) -> std::result::Result<std::process::Child, io::Error> {
     cargo_common!("check", toolchain)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn()
 }
 
-pub fn cargo_check_output(toolchain: ToolChain) -> Result<String, io::Error> {
+pub fn cargo_check_output(toolchain: ToolChain) -> std::result::Result<String, io::Error> {
     #[cfg(not(windows))]
     let color = "always";
     #[cfg(windows)]
@@ -165,7 +161,7 @@ pub fn cargo_check_output(toolchain: ToolChain) -> Result<String, io::Error> {
     ))
 }
 
-pub fn cargo_build(toolchain: ToolChain) -> Result<std::process::Child, io::Error> {
+pub fn cargo_build(toolchain: ToolChain) -> std::result::Result<std::process::Child, io::Error> {
     cargo_common!("build", toolchain)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
@@ -176,7 +172,7 @@ pub fn cargo_build_output(
     color: bool,
     release: bool,
     toolchain: ToolChain,
-) -> Result<(ExitStatus, String), io::Error> {
+) -> std::result::Result<(ExitStatus, String), io::Error> {
     #[cfg(not(windows))]
     let color = if color { "always" } else { "never" };
     #[cfg(windows)]
@@ -205,7 +201,7 @@ pub fn cargo_build_output(
     Ok((status, stdout_and_stderr(output)))
 }
 
-pub fn cargo_bench(toolchain: ToolChain) -> Result<String, io::Error> {
+pub fn cargo_bench(toolchain: ToolChain) -> std::result::Result<String, io::Error> {
     Ok(stdout_and_stderr(
         cargo_common!("bench", toolchain)
             .args(&["--color", "always"])
@@ -256,7 +252,7 @@ pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
     Ok(fmt_c)
 }
 
-pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String, IRustError> {
+pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
     Ok(stdout_and_stderr(
         cargo_common!("asm", toolchain)
             .arg("--lib")

@@ -1,5 +1,5 @@
 use super::cargo_cmds::*;
-use super::IRustError;
+use super::Result;
 use std::io::{self, Write};
 use std::process::ExitStatus;
 
@@ -22,13 +22,11 @@ impl Repl {
         }
     }
 
-    pub fn update_from_extern_main_file(&mut self) -> Result<(), IRustError> {
+    pub fn update_from_extern_main_file(&mut self) -> Result<()> {
         let main_file = std::fs::read_to_string(&*MAIN_FILE_EXTERN)?;
         let lines_num = main_file.lines().count();
         if lines_num < 2 {
-            return Err(IRustError::Custom(
-                "main.rs file corrupted, resetting irust..".to_string(),
-            ));
+            return Err("main.rs file corrupted, resetting irust..".into());
         }
         let cursor_pos = lines_num - 1;
 
@@ -62,7 +60,7 @@ impl Repl {
         }
     }
 
-    pub fn reset(&mut self, toolchain: ToolChain) -> Result<(), IRustError> {
+    pub fn reset(&mut self, toolchain: ToolChain) -> Result<()> {
         self.prepare_ground(toolchain)?;
         *self = Self::new();
         Ok(())
@@ -78,22 +76,18 @@ impl Repl {
     }
 
     // prepare ground
-    pub fn prepare_ground(&self, toolchain: ToolChain) -> Result<(), IRustError> {
+    pub fn prepare_ground(&self, toolchain: ToolChain) -> Result<()> {
         cargo_new(toolchain)?;
         Ok(())
     }
 
-    pub fn eval(
-        &mut self,
-        input: String,
-        toolchain: ToolChain,
-    ) -> Result<(ExitStatus, String), IRustError> {
+    pub fn eval(&mut self, input: String, toolchain: ToolChain) -> Result<(ExitStatus, String)> {
         // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut eval_result = String::new();
         let mut status = None;
 
-        self.eval_in_tmp_repl(eval_statement, || -> Result<(), IRustError> {
+        self.eval_in_tmp_repl(eval_statement, || -> Result<()> {
             let (s, result) = cargo_run(true, false, toolchain)?;
             eval_result = result;
             status = Some(s);
@@ -108,7 +102,7 @@ impl Repl {
         &mut self,
         input: String,
         toolchain: ToolChain,
-    ) -> Result<(ExitStatus, String), IRustError> {
+    ) -> Result<(ExitStatus, String)> {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
@@ -124,8 +118,8 @@ impl Repl {
     pub fn eval_in_tmp_repl(
         &mut self,
         input: String,
-        mut f: impl FnMut() -> Result<(), IRustError>,
-    ) -> Result<(), IRustError> {
+        mut f: impl FnMut() -> Result<()>,
+    ) -> Result<()> {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
@@ -147,7 +141,7 @@ impl Repl {
         cargo_build(toolchain)
     }
 
-    pub fn check(&mut self, buffer: String, toolchain: ToolChain) -> Result<String, IRustError> {
+    pub fn check(&mut self, buffer: String, toolchain: ToolChain) -> Result<String> {
         let mut result = String::new();
         self.eval_in_tmp_repl(buffer, || {
             result = cargo_check_output(toolchain)?;
@@ -192,7 +186,7 @@ impl Repl {
         }
     }
 
-    pub fn del(&mut self, line_num: &str) -> Result<(), IRustError> {
+    pub fn del(&mut self, line_num: &str) -> Result<()> {
         if let Ok(line_num) = line_num.parse::<usize>() {
             if line_num != 0 && line_num + 1 < self.body.len() {
                 self.body.remove(line_num);
@@ -201,6 +195,6 @@ impl Repl {
             }
         }
 
-        Err(IRustError::Custom("Incorrect line number".into()))
+        Err("Incorrect line number".into())
     }
 }

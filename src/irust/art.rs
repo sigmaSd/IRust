@@ -1,13 +1,9 @@
-use crate::irust::{IRust, IRustError};
+use crate::irust::{IRust, Result};
 use crossterm::style::Color;
 use std::io::Read;
 
 impl IRust {
-    pub fn wait_add(
-        &mut self,
-        mut add_cmd: std::process::Child,
-        msg: &str,
-    ) -> Result<(), IRustError> {
+    pub fn wait_add(&mut self, mut add_cmd: std::process::Child, msg: &str) -> Result<()> {
         self.printer.cursor.save_position();
         self.printer.cursor.hide();
         self.printer.writer.raw.set_fg(Color::Cyan)?;
@@ -20,7 +16,7 @@ impl IRust {
                     let mut error = String::new();
                     stderr.read_to_string(&mut error)?;
                     if !error.is_empty() {
-                        return Err(IRustError::Custom(error));
+                        return Err(error.into());
                     }
                 }
                 Ok(())
@@ -32,11 +28,7 @@ impl IRust {
         }
     }
 
-    fn wait_add_inner(
-        &mut self,
-        add_cmd: &mut std::process::Child,
-        msg: &str,
-    ) -> Result<(), IRustError> {
+    fn wait_add_inner(&mut self, add_cmd: &mut std::process::Child, msg: &str) -> Result<()> {
         self.printer.write_at(
             &format!(" {}ing dep [\\]", msg),
             0,
@@ -95,7 +87,7 @@ impl IRust {
         }
     }
 
-    fn clean_art(&mut self) -> Result<(), IRustError> {
+    fn clean_art(&mut self) -> Result<()> {
         self.printer.cursor.restore_position();
         self.printer.write_newline(&self.buffer)?;
         self.printer.cursor.show();
@@ -103,7 +95,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn welcome(&mut self) -> Result<(), IRustError> {
+    pub fn welcome(&mut self) -> Result<()> {
         let default_msg = "Welcome to IRust".to_string();
         let msg = if !self.options.welcome_msg.is_empty() {
             self.fit_msg(&self.options.welcome_msg.clone())

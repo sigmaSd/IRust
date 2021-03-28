@@ -1,4 +1,4 @@
-use crate::irust::IRustError;
+use crate::irust::Result;
 use crossterm::cursor::*;
 use crossterm::queue;
 use std::{cell::RefCell, rc::Rc};
@@ -17,46 +17,46 @@ impl<W: std::io::Write> std::io::Write for Raw<W> {
 }
 
 impl<W: std::io::Write> Raw<W> {
-    pub fn restore_position(&mut self) -> Result<(), IRustError> {
+    pub fn restore_position(&mut self) -> Result<()> {
         queue!(self, RestorePosition)?;
         Ok(())
     }
 
-    pub fn save_position(&mut self) -> Result<(), IRustError> {
+    pub fn save_position(&mut self) -> Result<()> {
         queue!(self, SavePosition)?;
         Ok(())
     }
 
-    pub fn move_down(&mut self, n: u16) -> Result<(), IRustError> {
+    pub fn move_down(&mut self, n: u16) -> Result<()> {
         queue!(self, MoveDown(n))?;
         Ok(())
     }
 
-    pub fn move_up(&mut self, n: u16) -> Result<(), IRustError> {
+    pub fn move_up(&mut self, n: u16) -> Result<()> {
         queue!(self, MoveUp(n))?;
         Ok(())
     }
 
-    pub fn show(&mut self) -> Result<(), IRustError> {
+    pub fn show(&mut self) -> Result<()> {
         queue!(self, Show)?;
         Ok(())
     }
 
-    pub fn hide(&mut self) -> Result<(), IRustError> {
+    pub fn hide(&mut self) -> Result<()> {
         queue!(self, Hide)?;
         Ok(())
     }
 
-    pub fn goto(&mut self, x: u16, y: u16) -> Result<(), IRustError> {
+    pub fn goto(&mut self, x: u16, y: u16) -> Result<()> {
         queue!(self, MoveTo(x, y))?;
         Ok(())
     }
 
-    pub fn size(&self) -> Result<(usize, usize), IRustError> {
+    pub fn size(&self) -> Result<(usize, usize)> {
         Ok(crossterm::terminal::size().map(|(w, h)| (w as usize, h as usize))?)
     }
 
-    pub fn get_current_pos(&mut self) -> Result<(usize, usize), IRustError> {
+    pub fn get_current_pos(&mut self) -> Result<(usize, usize)> {
         // position only uses stdout()
         Ok(crossterm::cursor::position().map(|(w, h)| (w as usize, h as usize))?)
     }

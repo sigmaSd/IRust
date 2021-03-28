@@ -5,7 +5,6 @@ mod format;
 mod help;
 pub mod highlight;
 mod history;
-mod irust_error;
 mod known_paths;
 pub mod options;
 mod parser;
@@ -15,7 +14,6 @@ mod repl;
 use crossterm::event::*;
 use crossterm::style::Color;
 use history::History;
-pub use irust_error::IRustError;
 use options::Options;
 use racer::Racer;
 use repl::Repl;
@@ -25,6 +23,8 @@ use crossterm::event::KeyModifiers;
 use highlight::theme::Theme;
 use known_paths::KnownPaths;
 use once_cell::sync::Lazy;
+
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
@@ -40,7 +40,7 @@ pub struct IRust {
     repl: Repl,
     printer: printer::Printer<std::io::StdoutLock<'static>>,
     options: Options,
-    racer: Result<Racer, IRustError>,
+    racer: Option<Racer>,
     known_paths: KnownPaths,
     theme: Theme,
     history: History,
@@ -57,7 +57,7 @@ impl IRust {
         let racer = if options.enable_racer {
             Racer::start()
         } else {
-            Err(IRustError::RacerDisabled)
+            None
         };
         let buffer = Buffer::new();
         let theme = highlight::theme::theme().unwrap_or_default();
@@ -75,7 +75,7 @@ impl IRust {
         }
     }
 
-    fn prepare(&mut self) -> Result<(), IRustError> {
+    fn prepare(&mut self) -> Result<()> {
         // title is optional
         self.printer
             .writer
@@ -88,7 +88,7 @@ impl IRust {
         Ok(())
     }
 
-    pub fn run(&mut self) -> Result<(), IRustError> {
+    pub fn run(&mut self) -> Result<()> {
         self.prepare()?;
 
         loop {
@@ -108,7 +108,7 @@ impl IRust {
         }
     }
 
-    fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<bool, IRustError> {
+    fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<bool> {
         // handle input event
         match ev {
             Event::Mouse(_) => (),

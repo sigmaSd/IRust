@@ -1,4 +1,4 @@
-use crate::irust::IRustError;
+use crate::irust::Result;
 
 pub fn split_args(s: String) -> Vec<String> {
     let mut args = vec![];
@@ -286,11 +286,11 @@ fn balanced_quotes(s: &str) -> bool {
 }
 
 pub trait ProcessUtils {
-    fn output_with_ctrlc_cancel(self) -> Result<std::process::Output, IRustError>;
+    fn output_with_ctrlc_cancel(self) -> Result<std::process::Output>;
 }
 
 impl ProcessUtils for std::process::Child {
-    fn output_with_ctrlc_cancel(mut self) -> Result<std::process::Output, IRustError> {
+    fn output_with_ctrlc_cancel(mut self) -> Result<std::process::Output> {
         use crossterm::event::{Event, KeyCode, KeyEvent};
 
         while self.try_wait()?.is_none() {

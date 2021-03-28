@@ -1,4 +1,4 @@
-use super::{cargo_cmds::MAIN_FILE, highlight::highlight, IRustError};
+use super::{cargo_cmds::MAIN_FILE, highlight::highlight, Result};
 use crate::utils::{read_until_bytes, StringTools};
 use crossterm::{style::Color, terminal::ClearType};
 use std::io::Write;
@@ -20,15 +20,16 @@ pub struct Racer {
 }
 
 impl Racer {
-    pub fn start() -> Result<Racer, IRustError> {
+    pub fn start() -> Option<Racer> {
         let process = Command::new("racer")
             .arg("daemon")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
             .spawn()
-            // Disable Racer if unable to start it
-            .map_err(|_| IRustError::RacerDisabled)?;
+            .ok()?;
+        // Disable Racer if unable to start it
+        //.map_err(|_| IRustError::RacerDisabled)?;
         let cursor = (2, 0);
         let cmds = [
             "show".to_string(),
@@ -49,7 +50,7 @@ impl Racer {
             "bench".to_string(),
         ];
 
-        Ok(Racer {
+        Some(Racer {
             process,
             cursor,
             suggestions: vec![],
@@ -59,7 +60,7 @@ impl Racer {
         })
     }
 
-    fn complete_code(&mut self) -> Result<(), IRustError> {
+    fn complete_code(&mut self) -> Result<()> {
         // check for lock
         if self.update_lock {
             return Ok(());
@@ -178,7 +179,7 @@ impl Racer {
         buffer: &super::Buffer,
         printer: &mut super::printer::Printer<impl std::io::Write>,
         repl: &mut crate::irust::repl::Repl,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         // return if we're not at the end of the line
         if !printer.cursor.is_at_line_end(&buffer) {
             return Ok(());
@@ -201,7 +202,7 @@ impl Racer {
         &mut self,
         buffer: String,
         repl: &mut crate::irust::repl::Repl,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         if buffer.starts_with(':') {
             // Auto complete IRust commands
             self.suggestions = self
@@ -226,7 +227,7 @@ impl Racer {
                 }
             }
 
-            repl.eval_in_tmp_repl(buffer, move || -> Result<(), IRustError> {
+            repl.eval_in_tmp_repl(buffer, move || -> Result<()> {
                 racer.complete_code().map_err(From::from)
             })?;
         }
@@ -239,7 +240,7 @@ impl Racer {
         printer: &mut super::printer::Printer<impl std::io::Write>,
         buffer: &super::Buffer,
         color: Color,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         self.goto_next_suggestion();
         self.write_current_suggestion(printer, buffer, color)?;
 
@@ -251,7 +252,7 @@ impl Racer {
         printer: &mut super::printer::Printer<impl std::io::Write>,
         buffer: &super::Buffer,
         color: Color,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         self.goto_previous_suggestion();
         self.write_current_suggestion(printer, buffer, color)?;
 
@@ -263,7 +264,7 @@ impl Racer {
         printer: &mut crate::irust::printer::Printer<impl std::io::Write>,
         buffer: &super::Buffer,
         color: Color,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         if !printer.cursor.is_at_line_end(&buffer) {
             return Ok(());
         }
@@ -303,7 +304,7 @@ impl Racer {
         theme: &super::Theme,
         cycle: Cycle,
         options: &super::options::Options,
-    ) -> Result<(), IRustError> {
+    ) -> Result<()> {
         // return if we're not at the end of the line
         if !printer.cursor.is_at_line_end(&buffer) {
             return Ok(());
@@ -396,12 +397,12 @@ impl Racer {
         Ok(())
     }
 
-    pub fn lock_racer_update(&mut self) -> Result<(), IRustError> {
+    pub fn lock_racer_update(&mut self) -> Result<()> {
         self.update_lock = true;
         Ok(())
     }
 
-    pub fn unlock_racer_update(&mut self) -> Result<(), IRustError> {
+    pub fn unlock_racer_update(&mut self) -> Result<()> {
         self.update_lock = false;
         Ok(())
     }

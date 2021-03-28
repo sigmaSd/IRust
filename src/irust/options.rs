@@ -1,4 +1,4 @@
-use crate::irust::{cargo_cmds::ToolChain, IRust, IRustError};
+use crate::irust::{cargo_cmds::ToolChain, IRust, Result};
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
@@ -68,14 +68,14 @@ impl Default for Options {
 }
 
 impl Options {
-    pub fn save(&mut self) -> Result<(), IRustError> {
+    pub fn save(&mut self) -> Result<()> {
         if let Some(path) = Self::config_path() {
             Self::write_config_file(path, &self)?;
         }
         Ok(())
     }
 
-    pub fn new() -> Result<Self, IRustError> {
+    pub fn new() -> Result<Self> {
         if let Some(config_path) = Options::config_path() {
             let mut config_file = std::fs::File::open(&config_path)?;
             let mut config_data = String::new();
@@ -104,10 +104,7 @@ impl Options {
         Some(config_path)
     }
 
-    fn write_config_file(
-        config_path: std::path::PathBuf,
-        options: &Options,
-    ) -> Result<(), IRustError> {
+    fn write_config_file(config_path: std::path::PathBuf, options: &Options) -> Result<()> {
         let config = toml::to_string(options)?;
 
         let mut config_file = std::fs::File::create(&config_path)?;

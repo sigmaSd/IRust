@@ -1,4 +1,4 @@
-use crate::irust::IRustError;
+use crate::irust::Result;
 use crossterm::{queue, style::*, terminal::*};
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 #[derive(Debug, Clone)]
@@ -15,52 +15,48 @@ impl<W: std::io::Write> std::io::Write for Raw<W> {
 }
 
 impl<W: std::io::Write> Raw<W> {
-    pub fn scroll_up(&mut self, n: u16) -> Result<(), IRustError> {
+    pub fn scroll_up(&mut self, n: u16) -> Result<()> {
         queue!(self, ScrollUp(n))?;
         Ok(())
     }
 
-    pub fn clear(&mut self, clear_type: ClearType) -> Result<(), IRustError> {
+    pub fn clear(&mut self, clear_type: ClearType) -> Result<()> {
         queue!(self, Clear(clear_type))?;
         Ok(())
     }
 
-    pub fn _write<D: Display + Clone>(&mut self, value: D) -> Result<(), IRustError> {
+    pub fn _write<D: Display + Clone>(&mut self, value: D) -> Result<()> {
         queue!(self, Print(value))?;
         Ok(())
     }
 
-    pub fn write<D: Display + Clone>(&mut self, value: D) -> Result<(), IRustError> {
+    pub fn write<D: Display + Clone>(&mut self, value: D) -> Result<()> {
         self._write(value)
     }
 
-    pub fn write_with_color<D: Display + Clone>(
-        &mut self,
-        value: D,
-        color: Color,
-    ) -> Result<(), IRustError> {
+    pub fn write_with_color<D: Display + Clone>(&mut self, value: D, color: Color) -> Result<()> {
         self.set_fg(color)?;
         self.write(value)?;
         self.reset_color()?;
         Ok(())
     }
 
-    pub fn reset_color(&mut self) -> Result<(), IRustError> {
+    pub fn reset_color(&mut self) -> Result<()> {
         queue!(self, ResetColor)?;
         Ok(())
     }
 
-    pub fn set_fg(&mut self, color: Color) -> Result<(), IRustError> {
+    pub fn set_fg(&mut self, color: Color) -> Result<()> {
         queue!(self, SetForegroundColor(color))?;
         Ok(())
     }
 
-    pub fn set_bg(&mut self, color: Color) -> Result<(), IRustError> {
+    pub fn set_bg(&mut self, color: Color) -> Result<()> {
         queue!(self, SetBackgroundColor(color))?;
         Ok(())
     }
 
-    pub fn set_title(&mut self, title: &str) -> Result<(), IRustError> {
+    pub fn set_title(&mut self, title: &str) -> Result<()> {
         queue!(self, SetTitle(title))?;
         Ok(())
     }
