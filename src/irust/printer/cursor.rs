@@ -241,7 +241,7 @@ impl<W: std::io::Write> Cursor<W> {
         self.pos.current_pos.1 == self.input_last_pos(buffer).1
     }
 
-    pub fn cursor_pos_to_buffer_pos(&self) -> usize {
+    pub fn cursor_pos_to_buffer_pos(&mut self) -> usize {
         self.pos.current_pos.0 - INPUT_START_COL
             + self
                 .bound
