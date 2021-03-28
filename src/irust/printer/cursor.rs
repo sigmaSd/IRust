@@ -113,11 +113,11 @@ impl<W: std::io::Write> Cursor<W> {
     }
 
     pub fn previous_row_bound(&self) -> usize {
-        *self.bound.get_bound(self.pos.current_pos.1 - 1)
+        self.bound.get_bound(self.pos.current_pos.1 - 1)
     }
 
     pub fn current_row_bound(&self) -> usize {
-        *self.bound.get_bound(self.pos.current_pos.1)
+        self.bound.get_bound(self.pos.current_pos.1)
     }
 
     pub fn bound_current_row_at_current_col(&mut self) {
@@ -126,8 +126,7 @@ impl<W: std::io::Write> Cursor<W> {
     }
 
     pub fn is_at_line_end(&self, buffer: &crate::irust::Buffer) -> bool {
-        buffer.is_at_end()
-            || self.pos.current_pos.0 == *self.bound.get_bound(self.pos.current_pos.1)
+        buffer.is_at_end() || self.pos.current_pos.0 == self.bound.get_bound(self.pos.current_pos.1)
     }
 
     pub fn screen_height_overflow_by_str(&self, out: &str) -> usize {
