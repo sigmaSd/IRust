@@ -160,13 +160,13 @@ Default theme file:
 
 You can try `rustup update --force` https://github.com/racer-rust/racer/issues/1141
 
-**3- I want to hack on irust but I dbg! overlaps with the output!!**
+**3- I want to hack on irust but `dbg!` overlaps with the output!!**
 
 Personaly I do this:
 - Run 2 terminals side by side
 - run `tty` in the first which should output something like `/dev/pts/4`
 - run `cargo r 2>/dev/pts4` in the second
 
-Now the dbg! statements are printed on the second terminal and the output in the first terminal is not messed up.
+Now the `dbg!` statements are printed on the second terminal and the output in the first terminal is not messed up.
 
 ## [Changelog](./CHANGELOG.md)
