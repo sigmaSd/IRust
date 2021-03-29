@@ -1,3 +1,10 @@
+**1.2.5**
+- Simplify printing output logic a lot by relying on crossterm::cursor::position + bug fix
+- Printing art no longer busy loops
+- Remove legacy error handling code
+- Improve input hack error message
+- Bug fixes
+
 **1.2.4**
 - Output can now be cancelled with Ctrl-c (in case of an infinite loop for example)
 - Auto inserting semicolons is now configurable
