@@ -298,7 +298,6 @@ impl<W: std::io::Write> Printer<W> {
     }
 
     pub fn update_dimensions(&mut self, width: u16, height: u16) {
-        self.cursor.bound.width = width as usize;
-        self.cursor.bound.height = height as usize;
+        self.cursor.bound = cursor::Bound::new(width as usize, height as usize);
     }
 }

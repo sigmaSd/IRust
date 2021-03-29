@@ -2,7 +2,7 @@ use crate::irust::Buffer;
 use crate::utils::StringTools;
 use std::{cell::RefCell, rc::Rc};
 mod bound;
-use bound::Bound;
+pub use bound::Bound;
 mod raw;
 use raw::Raw;
 /// input is shown with x in this example
