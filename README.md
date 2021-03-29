@@ -160,8 +160,6 @@ Default theme file:
 
 You can try `rustup update --force` https://github.com/racer-rust/racer/issues/1141
 
-## [Changelog](./CHANGELOG.md)
-
 **3- I want to hack on irust but I dbg! overlaps with the output!!**
 
 Personaly I do this:
@@ -170,3 +168,5 @@ Personaly I do this:
 - run `cargo r 2>/dev/pts4` in the second
 
 Now the dbg! statements are printed on the second terminal and the output in the first terminal is not messed up.
+
+## [Changelog](./CHANGELOG.md)
