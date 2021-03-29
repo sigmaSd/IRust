@@ -163,15 +163,11 @@ impl<W: std::io::Write> Printer<W> {
                     self.print_out_str(&string, color)?;
                 }
                 PrinterItem::NewLine => {
-                    if self.cursor.pos.current_pos.1 >= self.cursor.bound.height - 1 {
-                        self.writer.raw.scroll_up(1)?;
-                    }
-                    self.cursor.goto_next_row_terminal_start();
-                    self.cursor.use_current_row_as_starting_row();
+                    self.writer.raw.write("\r\n")?;
                 }
             }
         }
-        self.readjust_cursor_pos();
+        self.readjust_cursor_pos()?;
 
         Ok(())
     }
@@ -179,8 +175,6 @@ impl<W: std::io::Write> Printer<W> {
     fn print_out_str(&mut self, string: &str, color: Color) -> Result<()> {
         self.writer.raw.set_fg(color)?;
         self.writer.raw.write(&string.replace('\n', "\r\n"))?;
-        let rows = string.match_indices('\n').count();
-        self.cursor.pos.current_pos.1 += rows;
         Ok(())
     }
 
@@ -193,13 +187,17 @@ impl<W: std::io::Write> Printer<W> {
         }
     }
 
-    fn readjust_cursor_pos(&mut self) {
-        // check if we did scroll automatically
-        // if we did update current_pos.1  and starting_pos.1 to the height of the terminal (-1)
-        if self.cursor.pos.current_pos.1 > self.cursor.bound.height - 1 {
-            self.cursor.pos.current_pos.1 = self.cursor.bound.height - 1;
-            self.cursor.pos.starting_pos.1 = self.cursor.bound.height - 1;
+    /// Calculate where to draw the next input prompt
+    /// Simply use `crossterm::cusror::position` to figure out where we are after printing the output and add one to that
+    /// This is not a hot path so using `position` here is okay
+    fn readjust_cursor_pos(&mut self) -> Result<()> {
+        let pos = crossterm::cursor::position()?;
+        self.cursor.pos.current_pos.1 = pos.1 as usize + 1;
+        self.cursor.pos.starting_pos.1 = pos.1 as usize + 1;
+        if self.cursor.pos.current_pos.1 == self.cursor.bound.height {
+            self.scroll_up(1);
         }
+        Ok(())
     }
 
     fn check_for_offscreen_render_hack(

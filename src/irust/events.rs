@@ -42,7 +42,7 @@ impl IRust {
         }
 
         // parse and handle errors
-        let mut output = match self.parse() {
+        let output = match self.parse() {
             Ok(out) => out,
             Err(e) => {
                 let mut printer = PrintQueue::default();
@@ -55,12 +55,12 @@ impl IRust {
         // ensure buffer is cleaned
         self.buffer.clear();
 
-        // write out
-        output.add_new_line(1);
+        // print output
         if !output.is_empty() {
             self.printer.print_output(output)?;
         }
 
+        // print a new input prompt
         self.printer
             .write_from_terminal_start(super::IN, Color::Yellow)?;
 
