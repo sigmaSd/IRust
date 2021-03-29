@@ -1,3 +1,6 @@
+**1.2.6**
+- Fix panic: update bounds when updating dimensions
+
 **1.2.5**
 - Simplify printing output logic a lot by relying on crossterm::cursor::position + bug fix
 - Printing art no longer busy loops
