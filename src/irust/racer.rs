@@ -3,8 +3,10 @@ use super::{
     highlight::{highlight, theme::Theme},
     Result,
 };
+use crate::irust::printer::PrintQueue;
+use crate::irust::printer::PrinterItem;
 use crate::utils::{read_until_bytes, StringTools};
-use crossterm::terminal::ClearType;
+use crossterm::{style::Color, terminal::ClearType};
 use std::io::Write;
 use std::process::{Child, Command, Stdio};
 
@@ -240,9 +242,10 @@ impl Racer {
         printer: &mut super::printer::Printer<impl std::io::Write>,
         buffer: &super::Buffer,
         theme: &Theme,
+        color: Color,
     ) -> Result<()> {
         self.goto_next_suggestion();
-        self.write_current_suggestion(printer, buffer, theme)?;
+        self.write_current_suggestion(printer, buffer, theme, color)?;
 
         Ok(())
     }
@@ -252,9 +255,10 @@ impl Racer {
         printer: &mut super::printer::Printer<impl std::io::Write>,
         buffer: &super::Buffer,
         theme: &super::Theme,
+        color: Color,
     ) -> Result<()> {
         self.goto_previous_suggestion();
-        self.write_current_suggestion(printer, buffer, theme)?;
+        self.write_current_suggestion(printer, buffer, theme, color)?;
 
         Ok(())
     }
@@ -264,6 +268,7 @@ impl Racer {
         printer: &mut crate::irust::printer::Printer<impl std::io::Write>,
         buffer: &super::Buffer,
         theme: &super::Theme,
+        color: Color,
     ) -> Result<()> {
         if let Some(suggestion) = self.current_suggestion() {
             let mut suggestion = suggestion.0;
@@ -273,7 +278,32 @@ impl Racer {
                 &mut suggestion,
             );
             buffer.insert_str(&suggestion);
-            printer.print_input(&buffer, theme)?;
+
+            let mut pre = highlight(
+                &buffer
+                    .iter()
+                    .take(buffer.buffer_pos - StringTools::chars_count(&suggestion))
+                    .copied()
+                    .collect::<Vec<char>>(),
+                theme,
+            );
+
+            let mut sug = PrintQueue::default();
+            sug.push(PrinterItem::String(suggestion.clone(), color));
+
+            let mut post = highlight(
+                &buffer
+                    .iter()
+                    .skip(buffer.buffer_pos)
+                    .copied()
+                    .collect::<Vec<char>>(),
+                theme,
+            );
+
+            pre.append(&mut sug);
+            pre.append(&mut post);
+            printer.print_input_from_queue(pre, &buffer)?;
+
             self.active_suggestion = Some(suggestion);
         }
 
@@ -291,9 +321,19 @@ impl Racer {
         // Write inline suggestion
         match cycle {
             Cycle::Down => {
-                self.write_next_suggestion(printer, buffer, theme)?;
+                self.write_next_suggestion(
+                    printer,
+                    buffer,
+                    theme,
+                    options.racer_inline_suggestion_color,
+                )?;
             }
-            Cycle::Up => self.write_previous_suggestion(printer, buffer, theme)?,
+            Cycle::Up => self.write_previous_suggestion(
+                printer,
+                buffer,
+                theme,
+                options.racer_inline_suggestion_color,
+            )?,
         }
 
         // No suggestions to show

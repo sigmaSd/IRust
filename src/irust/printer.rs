@@ -97,6 +97,27 @@ impl<W: std::io::Write> Printer<W> {
 
         Ok(())
     }
+    /// FIXME: This function takes the buffer just to calculate if it needs scrolling
+    pub fn print_input_from_queue(&mut self, queue: PrintQueue, buffer: &Buffer) -> Result<()> {
+        self.cursor.hide();
+        // scroll if needed before writing the input
+        self.scroll_if_needed_for_input(&buffer);
+        self.cursor.save_position();
+        self.cursor.goto_start();
+        self.writer.raw.clear(ClearType::FromCursorDown)?;
+
+        self.writer
+            .write_from_terminal_start(super::IN, Color::Yellow, &mut self.cursor)?;
+
+        self.print_input_inner(queue)?;
+        //bound last row to last position
+        self.cursor.bound_current_row_at_current_col();
+
+        self.cursor.restore_position();
+        self.cursor.show();
+
+        Ok(())
+    }
 
     fn print_input_inner(&mut self, printer: PrintQueue) -> Result<()> {
         for item in printer {
