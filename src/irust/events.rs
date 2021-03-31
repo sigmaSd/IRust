@@ -134,6 +134,8 @@ impl IRust {
     }
 
     pub fn handle_left(&mut self) -> Result<()> {
+        self.remove_racer_sugesstion_and_reprint()?;
+
         if !self.buffer.is_at_start() && !self.buffer.is_empty() {
             self.printer.cursor.move_left();
             self.buffer.move_backward();
@@ -266,10 +268,8 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_left(&mut self) {
-        if self.buffer.is_empty() || self.buffer.is_at_start() {
-            return;
-        }
+    pub fn handle_ctrl_left(&mut self) -> Result<()> {
+        self.handle_left()?;
 
         self.printer.cursor.move_left();
         self.buffer.move_backward();
@@ -305,6 +305,7 @@ impl IRust {
                 }
             }
         }
+        Ok(())
     }
 
     pub fn handle_ctrl_right(&mut self) -> Result<()> {
@@ -348,7 +349,23 @@ impl IRust {
         self.handle_enter(true)
     }
 
+    pub fn remove_racer_sugesstion_and_reprint(&mut self) -> Result<()> {
+        // remove any active suggestion
+        if self
+            .racer
+            .as_mut()
+            .map(|r| r.active_suggestion.take())
+            .flatten()
+            .is_some()
+        {
+            // and reprint
+            self.printer.print_input(&self.buffer, &self.theme)?;
+        }
+        Ok(())
+    }
+
     // helper functions
+
     fn incomplete_input(&self, buffer: &str) -> bool {
         StringTools::unmatched_brackets(&buffer)
             || buffer

@@ -15,6 +15,7 @@ impl super::IRust {
             self.handle_history(Dir::Up, buffer)?;
             self.history.lock();
         } else {
+            self.remove_racer_sugesstion_and_reprint()?;
             self.printer.cursor.move_up_bounded(1);
             // set buffer cursor
             let buffer_pos = self.printer.cursor.cursor_pos_to_buffer_pos();
@@ -32,6 +33,7 @@ impl super::IRust {
             self.handle_history(Dir::Down, buffer)?;
             self.history.lock();
         } else {
+            self.remove_racer_sugesstion_and_reprint()?;
             self.printer.cursor.move_down_bounded(1, &self.buffer);
             // set buffer cursor
             let buffer_pos = self.printer.cursor.cursor_pos_to_buffer_pos();
@@ -181,7 +183,9 @@ impl super::IRust {
             }
         }
         self.printer.clear_last_line()?;
-        self.printer.print_input(&self.buffer, &self.theme)?;
+        self.remove_racer_sugesstion_and_reprint()?;
+        let buffer_pos = self.printer.cursor.cursor_pos_to_buffer_pos();
+        self.buffer.set_buffer_pos(buffer_pos);
         Ok(())
     }
 }
