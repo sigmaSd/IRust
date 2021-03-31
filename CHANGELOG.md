@@ -1,5 +1,5 @@
 **1.2.8**
-- Fix printing some of Racer suggestions edge-cases
+- Fix some of Racer printing suggestions edge-cases
 
 **1.2.7**
 - Racer suggestions/completions can now happen even inside a line (it used to be only allowed at the end of a line)
