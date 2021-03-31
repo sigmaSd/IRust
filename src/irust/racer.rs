@@ -321,6 +321,13 @@ impl Racer {
         // Max suggestions number to show
         let suggestions_num = std::cmp::min(self.suggestions.len(), options.racer_max_suggestions);
 
+        // if The total input + suggestion >  screen height don't draw the suggestions
+        if printer.cursor.buffer_pos_to_cursor_pos(&buffer).1 + suggestions_num
+            >= printer.cursor.bound.height - 1
+        {
+            return Ok(());
+        }
+
         // Write inline suggestion
         match cycle {
             Cycle::Down => {
@@ -341,13 +348,6 @@ impl Racer {
 
         // No suggestions to show
         if self.suggestions.is_empty() {
-            return Ok(());
-        }
-
-        // if The total input + suggestion >  screen height don't draw the suggestions
-        if printer.cursor.buffer_pos_to_cursor_pos(&buffer).1 + suggestions_num
-            >= printer.cursor.bound.height - 1
-        {
             return Ok(());
         }
 
