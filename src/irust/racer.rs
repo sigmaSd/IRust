@@ -354,7 +354,7 @@ impl Racer {
         // Handle screen height overflow
         let height_overflow = printer
             .cursor
-            .screen_height_overflow_by_new_lines(suggestions_num + 1);
+            .screen_height_overflow_by_new_lines(buffer, suggestions_num + 1);
 
         if height_overflow != 0 {
             printer.scroll_up(height_overflow);

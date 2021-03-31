@@ -124,9 +124,11 @@ impl<W: std::io::Write> Cursor<W> {
             .set_bound(self.pos.current_pos.1, self.pos.current_pos.0);
     }
 
-    pub fn screen_height_overflow_by_new_lines(&self, new_lines: usize) -> usize {
+    /// Check if adding new_lines to the buffer will make it overflow the screen height and return
+    /// that amount if so (0 if not)
+    pub fn screen_height_overflow_by_new_lines(&self, buffer: &Buffer, new_lines: usize) -> usize {
         // if current row  + new lines < self.raw..bound.height there is no overflow so unwrap to 0
-        (new_lines + self.pos.current_pos.1).saturating_sub(self.bound.height - 1)
+        (new_lines + self.input_last_pos(buffer).1).saturating_sub(self.bound.height - 1)
     }
 
     pub fn restore_position(&mut self) {
