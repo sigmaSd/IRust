@@ -1,3 +1,7 @@
+**1.2.7**
+- Racer suggestions/completions can now happen even inside a line (it used to be only allowed at the end of a line)
+- Bug fixes
+
 **1.2.6**
 - Fix panic: update bounds when updating dimensions
 
