@@ -88,7 +88,7 @@ impl IRust {
         }
 
         if let Some(racer) = self.racer.as_mut() {
-            racer.update_suggestions(&self.buffer, &mut self.printer, &mut self.repl)?;
+            racer.update_suggestions(&self.buffer, &mut self.repl)?;
             racer.lock_racer_update()?;
             racer.cycle_suggestions(
                 &mut self.printer,
@@ -103,7 +103,7 @@ impl IRust {
 
     pub fn handle_back_tab(&mut self) -> Result<()> {
         if let Some(racer) = self.racer.as_mut() {
-            racer.update_suggestions(&self.buffer, &mut self.printer, &mut self.repl)?;
+            racer.update_suggestions(&self.buffer, &mut self.repl)?;
             racer.lock_racer_update()?;
             racer.cycle_suggestions(
                 &mut self.printer,
@@ -117,11 +117,18 @@ impl IRust {
     }
 
     pub fn handle_right(&mut self) -> Result<()> {
-        if !self.buffer.is_at_end() {
+        if let Some(suggestion) = self
+            .racer
+            .as_mut()
+            .map(|r| r.active_suggestion.take())
+            .flatten()
+        {
+            for c in suggestion.chars() {
+                self.handle_character(c)?;
+            }
+        } else if !self.buffer.is_at_end() {
             self.printer.cursor.move_right();
             self.buffer.move_forward();
-        } else {
-            self.use_racer_suggestion()?;
         }
         Ok(())
     }
@@ -301,12 +308,7 @@ impl IRust {
     }
 
     pub fn handle_ctrl_right(&mut self) -> Result<()> {
-        if !self.buffer.is_at_end() {
-            self.printer.cursor.move_right();
-            self.buffer.move_forward();
-        } else {
-            self.use_racer_suggestion()?;
-        }
+        self.handle_right()?;
 
         if let Some(current_char) = self.buffer.current_char() {
             match *current_char {
@@ -344,37 +346,6 @@ impl IRust {
 
     pub fn handle_ctrl_e(&mut self) -> Result<()> {
         self.handle_enter(true)
-    }
-
-    pub fn use_racer_suggestion(&mut self) -> Result<()> {
-        if let Some(suggestion) = self.racer.as_ref().map(Racer::current_suggestion).flatten() {
-            // suggestion => `name: definition`
-            // suggestion example => `assert!: macro_rules! assert {`
-
-            // get the name
-            let mut suggestion = suggestion.0;
-
-            // get the unique part of the name
-            StringTools::strings_unique(
-                &self
-                    .buffer
-                    .buffer
-                    .iter()
-                    .take(self.buffer.buffer_pos)
-                    .collect::<String>(),
-                &mut suggestion,
-            );
-
-            self.buffer.insert_str(&suggestion);
-            let chars_count = StringTools::chars_count(&suggestion);
-
-            for _ in 0..chars_count {
-                self.printer.cursor.move_right_unbounded();
-            }
-
-            self.printer.print_input(&self.buffer, &self.theme)?;
-        }
-        Ok(())
     }
 
     // helper functions

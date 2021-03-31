@@ -1,6 +1,10 @@
-use super::{cargo_cmds::MAIN_FILE, highlight::highlight, Result};
+use super::{
+    cargo_cmds::MAIN_FILE,
+    highlight::{highlight, theme::Theme},
+    Result,
+};
 use crate::utils::{read_until_bytes, StringTools};
-use crossterm::{style::Color, terminal::ClearType};
+use crossterm::terminal::ClearType;
 use std::io::Write;
 use std::process::{Child, Command, Stdio};
 
@@ -17,6 +21,7 @@ pub struct Racer {
     suggestion_idx: usize,
     cmds: [String; 16],
     update_lock: bool,
+    pub active_suggestion: Option<String>,
 }
 
 impl Racer {
@@ -57,6 +62,7 @@ impl Racer {
             suggestion_idx: 0,
             cmds,
             update_lock: false,
+            active_suggestion: None,
         })
     }
 
@@ -177,14 +183,8 @@ impl Racer {
     pub fn update_suggestions(
         &mut self,
         buffer: &super::Buffer,
-        printer: &mut super::printer::Printer<impl std::io::Write>,
         repl: &mut crate::irust::repl::Repl,
     ) -> Result<()> {
-        // return if we're not at the end of the line
-        if !printer.cursor.is_at_line_end(&buffer) {
-            return Ok(());
-        }
-
         // get the buffer as string
         let buffer: String = buffer.iter().take(buffer.buffer_pos).collect();
 
@@ -239,10 +239,10 @@ impl Racer {
         &mut self,
         printer: &mut super::printer::Printer<impl std::io::Write>,
         buffer: &super::Buffer,
-        color: Color,
+        theme: &Theme,
     ) -> Result<()> {
         self.goto_next_suggestion();
-        self.write_current_suggestion(printer, buffer, color)?;
+        self.write_current_suggestion(printer, buffer, theme)?;
 
         Ok(())
     }
@@ -251,10 +251,10 @@ impl Racer {
         &mut self,
         printer: &mut super::printer::Printer<impl std::io::Write>,
         buffer: &super::Buffer,
-        color: Color,
+        theme: &super::Theme,
     ) -> Result<()> {
         self.goto_previous_suggestion();
-        self.write_current_suggestion(printer, buffer, color)?;
+        self.write_current_suggestion(printer, buffer, theme)?;
 
         Ok(())
     }
@@ -263,35 +263,18 @@ impl Racer {
         &mut self,
         printer: &mut crate::irust::printer::Printer<impl std::io::Write>,
         buffer: &super::Buffer,
-        color: Color,
+        theme: &super::Theme,
     ) -> Result<()> {
-        if !printer.cursor.is_at_line_end(&buffer) {
-            return Ok(());
-        }
-
         if let Some(suggestion) = self.current_suggestion() {
-            printer.writer.raw.clear(ClearType::UntilNewLine)?;
-
             let mut suggestion = suggestion.0;
-
-            let buffer: String = buffer.iter().take(buffer.buffer_pos).collect();
-            StringTools::strings_unique(&buffer, &mut suggestion);
-
-            // scroll if needed
-            let height_overflow = printer.cursor.screen_height_overflow_by_str(&suggestion);
-            if height_overflow > 0 {
-                printer.scroll_up(height_overflow);
-            }
-
-            printer.cursor.hide();
-            printer.writer.raw.set_fg(color)?;
-            printer.cursor.raw.save_position()?;
-
-            printer.writer.raw.write(&suggestion)?;
-
-            printer.cursor.raw.restore_position()?;
-            printer.writer.raw.reset_color()?;
-            printer.cursor.show();
+            let mut buffer = buffer.clone();
+            StringTools::strings_unique(
+                &buffer.iter().take(buffer.buffer_pos).collect::<String>(),
+                &mut suggestion,
+            );
+            buffer.insert_str(&suggestion);
+            printer.print_input(&buffer, theme)?;
+            self.active_suggestion = Some(suggestion);
         }
 
         Ok(())
@@ -305,21 +288,12 @@ impl Racer {
         cycle: Cycle,
         options: &super::options::Options,
     ) -> Result<()> {
-        // return if we're not at the end of the line
-        if !printer.cursor.is_at_line_end(&buffer) {
-            return Ok(());
-        }
-
         // Write inline suggestion
         match cycle {
             Cycle::Down => {
-                self.write_next_suggestion(printer, buffer, options.racer_inline_suggestion_color)?
+                self.write_next_suggestion(printer, buffer, theme)?;
             }
-            Cycle::Up => self.write_previous_suggestion(
-                printer,
-                buffer,
-                options.racer_inline_suggestion_color,
-            )?,
+            Cycle::Up => self.write_previous_suggestion(printer, buffer, theme)?,
         }
 
         // No suggestions to show
