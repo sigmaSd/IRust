@@ -283,7 +283,9 @@ impl IRust {
             std::process::Command::new(cmd.next().unwrap_or_default())
                 .args(&cmd.collect::<Vec<&str>>())
                 .output()?,
-        );
+        )
+        .trim()
+        .to_owned();
 
         print_queue!(output, self.options.shell_color)
     }
