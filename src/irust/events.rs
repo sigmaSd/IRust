@@ -271,9 +271,6 @@ impl IRust {
     pub fn handle_ctrl_left(&mut self) -> Result<()> {
         self.handle_left()?;
 
-        self.printer.cursor.move_left();
-        self.buffer.move_backward();
-
         if let Some(current_char) = self.buffer.current_char() {
             match *current_char {
                 ' ' => {
