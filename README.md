@@ -116,6 +116,10 @@ IRust config file is located in:
   toolchain = "stable"
   check_statements = true
   auto_insert_semicolon = true
+  
+  // use last output by replacing the specified marker
+  replace_marker = "$out"
+  replace_output_with_marker = false
 ```
 
 ## Theme
