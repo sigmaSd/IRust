@@ -308,34 +308,34 @@ impl IRust {
         // struct B{}
         const ATTRIBUTE: &str = "#";
 
-        // This trimed buffer should not be inserted nor evaluated
         let buffer = self.buffer.to_string();
-        let buffer = buffer.trim();
 
-        if buffer.is_empty() {
+        // This trimmed buffer should not be inserted nor evaluated
+        let buffer_trimmed = buffer.trim();
+
+        if buffer_trimmed.is_empty() {
             Ok(PrintQueue::default())
-        } else if buffer.ends_with(';')
+        } else if buffer_trimmed.ends_with(';')
             || self.options.auto_insert_semicolon
-                && (buffer.starts_with(FUNCTION_DEF)
-                    || buffer.starts_with(ASYNC_FUNCTION_DEF)
-                    || buffer.starts_with(ENUM_DEF)
-                    || buffer.starts_with(STRUCT_DEF)
-                    || buffer.starts_with(TRAIT_DEF)
-                    || buffer.starts_with(IMPL)
-                    || buffer.starts_with(ATTRIBUTE)
-                    || buffer.starts_with(PUB)
-                    || buffer.starts_with(WHILE)
-                    || buffer.starts_with(EXTERN))
+                && (buffer_trimmed.starts_with(FUNCTION_DEF)
+                    || buffer_trimmed.starts_with(ASYNC_FUNCTION_DEF)
+                    || buffer_trimmed.starts_with(ENUM_DEF)
+                    || buffer_trimmed.starts_with(STRUCT_DEF)
+                    || buffer_trimmed.starts_with(TRAIT_DEF)
+                    || buffer_trimmed.starts_with(IMPL)
+                    || buffer_trimmed.starts_with(ATTRIBUTE)
+                    || buffer_trimmed.starts_with(PUB)
+                    || buffer_trimmed.starts_with(WHILE)
+                    || buffer_trimmed.starts_with(EXTERN))
         {
             let mut print_queue = PrintQueue::default();
 
             let mut insert_flag = true;
 
             if self.options.check_statements {
-                if let Some(mut e) = format_check_output(
-                    self.repl
-                        .check(self.buffer.to_string(), self.options.toolchain)?,
-                ) {
+                if let Some(mut e) =
+                    format_check_output(self.repl.check(buffer.clone(), self.options.toolchain)?)
+                {
                     print_queue.append(&mut e);
                     insert_flag = false;
                 }
@@ -343,15 +343,13 @@ impl IRust {
 
             // if cargo_check is disabled or if cargo_check is enabled but returned no error
             if insert_flag {
-                self.repl.insert(self.buffer.to_string());
+                self.repl.insert(buffer);
             }
 
             Ok(print_queue)
         } else {
             let mut outputs = PrintQueue::default();
-            let (status, out) = self
-                .repl
-                .eval(self.buffer.to_string(), self.options.toolchain)?;
+            let (status, out) = self.repl.eval(buffer, self.options.toolchain)?;
             if let Some(mut eval_output) = format_eval_output(status, out) {
                 outputs.append(&mut eval_output);
             }
