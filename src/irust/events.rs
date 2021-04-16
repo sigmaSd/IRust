@@ -1,4 +1,7 @@
-use super::racer::{Cycle, Racer};
+use super::{
+    printer::ONE_LENGTH_CHAR,
+    racer::{Cycle, Racer},
+};
 use super::{CTRL_KEYMODIFIER, NO_MODIFIER};
 use crate::irust::printer::{PrintQueue, PrinterItem};
 use crate::irust::{IRust, Result};
@@ -11,7 +14,9 @@ impl IRust {
     pub fn handle_character(&mut self, c: char) -> Result<()> {
         self.buffer.insert(c);
         self.printer.print_input(&self.buffer, &self.theme)?;
-        self.printer.cursor.move_right_unbounded();
+        self.printer
+            .cursor
+            .move_right_unbounded(*self.buffer.previous_char().unwrap());
         self.history.unlock();
         // Ignore RacerDisabled error
         let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
@@ -27,7 +32,7 @@ impl IRust {
         if !force_eval && !self.input_is_cmd_or_shell(&buffer) && self.incomplete_input(&buffer) {
             self.buffer.insert('\n');
             self.printer.print_input(&self.buffer, &self.theme)?;
-            self.printer.cursor.move_right();
+            self.printer.cursor.move_right(ONE_LENGTH_CHAR);
             return Ok(());
         }
 
@@ -71,7 +76,7 @@ impl IRust {
     pub fn handle_alt_enter(&mut self) -> Result<()> {
         self.buffer.insert('\n');
         self.printer.print_input(&self.buffer, &self.theme)?;
-        self.printer.cursor.move_right();
+        self.printer.cursor.move_right(ONE_LENGTH_CHAR);
         Ok(())
     }
 
@@ -82,7 +87,7 @@ impl IRust {
             self.buffer.insert_str(TAB);
             self.printer.print_input(&self.buffer, &self.theme)?;
             for _ in 0..4 {
-                self.printer.cursor.move_right_unbounded();
+                self.printer.cursor.move_right_unbounded(ONE_LENGTH_CHAR);
             }
             return Ok(());
         }
@@ -127,8 +132,10 @@ impl IRust {
                 self.handle_character(c)?;
             }
         } else if !self.buffer.is_at_end() {
-            self.printer.cursor.move_right();
             self.buffer.move_forward();
+            self.printer
+                .cursor
+                .move_right(*self.buffer.previous_char().unwrap());
         }
         Ok(())
     }
@@ -137,8 +144,10 @@ impl IRust {
         self.remove_racer_sugesstion_and_reprint()?;
 
         if !self.buffer.is_at_start() && !self.buffer.is_empty() {
-            self.printer.cursor.move_left();
             self.buffer.move_backward();
+            self.printer
+                .cursor
+                .move_left(*self.buffer.current_char().unwrap());
         }
         Ok(())
     }
@@ -146,7 +155,9 @@ impl IRust {
     pub fn handle_backspace(&mut self) -> Result<()> {
         if !self.buffer.is_at_start() {
             self.buffer.move_backward();
-            self.printer.cursor.move_left();
+            self.printer
+                .cursor
+                .move_left(*self.buffer.current_char().unwrap());
             self.buffer.remove_current_char();
             self.printer.print_input(&self.buffer, &self.theme)?;
             // Ignore RacerDisabled error
@@ -268,82 +279,84 @@ impl IRust {
         Ok(())
     }
 
-    pub fn handle_ctrl_left(&mut self) -> Result<()> {
-        self.handle_left()?;
+    // pub fn handle_ctrl_left(&mut self) -> Result<()> {
+    //     self.handle_left()?;
 
-        self.printer.cursor.move_left();
-        self.buffer.move_backward();
+    //     self.buffer.move_backward();
+    //     self.printer
+    //         .cursor
+    //         .move_left(*self.buffer.current_char().unwrap());
 
-        if let Some(current_char) = self.buffer.current_char() {
-            match *current_char {
-                ' ' => {
-                    while self.buffer.previous_char() == Some(&' ') {
-                        self.printer.cursor.move_left();
-                        self.buffer.move_backward()
-                    }
-                }
-                c if c.is_alphanumeric() => {
-                    while let Some(previous_char) = self.buffer.previous_char() {
-                        if previous_char.is_alphanumeric() {
-                            self.printer.cursor.move_left();
-                            self.buffer.move_backward()
-                        } else {
-                            break;
-                        }
-                    }
-                }
+    //     if let Some(current_char) = self.buffer.current_char() {
+    //         match *current_char {
+    //             ' ' => {
+    //                 while self.buffer.previous_char() == Some(&' ') {
+    //                     self.printer.cursor.move_left();
+    //                     self.buffer.move_backward()
+    //                 }
+    //             }
+    //             c if c.is_alphanumeric() => {
+    //                 while let Some(previous_char) = self.buffer.previous_char() {
+    //                     if previous_char.is_alphanumeric() {
+    //                         self.printer.cursor.move_left();
+    //                         self.buffer.move_backward()
+    //                     } else {
+    //                         break;
+    //                     }
+    //                 }
+    //             }
 
-                _ => {
-                    while let Some(previous_char) = self.buffer.previous_char() {
-                        if !previous_char.is_alphanumeric() && *previous_char != ' ' {
-                            self.printer.cursor.move_left();
-                            self.buffer.move_backward()
-                        } else {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        Ok(())
-    }
+    //             _ => {
+    //                 while let Some(previous_char) = self.buffer.previous_char() {
+    //                     if !previous_char.is_alphanumeric() && *previous_char != ' ' {
+    //                         self.printer.cursor.move_left();
+    //                         self.buffer.move_backward()
+    //                     } else {
+    //                         break;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     Ok(())
+    // }
 
-    pub fn handle_ctrl_right(&mut self) -> Result<()> {
-        self.handle_right()?;
+    // pub fn handle_ctrl_right(&mut self) -> Result<()> {
+    //     self.handle_right()?;
 
-        if let Some(current_char) = self.buffer.current_char() {
-            match *current_char {
-                ' ' => {
-                    while self.buffer.next_char() == Some(&' ') {
-                        self.printer.cursor.move_right();
-                        self.buffer.move_forward();
-                    }
-                    self.printer.cursor.move_right();
-                    self.buffer.move_forward();
-                }
-                c if c.is_alphanumeric() => {
-                    while let Some(character) = self.buffer.current_char() {
-                        if !character.is_alphanumeric() {
-                            break;
-                        }
-                        self.printer.cursor.move_right();
-                        self.buffer.move_forward();
-                    }
-                }
+    //     if let Some(current_char) = self.buffer.current_char() {
+    //         match *current_char {
+    //             ' ' => {
+    //                 while self.buffer.next_char() == Some(&' ') {
+    //                     self.printer.cursor.move_right();
+    //                     self.buffer.move_forward();
+    //                 }
+    //                 self.printer.cursor.move_right();
+    //                 self.buffer.move_forward();
+    //             }
+    //             c if c.is_alphanumeric() => {
+    //                 while let Some(character) = self.buffer.current_char() {
+    //                     if !character.is_alphanumeric() {
+    //                         break;
+    //                     }
+    //                     self.printer.cursor.move_right();
+    //                     self.buffer.move_forward();
+    //                 }
+    //             }
 
-                _ => {
-                    while let Some(character) = self.buffer.current_char() {
-                        if character.is_alphanumeric() || *character == ' ' {
-                            break;
-                        }
-                        self.printer.cursor.move_right();
-                        self.buffer.move_forward();
-                    }
-                }
-            }
-        }
-        Ok(())
-    }
+    //             _ => {
+    //                 while let Some(character) = self.buffer.current_char() {
+    //                     if character.is_alphanumeric() || *character == ' ' {
+    //                         break;
+    //                     }
+    //                     self.printer.cursor.move_right();
+    //                     self.buffer.move_forward();
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     Ok(())
+    // }
 
     pub fn handle_ctrl_e(&mut self) -> Result<()> {
         self.handle_enter(true)

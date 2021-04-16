@@ -1,4 +1,4 @@
-#[derive(Clone, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Buffer {
     pub buffer: Vec<char>,
     pub buffer_pos: usize,

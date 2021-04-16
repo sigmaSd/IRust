@@ -13,6 +13,8 @@ pub struct Printer<W: std::io::Write> {
     pub cursor: cursor::Cursor<W>,
 }
 
+pub const ONE_LENGTH_CHAR: char = ' ';
+
 impl<W: std::io::Write> Printer<W> {
     pub fn new(raw: W) -> Printer<W> {
         crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
@@ -159,9 +161,9 @@ impl<W: std::io::Write> Printer<W> {
         }
         self.writer
             .write_char_with_color(c, color, &mut self.cursor)?;
-        if self.cursor.is_at_last_terminal_col() {
-            self.cursor.bound_current_row_at_current_col();
-        }
+        // if self.cursor.is_at_last_terminal_col() {
+        // self.cursor.bound_current_row_at_current_col();
+        // }
 
         if self.cursor.is_at_col(cursor::INPUT_START_COL) {
             self.writer
@@ -235,14 +237,15 @@ impl<W: std::io::Write> Printer<W> {
         }
     }
 
-    fn adjust(&mut self) {
-        self.cursor.move_right_unbounded();
+    fn adjust(&mut self, current_char: char) {
+        //FIXME
+        self.cursor.move_right_unbounded(current_char);
         if self.cursor.is_at_last_terminal_col() {
             self.cursor.bound_current_row_at_current_col();
         }
         if self.cursor.is_at_col(cursor::INPUT_START_COL) {
             for _ in 0..4 {
-                self.cursor.move_right_unbounded();
+                self.cursor.move_right_unbounded(ONE_LENGTH_CHAR);
             }
         }
     }
@@ -251,28 +254,28 @@ impl<W: std::io::Write> Printer<W> {
         self.cursor.save_position();
         self.cursor.goto_start();
         for _ in 0..4 {
-            self.cursor.move_right_unbounded();
+            self.cursor.move_right_unbounded(ONE_LENGTH_CHAR);
         }
         for item in printer {
             match item {
                 PrinterItem::String(string, _) => {
-                    for _ in string.chars() {
-                        self.adjust();
+                    for c in string.chars() {
+                        self.adjust(c);
                     }
                 }
                 PrinterItem::Str(string, _) => {
-                    for _ in string.chars() {
-                        self.adjust();
+                    for c in string.chars() {
+                        self.adjust(c);
                     }
                 }
-                PrinterItem::Char(_, _) => {
-                    self.adjust();
+                PrinterItem::Char(c, _) => {
+                    self.adjust(c);
                 }
                 PrinterItem::NewLine => {
                     self.cursor.bound_current_row_at_current_col();
                     self.cursor.goto_next_row_terminal_start();
                     for _ in 0..4 {
-                        self.cursor.move_right_unbounded();
+                        self.cursor.move_right_unbounded(ONE_LENGTH_CHAR);
                     }
                 }
             }
@@ -321,4 +324,29 @@ impl<W: std::io::Write> Printer<W> {
     pub fn update_dimensions(&mut self, width: u16, height: u16) {
         self.cursor.bound = cursor::Bound::new(width as usize, height as usize);
     }
+}
+
+#[test]
+fn unicode_test() {
+    let input = "\u{1f600}\u{1f603}\u{1f604}";
+    let mut printer = Printer::new(std::io::sink());
+    printer.cursor.pos.starting_pos = (0, 0);
+    printer.cursor.goto_start();
+
+    let mut buffer = super::Buffer::from_string(input);
+    printer
+        .print_input(&buffer, &super::Theme::default())
+        .unwrap();
+
+    assert_eq!(
+        printer.cursor.bound.bound[0],
+        cursor::INPUT_START_COL + 2 + 2 + 2
+    );
+
+    buffer.move_forward();
+    printer.cursor.move_right(*buffer.previous_char().unwrap());
+    assert_eq!(
+        printer.cursor.pos.current_pos.0,
+        unicode_width::UnicodeWidthChar::width('😀').unwrap()
+    );
 }

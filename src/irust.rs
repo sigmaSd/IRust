@@ -231,13 +231,13 @@ impl IRust {
                     code: KeyCode::Left,
                     modifiers: CTRL_KEYMODIFIER,
                 } => {
-                    self.handle_ctrl_left()?;
+                    //   self.handle_ctrl_left()?;
                 }
                 KeyEvent {
                     code: KeyCode::Right,
                     modifiers: CTRL_KEYMODIFIER,
                 } => {
-                    self.handle_ctrl_right()?;
+                    // self.handle_ctrl_right()?;
                 }
                 KeyEvent {
                     code: KeyCode::Delete,

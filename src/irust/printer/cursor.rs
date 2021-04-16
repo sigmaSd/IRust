@@ -49,30 +49,42 @@ impl<W: std::io::Write> Cursor<W> {
             .expect("failed to save cursor position");
     }
 
-    pub fn move_right_unbounded(&mut self) {
-        self.move_right_inner(self.bound.width - 1);
+    pub fn move_right_unbounded(&mut self, current_char: char) {
+        self.move_right_inner(self.bound.width - 1, current_char);
     }
 
-    pub fn move_right(&mut self) {
-        self.move_right_inner(self.current_row_bound());
+    pub fn move_right(&mut self, current_char: char) {
+        self.move_right_inner(self.current_row_bound(), current_char);
     }
 
-    fn move_right_inner(&mut self, bound: usize) {
-        if self.pos.current_pos.0 == bound {
+    fn move_right_inner(&mut self, bound: usize, current_char: char) {
+        let current_char_width = unicode_width::UnicodeWidthChar::width(current_char).unwrap_or(1);
+        //FIXME
+        dbg!("r", &self.pos.current_pos, bound);
+
+        if self.pos.current_pos.0 + current_char_width == bound + 1 {
             self.pos.current_pos.0 = INPUT_START_COL;
             self.pos.current_pos.1 += 1;
+        } else if self.pos.current_pos.0 + current_char_width > bound + 1 {
+            self.pos.current_pos.0 = INPUT_START_COL + current_char_width;
+            self.pos.current_pos.1 += 1;
         } else {
-            self.pos.current_pos.0 += 1;
+            self.pos.current_pos.0 += current_char_width;
         }
         self.goto_internal_pos();
     }
 
-    pub fn move_left(&mut self) {
+    pub fn move_left(&mut self, current_char: char) {
+        let current_char_width = unicode_width::UnicodeWidthChar::width(current_char).unwrap_or(1);
+        dbg!("l", &self.pos.current_pos, self.previous_row_bound());
+
         if self.pos.current_pos.0 == INPUT_START_COL {
+            //FIXME
+
             self.pos.current_pos.0 = self.previous_row_bound();
             self.pos.current_pos.1 -= 1;
         } else {
-            self.pos.current_pos.0 -= 1;
+            self.pos.current_pos.0 -= current_char_width;
         }
         self.goto_internal_pos();
     }

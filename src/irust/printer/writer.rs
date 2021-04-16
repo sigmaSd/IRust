@@ -4,6 +4,8 @@ mod raw;
 use raw::Raw;
 use std::{cell::RefCell, rc::Rc};
 
+use super::{cursor::INPUT_START_COL, ONE_LENGTH_CHAR};
+
 #[derive(Debug, Clone)]
 pub struct Writer<W: std::io::Write> {
     last_color: Option<Color>,
@@ -54,20 +56,35 @@ impl<W: std::io::Write> Writer<W> {
     }
 
     pub fn write_char(&mut self, c: char, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
-        self.raw.write(c)?;
-        // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because it moves automatically
-        if cursor.pos.current_pos.0 == cursor.bound.width - 1 {
-            cursor.pos.current_pos.0 = 4;
+        let current_char_width = unicode_width::UnicodeWidthChar::width(c).unwrap_or(1);
+        //FIXME
+        dbg!(cursor.pos, current_char_width, &cursor.bound.width);
+        let h_overshoot = (cursor.pos.current_pos.0 as isize + current_char_width as isize)
+            - (cursor.bound.width as isize);
+
+        if h_overshoot == 0 {
+            self.raw.write(c)?;
+            cursor.pos.current_pos.0 += current_char_width;
+            //cursor.bound_current_row_at_current_col();
+            cursor.bound.set_bound(
+                cursor.pos.current_pos.1,
+                cursor.bound.width - current_char_width,
+            );
+            cursor.pos.current_pos.0 = INPUT_START_COL;
+            cursor.pos.current_pos.1 += 1;
+        } else if h_overshoot > 0 {
+            cursor.bound_current_row_at_current_col();
+            cursor.pos.current_pos.0 = INPUT_START_COL;
             cursor.pos.current_pos.1 += 1;
             cursor.goto_internal_pos();
+            self.raw.write(c)?;
+            cursor.pos.current_pos.0 += current_char_width;
         } else {
-            cursor.pos.current_pos.0 += 1;
-            // tab move the cursor by 4
-            // need to adjust the screen cursor
-            if c == '\t' {
-                cursor.goto_internal_pos();
-            }
+            self.raw.write(c)?;
+            cursor.pos.current_pos.0 += current_char_width;
         }
+        cursor.goto_internal_pos();
+
         Ok(())
     }
 

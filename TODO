@@ -1,3 +1,5 @@
 // Actual_TODO
 off screen rendering
-unify newlines
+fix unicode
+Add $out
+Add vi mode?
