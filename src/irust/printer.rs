@@ -6,6 +6,9 @@ use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 mod cursor;
 mod writer;
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Debug, Clone)]
 pub struct Printer<W: std::io::Write> {
     printer: PrintQueue,

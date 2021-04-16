@@ -1,8 +1,8 @@
-#![cfg(feature = "ui-test")]
+use super::Printer;
+use crate::irust::printer::highlight;
+use crate::irust::Buffer;
+use crate::irust::Theme;
 use crossterm::style::Color;
-use irust::irust::highlight::highlight;
-use irust::irust::printer::Printer;
-use irust::irust::{buffer::Buffer, highlight::theme::Theme};
 use std::io::Write;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
