@@ -35,7 +35,8 @@ pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
 #[cfg(not(windows))]
 pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust_repl"));
 #[cfg(not(windows))]
-pub static RELEASE_EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_repl"));
+pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
+    Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_repl"));
 
 #[derive(Debug, Clone, Serialize, Deserialize, Copy)]
 pub enum ToolChain {
