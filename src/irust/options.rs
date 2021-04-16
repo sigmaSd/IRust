@@ -27,6 +27,8 @@ pub struct Options {
     pub toolchain: ToolChain,
     pub check_statements: bool,
     pub auto_insert_semicolon: bool,
+    pub replace_marker: String,
+    pub replace_output_with_marker: bool,
 }
 
 impl Default for Options {
@@ -63,6 +65,10 @@ impl Default for Options {
             toolchain: ToolChain::Stable,
             check_statements: true,
             auto_insert_semicolon: true,
+
+            // replace output
+            replace_marker: "$out".into(),
+            replace_output_with_marker: false,
         }
     }
 }

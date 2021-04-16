@@ -124,7 +124,7 @@ impl IRust {
         for p in dep.iter_mut() {
             if p == "." {
                 *p = self
-                    .known_paths
+                    .global_variables
                     .get_cwd()
                     .to_str()
                     .ok_or("Error parsing path to dependecy")?
@@ -190,7 +190,7 @@ impl IRust {
     }
 
     fn reload(&mut self) -> Result<PrintQueue> {
-        let path = if let Some(path) = self.known_paths.get_last_loaded_coded_path() {
+        let path = if let Some(path) = self.global_variables.get_last_loaded_coded_path() {
             path
         } else {
             return Err("No saved path").map_err(|e| e.into());
@@ -200,7 +200,8 @@ impl IRust {
 
     pub fn load_inner(&mut self, path: std::path::PathBuf) -> Result<PrintQueue> {
         // save path
-        self.known_paths.set_last_loaded_coded_path(path.clone());
+        self.global_variables
+            .set_last_loaded_coded_path(path.clone());
 
         // reset repl
         self.repl.reset(self.options.toolchain)?;
@@ -308,7 +309,13 @@ impl IRust {
         // struct B{}
         const ATTRIBUTE: &str = "#";
 
-        let buffer = self.buffer.to_string();
+        let mut buffer = self.buffer.to_string();
+        if self.options.replace_output_with_marker {
+            if let Some(output) = self.global_variables.get_last_output() {
+                buffer = buffer.replace(&self.options.replace_marker, output);
+            }
+        }
+        let buffer = buffer;
 
         // This trimmed buffer should not be inserted nor evaluated
         let buffer_trimmed = buffer.trim();
@@ -350,6 +357,11 @@ impl IRust {
         } else {
             let mut outputs = PrintQueue::default();
             let (status, out) = self.repl.eval(buffer, self.options.toolchain)?;
+            // Save output if it was a success
+            if status.success() {
+                self.global_variables.set_last_output(out.clone());
+            }
+
             if let Some(mut eval_output) = format_eval_output(status, out) {
                 outputs.append(&mut eval_output);
             }
@@ -424,7 +436,7 @@ impl IRust {
                 }
             }
             "-" => {
-                set_current_dir(self.known_paths.get_pwd())?;
+                set_current_dir(self.global_variables.get_pwd())?;
             }
             path => {
                 let mut dir = current_dir()?;
@@ -434,7 +446,7 @@ impl IRust {
         }
         // Update cwd and the terminal title accordingly
         let cwd = current_dir()?;
-        self.known_paths.update_cwd(cwd.clone());
+        self.global_variables.update_cwd(cwd.clone());
         self.printer
             .writer
             .raw

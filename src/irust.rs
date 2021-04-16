@@ -2,10 +2,10 @@ mod art;
 mod cargo_cmds;
 mod events;
 mod format;
+mod global_variables;
 mod help;
 pub mod highlight;
 mod history;
-mod known_paths;
 pub mod options;
 mod parser;
 pub mod printer;
@@ -20,8 +20,8 @@ use repl::Repl;
 pub mod buffer;
 use buffer::Buffer;
 use crossterm::event::KeyModifiers;
+use global_variables::GlobalVariables;
 use highlight::theme::Theme;
-use known_paths::KnownPaths;
 use once_cell::sync::Lazy;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -41,7 +41,7 @@ pub struct IRust {
     printer: printer::Printer<std::io::StdoutLock<'static>>,
     options: Options,
     racer: Option<Racer>,
-    known_paths: KnownPaths,
+    global_variables: GlobalVariables,
     theme: Theme,
     history: History,
 }
@@ -51,7 +51,7 @@ impl IRust {
         let out = SOUT.lock();
         let printer = printer::Printer::new(out);
 
-        let known_paths = KnownPaths::new();
+        let global_variables = GlobalVariables::new();
 
         let repl = Repl::new();
         let racer = if options.enable_racer {
@@ -69,7 +69,7 @@ impl IRust {
             options,
             racer,
             buffer,
-            known_paths,
+            global_variables,
             theme,
             history,
         }
@@ -77,10 +77,10 @@ impl IRust {
 
     fn prepare(&mut self) -> Result<()> {
         // title is optional
-        self.printer
-            .writer
-            .raw
-            .set_title(&format!("IRust: {}", self.known_paths.get_cwd().display()))?;
+        self.printer.writer.raw.set_title(&format!(
+            "IRust: {}",
+            self.global_variables.get_cwd().display()
+        ))?;
         self.repl.prepare_ground(self.options.toolchain)?;
         self.welcome()?;
         self.printer.write_from_terminal_start(IN, Color::Yellow)?;
