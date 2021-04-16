@@ -56,18 +56,8 @@ impl<W: std::io::Write> Writer<W> {
     pub fn write_char(&mut self, c: char, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
         self.raw.write(c)?;
         // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because it moves automatically
-        if cursor.pos.current_pos.0 == cursor.bound.width - 1 {
-            cursor.pos.current_pos.0 = 4;
-            cursor.pos.current_pos.1 += 1;
-            cursor.goto_internal_pos();
-        } else {
-            cursor.pos.current_pos.0 += 1;
-            // tab move the cursor by 4
-            // need to adjust the screen cursor
-            if c == '\t' {
-                cursor.goto_internal_pos();
-            }
-        }
+        // This optimization is currently disabled for simplicity
+        cursor.move_right_unbounded();
         Ok(())
     }
 
