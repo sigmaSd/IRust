@@ -1,3 +1,6 @@
+**1.3.1**
+- Fix regression: check buffer before jumping left
+
 **1.3.0**
 - Add an option to use last output as a variable. The marker for the last output can be configured
 - Remove the library part and move the tests to src
