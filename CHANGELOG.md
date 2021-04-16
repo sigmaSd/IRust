@@ -1,3 +1,10 @@
+**1.3.0**
+- Add an option to use last output as a variable. The marker for the last output can be configured
+- Remove the library part and move the tests to src
+- Improve the handling of wide characters
+- Rename `irust` directory to `irust_repl` to avoid conflict with irust(binary) if a global target directory is set (conflict happens in windows)
+- Trim shell output (via `::` command)
+
 **1.2.8**
 - Fix some of Racer printing suggestions edge-cases
 
