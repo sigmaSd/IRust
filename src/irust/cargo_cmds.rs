@@ -13,7 +13,7 @@ use std::{env::temp_dir, process::Stdio};
 // TODO:
 // Move these paths to KnownPaths struct
 pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(|| dirs_next::cache_dir().unwrap_or_else(temp_dir));
-pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust"));
+pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust_repl"));
 pub static IRUST_TARGET_DIR: Lazy<PathBuf> = Lazy::new(|| {
     if let Ok(p) = std::env::var("CARGO_TARGET_DIR") {
         if !p.is_empty() {
@@ -28,14 +28,14 @@ pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs")
 pub static MAIN_FILE_EXTERN: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main_extern.rs"));
 pub static LIB_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("lib.rs"));
 #[cfg(windows)]
-pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust.exe"));
+pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust_repl.exe"));
 #[cfg(windows)]
 pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
-    Lazy::new(|| IRUST_TARGET_DIR.join("release/irust.exe"));
+    Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_repl.exe"));
 #[cfg(not(windows))]
-pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust"));
+pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust_repl"));
 #[cfg(not(windows))]
-pub static RELEASE_EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("release/irust"));
+pub static RELEASE_EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_repl"));
 
 #[derive(Debug, Clone, Serialize, Deserialize, Copy)]
 pub enum ToolChain {
@@ -83,7 +83,7 @@ pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<(Ex
     } else {
         // Run the exexcutable directly instead of cargo run
         // This allows to run it without modifying the current working directory
-        // example: std::process::Commmand::new("pwd") will output the expected path instead of `/tmp/irust`
+        // example: std::process::Commmand::new("pwd") will output the expected path instead of `/tmp/irust_repl`
         if !release {
             Ok((
                 status,
@@ -213,7 +213,7 @@ fn clean_cargo_toml() -> io::Result<()> {
     // edition needs to be specified or racer will not be able to autocomplete dependencies
     // bug maybe?
     const CARGO_TOML: &str = r#"[package]
-name = "irust"
+name = "irust_repl"
 version = "0.1.0"
 edition = "2018""#;
     let mut cargo_toml_file = fs::File::create(&*CARGO_TOML_FILE)?;
@@ -256,7 +256,7 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
     Ok(stdout_and_stderr(
         cargo_common!("asm", toolchain)
             .arg("--lib")
-            .arg(format!("irust::{}", fnn))
+            .arg(format!("irust_repl::{}", fnn))
             .output()?,
     ))
 }
