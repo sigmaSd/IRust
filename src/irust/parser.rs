@@ -309,13 +309,16 @@ impl IRust {
         // struct B{}
         const ATTRIBUTE: &str = "#";
 
-        let mut buffer = self.buffer.to_string();
-        if self.options.replace_output_with_marker {
-            if let Some(output) = self.global_variables.get_last_output() {
-                buffer = buffer.replace(&self.options.replace_marker, output);
+        let buffer = {
+            let mut buffer = self.buffer.to_string();
+            // check for replace marker option
+            if self.options.replace_output_with_marker {
+                if let Some(output) = self.global_variables.get_last_output() {
+                    buffer = buffer.replace(&self.options.replace_marker, output);
+                }
             }
-        }
-        let buffer = buffer;
+            buffer
+        };
 
         // This trimmed buffer should not be inserted nor evaluated
         let buffer_trimmed = buffer.trim();
