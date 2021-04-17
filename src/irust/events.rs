@@ -1,3 +1,4 @@
+use super::printer::INPUT_START_COL;
 use super::racer::{Cycle, Racer};
 use super::{CTRL_KEYMODIFIER, NO_MODIFIER};
 use crate::irust::printer::{PrintQueue, PrinterItem};
@@ -254,17 +255,18 @@ impl IRust {
     }
 
     pub fn handle_home_key(&mut self) -> Result<()> {
-        self.buffer.goto_start();
-        self.printer
-            .cursor
-            .goto(4, self.printer.cursor.pos.starting_pos.1);
+        while self.printer.cursor.pos.current_pos.0 != INPUT_START_COL {
+            self.buffer.move_backward();
+            self.printer.cursor.move_left();
+        }
         Ok(())
     }
 
     pub fn handle_end_key(&mut self) -> Result<()> {
-        let last_input_pos = self.printer.cursor.input_last_pos(&self.buffer);
-        self.buffer.goto_end();
-        self.printer.cursor.goto(last_input_pos.0, last_input_pos.1);
+        while self.printer.cursor.pos.current_pos.0 != self.printer.cursor.current_row_bound() {
+            self.buffer.move_forward();
+            self.printer.cursor.move_right();
+        }
         Ok(())
     }
 
