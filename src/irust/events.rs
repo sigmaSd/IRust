@@ -1,4 +1,3 @@
-use super::printer::INPUT_START_COL;
 use super::racer::{Cycle, Racer};
 use super::{CTRL_KEYMODIFIER, NO_MODIFIER};
 use crate::irust::printer::{PrintQueue, PrinterItem};
@@ -255,17 +254,27 @@ impl IRust {
     }
 
     pub fn handle_home_key(&mut self) -> Result<()> {
-        while self.printer.cursor.pos.current_pos.0 != INPUT_START_COL {
-            self.buffer.move_backward();
-            self.printer.cursor.move_left();
+        while !self.printer.cursor.is_at_line_start() {
+            self.handle_left()?;
         }
         Ok(())
     }
 
     pub fn handle_end_key(&mut self) -> Result<()> {
-        while self.printer.cursor.pos.current_pos.0 != self.printer.cursor.current_row_bound() {
+        while !self.buffer.is_empty() && !self.printer.cursor.is_at_line_end() {
             self.buffer.move_forward();
             self.printer.cursor.move_right();
+        }
+        // check for racer suggestion at the end
+        if let Some(suggestion) = self
+            .racer
+            .as_mut()
+            .map(|r| r.active_suggestion.take())
+            .flatten()
+        {
+            for c in suggestion.chars() {
+                self.handle_character(c)?;
+            }
         }
         Ok(())
     }

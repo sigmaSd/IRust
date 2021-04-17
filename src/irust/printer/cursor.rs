@@ -179,6 +179,14 @@ impl<W: std::io::Write> Cursor<W> {
         self.pos.current_pos.1 == self.bound.height - 1
     }
 
+    pub fn is_at_line_end(&self) -> bool {
+        self.pos.current_pos.0 == self.current_row_bound()
+    }
+
+    pub fn is_at_line_start(&self) -> bool {
+        self.pos.current_pos.0 == INPUT_START_COL
+    }
+
     pub fn is_at_col(&self, col: usize) -> bool {
         self.pos.current_pos.0 == col
     }

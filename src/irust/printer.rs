@@ -4,7 +4,6 @@ use crossterm::{style::Color, terminal::ClearType};
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 mod cursor;
-pub use cursor::INPUT_START_COL;
 mod writer;
 
 #[cfg(test)]
