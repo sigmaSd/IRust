@@ -11,7 +11,7 @@ pub struct Writer<W: std::io::Write> {
 }
 
 impl<W: std::io::Write> Writer<W> {
-    pub fn new(raw: Rc<RefCell<W>>) -> Self {
+    pub(super) fn new(raw: Rc<RefCell<W>>) -> Self {
         let raw = Raw { raw };
         Self {
             last_color: None,
@@ -19,7 +19,7 @@ impl<W: std::io::Write> Writer<W> {
         }
     }
 
-    pub fn write(
+    pub(super) fn write(
         &mut self,
         out: &str,
         color: Color,
@@ -38,7 +38,7 @@ impl<W: std::io::Write> Writer<W> {
         Ok(())
     }
 
-    pub fn write_char_with_color(
+    pub(super) fn write_char_with_color(
         &mut self,
         c: char,
         color: Color,
@@ -53,7 +53,11 @@ impl<W: std::io::Write> Writer<W> {
         Ok(())
     }
 
-    pub fn write_char(&mut self, c: char, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
+    pub(super) fn write_char(
+        &mut self,
+        c: char,
+        cursor: &mut super::cursor::Cursor<W>,
+    ) -> Result<()> {
         self.raw.write(c)?;
         // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because it moves automatically
         // This optimization is currently disabled for simplicity
@@ -61,7 +65,7 @@ impl<W: std::io::Write> Writer<W> {
         Ok(())
     }
 
-    pub fn write_at(
+    pub(super) fn write_at(
         &mut self,
         s: &str,
         x: usize,
@@ -73,7 +77,7 @@ impl<W: std::io::Write> Writer<W> {
         Ok(())
     }
 
-    pub fn write_at_no_cursor(
+    pub(super) fn write_at_no_cursor(
         &mut self,
         s: &str,
         color: Color,
@@ -82,25 +86,25 @@ impl<W: std::io::Write> Writer<W> {
         cursor: &mut super::cursor::Cursor<W>,
     ) -> Result<()> {
         self.raw.set_fg(color)?;
-        let origin_pos = cursor.pos.current_pos;
+        let origin_pos = cursor.current_pos();
         self.write_at(s, x, y, cursor)?;
         cursor.goto(origin_pos.0, origin_pos.1);
         self.raw.reset_color()?;
         Ok(())
     }
 
-    pub fn write_from_terminal_start(
+    pub(super) fn write_from_terminal_start(
         &mut self,
         out: &str,
         color: Color,
         cursor: &mut super::cursor::Cursor<W>,
     ) -> Result<()> {
-        cursor.goto(0, cursor.pos.current_pos.1);
+        cursor.goto(0, cursor.current_pos().1);
         self.write(out, color, cursor)?;
         Ok(())
     }
 
-    pub fn write_newline(
+    pub(super) fn write_newline(
         &mut self,
         cursor: &mut super::cursor::Cursor<W>,
         buffer: &crate::irust::buffer::Buffer,
@@ -118,27 +122,30 @@ impl<W: std::io::Write> Writer<W> {
         Ok(())
     }
 
-    pub fn clear(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
+    pub(super) fn clear(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
         self.raw.clear(ClearType::All)?;
 
-        cursor.pos.starting_pos = (0, 0);
+        cursor.set_starting_pos(0, 0);
         cursor.goto(4, 0);
-        cursor.bound.reset();
-        //self.print_input()?;
+        cursor.reset_bound();
         Ok(())
     }
 
-    pub fn clear_last_line(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
-        let origin_pos = cursor.pos.current_pos;
-        cursor.goto(0, cursor.bound.height - 1);
+    pub(super) fn clear_last_line(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
+        let origin_pos = cursor.current_pos();
+        cursor.goto(0, cursor.height() - 1);
         self.raw.clear(ClearType::CurrentLine)?;
         cursor.goto(origin_pos.0, origin_pos.1);
         Ok(())
     }
 
-    pub fn scroll_up(&mut self, n: usize, cursor: &mut super::cursor::Cursor<W>) {
+    pub(super) fn scroll_up(&mut self, n: usize, cursor: &mut super::cursor::Cursor<W>) {
         self.raw.scroll_up(n as u16).expect("failed to scroll-up");
         cursor.move_up(n as u16);
-        cursor.pos.starting_pos.1 = cursor.pos.starting_pos.1.saturating_sub(n);
+        let original_starting_pos = cursor.starting_pos();
+        cursor.set_starting_pos(
+            original_starting_pos.0,
+            original_starting_pos.1.saturating_sub(n),
+        );
     }
 }

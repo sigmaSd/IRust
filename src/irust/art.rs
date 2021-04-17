@@ -32,7 +32,7 @@ impl IRust {
         self.printer.write_at(
             &format!(" {}ing dep [\\]", msg),
             0,
-            self.printer.cursor.pos.current_pos.1,
+            self.printer.cursor.current_pos().1,
         )?;
         loop {
             match add_cmd.try_wait() {
@@ -40,42 +40,42 @@ impl IRust {
                     self.printer.write_at(
                         "\\",
                         msg.len() + 10,
-                        self.printer.cursor.pos.current_pos.1,
+                        self.printer.cursor.current_pos().1,
                     )?;
                     self.printer.write_at(
                         "|",
                         msg.len() + 10,
-                        self.printer.cursor.pos.current_pos.1,
+                        self.printer.cursor.current_pos().1,
                     )?;
                     self.printer.write_at(
                         "/",
                         msg.len() + 10,
-                        self.printer.cursor.pos.current_pos.1,
+                        self.printer.cursor.current_pos().1,
                     )?;
                     self.printer.write_at(
                         "-",
                         msg.len() + 10,
-                        self.printer.cursor.pos.current_pos.1,
+                        self.printer.cursor.current_pos().1,
                     )?;
                     self.printer.write_at(
                         "\\",
                         msg.len() + 10,
-                        self.printer.cursor.pos.current_pos.1,
+                        self.printer.cursor.current_pos().1,
                     )?;
                     self.printer.write_at(
                         "|",
                         msg.len() + 10,
-                        self.printer.cursor.pos.current_pos.1,
+                        self.printer.cursor.current_pos().1,
                     )?;
                     self.printer.write_at(
                         "/",
                         msg.len() + 10,
-                        self.printer.cursor.pos.current_pos.1,
+                        self.printer.cursor.current_pos().1,
                     )?;
                     self.printer.write_at(
                         "-",
                         msg.len() + 10,
-                        self.printer.cursor.pos.current_pos.1,
+                        self.printer.cursor.current_pos().1,
                     )?;
                 }
                 Err(e) => {
@@ -127,7 +127,7 @@ impl IRust {
     }
 
     fn fit_msg(&mut self, msg: &str) -> String {
-        let slash_num = self.printer.cursor.bound.width - msg.len();
+        let slash_num = self.printer.cursor.width() - msg.len();
         let slash = std::iter::repeat('-')
             .take(slash_num / 2)
             .collect::<String>();

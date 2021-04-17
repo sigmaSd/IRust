@@ -113,7 +113,7 @@ impl IRust {
         match ev {
             Event::Mouse(_) => (),
             Event::Resize(width, height) => {
-                self.printer.update_dimensions(width, height);
+                self.printer.cursor.update_dimensions(width, height);
                 //Hack
                 self.handle_ctrl_c()?;
             }

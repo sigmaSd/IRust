@@ -18,9 +18,18 @@ pub struct CursorPosition {
 
 #[derive(Debug, Clone)]
 pub struct Cursor<W: std::io::Write> {
-    pub pos: CursorPosition,
+    //pub for tests only
+    #[cfg(test)]
+    pub(super) pos: CursorPosition,
+    #[cfg(test)]
+    pub(super) bound: Bound,
+
+    #[cfg(not(test))]
+    pos: CursorPosition,
+    #[cfg(not(test))]
+    bound: Bound,
     copy: CursorPosition,
-    pub bound: Bound,
+
     pub raw: Raw<W>,
 }
 
@@ -40,6 +49,30 @@ impl<W: std::io::Write> Cursor<W> {
             bound: Bound::new(width as usize, height as usize),
             raw,
         }
+    }
+
+    pub fn width(&self) -> usize {
+        self.bound.width
+    }
+
+    pub fn height(&self) -> usize {
+        self.bound.height
+    }
+
+    pub fn current_pos(&self) -> (usize, usize) {
+        self.pos.current_pos
+    }
+
+    pub fn set_current_pos(&mut self, xpos: usize, ypos: usize) {
+        self.pos.current_pos = (xpos, ypos);
+    }
+
+    pub fn starting_pos(&self) -> (usize, usize) {
+        self.pos.starting_pos
+    }
+
+    pub fn set_starting_pos(&mut self, xpos: usize, ypos: usize) {
+        self.pos.starting_pos = (xpos, ypos);
     }
 
     pub fn save_position(&mut self) {
@@ -117,6 +150,10 @@ impl<W: std::io::Write> Cursor<W> {
 
     pub fn current_row_bound(&self) -> usize {
         self.bound.get_bound(self.pos.current_pos.1)
+    }
+
+    pub fn reset_bound(&mut self) {
+        self.bound.reset();
     }
 
     pub fn bound_current_row_at_current_col(&mut self) {
@@ -247,5 +284,9 @@ impl<W: std::io::Write> Cursor<W> {
 
     pub fn goto_next_row_terminal_start(&mut self) {
         self.goto(0, self.pos.current_pos.1 + 1);
+    }
+
+    pub fn update_dimensions(&mut self, width: u16, height: u16) {
+        self.bound = Bound::new(width as usize, height as usize);
     }
 }

@@ -205,7 +205,7 @@ impl<W: std::io::Write> Printer<W> {
     pub fn scroll_if_needed_for_input(&mut self, buffer: &Buffer) {
         let input_last_row = self.cursor.input_last_pos(&buffer).1;
 
-        let height_overflow = input_last_row.saturating_sub(self.cursor.bound.height - 1);
+        let height_overflow = input_last_row.saturating_sub(self.cursor.height() - 1);
         if height_overflow > 0 {
             self.writer.scroll_up(height_overflow, &mut self.cursor);
         }
@@ -216,9 +216,12 @@ impl<W: std::io::Write> Printer<W> {
     /// This is not a hot path so using `position` here is okay
     fn readjust_cursor_pos(&mut self) -> Result<()> {
         let pos = self.cursor.raw.get_current_pos()?;
-        self.cursor.pos.current_pos.1 = pos.1 as usize + 1;
-        self.cursor.pos.starting_pos.1 = pos.1 as usize + 1;
-        if self.cursor.pos.current_pos.1 == self.cursor.bound.height {
+        self.cursor
+            .set_current_pos(self.cursor.current_pos().0, pos.1 as usize + 1);
+        self.cursor
+            .set_starting_pos(self.cursor.starting_pos().0, pos.1 as usize + 1);
+
+        if self.cursor.current_pos().1 == self.cursor.height() {
             self.scroll_up(1);
         }
         Ok(())
@@ -230,7 +233,7 @@ impl<W: std::io::Write> Printer<W> {
         theme: &super::Theme,
     ) -> Result<bool> {
         // Hack
-        if self.cursor.buffer_pos_to_cursor_pos(&buffer).1 >= self.cursor.bound.height {
+        if self.cursor.buffer_pos_to_cursor_pos(&buffer).1 >= self.cursor.height() {
             self.print_input(&Buffer::from_string("It looks like the input is larger then the termnial, this is not currently supported, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue"), theme)?;
             Ok(true)
         } else {
@@ -289,6 +292,7 @@ impl<W: std::io::Write> Printer<W> {
     }
 }
 
+// Methods that combine writer and cursor are exported by the printer
 impl<W: std::io::Write> Printer<W> {
     pub fn write_from_terminal_start(&mut self, out: &str, color: Color) -> Result<()> {
         self.writer
@@ -316,12 +320,7 @@ impl<W: std::io::Write> Printer<W> {
         self.writer
             .write_at_no_cursor(s, color, x, y, &mut self.cursor)
     }
-
     pub fn scroll_up(&mut self, n: usize) {
         self.writer.scroll_up(n, &mut self.cursor)
-    }
-
-    pub fn update_dimensions(&mut self, width: u16, height: u16) {
-        self.cursor.bound = cursor::Bound::new(width as usize, height as usize);
     }
 }

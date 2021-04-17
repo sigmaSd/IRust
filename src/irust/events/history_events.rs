@@ -74,7 +74,7 @@ impl super::IRust {
             &SEARCH_TITLE,
             Color::Red,
             0,
-            self.printer.cursor.bound.height - 1,
+            self.printer.cursor.height() - 1,
         )?;
 
         let mut needle = String::new();
@@ -96,13 +96,13 @@ impl super::IRust {
                     &SEARCH_TITLE,
                     Color::Red,
                     0,
-                    self.printer.cursor.bound.height - 1,
+                    self.printer.cursor.height() - 1,
                 )?;
                 self.printer.write_at_no_cursor(
                     &needle,
                     Color::White,
                     TITLE_WIDTH,
-                    self.printer.cursor.bound.height - 1,
+                    self.printer.cursor.height() - 1,
                 )?;
                 found_needle
             }};
@@ -122,7 +122,7 @@ impl super::IRust {
                         index = 0;
                         // max search len
                         if StringTools::chars_count(&needle) + TITLE_WIDTH
-                            == self.printer.cursor.bound.width - 1
+                            == self.printer.cursor.width() - 1
                         {
                             continue;
                         }
@@ -169,7 +169,7 @@ impl super::IRust {
                             &SEARCH_TITLE,
                             Color::Red,
                             0,
-                            self.printer.cursor.bound.height - 1,
+                            self.printer.cursor.height() - 1,
                         )?;
                     }
                     Event::Key(KeyEvent {
