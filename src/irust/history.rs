@@ -130,8 +130,14 @@ impl History {
         }
     }
 
-    pub fn find(&self, needle: &str) -> Option<&String> {
-        self.history.iter().find(|h| h.contains(needle))
+    pub fn reverse_find_nth(&self, needle: &str, n: usize) -> Option<String> {
+        let mut history = self.history.iter().rev().collect::<Vec<&String>>();
+        history.dedup();
+        history
+            .iter()
+            .filter(|h| h.contains(needle))
+            .nth(n)
+            .map(|e| e.to_owned().to_owned())
     }
 
     pub fn lock(&mut self) {

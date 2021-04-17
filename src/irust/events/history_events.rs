@@ -78,6 +78,35 @@ impl super::IRust {
         )?;
 
         let mut needle = String::new();
+        let mut index = 0;
+
+        macro_rules! find_and_print {
+            () => {{
+                let mut found_needle = false;
+                // search history
+                if let Some(hit) = self.history.reverse_find_nth(&needle, index) {
+                    self.buffer = Buffer::from_string(&hit);
+                    found_needle = true;
+                } else {
+                    self.buffer = Buffer::new();
+                }
+                self.printer.print_input(&self.buffer, &self.theme)?;
+                self.printer.clear_last_line()?;
+                self.printer.write_at_no_cursor(
+                    &SEARCH_TITLE,
+                    Color::Red,
+                    0,
+                    self.printer.cursor.bound.height - 1,
+                )?;
+                self.printer.write_at_no_cursor(
+                    &needle,
+                    Color::White,
+                    TITLE_WIDTH,
+                    self.printer.cursor.bound.height - 1,
+                )?;
+                found_needle
+            }};
+        }
 
         use std::io::Write;
         loop {
@@ -89,6 +118,8 @@ impl super::IRust {
                         code: KeyCode::Char(c),
                         modifiers: NO_MODIFIER,
                     }) => {
+                        // reset index
+                        index = 0;
                         // max search len
                         if StringTools::chars_count(&needle) + TITLE_WIDTH
                             == self.printer.cursor.bound.width - 1
@@ -96,57 +127,35 @@ impl super::IRust {
                             continue;
                         }
                         needle.push(c);
-                        // search history
-                        if let Some(hit) = self.history.find(&needle) {
-                            self.buffer = Buffer::from_string(&hit);
-                        } else {
-                            self.buffer = Buffer::new();
+                        let _ = find_and_print!();
+                    }
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Char('s'),
+                        modifiers: CTRL_KEYMODIFIER,
+                    }) => {
+                        // forward search
+                        index = index.saturating_sub(1);
+                        let _ = find_and_print!();
+                    }
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Char('r'),
+                        modifiers: CTRL_KEYMODIFIER,
+                    }) => {
+                        // backward search
+                        index += 1;
+                        let found_needle = find_and_print!();
+                        if !found_needle {
+                            index -= 1;
                         }
-                        self.printer.print_input(&self.buffer, &self.theme)?;
-                        self.printer.clear_last_line()?;
-                        self.printer.write_at_no_cursor(
-                            &SEARCH_TITLE,
-                            Color::Red,
-                            0,
-                            self.printer.cursor.bound.height - 1,
-                        )?;
-                        self.printer.write_at_no_cursor(
-                            &needle,
-                            Color::White,
-                            TITLE_WIDTH,
-                            self.printer.cursor.bound.height - 1,
-                        )?;
                     }
                     Event::Key(KeyEvent {
                         code: KeyCode::Backspace,
                         ..
                     }) => {
+                        // reset index
+                        index = 0;
                         needle.pop();
-                        // search history
-                        if !needle.is_empty() {
-                            if let Some(hit) = self.history.find(&needle) {
-                                self.buffer = Buffer::from_string(&hit);
-                            } else {
-                                self.buffer = Buffer::new();
-                            }
-                            self.printer.print_input(&self.buffer, &self.theme)?;
-                        } else {
-                            self.buffer = Buffer::new();
-                            self.printer.print_input(&self.buffer, &self.theme)?;
-                        }
-                        self.printer.clear_last_line()?;
-                        self.printer.write_at_no_cursor(
-                            &SEARCH_TITLE,
-                            Color::Red,
-                            0,
-                            self.printer.cursor.bound.height - 1,
-                        )?;
-                        self.printer.write_at_no_cursor(
-                            &needle,
-                            Color::White,
-                            TITLE_WIDTH,
-                            self.printer.cursor.bound.height - 1,
-                        )?;
+                        let _ = find_and_print!();
                     }
                     Event::Key(KeyEvent {
                         code: KeyCode::Char('c'),
