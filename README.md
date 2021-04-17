@@ -55,7 +55,7 @@ You can use arrow keys to cycle through commands history
 
 **ctrl-z** [unix only]  send IRust to the background
 
-**ctrl-r** search history
+**ctrl-r** search history, hitting **ctrl-r** again continues searching the history backward, hitting **ctrl-s** searches the history forward
 
 **ctrl-left/right** jump through words
 
