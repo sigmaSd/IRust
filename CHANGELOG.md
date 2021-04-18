@@ -1,3 +1,7 @@
+**1.4.0**
+- Input prompt is now customizable
+- Split printer system in its own crate `printer`
+
 **1.3.2**
 - Make home/end key go to start/end of line respectively instead of start/end of input
 - Improve history search, `ctrl-r` continues to search backward, `ctrl-s` searches forward

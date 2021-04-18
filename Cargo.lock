@@ -162,7 +162,7 @@ dependencies = [
 
 [[package]]
 name = "irust"
-version = "1.3.2"
+version = "1.4.0"
 dependencies = [
  "crossterm",
  "dirs-next",
@@ -282,7 +282,7 @@ dependencies = [
 
 [[package]]
 name = "printer"
-version = "0.1.1"
+version = "0.2.1"
 dependencies = [
  "crossterm",
 ]

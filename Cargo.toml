@@ -1,6 +1,6 @@
 [package]
 name = "irust"
-version = "1.3.2"
+version = "1.4.0"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -14,7 +14,7 @@ dirs-next = "2.0.0"
 once_cell = "1.7.2"
 toml = "0.5.8"
 serde = { version = "1.0.125", features = ["derive"] }
-printer = { path = "printer/", version = "0.1.1" }
+printer = { path = "printer/", version = "0.2.1" }
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.20.0"
