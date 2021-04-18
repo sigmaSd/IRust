@@ -22,12 +22,6 @@ use racer::Racer;
 use repl::Repl;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
-pub const CTRL_KEYMODIFIER: KeyModifiers = KeyModifiers::CONTROL;
-const ALT_KEYMODIFIER: KeyModifiers = KeyModifiers::ALT;
-const SHIFT_KEYMODIFIER: KeyModifiers = KeyModifiers::SHIFT;
-pub const NO_MODIFIER: KeyModifiers = KeyModifiers::empty();
-
 static SOUT: Lazy<std::io::Stdout> = Lazy::new(std::io::stdout);
 
 pub struct IRust {
@@ -123,23 +117,23 @@ impl IRust {
             Event::Key(key_event) => match key_event {
                 KeyEvent {
                     code: KeyCode::Char(c),
-                    modifiers: NO_MODIFIER,
+                    modifiers: KeyModifiers::NONE,
                 }
                 | KeyEvent {
                     code: KeyCode::Char(c),
-                    modifiers: SHIFT_KEYMODIFIER,
+                    modifiers: KeyModifiers::SHIFT,
                 } => {
                     self.handle_character(c)?;
                 }
                 KeyEvent {
                     code: KeyCode::Char('e'),
-                    modifiers: CTRL_KEYMODIFIER,
+                    modifiers: KeyModifiers::CONTROL,
                 } => {
                     self.handle_ctrl_e()?;
                 }
                 KeyEvent {
                     code: KeyCode::Enter,
-                    modifiers: ALT_KEYMODIFIER,
+                    modifiers: KeyModifiers::ALT,
                 } => {
                     self.handle_alt_enter()?;
                 }
@@ -162,13 +156,13 @@ impl IRust {
                 }
                 KeyEvent {
                     code: KeyCode::Left,
-                    modifiers: NO_MODIFIER,
+                    modifiers: KeyModifiers::NONE,
                 } => {
                     self.handle_left()?;
                 }
                 KeyEvent {
                     code: KeyCode::Right,
-                    modifiers: NO_MODIFIER,
+                    modifiers: KeyModifiers::NONE,
                 } => {
                     self.handle_right()?;
                 }
@@ -191,31 +185,31 @@ impl IRust {
                 }
                 KeyEvent {
                     code: KeyCode::Char('c'),
-                    modifiers: CTRL_KEYMODIFIER,
+                    modifiers: KeyModifiers::CONTROL,
                 } => {
                     self.handle_ctrl_c()?;
                 }
                 KeyEvent {
                     code: KeyCode::Char('d'),
-                    modifiers: CTRL_KEYMODIFIER,
+                    modifiers: KeyModifiers::CONTROL,
                 } => {
                     return self.handle_ctrl_d();
                 }
                 KeyEvent {
                     code: KeyCode::Char('z'),
-                    modifiers: CTRL_KEYMODIFIER,
+                    modifiers: KeyModifiers::CONTROL,
                 } => {
                     self.handle_ctrl_z()?;
                 }
                 KeyEvent {
                     code: KeyCode::Char('l'),
-                    modifiers: CTRL_KEYMODIFIER,
+                    modifiers: KeyModifiers::CONTROL,
                 } => {
                     self.handle_ctrl_l()?;
                 }
                 KeyEvent {
                     code: KeyCode::Char('r'),
-                    modifiers: CTRL_KEYMODIFIER,
+                    modifiers: KeyModifiers::CONTROL,
                 } => {
                     self.handle_ctrl_r()?;
                 }
@@ -232,13 +226,13 @@ impl IRust {
                 }
                 KeyEvent {
                     code: KeyCode::Left,
-                    modifiers: CTRL_KEYMODIFIER,
+                    modifiers: KeyModifiers::CONTROL,
                 } => {
                     self.handle_ctrl_left()?;
                 }
                 KeyEvent {
                     code: KeyCode::Right,
-                    modifiers: CTRL_KEYMODIFIER,
+                    modifiers: KeyModifiers::CONTROL,
                 } => {
                     self.handle_ctrl_right()?;
                 }
@@ -252,7 +246,7 @@ impl IRust {
                     // Handle AltGr on windows
                     if keyevent
                         .modifiers
-                        .contains(CTRL_KEYMODIFIER | ALT_KEYMODIFIER)
+                        .contains(KeyModifiers::CONTROL | KeyModifiers::ALT)
                     {
                         if let KeyCode::Char(c) = keyevent.code {
                             self.handle_character(c)?;

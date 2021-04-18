@@ -298,7 +298,7 @@ impl ProcessUtils for std::process::Child {
                 if event {
                     if let Ok(Event::Key(KeyEvent {
                         code: KeyCode::Char('c'),
-                        modifiers: crate::irust::CTRL_KEYMODIFIER,
+                        modifiers: crossterm::event::KeyModifiers::CONTROL,
                     })) = crossterm::event::read()
                     {
                         self.kill()?;

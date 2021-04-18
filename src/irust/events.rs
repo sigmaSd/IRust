@@ -1,8 +1,11 @@
 use super::racer::{Cycle, Racer};
-use super::{CTRL_KEYMODIFIER, NO_MODIFIER};
 use crate::irust::{IRust, Result};
 use crate::utils::StringTools;
-use crossterm::{event::*, style::Color, terminal::ClearType};
+use crossterm::{
+    event::{read, Event, KeyCode, KeyEvent, KeyModifiers},
+    style::Color,
+    terminal::ClearType,
+};
 use printer::printer::{PrintQueue, PrinterItem};
 
 mod history_events;
@@ -190,7 +193,7 @@ impl IRust {
                     match key_event {
                         Event::Key(KeyEvent {
                             code: KeyCode::Char(c),
-                            modifiers: NO_MODIFIER,
+                            modifiers: KeyModifiers::NONE,
                         }) => match &c {
                             'y' | 'Y' => return Ok(true),
                             _ => {
@@ -202,7 +205,7 @@ impl IRust {
                         },
                         Event::Key(KeyEvent {
                             code: KeyCode::Char('d'),
-                            modifiers: CTRL_KEYMODIFIER,
+                            modifiers: KeyModifiers::CONTROL,
                         })
                         | Event::Key(KeyEvent {
                             code: KeyCode::Enter,

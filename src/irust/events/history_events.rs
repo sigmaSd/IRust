@@ -1,6 +1,9 @@
-use super::{Result, CTRL_KEYMODIFIER, NO_MODIFIER};
+use super::Result;
 use crate::utils::StringTools;
-use crossterm::{event::*, style::Color};
+use crossterm::{
+    event::{read, Event, KeyCode, KeyEvent, KeyModifiers},
+    style::Color,
+};
 use printer::buffer::Buffer;
 
 enum Dir {
@@ -116,7 +119,7 @@ impl super::IRust {
                 match key_event {
                     Event::Key(KeyEvent {
                         code: KeyCode::Char(c),
-                        modifiers: NO_MODIFIER,
+                        modifiers: KeyModifiers::NONE,
                     }) => {
                         // reset index
                         index = 0;
@@ -131,7 +134,7 @@ impl super::IRust {
                     }
                     Event::Key(KeyEvent {
                         code: KeyCode::Char('s'),
-                        modifiers: CTRL_KEYMODIFIER,
+                        modifiers: KeyModifiers::CONTROL,
                     }) => {
                         // forward search
                         index = index.saturating_sub(1);
@@ -139,7 +142,7 @@ impl super::IRust {
                     }
                     Event::Key(KeyEvent {
                         code: KeyCode::Char('r'),
-                        modifiers: CTRL_KEYMODIFIER,
+                        modifiers: KeyModifiers::CONTROL,
                     }) => {
                         // backward search
                         index += 1;
@@ -159,7 +162,7 @@ impl super::IRust {
                     }
                     Event::Key(KeyEvent {
                         code: KeyCode::Char('c'),
-                        modifiers: CTRL_KEYMODIFIER,
+                        modifiers: KeyModifiers::CONTROL,
                     }) => {
                         self.buffer.clear();
                         self.print_input()?;
@@ -181,7 +184,7 @@ impl super::IRust {
                     }) => break,
                     Event::Key(KeyEvent {
                         code: KeyCode::Char('d'),
-                        modifiers: CTRL_KEYMODIFIER,
+                        modifiers: KeyModifiers::CONTROL,
                     }) => {
                         if needle.is_empty() {
                             break;
