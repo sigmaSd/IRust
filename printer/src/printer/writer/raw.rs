@@ -1,4 +1,4 @@
-use crate::irust::Result;
+use crate::Result;
 use crossterm::{queue, style::*, terminal::*};
 use std::{cell::RefCell, fmt::Display, rc::Rc};
 #[derive(Debug, Clone)]

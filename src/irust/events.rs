@@ -1,16 +1,16 @@
 use super::racer::{Cycle, Racer};
 use super::{CTRL_KEYMODIFIER, NO_MODIFIER};
-use crate::irust::printer::{PrintQueue, PrinterItem};
 use crate::irust::{IRust, Result};
 use crate::utils::StringTools;
 use crossterm::{event::*, style::Color, terminal::ClearType};
+use printer::printer::{PrintQueue, PrinterItem};
 
 mod history_events;
 
 impl IRust {
     pub fn handle_character(&mut self, c: char) -> Result<()> {
         self.buffer.insert(c);
-        self.printer.print_input(&self.buffer, &self.theme)?;
+        self.print_input()?;
         self.printer.cursor.move_right_unbounded();
         self.history.unlock();
         // Ignore RacerDisabled error
@@ -26,7 +26,7 @@ impl IRust {
 
         if !force_eval && !self.input_is_cmd_or_shell(&buffer) && self.incomplete_input(&buffer) {
             self.buffer.insert('\n');
-            self.printer.print_input(&self.buffer, &self.theme)?;
+            self.print_input()?;
             self.printer.cursor.move_right();
             return Ok(());
         }
@@ -61,8 +61,7 @@ impl IRust {
         }
 
         // print a new input prompt
-        self.printer
-            .write_from_terminal_start(super::IN, Color::Yellow)?;
+        self.printer.print_prompt()?;
 
         self.printer.cursor.show();
         Ok(())
@@ -70,7 +69,7 @@ impl IRust {
 
     pub fn handle_alt_enter(&mut self) -> Result<()> {
         self.buffer.insert('\n');
-        self.printer.print_input(&self.buffer, &self.theme)?;
+        self.print_input()?;
         self.printer.cursor.move_right();
         Ok(())
     }
@@ -80,7 +79,7 @@ impl IRust {
             const TAB: &str = "   \t";
 
             self.buffer.insert_str(TAB);
-            self.printer.print_input(&self.buffer, &self.theme)?;
+            self.print_input()?;
             for _ in 0..4 {
                 self.printer.cursor.move_right_unbounded();
             }
@@ -148,7 +147,7 @@ impl IRust {
             self.buffer.move_backward();
             self.printer.cursor.move_left();
             self.buffer.remove_current_char();
-            self.printer.print_input(&self.buffer, &self.theme)?;
+            self.print_input()?;
             // Ignore RacerDisabled error
             self.history.unlock();
             let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
@@ -159,7 +158,7 @@ impl IRust {
     pub fn handle_del(&mut self) -> Result<()> {
         if !self.buffer.is_empty() {
             self.buffer.remove_current_char();
-            self.printer.print_input(&self.buffer, &self.theme)?;
+            self.print_input()?;
             // Ignore RacerDisabled error
             self.history.unlock();
             let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
@@ -172,10 +171,9 @@ impl IRust {
         self.history.unlock();
         let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
         self.printer.cursor.goto_start();
-        self.printer
-            .write_from_terminal_start(super::IN, Color::Yellow)?;
+        self.printer.print_prompt()?;
         self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
-        self.printer.print_input(&self.buffer, &self.theme)?;
+        self.print_input()?;
         Ok(())
     }
 
@@ -198,8 +196,7 @@ impl IRust {
                             _ => {
                                 self.printer.write_newline(&self.buffer)?;
                                 self.printer.write_newline(&self.buffer)?;
-                                self.printer
-                                    .write_from_terminal_start(super::IN, Color::Yellow)?;
+                                self.printer.print_prompt()?;
                                 return Ok(false);
                             }
                         },
@@ -249,7 +246,7 @@ impl IRust {
         self.buffer.clear();
         self.buffer.goto_start();
         self.printer.clear()?;
-        self.printer.print_input(&self.buffer, &self.theme)?;
+        self.print_input()?;
         Ok(())
     }
 
@@ -367,7 +364,7 @@ impl IRust {
             .is_some()
         {
             // and reprint
-            self.printer.print_input(&self.buffer, &self.theme)?;
+            self.print_input()?;
         }
         Ok(())
     }

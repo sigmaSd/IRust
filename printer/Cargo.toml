@@ -1,0 +1,14 @@
+[package]
+name = "printer"
+version = "0.1.0"
+authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
+edition = "2018"
+readme = "README.md"
+description = "Abstraction over terminal manipulation"
+repository = "https://github.com/sigmaSd/IRust/tree/master/printer"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+crossterm = "0.19.0"

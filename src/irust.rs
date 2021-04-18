@@ -8,26 +8,21 @@ pub mod highlight;
 mod history;
 pub mod options;
 mod parser;
-pub mod printer;
 mod racer;
 mod repl;
-use crossterm::event::*;
-use crossterm::style::Color;
-use history::History;
-use options::Options;
-use racer::Racer;
-use repl::Repl;
-pub mod buffer;
-use buffer::Buffer;
 use crossterm::event::KeyModifiers;
+use crossterm::event::{Event, KeyCode, KeyEvent};
 use global_variables::GlobalVariables;
 use highlight::theme::Theme;
+use history::History;
 use once_cell::sync::Lazy;
+use options::Options;
+use printer::{buffer::Buffer, printer::Printer};
+use racer::Racer;
+use repl::Repl;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-const IN: &str = "In: ";
-const OUT: &str = "Out: ";
 pub const CTRL_KEYMODIFIER: KeyModifiers = KeyModifiers::CONTROL;
 const ALT_KEYMODIFIER: KeyModifiers = KeyModifiers::ALT;
 const SHIFT_KEYMODIFIER: KeyModifiers = KeyModifiers::SHIFT;
@@ -38,7 +33,7 @@ static SOUT: Lazy<std::io::Stdout> = Lazy::new(std::io::stdout);
 pub struct IRust {
     buffer: Buffer,
     repl: Repl,
-    printer: printer::Printer<std::io::StdoutLock<'static>>,
+    printer: Printer<std::io::StdoutLock<'static>>,
     options: Options,
     racer: Option<Racer>,
     global_variables: GlobalVariables,
@@ -49,7 +44,7 @@ pub struct IRust {
 impl IRust {
     pub fn new(options: Options) -> Self {
         let out = SOUT.lock();
-        let printer = printer::Printer::new(out);
+        let printer = Printer::new(out);
 
         let global_variables = GlobalVariables::new();
 
@@ -83,8 +78,16 @@ impl IRust {
         ))?;
         self.repl.prepare_ground(self.options.toolchain)?;
         self.welcome()?;
-        self.printer.write_from_terminal_start(IN, Color::Yellow)?;
+        self.printer.print_prompt()?;
 
+        Ok(())
+    }
+
+    /// Wrapper over printer.print_input that highlights rust code using current theme
+    pub fn print_input(&mut self) -> Result<()> {
+        let theme = &self.theme;
+        self.printer
+            .print_input(&|buffer| highlight::highlight(buffer, theme), &self.buffer)?;
         Ok(())
     }
 

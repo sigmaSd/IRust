@@ -1,8 +1,10 @@
-use crate::irust::Result;
+use crate::{buffer::Buffer, Result};
 use crossterm::{style::Color, terminal::ClearType};
 mod raw;
 use raw::Raw;
 use std::{cell::RefCell, rc::Rc};
+
+use super::cursor::Cursor;
 
 #[derive(Debug, Clone)]
 pub struct Writer<W: std::io::Write> {
@@ -104,11 +106,7 @@ impl<W: std::io::Write> Writer<W> {
         Ok(())
     }
 
-    pub(super) fn write_newline(
-        &mut self,
-        cursor: &mut super::cursor::Cursor<W>,
-        buffer: &crate::irust::buffer::Buffer,
-    ) -> Result<()> {
+    pub(super) fn write_newline(&mut self, cursor: &mut Cursor<W>, buffer: &Buffer) -> Result<()> {
         cursor.move_to_input_last_row(buffer);
 
         // check for scroll

@@ -1,4 +1,4 @@
-use crate::irust::Result;
+use crate::Result;
 use crossterm::cursor::*;
 use crossterm::queue;
 use std::{cell::RefCell, rc::Rc};

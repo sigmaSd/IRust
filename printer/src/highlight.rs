@@ -1,11 +1,9 @@
+use super::printer::{PrintQueue, PrinterItem};
 use crossterm::style::Color;
-use printer::buffer::Buffer;
-use printer::printer::{PrintQueue, PrinterItem};
-use theme::Theme;
 pub mod theme;
 
 const PAREN_COLORS: [&str; 4] = ["green", "red", "yellow", "blue"];
-pub fn highlight(buffer: &Buffer, theme: &Theme) -> PrintQueue {
+pub fn highlight(c: &[char], theme: &theme::Theme) -> PrintQueue {
     let mut print_queue = PrintQueue::default();
 
     macro_rules! push_to_printer {
@@ -15,7 +13,7 @@ pub fn highlight(buffer: &Buffer, theme: &Theme) -> PrintQueue {
         }};
     }
 
-    for token in parse(&buffer.buffer) {
+    for token in parse(c) {
         use Token::*;
         match token {
             Keyword(s) => push_to_printer!(String, s, &theme.keyword[..]),

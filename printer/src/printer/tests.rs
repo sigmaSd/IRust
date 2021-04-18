@@ -1,7 +1,5 @@
+use super::default_process_fn;
 use super::Printer;
-use crate::irust::printer::highlight;
-use crate::irust::Buffer;
-use crate::irust::Theme;
 use crossterm::style::Color;
 use std::io::Write;
 
@@ -22,7 +20,7 @@ fn write_from_terminal_start_cursor_pos_correct() -> Result<()> {
 fn writenew_line_no_scroll() -> Result<()> {
     let mut p = Printer::new(std::io::sink());
 
-    let b = Buffer::from_string("Hello world");
+    let b = "Hello world".into();
 
     p.cursor.pos.starting_pos.0 = 0;
     p.cursor.pos.starting_pos.1 = 0;
@@ -41,7 +39,7 @@ fn writenew_line_no_scroll() -> Result<()> {
 #[test]
 fn writenew_line_with_scroll() -> Result<()> {
     let mut p = Printer::new(std::io::sink());
-    let b = Buffer::from_string("Hello world");
+    let b = "Hello world".into();
 
     p.cursor.pos.starting_pos.0 = 0;
     p.cursor.pos.starting_pos.1 = p.cursor.bound.height - 1;
@@ -80,7 +78,7 @@ fn scroll_up() -> Result<()> {
 #[test]
 fn scroll_because_input_needs_scroll() -> Result<()> {
     let mut p = Printer::new(std::io::sink());
-    let b = Buffer::from_string("\n\n\n");
+    let b = "\n\n\n".into();
 
     p.cursor.pos.starting_pos.0 = 0;
     p.cursor.pos.starting_pos.1 = p.cursor.bound.height - 1;
@@ -96,7 +94,7 @@ fn scroll_because_input_needs_scroll() -> Result<()> {
 #[test]
 fn dont_scroll_because_input_doesent_need_scroll() -> Result<()> {
     let mut p = Printer::new(std::io::sink());
-    let b = Buffer::from_string("\n\n\n");
+    let b = "\n\n\n".into();
 
     p.cursor.pos.starting_pos.0 = 0;
     p.cursor.pos.starting_pos.1 = 0;
@@ -115,10 +113,7 @@ fn calculate_bounds_correctly() -> Result<()> {
     let mut p = Printer::new(std::io::sink());
     let width = p.cursor.bound.width;
     let height = p.cursor.bound.height;
-    let queue = highlight(
-        &"alloc\nprint".chars().collect::<Vec<_>>(),
-        &Theme::default(),
-    );
+    let queue = default_process_fn(&"alloc\nprint".into());
 
     // 1
     move_to_and_modify_start(&mut p, 0, 0);
@@ -140,7 +135,7 @@ pub fn calculate_bounds_correctly2() -> Result<()> {
     let mut p = Printer::new(std::io::sink());
     let width = p.cursor.bound.width;
     let height = p.cursor.bound.height;
-    let queue = highlight(&"A\tz\nBC\n".chars().collect::<Vec<_>>(), &Theme::default());
+    let queue = default_process_fn(&"A\tz\nBC\n".into());
     // 2
     move_to_and_modify_start(&mut p, 0, height - 5);
     p.recalculate_bounds(queue)?;

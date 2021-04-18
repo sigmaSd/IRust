@@ -1,3 +1,5 @@
+use std::iter::FromIterator;
+
 #[derive(Clone, Default)]
 pub struct Buffer {
     pub buffer: Vec<char>,
@@ -97,13 +99,6 @@ impl Buffer {
         self.buffer_pos = self.buffer.len();
     }
 
-    pub fn from_string(str: &str) -> Self {
-        Self {
-            buffer: str.chars().collect(),
-            buffer_pos: 0,
-        }
-    }
-
     pub fn get(&self, idx: usize) -> Option<&char> {
         self.buffer.get(idx)
     }
@@ -127,5 +122,39 @@ impl Buffer {
 impl ToString for Buffer {
     fn to_string(&self) -> String {
         self.buffer.iter().collect()
+    }
+}
+
+impl From<&str> for Buffer {
+    fn from(string: &str) -> Self {
+        Self {
+            buffer: string.chars().collect(),
+            buffer_pos: 0,
+        }
+    }
+}
+impl From<String> for Buffer {
+    fn from(string: String) -> Self {
+        Self {
+            buffer: string.chars().collect(),
+            buffer_pos: 0,
+        }
+    }
+}
+impl From<Vec<char>> for Buffer {
+    fn from(buffer: Vec<char>) -> Self {
+        Self {
+            buffer,
+            buffer_pos: 0,
+        }
+    }
+}
+impl FromIterator<char> for Buffer {
+    fn from_iter<I: IntoIterator<Item = char>>(iter: I) -> Buffer {
+        let mut buffer = Buffer::new();
+        for c in iter {
+            buffer.buffer.push(c);
+        }
+        buffer
     }
 }

@@ -166,6 +166,7 @@ dependencies = [
  "dirs-next",
  "nix",
  "once_cell",
+ "printer",
  "serde",
  "toml",
 ]
@@ -275,6 +276,13 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "winapi",
+]
+
+[[package]]
+name = "printer"
+version = "0.1.0"
+dependencies = [
+ "crossterm",
 ]
 
 [[package]]

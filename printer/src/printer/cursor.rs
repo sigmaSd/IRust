@@ -1,9 +1,10 @@
-use crate::irust::Buffer;
 use std::{cell::RefCell, rc::Rc};
 mod bound;
 pub use bound::Bound;
 mod raw;
 use raw::Raw;
+
+use crate::buffer::Buffer;
 /// input is shown with x in this example
 /// |In: x
 /// |    x

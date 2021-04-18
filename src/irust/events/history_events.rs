@@ -1,7 +1,7 @@
-use crate::irust::buffer::Buffer;
-use crate::irust::{Result, CTRL_KEYMODIFIER, NO_MODIFIER};
+use super::{Result, CTRL_KEYMODIFIER, NO_MODIFIER};
 use crate::utils::StringTools;
 use crossterm::{event::*, style::Color};
+use printer::buffer::Buffer;
 
 enum Dir {
     Up,
@@ -49,11 +49,11 @@ impl super::IRust {
         };
 
         if let Some(history) = history {
-            self.buffer = Buffer::from_string(&history);
+            self.buffer = history.into();
         } else {
             self.buffer.buffer = buffer;
         }
-        self.printer.print_input(&self.buffer, &self.theme)?;
+        self.print_input()?;
 
         let last_input_pos = self.printer.cursor.input_last_pos(&self.buffer);
         self.buffer.goto_end();
@@ -85,12 +85,12 @@ impl super::IRust {
                 let mut found_needle = false;
                 // search history
                 if let Some(hit) = self.history.reverse_find_nth(&needle, index) {
-                    self.buffer = Buffer::from_string(&hit);
+                    self.buffer = hit.into();
                     found_needle = true;
                 } else {
                     self.buffer = Buffer::new();
                 }
-                self.printer.print_input(&self.buffer, &self.theme)?;
+                self.print_input()?;
                 self.printer.clear_last_line()?;
                 self.printer.write_at_no_cursor(
                     &SEARCH_TITLE,
@@ -162,7 +162,7 @@ impl super::IRust {
                         modifiers: CTRL_KEYMODIFIER,
                     }) => {
                         self.buffer.clear();
-                        self.printer.print_input(&self.buffer, &self.theme)?;
+                        self.print_input()?;
                         needle.clear();
                         self.printer.clear_last_line()?;
                         self.printer.write_at_no_cursor(

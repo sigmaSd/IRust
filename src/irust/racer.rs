@@ -3,10 +3,9 @@ use super::{
     highlight::{highlight, theme::Theme},
     Result,
 };
-use crate::irust::printer::PrintQueue;
-use crate::irust::printer::PrinterItem;
 use crate::utils::{read_until_bytes, StringTools};
 use crossterm::{style::Color, terminal::ClearType};
+use printer::printer::{PrintQueue, Printer, PrinterItem};
 use std::io::Write;
 use std::process::{Child, Command, Stdio};
 
@@ -239,7 +238,7 @@ impl Racer {
 
     fn write_next_suggestion(
         &mut self,
-        printer: &mut super::printer::Printer<impl std::io::Write>,
+        printer: &mut Printer<impl std::io::Write>,
         buffer: &super::Buffer,
         theme: &Theme,
         color: Color,
@@ -252,7 +251,7 @@ impl Racer {
 
     fn write_previous_suggestion(
         &mut self,
-        printer: &mut super::printer::Printer<impl std::io::Write>,
+        printer: &mut Printer<impl std::io::Write>,
         buffer: &super::Buffer,
         theme: &super::Theme,
         color: Color,
@@ -265,7 +264,7 @@ impl Racer {
 
     fn write_current_suggestion(
         &mut self,
-        printer: &mut crate::irust::printer::Printer<impl std::io::Write>,
+        printer: &mut Printer<impl std::io::Write>,
         buffer: &super::Buffer,
         theme: &super::Theme,
         color: Color,
@@ -284,7 +283,7 @@ impl Racer {
                     .iter()
                     .take(buffer.buffer_pos - StringTools::chars_count(&suggestion))
                     .copied()
-                    .collect::<Vec<char>>(),
+                    .collect(),
                 theme,
             );
 
@@ -292,11 +291,7 @@ impl Racer {
             sug.push(PrinterItem::String(suggestion.clone(), color));
 
             let mut post = highlight(
-                &buffer
-                    .iter()
-                    .skip(buffer.buffer_pos)
-                    .copied()
-                    .collect::<Vec<char>>(),
+                &buffer.iter().skip(buffer.buffer_pos).copied().collect(),
                 theme,
             );
 
@@ -312,7 +307,7 @@ impl Racer {
 
     pub fn cycle_suggestions(
         &mut self,
-        printer: &mut super::printer::Printer<impl Write>,
+        printer: &mut Printer<impl Write>,
         buffer: &super::Buffer,
         theme: &super::Theme,
         cycle: Cycle,
@@ -413,7 +408,7 @@ impl Racer {
         printer.writer.raw.reset_color()?;
         printer.cursor.restore_position();
         printer.cursor.goto_internal_pos();
-        printer.recalculate_bounds(highlight(&buffer.buffer, &theme))?;
+        printer.recalculate_bounds(highlight(&buffer, theme))?;
 
         Ok(())
     }

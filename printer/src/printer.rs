@@ -1,13 +1,15 @@
-use super::highlight::highlight;
-use crate::irust::{Buffer, Result};
 use crossterm::{style::Color, terminal::ClearType};
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+
+use crate::{buffer::Buffer, Result};
 
 mod cursor;
 mod writer;
 
 #[cfg(test)]
 mod tests;
+
+pub const PROMPT: &str = "In: ";
 
 #[derive(Debug, Clone)]
 pub struct Printer<W: std::io::Write> {
@@ -50,6 +52,10 @@ impl PrintQueue {
         self.items.push_back(item);
     }
 
+    pub fn push_front(&mut self, item: PrinterItem) {
+        self.items.push_front(item);
+    }
+
     pub fn append(&mut self, other: &mut Self) {
         self.items.append(&mut other.items);
     }
@@ -67,6 +73,14 @@ impl Iterator for PrintQueue {
     }
 }
 
+impl From<PrinterItem> for PrintQueue {
+    fn from(item: PrinterItem) -> Self {
+        let mut queue = Self::default();
+        queue.push(item);
+        queue
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum PrinterItem {
     Char(char, Color),
@@ -76,8 +90,12 @@ pub enum PrinterItem {
 }
 
 impl<W: std::io::Write> Printer<W> {
-    pub fn print_input(&mut self, buffer: &Buffer, theme: &super::Theme) -> Result<()> {
-        if self.check_for_offscreen_render_hack(buffer, theme)? {
+    pub fn print_input(
+        &mut self,
+        process_function: &dyn Fn(&Buffer) -> PrintQueue,
+        buffer: &Buffer,
+    ) -> Result<()> {
+        if self.check_for_offscreen_render_hack(buffer)? {
             return Ok(());
         }
 
@@ -89,9 +107,9 @@ impl<W: std::io::Write> Printer<W> {
         self.writer.raw.clear(ClearType::FromCursorDown)?;
 
         self.writer
-            .write_from_terminal_start(super::IN, Color::Yellow, &mut self.cursor)?;
+            .write_from_terminal_start(PROMPT, Color::Yellow, &mut self.cursor)?;
 
-        self.print_input_inner(highlight(&buffer.buffer, theme))?;
+        self.print_input_inner(process_function(&buffer))?;
         //bound last row to last position
         self.cursor.bound_current_row_at_current_col();
 
@@ -110,7 +128,7 @@ impl<W: std::io::Write> Printer<W> {
         self.writer.raw.clear(ClearType::FromCursorDown)?;
 
         self.writer
-            .write_from_terminal_start(super::IN, Color::Yellow, &mut self.cursor)?;
+            .write_from_terminal_start(PROMPT, Color::Yellow, &mut self.cursor)?;
 
         self.print_input_inner(queue)?;
         //bound last row to last position
@@ -227,14 +245,10 @@ impl<W: std::io::Write> Printer<W> {
         Ok(())
     }
 
-    fn check_for_offscreen_render_hack(
-        &mut self,
-        buffer: &Buffer,
-        theme: &super::Theme,
-    ) -> Result<bool> {
+    fn check_for_offscreen_render_hack(&mut self, buffer: &Buffer) -> Result<bool> {
         // Hack
         if self.cursor.buffer_pos_to_cursor_pos(&buffer).1 >= self.cursor.height() {
-            self.print_input(&Buffer::from_string("It looks like the input is larger then the termnial, this is not currently supported, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue"), theme)?;
+            self.print_input(&default_process_fn, &"It looks like the input is larger then the termnial, this is not currently supported, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue".into() )?;
             Ok(true)
         } else {
             Ok(false)
@@ -290,6 +304,11 @@ impl<W: std::io::Write> Printer<W> {
 
         Ok(())
     }
+
+    pub fn print_prompt(&mut self) -> Result<()> {
+        self.write_from_terminal_start(PROMPT, Color::Yellow)?;
+        Ok(())
+    }
 }
 
 // Methods that combine writer and cursor are exported by the printer
@@ -305,7 +324,7 @@ impl<W: std::io::Write> Printer<W> {
         self.writer.clear_last_line(&mut self.cursor)
     }
 
-    pub fn write_newline(&mut self, buffer: &crate::irust::buffer::Buffer) -> Result<()> {
+    pub fn write_newline(&mut self, buffer: &Buffer) -> Result<()> {
         self.writer.write_newline(&mut self.cursor, buffer)
     }
 
@@ -323,4 +342,16 @@ impl<W: std::io::Write> Printer<W> {
     pub fn scroll_up(&mut self, n: usize) {
         self.writer.scroll_up(n, &mut self.cursor)
     }
+}
+
+pub fn default_process_fn(buffer: &Buffer) -> PrintQueue {
+    let mut queue = PrintQueue::default();
+    for c in buffer.iter() {
+        if c == &'\n' {
+            queue.push(PrinterItem::NewLine);
+        } else {
+            queue.push(PrinterItem::Char(*c, Color::White));
+        }
+    }
+    queue
 }

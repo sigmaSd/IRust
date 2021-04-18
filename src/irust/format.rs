@@ -1,9 +1,6 @@
 use crossterm::style::Color;
 
-use crate::irust::{
-    printer::{PrintQueue, PrinterItem},
-    OUT,
-};
+use printer::printer::{PrintQueue, PrinterItem};
 
 pub fn format_err(output: &str) -> PrintQueue {
     let mut error = PrintQueue::default();
@@ -24,6 +21,8 @@ pub fn format_err(output: &str) -> PrintQueue {
 }
 
 pub fn format_eval_output(status: std::process::ExitStatus, output: String) -> Option<PrintQueue> {
+    const OUT: &str = "Out: ";
+
     if !status.success() {
         return Some(format_err(&output));
     }

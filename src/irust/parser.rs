@@ -4,9 +4,9 @@ use super::cargo_cmds::{cargo_asm, cargo_bench, ToolChain};
 use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
 use crate::irust::format::{format_check_output, format_err, format_eval_output};
-use crate::irust::printer::{PrintQueue, PrinterItem};
 use crate::irust::{IRust, Result};
 use crate::utils::{remove_main, stdout_and_stderr};
+use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
 
@@ -85,7 +85,7 @@ impl IRust {
 
     fn show(&mut self) -> PrintQueue {
         let code: Vec<char> = self.repl.show().chars().collect();
-        highlight(&code, &self.theme)
+        highlight(&code.into(), &self.theme)
     }
 
     fn toolchain(&mut self) -> Result<PrintQueue> {
