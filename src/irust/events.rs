@@ -64,7 +64,7 @@ impl IRust {
         }
 
         // print a new input prompt
-        self.printer.print_prompt()?;
+        self.printer.print_prompt_if_set()?;
 
         self.printer.cursor.show();
         Ok(())
@@ -174,7 +174,7 @@ impl IRust {
         self.history.unlock();
         let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
         self.printer.cursor.goto_start();
-        self.printer.print_prompt()?;
+        self.printer.print_prompt_if_set()?;
         self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
         self.print_input()?;
         Ok(())
@@ -199,7 +199,7 @@ impl IRust {
                             _ => {
                                 self.printer.write_newline(&self.buffer);
                                 self.printer.write_newline(&self.buffer);
-                                self.printer.print_prompt()?;
+                                self.printer.print_prompt_if_set()?;
                                 return Ok(false);
                             }
                         },

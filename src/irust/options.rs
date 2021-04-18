@@ -29,6 +29,7 @@ pub struct Options {
     pub auto_insert_semicolon: bool,
     pub replace_marker: String,
     pub replace_output_with_marker: bool,
+    pub prompt: String,
 }
 
 impl Default for Options {
@@ -69,6 +70,8 @@ impl Default for Options {
             // replace output
             replace_marker: "$out".into(),
             replace_output_with_marker: false,
+
+            prompt: "In: ".to_string(),
         }
     }
 }

@@ -38,7 +38,7 @@ pub struct IRust {
 impl IRust {
     pub fn new(options: Options) -> Self {
         let out = SOUT.lock();
-        let printer = Printer::new(out);
+        let printer = Printer::new(out, options.prompt.clone());
 
         let global_variables = GlobalVariables::new();
 
@@ -72,7 +72,7 @@ impl IRust {
         ))?;
         self.repl.prepare_ground(self.options.toolchain)?;
         self.welcome()?;
-        self.printer.print_prompt()?;
+        self.printer.print_prompt_if_set()?;
 
         Ok(())
     }
