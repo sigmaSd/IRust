@@ -87,11 +87,11 @@ IRust config file is located in:
 
 *default config:*
 ```
-  // history
+  # history
   add_irust_cmd_to_history = true
   add_shell_cmd_to_history = false
 
-  // colors
+  # colors
   ok_color = "Blue"
   eval_color = "White"
   irust_color = "DarkBlue"
@@ -104,14 +104,14 @@ IRust config file is located in:
   welcome_msg = ""
   welcome_color = "DarkBlue"
 
-  // racer
+  # racer
   racer_inline_suggestion_color = "Cyan"
   racer_suggestions_table_color = "Green"
   racer_selected_suggestion_color = "DarkRed"
   racer_max_suggestions = 5
   enable_racer = true
 
-  // other
+  # other
   first_irust_run = false
   toolchain = "stable"
   check_statements = true
@@ -120,6 +120,9 @@ IRust config file is located in:
   // use last output by replacing the specified marker
   replace_marker = "$out"
   replace_output_with_marker = false
+  
+  # modify input prmopt
+  prompt = "In: "
 ```
 
 ## Theme
