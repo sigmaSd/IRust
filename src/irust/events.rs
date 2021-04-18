@@ -60,6 +60,8 @@ impl IRust {
 
         // print output
         if !output.is_empty() {
+            // clear racer suggestions is present
+            self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
             self.printer.print_output(output)?;
         }
 
