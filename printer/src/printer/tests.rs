@@ -6,7 +6,7 @@ use std::io::Write;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[test]
 fn write_from_terminal_start_cursor_pos_correct() -> Result<()> {
-    let mut p = Printer::new(std::io::sink());
+    let mut p = Printer::new(std::io::sink(), "".to_owned());
 
     let origin_pos = p.cursor.pos;
     p.write_from_terminal_start("hello", Color::Red)?;
@@ -18,7 +18,7 @@ fn write_from_terminal_start_cursor_pos_correct() -> Result<()> {
 
 #[test]
 fn writenew_line_no_scroll() {
-    let mut p = Printer::new(std::io::sink());
+    let mut p = Printer::new(std::io::sink(), "".to_owned());
 
     let b = "Hello world".into();
 
@@ -36,7 +36,7 @@ fn writenew_line_no_scroll() {
 
 #[test]
 fn writenew_line_with_scroll() {
-    let mut p = Printer::new(std::io::sink());
+    let mut p = Printer::new(std::io::sink(), "".to_owned());
     let b = "Hello world".into();
 
     p.cursor.pos.starting_pos.0 = 0;
@@ -54,7 +54,7 @@ fn writenew_line_with_scroll() {
 
 #[test]
 fn scroll_up() -> Result<()> {
-    let mut p = Printer::new(std::io::sink());
+    let mut p = Printer::new(std::io::sink(), "".to_owned());
 
     let origin_pos = p.cursor.pos;
     p.scroll_up(3);
@@ -73,7 +73,7 @@ fn scroll_up() -> Result<()> {
 
 #[test]
 fn scroll_because_input_needs_scroll() -> Result<()> {
-    let mut p = Printer::new(std::io::sink());
+    let mut p = Printer::new(std::io::sink(), "".to_owned());
     let b = "\n\n\n".into();
 
     p.cursor.pos.starting_pos.0 = 0;
@@ -89,7 +89,7 @@ fn scroll_because_input_needs_scroll() -> Result<()> {
 
 #[test]
 fn dont_scroll_because_input_doesent_need_scroll() -> Result<()> {
-    let mut p = Printer::new(std::io::sink());
+    let mut p = Printer::new(std::io::sink(), "".to_owned());
     let b = "\n\n\n".into();
 
     p.cursor.pos.starting_pos.0 = 0;
@@ -105,8 +105,7 @@ fn dont_scroll_because_input_doesent_need_scroll() -> Result<()> {
 
 #[test]
 fn calculate_bounds_correctly() -> Result<()> {
-    const INPUT_START: usize = 4;
-    let mut p = Printer::new(std::io::sink());
+    let mut p = Printer::new(std::io::sink(), "".to_owned());
     let width = p.cursor.bound.width;
     let height = p.cursor.bound.height;
     let queue = default_process_fn(&"alloc\nprint".into());
@@ -117,8 +116,8 @@ fn calculate_bounds_correctly() -> Result<()> {
 
     let expected_bound = {
         let mut v = vec![width - 1; height];
-        v[0] = INPUT_START + 5;
-        v[1] = INPUT_START + 5;
+        v[0] = 9;
+        v[1] = 9;
         v
     };
     assert_eq!(expected_bound, p.cursor.bound.bound);
@@ -127,8 +126,7 @@ fn calculate_bounds_correctly() -> Result<()> {
 
 #[test]
 pub fn calculate_bounds_correctly2() -> Result<()> {
-    const INPUT_START: usize = 4;
-    let mut p = Printer::new(std::io::sink());
+    let mut p = Printer::new(std::io::sink(), "".to_owned());
     let width = p.cursor.bound.width;
     let height = p.cursor.bound.height;
     let queue = default_process_fn(&"A\tz\nBC\n".into());
@@ -138,9 +136,9 @@ pub fn calculate_bounds_correctly2() -> Result<()> {
 
     let expected_bound = {
         let mut v = vec![width - 1; height];
-        v[height - 5] = INPUT_START + 3;
-        v[height - 4] = INPUT_START + 2;
-        v[height - 3] = INPUT_START;
+        v[height - 5] = 7;
+        v[height - 4] = 6;
+        v[height - 3] = 4;
         v
     };
     assert_eq!(expected_bound, p.cursor.bound.bound);

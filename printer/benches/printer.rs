@@ -19,6 +19,6 @@ fn bench_print_input(b: &mut Bencher) {
         "#
     .into();
 
-    let mut printer = Printer::new(std::io::sink());
+    let mut printer = Printer::new(std::io::sink(), "".to_string());
     b.iter(|| printer.print_input(&default_process_fn, &buffer));
 }

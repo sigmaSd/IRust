@@ -9,23 +9,24 @@ mod writer;
 #[cfg(test)]
 mod tests;
 
-pub const PROMPT: &str = "In: ";
-
 #[derive(Debug, Clone)]
 pub struct Printer<W: std::io::Write> {
     printer: PrintQueue,
     pub writer: writer::Writer<W>,
     pub cursor: cursor::Cursor<W>,
+    pub prompt: String,
 }
 
 impl<W: std::io::Write> Printer<W> {
-    pub fn new(raw: W) -> Printer<W> {
+    pub fn new(raw: W, prompt: String) -> Printer<W> {
         crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
         let raw = Rc::new(RefCell::new(raw));
+        let prompt_len = prompt.chars().count();
         Self {
             printer: PrintQueue::default(),
             writer: writer::Writer::new(raw.clone()),
-            cursor: cursor::Cursor::new(raw),
+            cursor: cursor::Cursor::new(raw, prompt_len),
+            prompt,
         }
     }
 }
@@ -106,8 +107,7 @@ impl<W: std::io::Write> Printer<W> {
         self.cursor.goto_start();
         self.writer.raw.clear(ClearType::FromCursorDown)?;
 
-        self.writer
-            .write_from_terminal_start(PROMPT, Color::Yellow, &mut self.cursor)?;
+        self.print_prompt_if_set()?;
 
         self.print_input_inner(process_function(&buffer))?;
         //bound last row to last position
@@ -127,8 +127,7 @@ impl<W: std::io::Write> Printer<W> {
         self.cursor.goto_start();
         self.writer.raw.clear(ClearType::FromCursorDown)?;
 
-        self.writer
-            .write_from_terminal_start(PROMPT, Color::Yellow, &mut self.cursor)?;
+        self.print_prompt_if_set()?;
 
         self.print_input_inner(queue)?;
         //bound last row to last position
@@ -155,7 +154,7 @@ impl<W: std::io::Write> Printer<W> {
                 PrinterItem::NewLine => {
                     self.cursor.bound_current_row_at_current_col();
                     self.cursor.goto_next_row_terminal_start();
-                    self.writer.write("..: ", Color::Yellow, &mut self.cursor)?;
+                    self.print_extra_lines_indicator_if_needed(false)?;
                 }
             }
         }
@@ -175,7 +174,7 @@ impl<W: std::io::Write> Printer<W> {
             // this can happen if the user uses a multiline string
             self.cursor.bound_current_row_at_current_col();
             self.cursor.goto_next_row_terminal_start();
-            self.writer.write("..: ", Color::Yellow, &mut self.cursor)?;
+            self.print_extra_lines_indicator_if_needed(false)?;
             return Ok(());
         }
         self.writer
@@ -184,9 +183,8 @@ impl<W: std::io::Write> Printer<W> {
             self.cursor.bound_current_row_at_current_col();
         }
 
-        if self.cursor.is_at_col(cursor::INPUT_START_COL) {
-            self.writer
-                .write_from_terminal_start("..: ", Color::Yellow, &mut self.cursor)?;
+        if self.cursor.is_at_col(self.prompt_len()) {
+            self.print_extra_lines_indicator_if_needed(true)?;
         }
         Ok(())
     }
@@ -260,7 +258,7 @@ impl<W: std::io::Write> Printer<W> {
         if self.cursor.is_at_last_terminal_col() {
             self.cursor.bound_current_row_at_current_col();
         }
-        if self.cursor.is_at_col(cursor::INPUT_START_COL) {
+        if self.cursor.is_at_col(self.prompt_len()) {
             for _ in 0..4 {
                 self.cursor.move_right_unbounded();
             }
@@ -305,9 +303,14 @@ impl<W: std::io::Write> Printer<W> {
         Ok(())
     }
 
-    pub fn print_prompt(&mut self) -> Result<()> {
-        self.write_from_terminal_start(PROMPT, Color::Yellow)?;
+    pub fn print_prompt_if_set(&mut self) -> Result<()> {
+        let prompt = &self.prompt.clone();
+        self.write_from_terminal_start(&prompt, Color::Yellow)?;
         Ok(())
+    }
+
+    pub fn prompt_len(&self) -> usize {
+        self.prompt.chars().count()
     }
 }
 
@@ -341,6 +344,27 @@ impl<W: std::io::Write> Printer<W> {
     }
     pub fn scroll_up(&mut self, n: usize) {
         self.writer.scroll_up(n, &mut self.cursor)
+    }
+    pub fn print_extra_lines_indicator_if_needed(&mut self, from_start: bool) -> Result<()> {
+        let prompt_len = self.prompt_len();
+
+        let mut write = |indicator| {
+            if from_start {
+                self.writer
+                    .write_from_terminal_start(indicator, Color::Yellow, &mut self.cursor)
+            } else {
+                self.writer
+                    .write(indicator, Color::Yellow, &mut self.cursor)
+            }
+        };
+        match prompt_len {
+            0 => Ok(()),
+            1 => write(" "),
+            n => {
+                let indicator = ".".repeat(n - 2) + ": ";
+                write(&indicator)
+            }
+        }
     }
 }
 

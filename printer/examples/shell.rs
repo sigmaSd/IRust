@@ -7,8 +7,8 @@ use printer::{
 };
 
 fn main() -> Result<()> {
-    let mut printer = Printer::new(std::io::stdout());
-    printer.print_prompt()?;
+    let mut printer = Printer::new(std::io::stdout(), "In: ".into());
+    printer.print_prompt_if_set()?;
     std::io::Write::flush(&mut printer.writer.raw)?;
 
     let mut buffer = Buffer::new();
@@ -46,7 +46,7 @@ fn main() -> Result<()> {
                         printer.print_output(output)?;
                     }
                     buffer.clear();
-                    printer.print_prompt()?;
+                    printer.print_prompt_if_set()?;
                 }
                 KeyEvent {
                     code: KeyCode::Char('c'),

@@ -9,7 +9,6 @@ use crate::buffer::Buffer;
 /// |In: x
 /// |    x
 /// |    x
-pub const INPUT_START_COL: usize = 4;
 
 #[derive(Debug, Clone, Copy)]
 pub struct CursorPosition {
@@ -30,12 +29,13 @@ pub struct Cursor<W: std::io::Write> {
     #[cfg(not(test))]
     bound: Bound,
     copy: CursorPosition,
+    prompt_len: usize,
 
     pub raw: Raw<W>,
 }
 
 impl<W: std::io::Write> Cursor<W> {
-    pub fn new(raw: Rc<RefCell<W>>) -> Self {
+    pub fn new(raw: Rc<RefCell<W>>, prompt_len: usize) -> Self {
         let mut raw = Raw { raw };
         let (width, height) = raw.size().unwrap_or((400, 400));
         let current_pos = raw.get_current_pos().unwrap_or((0, 0));
@@ -49,6 +49,7 @@ impl<W: std::io::Write> Cursor<W> {
             copy: pos,
             bound: Bound::new(width as usize, height as usize),
             raw,
+            prompt_len,
         }
     }
 
@@ -93,7 +94,7 @@ impl<W: std::io::Write> Cursor<W> {
 
     fn move_right_inner(&mut self, bound: usize) {
         if self.pos.current_pos.0 == bound {
-            self.pos.current_pos.0 = INPUT_START_COL;
+            self.pos.current_pos.0 = self.prompt_len;
             self.pos.current_pos.1 += 1;
         } else {
             self.pos.current_pos.0 += 1;
@@ -102,7 +103,7 @@ impl<W: std::io::Write> Cursor<W> {
     }
 
     pub fn move_left(&mut self) {
-        if self.pos.current_pos.0 == INPUT_START_COL {
+        if self.pos.current_pos.0 == self.prompt_len {
             self.pos.current_pos.0 = self.previous_row_bound();
             self.pos.current_pos.1 -= 1;
         } else {
@@ -204,7 +205,7 @@ impl<W: std::io::Write> Cursor<W> {
     }
 
     pub fn goto_input_start_col(&mut self) {
-        self.pos.current_pos.0 = self.pos.starting_pos.0 + INPUT_START_COL;
+        self.pos.current_pos.0 = self.pos.starting_pos.0 + self.prompt_len;
         self.pos.current_pos.1 = self.pos.starting_pos.1;
         self.goto_internal_pos();
     }
@@ -222,7 +223,7 @@ impl<W: std::io::Write> Cursor<W> {
     }
 
     pub fn is_at_line_start(&self) -> bool {
-        self.pos.current_pos.0 == INPUT_START_COL
+        self.pos.current_pos.0 == self.prompt_len
     }
 
     pub fn is_at_col(&self, col: usize) -> bool {
@@ -231,7 +232,7 @@ impl<W: std::io::Write> Cursor<W> {
 
     pub fn buffer_pos_to_cursor_pos(&self, buffer: &Buffer) -> (usize, usize) {
         let last_buffer_pos = buffer.len();
-        let max_line_chars = self.bound.width - INPUT_START_COL;
+        let max_line_chars = self.bound.width - self.prompt_len;
 
         let mut y = buffer
             .iter()
@@ -257,7 +258,7 @@ impl<W: std::io::Write> Cursor<W> {
     pub fn input_last_pos(&self, buffer: &Buffer) -> (usize, usize) {
         let relative_pos = self.buffer_pos_to_cursor_pos(buffer);
         //let relative_pos = buffer.last_buffer_pos_to_relative_cursor_pos(self.bound.width);
-        let x = relative_pos.0 + INPUT_START_COL;
+        let x = relative_pos.0 + self.prompt_len;
         let y = relative_pos.1 + self.pos.starting_pos.1;
 
         (x, y)
@@ -277,10 +278,12 @@ impl<W: std::io::Write> Cursor<W> {
     }
 
     pub fn cursor_pos_to_buffer_pos(&self) -> usize {
-        self.pos.current_pos.0 - INPUT_START_COL
-            + self
-                .bound
-                .bounds_sum(self.pos.starting_pos.1, self.pos.current_pos.1)
+        self.pos.current_pos.0 - self.prompt_len
+            + self.bound.bounds_sum(
+                self.pos.starting_pos.1,
+                self.pos.current_pos.1,
+                self.prompt_len,
+            )
     }
 
     pub fn goto_next_row_terminal_start(&mut self) {

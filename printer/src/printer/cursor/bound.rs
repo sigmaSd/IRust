@@ -7,13 +7,8 @@ pub struct Bound {
 
 impl Bound {
     pub fn new(width: usize, height: usize) -> Self {
-        let mut bound = Vec::new();
-        for _ in 0..height {
-            bound.push(width - 1);
-        }
-
         Self {
-            bound,
+            bound: vec![width - 1; height],
             width,
             height,
         }
@@ -40,12 +35,12 @@ impl Bound {
         self.bound[0] = self.bound.pop().unwrap();
     }
 
-    pub fn bounds_sum(&self, start_row: usize, end_row: usize) -> usize {
+    pub fn bounds_sum(&self, start_row: usize, end_row: usize, prompt_len: usize) -> usize {
         self.bound
             .iter()
             .take(end_row)
             .skip(start_row)
-            .map(|b| b + 1 - super::INPUT_START_COL)
+            .map(|b| b + 1 - prompt_len)
             .sum()
     }
 }
