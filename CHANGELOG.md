@@ -1,3 +1,6 @@
+**1.4.1**
+- Clear racer suggestions before printing output
+
 **1.4.0**
 - Input prompt is now customizable
 - Split printer system in its own crate `printer`

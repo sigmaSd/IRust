@@ -2,7 +2,7 @@ use crate::irust::options::Options;
 
 use std::env;
 
-const VERSION: &str = "1.4.0";
+const VERSION: &str = "1.4.1";
 
 pub fn handle_args(options: &mut Options) -> bool {
     let args: Vec<String> = env::args().skip(1).collect();
