@@ -89,7 +89,7 @@ impl IRust {
 
     fn clean_art(&mut self) -> Result<()> {
         self.printer.cursor.restore_position();
-        self.printer.write_newline(&self.buffer)?;
+        self.printer.write_newline(&self.buffer);
         self.printer.cursor.show();
         self.printer.writer.raw.reset_color()?;
         Ok(())
@@ -107,8 +107,8 @@ impl IRust {
         self.printer.writer.raw.write(&msg)?;
         self.printer.writer.raw.reset_color()?;
 
-        self.printer.write_newline(&self.buffer)?;
-        self.printer.write_newline(&self.buffer)?;
+        self.printer.write_newline(&self.buffer);
+        self.printer.write_newline(&self.buffer);
 
         Ok(())
     }

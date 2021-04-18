@@ -37,7 +37,7 @@ impl IRust {
         self.printer.cursor.hide();
 
         // create a new line
-        self.printer.write_newline(&self.buffer)?;
+        self.printer.write_newline(&self.buffer);
 
         // add commands to history
         if self.should_push_to_history(&buffer) {
@@ -182,7 +182,7 @@ impl IRust {
 
     pub fn handle_ctrl_d(&mut self) -> Result<bool> {
         if self.buffer.is_empty() {
-            self.printer.write_newline(&self.buffer)?;
+            self.printer.write_newline(&self.buffer);
             self.printer
                 .write("Do you really want to exit ([y]/n)? ", Color::Grey)?;
 
@@ -197,8 +197,8 @@ impl IRust {
                         }) => match &c {
                             'y' | 'Y' => return Ok(true),
                             _ => {
-                                self.printer.write_newline(&self.buffer)?;
-                                self.printer.write_newline(&self.buffer)?;
+                                self.printer.write_newline(&self.buffer);
+                                self.printer.write_newline(&self.buffer);
                                 self.printer.print_prompt()?;
                                 return Ok(false);
                             }
@@ -223,7 +223,7 @@ impl IRust {
         self.history.save()?;
         self.options.save()?;
         self.theme.save()?;
-        self.printer.write_newline(&self.buffer)?;
+        self.printer.write_newline(&self.buffer);
         self.printer.cursor.show();
         Ok(())
     }

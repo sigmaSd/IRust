@@ -324,8 +324,8 @@ impl<W: std::io::Write> Printer<W> {
         self.writer.clear_last_line(&mut self.cursor)
     }
 
-    pub fn write_newline(&mut self, buffer: &Buffer) -> Result<()> {
-        self.writer.write_newline(&mut self.cursor, buffer)
+    pub fn write_newline(&mut self, buffer: &Buffer) {
+        self.writer.write_newline(&mut self.cursor, buffer);
     }
 
     pub fn write(&mut self, out: &str, color: Color) -> Result<()> {

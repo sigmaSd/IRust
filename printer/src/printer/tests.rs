@@ -17,7 +17,7 @@ fn write_from_terminal_start_cursor_pos_correct() -> Result<()> {
 }
 
 #[test]
-fn writenew_line_no_scroll() -> Result<()> {
+fn writenew_line_no_scroll() {
     let mut p = Printer::new(std::io::sink());
 
     let b = "Hello world".into();
@@ -28,16 +28,14 @@ fn writenew_line_no_scroll() -> Result<()> {
     assert_eq!(p.cursor.pos.current_pos, p.cursor.pos.starting_pos);
 
     let origin_pos = p.cursor.pos;
-    p.write_newline(&b)?;
+    p.write_newline(&b);
 
     assert_eq!(origin_pos.starting_pos.1 + 1, p.cursor.pos.starting_pos.1);
     assert_eq!(origin_pos.current_pos.1 + 1, p.cursor.pos.current_pos.1);
-
-    Ok(())
 }
 
 #[test]
-fn writenew_line_with_scroll() -> Result<()> {
+fn writenew_line_with_scroll() {
     let mut p = Printer::new(std::io::sink());
     let b = "Hello world".into();
 
@@ -48,12 +46,10 @@ fn writenew_line_with_scroll() -> Result<()> {
     assert_eq!(p.cursor.pos.current_pos, p.cursor.pos.starting_pos);
 
     let origin_pos = p.cursor.pos;
-    p.write_newline(&b)?;
+    p.write_newline(&b);
 
     assert_eq!(origin_pos.starting_pos.1, p.cursor.pos.starting_pos.1);
     assert_eq!(origin_pos.current_pos.1, p.cursor.pos.current_pos.1);
-
-    Ok(())
 }
 
 #[test]

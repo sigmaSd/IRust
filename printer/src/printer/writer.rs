@@ -106,7 +106,7 @@ impl<W: std::io::Write> Writer<W> {
         Ok(())
     }
 
-    pub(super) fn write_newline(&mut self, cursor: &mut Cursor<W>, buffer: &Buffer) -> Result<()> {
+    pub(super) fn write_newline(&mut self, cursor: &mut Cursor<W>, buffer: &Buffer) {
         cursor.move_to_input_last_row(buffer);
 
         // check for scroll
@@ -116,8 +116,6 @@ impl<W: std::io::Write> Writer<W> {
 
         cursor.move_down(1);
         cursor.use_current_row_as_starting_row();
-
-        Ok(())
     }
 
     pub(super) fn clear(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
