@@ -186,7 +186,7 @@ pub struct GlobalVariables {
     _previous_working_dir: PathBuf,
     // Last path to a rust file loaded with `:load` command
     _last_loaded_code_path: Option<PathBuf>,
-    /// Mast successful printed output
+    /// Last successful printed output
     _last_output: Option<String>,
     /// A variable that increases with each input/output cycle
     operation_number: usize,
@@ -201,7 +201,7 @@ pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> String {
 #[no_mangle]
 // the signature must be this
 pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> String {
-    format!("Out [{}]: ", global_varibales.operation_number)
+    format!("Out[{}]: ", global_varibales.operation_number)
 }
 ```
 
