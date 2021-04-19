@@ -148,6 +148,52 @@ Default theme file:
   x = "white"
 
 ```
+## Scripts
+Since release `1.5.0` `IRust` introduced scripting feature.
+
+To activate it, set `activate_scripting` to `true`.
+
+Now IRust will look for a script file named `script.rs` in `$cache/irust/script.rs`
+
+Supported functions (see example):
+- `pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> String`
+- `pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> String`
+
+Important points:
+- Scripting is currently unsafe, using it incorrectly will case IRust to crash or segfault
+- Scripts have a higher precedence then options (for example prompt functions will override prompt set in the configuration)
+
+Template/Example `script.rs`:
+```rust
+/// This script prints an input/output prompt with the number of the 
+evaluation prefix to it
+/// `operation_number` is a variable that increases with each input/output cycle
+
+use std::path::PathBuf;
+
+// the signature must be this
+pub struct GlobalVariables {
+    _current_working_dir: PathBuf,
+    _previous_working_dir: PathBuf,
+    _last_loaded_code_path: Option<PathBuf>,
+    /// last successful output
+    _last_output: Option<String>,
+    operation_number: usize,
+}
+
+#[no_mangle]
+// the signature must be this
+pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> String {
+    format!("In [{}]: ", global_varibales.operation_number)
+}
+
+#[no_mangle]
+// the signature must be this
+pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> String {
+    format!("Out [{}]: ", global_varibales.operation_number)
+}
+```
+
 
 ## Releases
    Automatic releases by github actions are uploaded here https://github.com/sigmaSd/irust/releases

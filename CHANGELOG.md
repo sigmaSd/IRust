@@ -1,3 +1,7 @@
+**1.5.0**
+- Add scripting to IRust: Add a script manager to irust, scripting feature can be activated by a new option in the configuration file. If this option is set IRust will look for a script file in `$cache/script.rs` and load the functions specified there.
+ Currently only two functions are supported: `input_prompt` `output_prompt`
+
 **1.4.1**
 - Clear racer suggestions before printing output
 
