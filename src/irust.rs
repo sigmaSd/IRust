@@ -41,8 +41,11 @@ pub struct IRust {
 impl IRust {
     pub fn new(options: Options) -> Self {
         let out = SOUT.lock();
+        // Make sure to call Repl::new at the start so it can set `irust-repl` dir, which might be used by others (ScriptManager)
+        let repl = Repl::new();
 
         let global_variables = GlobalVariables::new();
+
         let script_mg = if options.activate_scripting {
             ScriptManager::new()
         } else {
@@ -62,12 +65,12 @@ impl IRust {
 
         let printer = Printer::new(out, prompt);
 
-        let repl = Repl::new();
         let racer = if options.enable_racer {
             Racer::start()
         } else {
             None
         };
+
         let buffer = Buffer::new();
         let theme = highlight::theme::theme().unwrap_or_default();
         let history = History::new().unwrap_or_default();
