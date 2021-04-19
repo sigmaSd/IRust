@@ -28,10 +28,11 @@ pub struct Cursor<W: std::io::Write> {
     pos: CursorPosition,
     #[cfg(not(test))]
     bound: Bound,
-    copy: CursorPosition,
-    prompt_len: usize,
 
+    pub prompt_len: usize,
     pub raw: Raw<W>,
+
+    copy: CursorPosition,
 }
 
 impl<W: std::io::Write> Cursor<W> {

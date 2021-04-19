@@ -312,6 +312,11 @@ impl<W: std::io::Write> Printer<W> {
     pub fn prompt_len(&self) -> usize {
         self.prompt.chars().count()
     }
+
+    pub fn set_prompt(&mut self, prompt: String) {
+        self.prompt = prompt;
+        self.cursor.prompt_len = self.prompt_len();
+    }
 }
 
 // Methods that combine writer and cursor are exported by the printer
