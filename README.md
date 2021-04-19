@@ -157,7 +157,7 @@ Since release `1.5.0` `IRust` introduced scripting feature.
 
 To activate it, set `activate_scripting` to `true` in the configuration file.
 
-Now IRust will look for a script file named `script.rs` in `$cache/irust/script.rs`
+Now IRust will look for a script file named `script.rs` in `$config_dir/irust/script.rs`
 
 Supported functions (see example):
 ```rust
