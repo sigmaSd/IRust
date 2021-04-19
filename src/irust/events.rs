@@ -63,6 +63,8 @@ impl IRust {
             // clear racer suggestions is present
             self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
             self.printer.print_output(output)?;
+            self.global_variables.operation_number += 1;
+            self.update_input_prompt();
         }
 
         // print a new input prompt

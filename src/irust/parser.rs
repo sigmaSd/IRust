@@ -365,7 +365,8 @@ impl IRust {
                 self.global_variables.set_last_output(out.clone());
             }
 
-            if let Some(mut eval_output) = format_eval_output(status, out) {
+            let output_prompt = self.get_output_prompt();
+            if let Some(mut eval_output) = format_eval_output(status, out, output_prompt) {
                 outputs.append(&mut eval_output);
             }
 
@@ -496,8 +497,10 @@ impl IRust {
             Ok(())
         })?;
 
+        let output_prompt = self.get_output_prompt();
         // safe unwrap
-        Ok(format_eval_output(status.unwrap(), raw_out).ok_or("failed to bench function")?)
+        Ok(format_eval_output(status.unwrap(), raw_out, output_prompt)
+            .ok_or("failed to bench function")?)
     }
 
     fn bench(&mut self) -> Result<PrintQueue> {

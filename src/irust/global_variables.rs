@@ -6,6 +6,7 @@ pub struct GlobalVariables {
     last_loaded_code_path: Option<PathBuf>,
     /// last successful output
     last_output: Option<String>,
+    pub operation_number: usize,
 }
 
 impl GlobalVariables {
@@ -17,6 +18,7 @@ impl GlobalVariables {
             previous_working_dir: cwd,
             last_loaded_code_path: None,
             last_output: None,
+            operation_number: 1,
         }
     }
 

@@ -20,9 +20,11 @@ pub fn format_err(output: &str) -> PrintQueue {
     error
 }
 
-pub fn format_eval_output(status: std::process::ExitStatus, output: String) -> Option<PrintQueue> {
-    const OUT: &str = "Out: ";
-
+pub fn format_eval_output(
+    status: std::process::ExitStatus,
+    output: String,
+    prompt: String,
+) -> Option<PrintQueue> {
     if !status.success() {
         return Some(format_err(&output));
     }
@@ -31,7 +33,7 @@ pub fn format_eval_output(status: std::process::ExitStatus, output: String) -> O
     }
 
     let mut eval_output = PrintQueue::default();
-    eval_output.push(PrinterItem::Str(OUT, Color::Red));
+    eval_output.push(PrinterItem::String(prompt, Color::Red));
     eval_output.push(PrinterItem::String(output, Color::White));
     Some(eval_output)
 }
