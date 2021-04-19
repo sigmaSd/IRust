@@ -122,7 +122,11 @@ IRust config file is located in:
   replace_output_with_marker = false
   
   # modify input prmopt
-  prompt = "In: "
+  input_prompt = "In: "
+  output_prompt = "Out: "
+  
+  # activate scripting feature
+  activate_scripting = false
 ```
 
 ## Theme
@@ -151,22 +155,26 @@ Default theme file:
 ## Scripts
 Since release `1.5.0` `IRust` introduced scripting feature.
 
-To activate it, set `activate_scripting` to `true`.
+To activate it, set `activate_scripting` to `true` in the configuration file.
 
 Now IRust will look for a script file named `script.rs` in `$cache/irust/script.rs`
 
 Supported functions (see example):
-- `pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> String`
-- `pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> String`
+```rust
+pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> String
+```
+```rust
+pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> String
+```
 
 Important points:
-- Scripting is currently unsafe, using it incorrectly will case IRust to crash or segfault
-- Scripts have a higher precedence then options (for example prompt functions will override prompt set in the configuration)
+- Scripting is currently unsafe, using it incorrectly will cause IRust to crash or segfault
+- Scripts have a higher precedence then options (for example prompt functions will override the prompt set in the configuration)
 
 Template/Example `script.rs`:
 ```rust
 /// This script prints an input/output prompt with the number of the 
-evaluation prefix to it
+/// evaluation prefixed to it
 /// `operation_number` is a variable that increases with each input/output cycle
 
 use std::path::PathBuf;
