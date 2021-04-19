@@ -1,5 +1,5 @@
 **1.5.0**
-- Add scripting to IRust: Add a script manager to irust, scripting feature can be activated by a new option in the configuration file. If this option is set IRust will look for a script file in `$cache/irust_repl/script.rs` and load the functions specified there.
+- Add scripting to IRust: Add a script manager to irust, scripting feature can be activated by a new option in the configuration file. If this option is set IRust will look for a script file in `$config/irust/script.rs` and load the functions specified there.
  Currently only two functions are supported: `input_prompt` `output_prompt`
 
 - Add input_prompt/output_prompt to the configuration file
