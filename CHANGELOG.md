@@ -1,3 +1,6 @@
+**1.6.1**
+- Fix script dynamic library path on windows
+
 **1.6.0**
 - Improve scripting: Instead of a script file, now if scripting option is set, IRust will create a script project in $config/irust/script with a default template. This make it easy to add external dependencies among other advantages.
 - Make script return type ffi safe
