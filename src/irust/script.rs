@@ -23,7 +23,7 @@ impl ScriptManager {
         #[cfg(unix)]
         let compiled_script_lib_path = script_target_dir.join("debug/libirustscript.so");
         #[cfg(windows)]
-        let compiled_script_lib_path = script_target_dir.join("debug/libirustscript.dll");
+        let compiled_script_lib_path = script_target_dir.join("debug/irustscript.dll");
 
         let last_modified = std::fs::File::open(&script_lib_file_path)
             .ok()?
