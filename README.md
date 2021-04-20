@@ -157,9 +157,11 @@ Since release `1.5.0` `IRust` introduced scripting feature.
 
 To activate it, set `activate_scripting` to `true` in the configuration file.
 
-Now IRust will look for a script file named `script.rs` in `$config_dir/irust/script.rs`
+Now IRust will create a cargo project named `script` located at `$config/script`
 
-Supported functions (see example):
+This project has a default template, that showcases the available features.
+
+Currently Supported functions (see example):
 ```rust
 pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> String
 ```
@@ -171,18 +173,17 @@ Important points:
 - Scripting is currently unsafe, using it incorrectly will cause IRust to crash or segfault
 - Scripts have a higher precedence then options (for example prompt functions will override the prompt set in the configuration)
 
-Template/Example `script.rs`:
+Template/Example:
 ```rust
-/// This script prints an input/output prompt with the number of the 
+/// This script prints an input/output prompt with the number of the
 /// evaluation prefixed to it
-
-use std::path::PathBuf;
+use std::{ffi::CString, os::raw::c_char, path::PathBuf};
 
 // the signature must be this
 pub struct GlobalVariables {
     // Current directory that IRust is in
     _current_working_dir: PathBuf,
-    // Previous directory that IRust was in, this current directory can change if the user uses the `:cd` command 
+    // Previous directory that IRust was in, this current directory can change if the user uses the `:cd` command
     _previous_working_dir: PathBuf,
     // Last path to a rust file loaded with `:load` command
     _last_loaded_code_path: Option<PathBuf>,
@@ -194,14 +195,20 @@ pub struct GlobalVariables {
 
 #[no_mangle]
 // the signature must be this
-pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> String {
-    format!("In [{}]: ", global_varibales.operation_number)
+pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> *mut c_char {
+    // Default script
+    CString::new(format!("In [{}]: ", global_varibales.operation_number))
+        .unwrap()
+        .into_raw()
 }
 
 #[no_mangle]
 // the signature must be this
-pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> String {
-    format!("Out[{}]: ", global_varibales.operation_number)
+pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> *mut c_char {
+    // Default script
+    CString::new(format!("Out[{}]: ", global_varibales.operation_number))
+        .unwrap()
+        .into_raw()
 }
 ```
 
