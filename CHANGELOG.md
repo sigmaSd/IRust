@@ -1,3 +1,7 @@
+**1.6.0**
+- Improve scripting: Instead of a script file, now if scripting option is set, IRust will create a script project in $config/irust/script with a default template. This make it easy to add external dependencies among other advantages.
+- Make script return type ffi safe
+
 **1.5.0**
 - Add scripting to IRust: Add a script manager to irust, scripting feature can be activated by a new option in the configuration file. If this option is set IRust will look for a script file in `$config/irust/script.rs` and load the functions specified there.
  Currently only two functions are supported: `input_prompt` `output_prompt`
