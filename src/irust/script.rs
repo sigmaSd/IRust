@@ -1,7 +1,9 @@
 use super::global_variables::GlobalVariables;
 use crossterm::style::Colorize;
 use libloading::{Library, Symbol};
-use std::{env::temp_dir, path::Path, process::Command};
+use std::fs::File;
+use std::io::Write;
+use std::{path::Path, process::Command};
 
 pub struct ScriptManager {
     lib: Library,
@@ -9,20 +11,21 @@ pub struct ScriptManager {
 
 impl ScriptManager {
     pub fn new() -> Option<Self> {
-        let script_path = dirs_next::config_dir()?.join("irust").join("script.rs");
-        let script_timestamp_path = dirs_next::cache_dir()?
-            .join("irust_repl")
-            .join("script_timestamp");
+        let script_path = dirs_next::config_dir()?.join("irust").join("script");
+        create_script_dir_with_src(&script_path.join("src"))?;
 
-        let script_lib_name = "libirustscript";
-        let script_lib_path = temp_dir().join(script_lib_name);
-
-        if !Path::exists(&script_path) {
-            // No user script
-            return None;
+        let script_lib_file_path = script_path.join("src/lib.rs");
+        if !Path::exists(&script_lib_file_path) {
+            create_template_script(&script_lib_file_path)?;
         }
 
-        let last_modified = std::fs::File::open(&script_path)
+        let script_target_dir = script_path.join("target");
+        #[cfg(unix)]
+        let compiled_script_lib_path = script_target_dir.join("debug/libirustscript.so");
+        #[cfg(windows)]
+        let compiled_script_lib_path = script_target_dir.join("debug/libirustscript.dll");
+
+        let last_modified = std::fs::File::open(&script_lib_file_path)
             .ok()?
             .metadata()
             .ok()?
@@ -32,17 +35,21 @@ impl ScriptManager {
             .ok()?
             .as_secs();
 
+        let script_timestamp_path = dirs_next::cache_dir()?
+            .join("irust_repl")
+            .join("script_timestamp");
+
         if let Some(last_timestamp) = (|| {
             std::fs::read_to_string(&script_timestamp_path)
                 .ok()?
                 .parse::<u64>()
                 .ok()
         })() {
-            if last_modified <= last_timestamp && Path::exists(&script_lib_path) {
+            if last_modified <= last_timestamp && Path::exists(&compiled_script_lib_path) {
                 // library already compiled and no modification have occurred since last compilation
                 return unsafe {
                     Some(Self {
-                        lib: Library::new(script_lib_path).unwrap(),
+                        lib: Library::new(compiled_script_lib_path).unwrap(),
                     })
                 };
             }
@@ -52,17 +59,17 @@ impl ScriptManager {
             "{}",
             format!(
                 "Found script file at {}\nStarting compilation..",
-                script_path.display()
+                script_lib_file_path.display()
             )
             .cyan()
         );
         println!();
 
         let compilation = (|| {
-            Command::new("rustc")
-                .args(&["--crate-type", "dylib"])
-                .arg(script_path)
-                .args(&["-o", &script_lib_path.display().to_string()])
+            Command::new("cargo")
+                .arg("build")
+                .args(&["--target-dir", &script_target_dir.display().to_string()])
+                .current_dir(script_path)
                 .spawn()
                 .ok()?
                 .wait()
@@ -78,7 +85,7 @@ impl ScriptManager {
             "{}",
             format!(
                 "Compiled script successfully to {}",
-                &script_lib_path.display()
+                &compiled_script_lib_path.display()
             )
             .green()
         );
@@ -89,7 +96,7 @@ impl ScriptManager {
 
         unsafe {
             Some(Self {
-                lib: Library::new(script_lib_path).unwrap(),
+                lib: Library::new(compiled_script_lib_path).unwrap(),
             })
         }
     }
@@ -110,3 +117,54 @@ impl ScriptManager {
 }
 
 type PromptFn<'lib> = Symbol<'lib, unsafe extern "C" fn(&GlobalVariables) -> String>;
+
+fn create_script_dir_with_src(script_path: &Path) -> Option<()> {
+    let _ = std::fs::create_dir_all(&script_path);
+
+    let cargo_toml_file = script_path.join("Cargo.toml");
+    let mut cargo_toml_file = File::create(cargo_toml_file).ok()?;
+
+    const CARGO_TOML: &str = r#"[package]
+name = "irustscript"
+version = "0.1.0"
+edition = "2018"
+[lib]
+crate-type = ["dylib"]"#;
+    write!(cargo_toml_file, "{}", CARGO_TOML).ok()?;
+
+    Some(())
+}
+
+fn create_template_script(script_lib_file_path: &Path) -> Option<()> {
+    const TEMPLATE: &str = r##"/// This script prints an input/output prompt with the number of the
+/// evaluation prefixed to it
+use std::path::PathBuf;
+
+// the signature must be this
+pub struct GlobalVariables {
+    // Current directory that IRust is in
+    _current_working_dir: PathBuf,
+    // Previous directory that IRust was in, this current directory can change if the user uses the `:cd` command
+    _previous_working_dir: PathBuf,
+    // Last path to a rust file loaded with `:load` command
+    _last_loaded_code_path: Option<PathBuf>,
+    /// Last successful printed output
+    _last_output: Option<String>,
+    /// A variable that increases with each input/output cycle
+    operation_number: usize,
+}
+
+#[no_mangle]
+// the signature must be this
+pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> String {
+    format!("In [{}]: ", global_varibales.operation_number)
+}
+
+#[no_mangle]
+// the signature must be this
+pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> String {
+    format!("Out[{}]: ", global_varibales.operation_number)
+}
+    "##;
+    std::fs::write(script_lib_file_path, TEMPLATE).ok()
+}
