@@ -149,6 +149,7 @@ impl super::IRust {
                         let found_needle = find_and_print!();
                         if !found_needle {
                             index -= 1;
+                            let _ = find_and_print!();
                         }
                     }
                     Event::Key(KeyEvent {
