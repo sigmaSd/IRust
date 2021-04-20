@@ -163,10 +163,10 @@ This project has a default template, that showcases the available features.
 
 Currently Supported functions (see example):
 ```rust
-pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> String
+pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> *mut c_char
 ```
 ```rust
-pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> String
+pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> *mut c_char
 ```
 
 Important points:
