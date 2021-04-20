@@ -157,7 +157,7 @@ Since release `1.5.0` `IRust` introduced scripting feature.
 
 To activate it, set `activate_scripting` to `true` in the configuration file.
 
-Now IRust will create a cargo project named `script` located at `$config/script`
+Now IRust will create a cargo project named `script` located at `$config/irust/script`
 
 This project has a default template, that showcases the available features.
 
