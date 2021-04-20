@@ -132,6 +132,11 @@ fn create_script_dir_with_src(script_path: &Path) -> Option<()> {
     let _ = std::fs::create_dir_all(&script_path.join("src"));
 
     let cargo_toml_file = script_path.join("Cargo.toml");
+
+    if Path::exists(&cargo_toml_file) {
+        return Some(());
+    }
+
     let mut cargo_toml_file = File::create(cargo_toml_file).ok()?;
 
     const CARGO_TOML: &str = r#"[package]
@@ -140,9 +145,7 @@ version = "0.1.0"
 edition = "2018"
 [lib]
 crate-type = ["dylib"]"#;
-    write!(cargo_toml_file, "{}", CARGO_TOML).ok()?;
-
-    Some(())
+    write!(cargo_toml_file, "{}", CARGO_TOML).ok()
 }
 
 fn create_template_script(script_lib_file_path: &Path) -> Option<()> {
