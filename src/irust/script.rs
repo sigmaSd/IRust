@@ -12,7 +12,7 @@ pub struct ScriptManager {
 impl ScriptManager {
     pub fn new() -> Option<Self> {
         let script_path = dirs_next::config_dir()?.join("irust").join("script");
-        create_script_dir_with_src(&script_path.join("src"))?;
+        create_script_dir_with_src(&script_path)?;
 
         let script_lib_file_path = script_path.join("src/lib.rs");
         if !Path::exists(&script_lib_file_path) {
@@ -129,7 +129,7 @@ impl ScriptManager {
 type PromptFn<'lib> = Symbol<'lib, unsafe extern "C" fn(&GlobalVariables) -> &mut c_char>;
 
 fn create_script_dir_with_src(script_path: &Path) -> Option<()> {
-    let _ = std::fs::create_dir_all(&script_path);
+    let _ = std::fs::create_dir_all(&script_path.join("src"));
 
     let cargo_toml_file = script_path.join("Cargo.toml");
     let mut cargo_toml_file = File::create(cargo_toml_file).ok()?;
@@ -177,7 +177,7 @@ pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> *mut c_cha
 // the signature must be this
 pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> *mut c_char {
     // Default script
-    CString::new(format!("Out [{}]: ", global_varibales.operation_number))
+    CString::new(format!("Out[{}]: ", global_varibales.operation_number))
         .unwrap()
         .into_raw()
 }
