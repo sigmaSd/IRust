@@ -1,8 +1,8 @@
 use super::global_variables::GlobalVariables;
 use crossterm::style::Colorize;
 use libloading::{Library, Symbol};
-use std::fs::File;
-use std::io::Write;
+use std::{ffi::CString, io::Write};
+use std::{fs::File, os::raw::c_char};
 use std::{path::Path, process::Command};
 
 pub struct ScriptManager {
@@ -104,19 +104,29 @@ impl ScriptManager {
     pub fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
         unsafe {
             let script: PromptFn = self.lib.get(b"input_prompt").ok()?;
-            Some(script(global_variables))
+            Some(
+                CString::from_raw(script(global_variables))
+                    .to_str()
+                    .ok()?
+                    .to_string(),
+            )
         }
     }
 
     pub fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
         unsafe {
             let script: PromptFn = self.lib.get(b"output_prompt").ok()?;
-            Some(script(global_variables))
+            Some(
+                CString::from_raw(script(global_variables))
+                    .to_str()
+                    .ok()?
+                    .to_string(),
+            )
         }
     }
 }
 
-type PromptFn<'lib> = Symbol<'lib, unsafe extern "C" fn(&GlobalVariables) -> String>;
+type PromptFn<'lib> = Symbol<'lib, unsafe extern "C" fn(&GlobalVariables) -> &mut c_char>;
 
 fn create_script_dir_with_src(script_path: &Path) -> Option<()> {
     let _ = std::fs::create_dir_all(&script_path);
@@ -138,7 +148,7 @@ crate-type = ["dylib"]"#;
 fn create_template_script(script_lib_file_path: &Path) -> Option<()> {
     const TEMPLATE: &str = r##"/// This script prints an input/output prompt with the number of the
 /// evaluation prefixed to it
-use std::path::PathBuf;
+use std::{ffi::CString, os::raw::c_char, path::PathBuf};
 
 // the signature must be this
 pub struct GlobalVariables {
@@ -156,15 +166,21 @@ pub struct GlobalVariables {
 
 #[no_mangle]
 // the signature must be this
-pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> String {
-    format!("In [{}]: ", global_varibales.operation_number)
+pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> *mut c_char {
+    // Default script
+    CString::new(format!("In [{}]: ", global_varibales.operation_number))
+        .unwrap()
+        .into_raw()
 }
 
 #[no_mangle]
 // the signature must be this
-pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> String {
-    format!("Out[{}]: ", global_varibales.operation_number)
+pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> *mut c_char {
+    // Default script
+    CString::new(format!("Out [{}]: ", global_varibales.operation_number))
+        .unwrap()
+        .into_raw()
 }
-    "##;
+"##;
     std::fs::write(script_lib_file_path, TEMPLATE).ok()
 }
