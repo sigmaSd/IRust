@@ -1,0 +1,9 @@
+[package]
+name = "irustscript"
+version = "0.1.0"
+edition = "2018"
+[lib]
+crate-type = ["dylib"]
+
+[dependencies]
+chrono = "0.4.19"
