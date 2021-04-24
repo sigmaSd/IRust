@@ -1,3 +1,6 @@
+**0.2.3**
+- BugFix: Include the prompt size in calculation when clearing the screen
+
 **0.2.2**
 - Add a new function to the API: `set_prompt`
 
