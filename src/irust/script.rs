@@ -16,7 +16,7 @@ impl ScriptManager {
 
         let script_lib_file_path = script_path.join("src/lib.rs");
         if !Path::exists(&script_lib_file_path) {
-            create_template_script(&script_lib_file_path)?;
+            create_template_script(&script_path)?;
         }
 
         let script_target_dir = script_path.join("target");
@@ -148,42 +148,19 @@ crate-type = ["dylib"]"#;
     write!(cargo_toml_file, "{}", CARGO_TOML).ok()
 }
 
-fn create_template_script(script_lib_file_path: &Path) -> Option<()> {
-    const TEMPLATE: &str = r##"/// This script prints an input/output prompt with the number of the
-/// evaluation prefixed to it
-use std::{ffi::CString, os::raw::c_char, path::PathBuf};
+fn create_template_script(script_path: &Path) -> Option<()> {
+    #[cfg(unix)]
+    const LIB: &str = include_str!("script_template/lib.rs");
+    #[cfg(unix)]
+    const TYPES: &str = include_str!("script_template/types.rs");
 
-// the signature must be this
-pub struct GlobalVariables {
-    // Current directory that IRust is in
-    _current_working_dir: PathBuf,
-    // Previous directory that IRust was in, this current directory can change if the user uses the `:cd` command
-    _previous_working_dir: PathBuf,
-    // Last path to a rust file loaded with `:load` command
-    _last_loaded_code_path: Option<PathBuf>,
-    /// Last successful printed output
-    _last_output: Option<String>,
-    /// A variable that increases with each input/output cycle
-    operation_number: usize,
-}
+    #[cfg(windows)]
+    const LIB: &str = include_str!("script_template\\lib.rs");
+    #[cfg(windows)]
+    const TYPES: &str = include_str!("script_template\\types.rs");
 
-#[no_mangle]
-// the signature must be this
-pub extern "C" fn input_prompt(global_varibales: &GlobalVariables) -> *mut c_char {
-    // Default script
-    CString::new(format!("In [{}]: ", global_varibales.operation_number))
-        .unwrap()
-        .into_raw()
-}
+    std::fs::write(script_path.join("src/lib.rs"), LIB).ok()?;
+    std::fs::write(script_path.join("src/types.rs"), TYPES).ok()?;
 
-#[no_mangle]
-// the signature must be this
-pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> *mut c_char {
-    // Default script
-    CString::new(format!("Out[{}]: ", global_varibales.operation_number))
-        .unwrap()
-        .into_raw()
-}
-"##;
-    std::fs::write(script_lib_file_path, TEMPLATE).ok()
+    Some(())
 }
