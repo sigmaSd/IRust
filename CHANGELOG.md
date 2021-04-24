@@ -1,3 +1,8 @@
+**1.6.2**
+- Improve the help command by parsing the README.md markdown
+- Organize the template script better
+- BugFix: print prompt correctly after clearing the screen
+
 **1.6.1**
 - Fix script dynamic library path on windows
 - Don't overshoot when using backward search
