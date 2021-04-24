@@ -122,7 +122,7 @@ impl<W: std::io::Write> Writer<W> {
         self.raw.clear(ClearType::All)?;
 
         cursor.set_starting_pos(0, 0);
-        cursor.goto(4, 0);
+        cursor.goto_input_start_col();
         cursor.reset_bound();
         Ok(())
     }
