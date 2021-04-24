@@ -1,3 +1,6 @@
+**0.2.4**
+- Clear should not try to predict the prompt position
+
 **0.2.3**
 - BugFix: Include the prompt size in calculation when clearing the screen
 
