@@ -1,73 +1,115 @@
+use super::highlight::{highlight, theme::Theme};
 use crate::irust::{IRust, Result};
 use crossterm::style::Color;
-use printer::printer::{PrintQueue, PrinterItem};
-
-pub trait ColoredPrinterItem {
-    fn to_output(&self, _color: Color) -> PrinterItem;
-}
-
-impl<T: ToString> ColoredPrinterItem for T {
-    fn to_output(&self, color: Color) -> PrinterItem {
-        PrinterItem::String(self.to_string(), color)
-    }
-}
+use printer::{
+    buffer::Buffer,
+    printer::{PrintQueue, PrinterItem},
+};
 
 impl IRust {
     pub fn help(&mut self) -> Result<PrintQueue> {
-        let mut outputs = PrintQueue::default();
+        #[cfg(unix)]
+        let readme = include_str!("../../README.md");
+        #[cfg(windows)]
+        let readme = include_str!("..\\..\\README.md");
 
-        outputs.push("### Keywords / Tips & Tricks ###".to_output(Color::DarkYellow));
-        outputs.push(
-            "
-:help => print help
-
-:reset => reset repl
-
-:show => show repl current code (optionally depends on rustfmt to format output)
-
-:add <dep_list> => add dependencies (requires cargo-edit)
-
-:type <expression> => shows the expression type, example :type vec!(5)
-
-:load => load a rust script into the repl
-
-:pop => remove last repl code line
-
-:del <line_num> => remove a specific line from repl code (line count starts at 1 from the first expression statement)
-
-:edit <editor> => edit internal buffer using an external editor, example: :edit micro
-
-:: => run a shell command, example ::ls
-
-You can use arrow keys to cycle through commands history"
-                .to_output(Color::DarkCyan),
-        );
-        outputs.push(
-            "
-### Keybindings ###"
-                .to_output(Color::DarkYellow),
-        );
-        outputs.push(
-            "
-
-ctrl-l clear screen
-
-ctrl-c clear line, double click to exit
-
-ctrl-d exit if buffer is empty
-
-ctrl-z [unix only] send IRust to the background
-
-ctrl-left/right jump through words
-
-HOME/END go to line start / line end
-
-Tab/ShiftTab cycle through auto-completion suggestions (requires racer)
-
-Alt-Enter add line break"
-                .to_output(Color::DarkCyan),
-        );
-
-        Ok(outputs)
+        Ok(parse_markdown(&readme.into(), &self.theme))
     }
+}
+
+fn parse_markdown(buffer: &Buffer, theme: &Theme) -> PrintQueue {
+    let mut queue = PrintQueue::default();
+
+    let buffer = buffer.to_string();
+    let mut buffer = buffer.lines();
+
+    (|| -> Option<()> {
+        loop {
+            let line = buffer.next()?;
+
+            if line.trim_start().starts_with("##") {
+                queue.push(PrinterItem::String(line.to_string(), Color::Yellow));
+            } else if line.trim_start().starts_with('#') {
+                queue.push(PrinterItem::String(line.to_string(), Color::Red));
+            } else if line.trim_start().starts_with("```rust") {
+                queue.push(PrinterItem::String(line.to_string(), Color::Cyan));
+                // highlight rust code
+                queue.add_new_line(1);
+
+                // take_while takes ownership of the iterator
+                let mut skipped_lines = 0;
+
+                let code = buffer
+                    .clone()
+                    .take_while(|line| {
+                        skipped_lines += 1;
+                        !line.starts_with("```")
+                    })
+                    .collect::<Vec<&str>>()
+                    .join("\n");
+
+                for _ in 0..skipped_lines {
+                    let _ = buffer.next();
+                }
+
+                queue.append(&mut highlight(&code.into(), theme));
+            } else {
+                let mut line = line.chars().peekable();
+
+                (|| -> Option<()> {
+                    loop {
+                        let c = line.next()?;
+                        match c {
+                            '*' => {
+                                let mut star = String::new();
+                                star.push('*');
+
+                                let mut pending = None;
+                                let mut post_start_count = 0;
+
+                                while line.peek().is_some() {
+                                    let c = line.next().unwrap();
+                                    if pending.is_none() && c != '*' {
+                                        pending = Some(star.len());
+                                    }
+                                    star.push(c);
+
+                                    if let Some(pending) = pending {
+                                        if c == '*' {
+                                            post_start_count += 1;
+                                            if pending == post_start_count {
+                                                break;
+                                            }
+                                        } else {
+                                            post_start_count = post_start_count.saturating_sub(1);
+                                        }
+                                    }
+                                }
+                                queue.push(PrinterItem::String(star, Color::Magenta));
+                            }
+                            '`' => {
+                                let mut quoted = String::new();
+                                quoted.push('`');
+
+                                while line.peek().is_some() && line.peek() != Some(&'`') {
+                                    quoted.push(line.next().unwrap());
+                                }
+                                //push the closing quote
+                                if line.peek().is_some() {
+                                    quoted.push(line.next().unwrap());
+                                }
+                                queue.push(PrinterItem::String(quoted, Color::DarkGreen));
+                            }
+                            '=' | '>' | '(' | ')' => {
+                                queue.push(PrinterItem::Char(c, Color::DarkRed))
+                            }
+                            c => queue.push(PrinterItem::Char(c, Color::White)),
+                        }
+                    }
+                })();
+            }
+            queue.add_new_line(1);
+        }
+    })();
+    queue
 }
