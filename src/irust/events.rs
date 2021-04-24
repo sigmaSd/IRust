@@ -253,6 +253,7 @@ impl IRust {
         self.buffer.clear();
         self.buffer.goto_start();
         self.printer.clear()?;
+        self.printer.print_prompt_if_set()?;
         self.print_input()?;
         Ok(())
     }
