@@ -1,13 +1,4 @@
-use std::path::PathBuf;
-
-pub struct GlobalVariables {
-    current_working_dir: PathBuf,
-    previous_working_dir: PathBuf,
-    last_loaded_code_path: Option<PathBuf>,
-    /// last successful output
-    last_output: Option<String>,
-    pub operation_number: usize,
-}
+include!("script_template/types.rs");
 
 impl GlobalVariables {
     pub fn new() -> Self {
