@@ -2,7 +2,6 @@ mod art;
 mod cargo_cmds;
 mod events;
 mod format;
-mod global_variables;
 mod help;
 pub mod highlight;
 mod history;
@@ -11,20 +10,27 @@ mod parser;
 mod racer;
 mod repl;
 mod script;
+mod script2;
 use crossterm::event::KeyModifiers;
 use crossterm::event::{Event, KeyCode, KeyEvent};
-use global_variables::GlobalVariables;
 use highlight::theme::Theme;
 use history::History;
+use irust_api::GlobalVariables;
 use once_cell::sync::Lazy;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
 use repl::Repl;
 use script::ScriptManager;
+use script2::ScriptManager2;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 static SOUT: Lazy<std::io::Stdout> = Lazy::new(std::io::stdout);
+
+trait Script {
+    fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String>;
+    fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String>;
+}
 
 pub struct IRust {
     buffer: Buffer,
@@ -35,7 +41,7 @@ pub struct IRust {
     global_variables: GlobalVariables,
     theme: Theme,
     history: History,
-    script_mg: Option<ScriptManager>,
+    script_mg: Option<Box<dyn Script>>,
 }
 
 impl IRust {
@@ -47,7 +53,13 @@ impl IRust {
         let global_variables = GlobalVariables::new();
 
         let script_mg = if options.activate_scripting {
-            ScriptManager::new()
+            if let Some(script_mg) = ScriptManager::new() {
+                Some(Box::new(script_mg) as Box<dyn Script>)
+            } else {
+                None
+            }
+        } else if options.activate_scripting2 {
+            Some(Box::new(ScriptManager2::new()) as Box<dyn Script>)
         } else {
             None
         };

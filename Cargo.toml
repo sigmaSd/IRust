@@ -16,6 +16,8 @@ toml = "0.5.8"
 serde = { version = "1.0.125", features = ["derive"] }
 printer = { path = "printer/", version = "0.2.4" }
 libloading = "0.7.0"
+irust_api = { path = "irust_api/" }
+bincode = "1.3.3"
 
 [target.'cfg(unix)'.dependencies]
 nix = "0.20.0"

@@ -32,6 +32,7 @@ pub struct Options {
     pub input_prompt: String,
     pub output_prompt: String,
     pub activate_scripting: bool,
+    pub activate_scripting2: bool,
 }
 
 impl Default for Options {
@@ -76,6 +77,7 @@ impl Default for Options {
             input_prompt: "In: ".to_string(),
             output_prompt: "Out: ".to_string(),
             activate_scripting: false,
+            activate_scripting2: false,
         }
     }
 }

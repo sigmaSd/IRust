@@ -33,6 +33,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b41b7ea54a0c9d92199de89e20e58d49f02f8e699814ef3fdf266f6f748d15c7"
 
 [[package]]
+name = "bincode"
+version = "1.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -164,14 +173,23 @@ dependencies = [
 name = "irust"
 version = "1.6.2"
 dependencies = [
+ "bincode",
  "crossterm",
  "dirs-next",
+ "irust_api",
  "libloading",
  "nix",
  "once_cell",
  "printer",
  "serde",
  "toml",
+]
+
+[[package]]
+name = "irust_api"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
