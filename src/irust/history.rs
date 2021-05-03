@@ -1,4 +1,5 @@
 use super::Result;
+use irust_repl::cargo_cmds::IRUST_DIR;
 use std::fs;
 use std::path;
 
@@ -16,7 +17,7 @@ pub struct History {
 
 impl History {
     pub fn new() -> Result<Self> {
-        let history_file_path = crate::irust::cargo_cmds::IRUST_DIR.join("history");
+        let history_file_path = IRUST_DIR.join("history");
         if !history_file_path.exists() {
             fs::File::create(&history_file_path)?;
         }

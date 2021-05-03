@@ -1,5 +1,4 @@
 mod art;
-mod cargo_cmds;
 mod events;
 mod format;
 mod help;
@@ -8,17 +7,16 @@ mod history;
 pub mod options;
 mod parser;
 mod racer;
-mod repl;
 mod script;
 use crossterm::event::KeyModifiers;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use highlight::theme::Theme;
 use history::History;
 use irust_api::GlobalVariables;
+use irust_repl::Repl;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
-use repl::Repl;
 use script::{script1::ScriptManager, script2::ScriptManager2, Script};
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;

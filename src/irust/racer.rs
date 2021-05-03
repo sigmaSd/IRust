@@ -1,10 +1,11 @@
 use super::{
-    cargo_cmds::MAIN_FILE,
     highlight::{highlight, theme::Theme},
     Result,
 };
 use crate::utils::{read_until_bytes, StringTools};
 use crossterm::{style::Color, terminal::ClearType};
+use irust_repl::cargo_cmds::MAIN_FILE;
+use irust_repl::Repl;
 use printer::printer::{PrintQueue, Printer, PrinterItem};
 use std::io::Write;
 use std::process::{Child, Command, Stdio};
@@ -181,11 +182,7 @@ impl Racer {
 }
 
 impl Racer {
-    pub fn update_suggestions(
-        &mut self,
-        buffer: &super::Buffer,
-        repl: &mut crate::irust::repl::Repl,
-    ) -> Result<()> {
+    pub fn update_suggestions(&mut self, buffer: &super::Buffer, repl: &mut Repl) -> Result<()> {
         // get the buffer as string
         let buffer: String = buffer.iter().take(buffer.buffer_pos).collect();
 
@@ -199,11 +196,7 @@ impl Racer {
         Ok(())
     }
 
-    fn show_suggestions_inner(
-        &mut self,
-        buffer: String,
-        repl: &mut crate::irust::repl::Repl,
-    ) -> Result<()> {
+    fn show_suggestions_inner(&mut self, buffer: String, repl: &mut Repl) -> Result<()> {
         if buffer.starts_with(':') {
             // Auto complete IRust commands
             self.suggestions = self

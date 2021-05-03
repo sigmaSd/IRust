@@ -1,8 +1,10 @@
-use super::cargo_cmds::*;
-use super::Result;
+pub mod cargo_cmds;
+use cargo_cmds::*;
+mod utils;
 use std::io::{self, Write};
 use std::process::ExitStatus;
 
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const FN_MAIN: &str = "fn main() {";
 
 #[derive(Clone)]
@@ -40,7 +42,8 @@ impl Repl {
     // Note: Insert must be followed by write_to_extern if persistance is needed
     // Or else it will be overwritten by the main_extern thread
     // Fix this
-    pub fn insert(&mut self, input: String) {
+    pub fn insert(&mut self, input: impl ToString) {
+        let input = input.to_string();
         // CRATE_ATTRIBUTE are special in the sense that they should be inserted outside of the main function
         // #![feature(unboxed_closures)]
         // fn main() {}
@@ -81,7 +84,12 @@ impl Repl {
         Ok(())
     }
 
-    pub fn eval(&mut self, input: String, toolchain: ToolChain) -> Result<(ExitStatus, String)> {
+    pub fn eval(
+        &mut self,
+        input: impl ToString,
+        toolchain: ToolChain,
+    ) -> Result<(ExitStatus, String)> {
+        let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut eval_result = String::new();
@@ -93,8 +101,10 @@ impl Repl {
             status = Some(s);
             Ok(())
         })?;
-        // status is guarenteed to be some
 
+        // remove trailing new line
+        eval_result.pop();
+        // status is guarenteed to be some
         Ok((status.unwrap(), eval_result))
     }
 

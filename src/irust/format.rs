@@ -35,6 +35,7 @@ pub fn format_eval_output(
     let mut eval_output = PrintQueue::default();
     eval_output.push(PrinterItem::String(prompt, Color::Red));
     eval_output.push(PrinterItem::String(output, Color::White));
+    eval_output.add_new_line(1);
     Some(eval_output)
 }
 

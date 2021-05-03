@@ -177,6 +177,7 @@ dependencies = [
  "crossterm",
  "dirs-next",
  "irust_api",
+ "irust_repl",
  "libloading",
  "nix",
  "once_cell",
@@ -189,6 +190,14 @@ dependencies = [
 name = "irust_api"
 version = "0.1.0"
 dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "irust_repl"
+version = "0.1.0"
+dependencies = [
+ "once_cell",
  "serde",
 ]
 

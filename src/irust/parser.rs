@@ -1,11 +1,10 @@
 use crossterm::style::Color;
 
-use super::cargo_cmds::{cargo_asm, cargo_bench, ToolChain};
-use super::cargo_cmds::{cargo_fmt, cargo_fmt_file, cargo_run, MAIN_FILE_EXTERN};
 use super::highlight::highlight;
 use crate::irust::format::{format_check_output, format_err, format_eval_output};
 use crate::irust::{IRust, Result};
 use crate::utils::{remove_main, stdout_and_stderr};
+use irust_repl::cargo_cmds::*;
 use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
@@ -136,10 +135,7 @@ impl IRust {
         self.wait_add(self.repl.build(self.options.toolchain)?, "Build")?;
 
         if self.options.check_statements {
-            self.wait_add(
-                super::cargo_cmds::cargo_check(self.options.toolchain)?,
-                "Check",
-            )?;
+            self.wait_add(cargo_check(self.options.toolchain)?, "Check")?;
         }
 
         success!()
