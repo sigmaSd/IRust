@@ -10,7 +10,7 @@ use std::{
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const FN_MAIN: &str = "fn main() {";
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Repl {
     body: Vec<String>,
     cursor: usize,
@@ -92,15 +92,17 @@ impl Repl {
         input: impl ToString,
         toolchain: ToolChain,
     ) -> Result<(ExitStatus, String)> {
-        self.eval_inner(input, toolchain, None)
+        self.eval_inner(input, toolchain, None, false)
     }
-    pub fn eval_with_interaction(
+    //Note: These inputs should become a Config struct
+    pub fn eval_with_configuration(
         &mut self,
         input: impl ToString,
         toolchain: ToolChain,
         interactive_function: fn(&mut Child) -> Result<()>,
+        color: bool,
     ) -> Result<(ExitStatus, String)> {
-        self.eval_inner(input, toolchain, Some(interactive_function))
+        self.eval_inner(input, toolchain, Some(interactive_function), color)
     }
 
     fn eval_inner(
@@ -108,6 +110,7 @@ impl Repl {
         input: impl ToString,
         toolchain: ToolChain,
         interactive_function: Option<fn(&mut Child) -> Result<()>>,
+        color: bool,
     ) -> Result<(ExitStatus, String)> {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
@@ -116,7 +119,7 @@ impl Repl {
         let mut status = None;
 
         self.eval_in_tmp_repl(eval_statement, || -> Result<()> {
-            let (s, result) = cargo_run(true, false, toolchain, interactive_function)?;
+            let (s, result) = cargo_run(color, false, toolchain, interactive_function)?;
             eval_result = result;
             status = Some(s);
             Ok(())

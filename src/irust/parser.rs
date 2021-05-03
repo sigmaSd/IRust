@@ -360,9 +360,12 @@ impl IRust {
             let mut outputs = PrintQueue::default();
 
             self.while_compiling_hook();
-            let result =
-                self.repl
-                    .eval_with_interaction(buffer, self.options.toolchain, ctrlc_cancel);
+            let result = self.repl.eval_with_configuration(
+                buffer,
+                self.options.toolchain,
+                ctrlc_cancel,
+                true,
+            );
             self.after_compiling_hook();
             let (status, out) = result?;
 
