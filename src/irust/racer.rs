@@ -210,7 +210,7 @@ impl Racer {
             // Auto complete rust code
             let mut racer = self;
 
-            racer.cursor.0 = repl.body.len() + StringTools::new_lines_count(&buffer);
+            racer.cursor.0 = repl.lines_count() + StringTools::new_lines_count(&buffer);
 
             racer.cursor.1 = 0;
             for c in buffer.chars() {

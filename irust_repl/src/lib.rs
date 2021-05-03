@@ -12,7 +12,7 @@ const FN_MAIN: &str = "fn main() {";
 
 #[derive(Clone)]
 pub struct Repl {
-    pub body: Vec<String>,
+    body: Vec<String>,
     cursor: usize,
 }
 
@@ -226,5 +226,9 @@ impl Repl {
         }
 
         Err("Incorrect line number".into())
+    }
+
+    pub fn lines_count(&self) -> usize {
+        self.body.len()
     }
 }
