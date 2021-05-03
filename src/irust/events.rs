@@ -23,6 +23,7 @@ impl IRust {
     }
 
     pub fn handle_enter(&mut self, force_eval: bool) -> Result<()> {
+        self.update_script_state();
         self.history.unlock();
 
         let buffer = self.buffer.to_string();
