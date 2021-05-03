@@ -100,7 +100,7 @@ fn parse_markdown(buffer: &Buffer, theme: &Theme) -> PrintQueue {
                                 }
                                 queue.push(PrinterItem::String(quoted, Color::DarkGreen));
                             }
-                            '=' | '>' | '(' | ')' => {
+                            '=' | '>' | '(' | ')' | '-' | '|' => {
                                 queue.push(PrinterItem::Char(c, Color::DarkRed))
                             }
                             c => queue.push(PrinterItem::Char(c, Color::White)),
