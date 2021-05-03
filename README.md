@@ -179,7 +179,7 @@ while_compiling  | irust_api::GlobalVariables  | ()      | do arbitrary things w
 
 All scripts should add bincode and irust_api as dependecy
 
-For more concrete example see plugins directory
+For more concrete example see scripts_examples directory
 
 
 **Old method**
