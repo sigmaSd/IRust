@@ -359,7 +359,9 @@ impl IRust {
             Ok(print_queue)
         } else {
             let mut outputs = PrintQueue::default();
+            self.while_compiling_hook();
             let (status, out) = self.repl.eval(buffer, self.options.toolchain)?;
+            self.after_compiling_hook();
             // Save output if it was a success
             if status.success() {
                 self.global_variables.set_last_output(out.clone());

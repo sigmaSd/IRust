@@ -153,6 +153,35 @@ Default theme file:
 
 ```
 ## Scripts
+Since release `1.7.0` `IRust` has a new script mechanism codename script2, the old method is still available but deprecated for now see below if you still want to use it.
+
+The main advantages are:
+
+- No unsafe, scripts should not be able to break IRust (not 100%)
+- Hot reloading! recompiling a script will immediatly take effect on IRust without restarting
+
+
+To activate this feature, set `activate_scripting2` to `true` in the configuration file. (it will take precedence over script1 if its set to true)
+
+Now IRust will look in `$config/irust/script2` for executables.
+
+It will launch them when required and comminucate via stdin/stdout (with bincode as a relay).
+
+The executables need to have the following properties:
+
+| Name             | Input                       | Output  | What it should do
+| ---------------- | --------------------------- | ------- | -------------------------------------------------
+| input_prompt     | irust_api::GlobalVariables  | String  | return the input prompt value as a string
+| output_prompt    | irust_api::GlobalVariables  | String  | return the output prompt value as a string
+| while_compiling  | irust_api::GlobalVariables  | ()      | do arbitrary things while IRust is compiling an expression (print some waiting animation for example)
+
+All scripts should add bincode and irust_api as dependecy
+
+For more concrete example see scripts_examples directory
+
+
+**Old method**
+
 Since release `1.5.0` `IRust` introduced scripting feature.
 
 To activate it, set `activate_scripting` to `true` in the configuration file.

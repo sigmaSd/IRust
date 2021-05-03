@@ -1,5 +1,7 @@
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+#[derive(Serialize, Deserialize)]
 pub struct GlobalVariables {
     current_working_dir: PathBuf,
     previous_working_dir: PathBuf,
@@ -7,6 +9,14 @@ pub struct GlobalVariables {
     /// last successful output
     last_output: Option<String>,
     pub operation_number: usize,
+
+    pub prompt_position: (usize, usize), // (row, col)
+}
+
+impl Default for GlobalVariables {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl GlobalVariables {
@@ -19,6 +29,7 @@ impl GlobalVariables {
             last_loaded_code_path: None,
             last_output: None,
             operation_number: 1,
+            prompt_position: (0, 0), // (row, col)
         }
     }
 

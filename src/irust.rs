@@ -2,7 +2,6 @@ mod art;
 mod cargo_cmds;
 mod events;
 mod format;
-mod global_variables;
 mod help;
 pub mod highlight;
 mod history;
@@ -13,41 +12,41 @@ mod repl;
 mod script;
 use crossterm::event::KeyModifiers;
 use crossterm::event::{Event, KeyCode, KeyEvent};
-use global_variables::GlobalVariables;
 use highlight::theme::Theme;
 use history::History;
-use once_cell::sync::Lazy;
+use irust_api::GlobalVariables;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
 use repl::Repl;
-use script::ScriptManager;
+use script::{script1::ScriptManager, script2::ScriptManager2, Script};
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-static SOUT: Lazy<std::io::Stdout> = Lazy::new(std::io::stdout);
 
 pub struct IRust {
     buffer: Buffer,
     repl: Repl,
-    printer: Printer<std::io::StdoutLock<'static>>,
+    printer: Printer<std::io::Stdout>,
     options: Options,
     racer: Option<Racer>,
     global_variables: GlobalVariables,
     theme: Theme,
     history: History,
-    script_mg: Option<ScriptManager>,
+    script_mg: Option<Box<dyn Script>>,
 }
 
 impl IRust {
     pub fn new(options: Options) -> Self {
-        let out = SOUT.lock();
+        let out = std::io::stdout();
         // Make sure to call Repl::new at the start so it can set `irust-repl` dir, which might be used by others (ScriptManager)
         let repl = Repl::new();
 
         let global_variables = GlobalVariables::new();
 
-        let script_mg = if options.activate_scripting {
-            ScriptManager::new()
+        let script_mg = if options.activate_scripting2 {
+            Some(Box::new(ScriptManager2::new()) as Box<dyn Script>)
+        } else if options.activate_scripting {
+            ScriptManager::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
         } else {
             None
         };
@@ -280,25 +279,6 @@ impl IRust {
             },
         }
         Ok(false)
-    }
-}
-// Scripts
-impl IRust {
-    pub fn update_input_prompt(&mut self) {
-        if let Some(ref script_mg) = self.script_mg {
-            if let Some(prompt) = script_mg.input_prompt(&self.global_variables) {
-                self.printer.set_prompt(prompt);
-            }
-        }
-    }
-    pub fn get_output_prompt(&mut self) -> String {
-        if let Some(ref script_mg) = self.script_mg {
-            if let Some(prompt) = script_mg.get_output_prompt(&self.global_variables) {
-                return prompt;
-            }
-        }
-        //Default
-        self.options.output_prompt.clone()
     }
 }
 

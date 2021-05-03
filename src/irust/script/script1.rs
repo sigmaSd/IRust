@@ -1,5 +1,5 @@
-use super::global_variables::GlobalVariables;
 use crossterm::style::Colorize;
+use irust_api::GlobalVariables;
 use libloading::{Library, Symbol};
 use std::{ffi::CString, io::Write};
 use std::{fs::File, os::raw::c_char};
@@ -100,8 +100,10 @@ impl ScriptManager {
             })
         }
     }
+}
 
-    pub fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
+impl super::Script for ScriptManager {
+    fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
         unsafe {
             let script: PromptFn = self.lib.get(b"input_prompt").ok()?;
             Some(
@@ -113,7 +115,7 @@ impl ScriptManager {
         }
     }
 
-    pub fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
+    fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
         unsafe {
             let script: PromptFn = self.lib.get(b"output_prompt").ok()?;
             Some(
