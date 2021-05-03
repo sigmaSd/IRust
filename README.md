@@ -169,13 +169,11 @@ It will launch them when required and comminucate via stdin/stdout (with bincode
 
 The executables need to have the following properties:
 
-Name             | Input                       | Output  | What it should do
-------------------------------------------------------------------------------------------------------
-input_prompt     | irust_api::GlobalVariables  | String  | return the input prompt value as a string
-                 |                             |         |
-output_prompt    | irust_api::GlobalVariables  | String  | return the output prompt value as a string
-                 |                             |         |
-while_compiling  | irust_api::GlobalVariables  | ()      | do arbitrary things while IRust is compiling an expression (print some waiting animation for example)
+| Name             | Input                       | Output  | What it should do
+| ---------------- | --------------------------- | ------- | -------------------------------------------------
+| input_prompt     | irust_api::GlobalVariables  | String  | return the input prompt value as a string
+| output_prompt    | irust_api::GlobalVariables  | String  | return the output prompt value as a string
+| while_compiling  | irust_api::GlobalVariables  | ()      | do arbitrary things while IRust is compiling an expression (print some waiting animation for example)
 
 All scripts should add bincode and irust_api as dependecy
 
