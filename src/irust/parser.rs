@@ -1,9 +1,12 @@
 use crossterm::style::Color;
 
 use super::highlight::highlight;
-use crate::irust::format::{format_check_output, format_err, format_eval_output};
 use crate::irust::{IRust, Result};
 use crate::utils::{remove_main, stdout_and_stderr};
+use crate::{
+    irust::format::{format_check_output, format_err, format_eval_output},
+    utils::ctrlc_cancel,
+};
 use irust_repl::cargo_cmds::*;
 use printer::printer::{PrintQueue, PrinterItem};
 
@@ -243,7 +246,7 @@ impl IRust {
 
         let toolchain = self.options.toolchain;
         self.repl.eval_in_tmp_repl(variable, || -> Result<()> {
-            let (_status, out) = cargo_run(false, false, toolchain)?;
+            let (_status, out) = cargo_run(false, false, toolchain, Some(ctrlc_cancel))?;
             raw_out = out;
             Ok(())
         })?;
@@ -355,9 +358,14 @@ impl IRust {
             Ok(print_queue)
         } else {
             let mut outputs = PrintQueue::default();
+
             self.while_compiling_hook();
-            let (status, out) = self.repl.eval(buffer, self.options.toolchain)?;
+            let result =
+                self.repl
+                    .eval_with_interaction(buffer, self.options.toolchain, ctrlc_cancel);
             self.after_compiling_hook();
+            let (status, out) = result?;
+
             // Save output if it was a success
             if status.success() {
                 self.global_variables.set_last_output(out.clone());
@@ -489,7 +497,7 @@ impl IRust {
         let mut raw_out = String::new();
         let mut status = None;
         self.repl.eval_in_tmp_repl(time, || -> Result<()> {
-            let (s, out) = cargo_run(true, release, toolchain)?;
+            let (s, out) = cargo_run(true, release, toolchain, Some(ctrlc_cancel))?;
             raw_out = out;
             status = Some(s);
             Ok(())

@@ -1,8 +1,11 @@
 pub mod cargo_cmds;
 use cargo_cmds::*;
 mod utils;
-use std::io::{self, Write};
 use std::process::ExitStatus;
+use std::{
+    io::{self, Write},
+    process::Child,
+};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const FN_MAIN: &str = "fn main() {";
@@ -89,6 +92,23 @@ impl Repl {
         input: impl ToString,
         toolchain: ToolChain,
     ) -> Result<(ExitStatus, String)> {
+        self.eval_inner(input, toolchain, None)
+    }
+    pub fn eval_with_interaction(
+        &mut self,
+        input: impl ToString,
+        toolchain: ToolChain,
+        interactive_function: fn(&mut Child) -> Result<()>,
+    ) -> Result<(ExitStatus, String)> {
+        self.eval_inner(input, toolchain, Some(interactive_function))
+    }
+
+    fn eval_inner(
+        &mut self,
+        input: impl ToString,
+        toolchain: ToolChain,
+        interactive_function: Option<fn(&mut Child) -> Result<()>>,
+    ) -> Result<(ExitStatus, String)> {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
@@ -96,7 +116,7 @@ impl Repl {
         let mut status = None;
 
         self.eval_in_tmp_repl(eval_statement, || -> Result<()> {
-            let (s, result) = cargo_run(true, false, toolchain)?;
+            let (s, result) = cargo_run(true, false, toolchain, interactive_function)?;
             eval_result = result;
             status = Some(s);
             Ok(())

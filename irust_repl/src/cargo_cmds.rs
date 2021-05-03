@@ -1,12 +1,12 @@
-use crate::utils::stdout_and_stderr;
+use crate::utils::{stdout_and_stderr, ProcessUtils};
 use crate::Result;
 use once_cell::sync::Lazy;
-use std::fs;
 use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
 use std::{env::temp_dir, process::Stdio};
+use std::{fs, process};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -79,7 +79,12 @@ pub fn cargo_new(toolchain: ToolChain) -> std::result::Result<(), io::Error> {
     Ok(())
 }
 
-pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<(ExitStatus, String)> {
+pub fn cargo_run(
+    color: bool,
+    release: bool,
+    toolchain: ToolChain,
+    interactive_function: Option<fn(&mut process::Child) -> Result<()>>,
+) -> Result<(ExitStatus, String)> {
     let (status, output) = cargo_build_output(color, release, toolchain)?;
 
     if !status.success() {
@@ -95,7 +100,8 @@ pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<(Ex
                     std::process::Command::new(&*EXE_PATH)
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
-                        .output()?,
+                        .spawn()?
+                        .interactive_output(interactive_function)?,
                 ),
             ))
         } else {
@@ -105,7 +111,8 @@ pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<(Ex
                     std::process::Command::new(&*RELEASE_EXE_PATH)
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
-                        .output()?,
+                        .spawn()?
+                        .interactive_output(interactive_function)?,
                 ),
             ))
         }
