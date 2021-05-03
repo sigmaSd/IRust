@@ -13,6 +13,12 @@ pub struct GlobalVariables {
     pub prompt_position: (usize, usize), // (row, col)
 }
 
+impl Default for GlobalVariables {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GlobalVariables {
     pub fn new() -> Self {
         let cwd = std::env::current_dir().expect("Error getting current working directory");
