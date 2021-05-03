@@ -1,3 +1,6 @@
+**1.7.0**
+- Introduce new scripting method codename: scriptv2 , see README for more info
+
 **1.6.2**
 - Improve the help command by parsing the README.md markdown
 - Organize the template script better
