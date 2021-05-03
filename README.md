@@ -177,7 +177,7 @@ The executables need to have the following properties:
 
 All scripts should add bincode and irust_api as dependecy
 
-For more concrete example see scripts_examples directory
+For more concrete example see [scripts_examples](https://github.com/sigmaSd/IRust/tree/master/scripts_examples/script2) directory
 
 
 **Old method**
