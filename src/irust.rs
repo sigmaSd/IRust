@@ -19,7 +19,7 @@ use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
 use repl::Repl;
-use script::{script::ScriptManager, script2::ScriptManager2, Script};
+use script::{script1::ScriptManager, script2::ScriptManager2, Script};
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -43,14 +43,10 @@ impl IRust {
 
         let global_variables = GlobalVariables::new();
 
-        let script_mg = if options.activate_scripting {
-            if let Some(script_mg) = ScriptManager::new() {
-                Some(Box::new(script_mg) as Box<dyn Script>)
-            } else {
-                None
-            }
-        } else if options.activate_scripting2 {
+        let script_mg = if options.activate_scripting2 {
             Some(Box::new(ScriptManager2::new()) as Box<dyn Script>)
+        } else if options.activate_scripting {
+            ScriptManager::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
         } else {
             None
         };

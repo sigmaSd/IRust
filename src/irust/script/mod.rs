@@ -1,6 +1,6 @@
 use irust_api::GlobalVariables;
 
-pub mod script;
+pub mod script1;
 pub mod script2;
 
 pub trait Script {
