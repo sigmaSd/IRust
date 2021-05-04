@@ -1,5 +1,4 @@
 mod art;
-mod cargo_cmds;
 mod events;
 mod format;
 mod help;
@@ -8,17 +7,16 @@ mod history;
 pub mod options;
 mod parser;
 mod racer;
-mod repl;
 mod script;
 use crossterm::event::KeyModifiers;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use highlight::theme::Theme;
 use history::History;
 use irust_api::GlobalVariables;
+use irust_repl::Repl;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
-use repl::Repl;
 use script::{script1::ScriptManager, script2::ScriptManager2, Script};
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -37,9 +35,8 @@ pub struct IRust {
 
 impl IRust {
     pub fn new(options: Options) -> Self {
-        let out = std::io::stdout();
         // Make sure to call Repl::new at the start so it can set `irust-repl` dir, which might be used by others (ScriptManager)
-        let repl = Repl::new();
+        let repl = Repl::new(options.toolchain).expect("Could not create repl");
 
         let global_variables = GlobalVariables::new();
 
@@ -62,7 +59,7 @@ impl IRust {
             })
             .unwrap_or_else(|| options.input_prompt.clone());
 
-        let printer = Printer::new(out, prompt);
+        let printer = Printer::new(std::io::stdout(), prompt);
 
         let racer = if options.enable_racer {
             Racer::start()
@@ -93,7 +90,6 @@ impl IRust {
             "IRust: {}",
             self.global_variables.get_cwd().display()
         ))?;
-        self.repl.prepare_ground(self.options.toolchain)?;
         self.welcome()?;
         self.printer.print_prompt_if_set()?;
 

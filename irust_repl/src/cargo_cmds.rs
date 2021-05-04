@@ -1,19 +1,18 @@
-use super::Result;
-use crate::utils::stdout_and_stderr;
-use crate::utils::ProcessUtils;
+use crate::utils::{stdout_and_stderr, ProcessUtils};
+use crate::Result;
 use once_cell::sync::Lazy;
-use serde::{Deserialize, Serialize};
-use std::fs;
-use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
 use std::{env::temp_dir, process::Stdio};
+use std::{fs, process};
+use std::{io, str::FromStr};
 
-// TODO:
-// Move these paths to KnownPaths struct
-pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(|| dirs_next::cache_dir().unwrap_or_else(temp_dir));
-pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust_repl"));
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
+pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(temp_dir);
+pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust_host_repl"));
 pub static IRUST_TARGET_DIR: Lazy<PathBuf> = Lazy::new(|| {
     if let Ok(p) = std::env::var("CARGO_TARGET_DIR") {
         if !p.is_empty() {
@@ -28,25 +27,28 @@ pub static MAIN_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main.rs")
 pub static MAIN_FILE_EXTERN: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("main_extern.rs"));
 pub static LIB_FILE: Lazy<PathBuf> = Lazy::new(|| IRUST_SRC_DIR.join("lib.rs"));
 #[cfg(windows)]
-pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust_repl.exe"));
+pub static EXE_PATH: Lazy<PathBuf> =
+    Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust_host_repl.exe"));
 #[cfg(windows)]
 pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
-    Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_repl.exe"));
+    Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_host_repl.exe"));
 #[cfg(not(windows))]
-pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust_repl"));
+pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/irust_host_repl"));
 #[cfg(not(windows))]
 pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
-    Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_repl"));
+    Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_host_repl"));
 
-#[derive(Debug, Clone, Serialize, Deserialize, Copy)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone, Copy)]
 pub enum ToolChain {
     Stable,
     Beta,
     Nightly,
 }
 
-impl ToolChain {
-    pub fn from_str(s: &str) -> Result<Self> {
+impl FromStr for ToolChain {
+    type Err = Box<dyn std::error::Error>;
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         use ToolChain::*;
         match s.to_lowercase().as_str() {
             "stable" => Ok(Stable),
@@ -55,7 +57,9 @@ impl ToolChain {
             _ => Err("Unkown toolchain".into()),
         }
     }
+}
 
+impl ToolChain {
     fn as_arg(&self) -> String {
         use ToolChain::*;
         match self {
@@ -76,7 +80,12 @@ pub fn cargo_new(toolchain: ToolChain) -> std::result::Result<(), io::Error> {
     Ok(())
 }
 
-pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<(ExitStatus, String)> {
+pub fn cargo_run(
+    color: bool,
+    release: bool,
+    toolchain: ToolChain,
+    interactive_function: Option<fn(&mut process::Child) -> Result<()>>,
+) -> Result<(ExitStatus, String)> {
     let (status, output) = cargo_build_output(color, release, toolchain)?;
 
     if !status.success() {
@@ -84,7 +93,7 @@ pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<(Ex
     } else {
         // Run the exexcutable directly instead of cargo run
         // This allows to run it without modifying the current working directory
-        // example: std::process::Commmand::new("pwd") will output the expected path instead of `/tmp/irust_repl`
+        // example: std::process::Commmand::new("pwd") will output the expected path instead of `/tmp/irust_host_repl`
         if !release {
             Ok((
                 status,
@@ -93,7 +102,7 @@ pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<(Ex
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
                         .spawn()?
-                        .output_with_ctrlc_cancel()?,
+                        .interactive_output(interactive_function)?,
                 ),
             ))
         } else {
@@ -104,7 +113,7 @@ pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<(Ex
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
                         .spawn()?
-                        .output_with_ctrlc_cancel()?,
+                        .interactive_output(interactive_function)?,
                 ),
             ))
         }
@@ -112,9 +121,6 @@ pub fn cargo_run(color: bool, release: bool, toolchain: ToolChain) -> Result<(Ex
 }
 
 pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
-    //TODO is this required?
-    clean_files()?;
-
     Command::new("cargo-add")
         .current_dir(&*IRUST_DIR)
         .arg("add")
@@ -145,21 +151,15 @@ pub fn cargo_check(toolchain: ToolChain) -> std::result::Result<std::process::Ch
         .spawn()
 }
 
-pub fn cargo_check_output(toolchain: ToolChain) -> std::result::Result<String, io::Error> {
-    #[cfg(not(windows))]
-    let color = "always";
-    #[cfg(windows)]
-    let color = if crossterm::ansi_support::supports_ansi() {
-        "always"
-    } else {
-        "never"
-    };
+pub fn cargo_check_output(
+    toolchain: ToolChain,
+) -> std::result::Result<(ExitStatus, String), io::Error> {
+    let output = cargo_common!("check", toolchain)
+        .args(&["--color", "always"])
+        .output()?;
 
-    Ok(stdout_and_stderr(
-        cargo_common!("check", toolchain)
-            .args(&["--color", color])
-            .output()?,
-    ))
+    let status = output.status;
+    Ok((status, stdout_and_stderr(output)))
 }
 
 pub fn cargo_build(toolchain: ToolChain) -> std::result::Result<std::process::Child, io::Error> {
@@ -174,18 +174,7 @@ pub fn cargo_build_output(
     release: bool,
     toolchain: ToolChain,
 ) -> std::result::Result<(ExitStatus, String), io::Error> {
-    #[cfg(not(windows))]
     let color = if color { "always" } else { "never" };
-    #[cfg(windows)]
-    let color = if crossterm::ansi_support::supports_ansi() {
-        if color {
-            "always"
-        } else {
-            "never"
-        }
-    } else {
-        "never"
-    };
 
     let output = if !release {
         cargo_common!("build", toolchain)
@@ -208,27 +197,6 @@ pub fn cargo_bench(toolchain: ToolChain) -> std::result::Result<String, io::Erro
             .args(&["--color", "always"])
             .output()?,
     ))
-}
-
-fn clean_cargo_toml() -> io::Result<()> {
-    // edition needs to be specified or racer will not be able to autocomplete dependencies
-    // bug maybe?
-    const CARGO_TOML: &str = r#"[package]
-name = "irust_repl"
-version = "0.1.0"
-edition = "2018""#;
-    let mut cargo_toml_file = fs::File::create(&*CARGO_TOML_FILE)?;
-    write!(cargo_toml_file, "{}", CARGO_TOML)?;
-    Ok(())
-}
-
-fn clean_files() -> io::Result<()> {
-    const MAIN_SRC: &str = "fn main() {\n\n}";
-    let mut main = fs::File::create(&*MAIN_FILE)?;
-    write!(main, "{}", MAIN_SRC)?;
-    std::fs::copy(&*MAIN_FILE, &*MAIN_FILE_EXTERN)?;
-    let _ = std::fs::remove_file(&*LIB_FILE);
-    Ok(())
 }
 
 pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
@@ -257,7 +225,7 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
     Ok(stdout_and_stderr(
         cargo_common!("asm", toolchain)
             .arg("--lib")
-            .arg(format!("irust_repl::{}", fnn))
+            .arg(format!("irust_host_repl::{}", fnn))
             .output()?,
     ))
 }
@@ -280,5 +248,26 @@ fn try_cargo_fmt_file(file: &Path) -> io::Result<()> {
         .arg(file)
         .spawn()?
         .wait()?;
+    Ok(())
+}
+
+fn clean_cargo_toml() -> io::Result<()> {
+    // edition needs to be specified or racer will not be able to autocomplete dependencies
+    // bug maybe?
+    const CARGO_TOML: &str = r#"[package]
+name = "irust_host_repl"
+version = "0.1.0"
+edition = "2018""#;
+    let mut cargo_toml_file = fs::File::create(&*CARGO_TOML_FILE)?;
+    write!(cargo_toml_file, "{}", CARGO_TOML)?;
+    Ok(())
+}
+
+fn clean_files() -> io::Result<()> {
+    const MAIN_SRC: &str = "fn main() {\n\n}";
+    let mut main = fs::File::create(&*MAIN_FILE)?;
+    write!(main, "{}", MAIN_SRC)?;
+    std::fs::copy(&*MAIN_FILE, &*MAIN_FILE_EXTERN)?;
+    let _ = std::fs::remove_file(&*LIB_FILE);
     Ok(())
 }

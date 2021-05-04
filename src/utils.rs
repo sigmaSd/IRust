@@ -1,3 +1,5 @@
+use std::process::Child;
+
 use crate::irust::Result;
 
 pub fn split_args(s: String) -> Vec<String> {
@@ -286,27 +288,37 @@ fn balanced_quotes(s: &str) -> bool {
 }
 
 pub trait ProcessUtils {
-    fn output_with_ctrlc_cancel(self) -> Result<std::process::Output>;
+    fn interactive_output(
+        self,
+        function: fn(&mut Child) -> Result<()>,
+    ) -> Result<std::process::Output>;
 }
 
 impl ProcessUtils for std::process::Child {
-    fn output_with_ctrlc_cancel(mut self) -> Result<std::process::Output> {
-        use crossterm::event::{Event, KeyCode, KeyEvent};
-
+    fn interactive_output(
+        mut self,
+        function: fn(&mut Child) -> Result<()>,
+    ) -> Result<std::process::Output> {
         while self.try_wait()?.is_none() {
-            if let Ok(event) = crossterm::event::poll(std::time::Duration::from_millis(100)) {
-                if event {
-                    if let Ok(Event::Key(KeyEvent {
-                        code: KeyCode::Char('c'),
-                        modifiers: crossterm::event::KeyModifiers::CONTROL,
-                    })) = crossterm::event::read()
-                    {
-                        self.kill()?;
-                        return Err("Cancelled!".into());
-                    }
-                }
-            }
+            function(&mut self)?;
         }
         self.wait_with_output().map_err(Into::into)
     }
+}
+
+pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {
+    use crossterm::event::{Event, KeyCode, KeyEvent};
+    if let Ok(event) = crossterm::event::poll(std::time::Duration::from_millis(100)) {
+        if event {
+            if let Ok(Event::Key(KeyEvent {
+                code: KeyCode::Char('c'),
+                modifiers: crossterm::event::KeyModifiers::CONTROL,
+            })) = crossterm::event::read()
+            {
+                process.kill()?;
+                return Err("Cancelled!".into());
+            }
+        }
+    }
+    Ok(())
 }

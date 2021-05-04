@@ -1,5 +1,6 @@
-use crate::irust::{cargo_cmds::ToolChain, IRust, Result};
+use crate::irust::{IRust, Result};
 use crossterm::style::Color;
+use irust_repl::cargo_cmds::ToolChain;
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 

@@ -1,25 +1,50 @@
-use super::cargo_cmds::*;
-use super::Result;
-use std::io::{self, Write};
+pub mod cargo_cmds;
+pub use cargo_cmds::ToolChain;
+use cargo_cmds::*;
+mod utils;
 use std::process::ExitStatus;
+use std::{
+    io::{self, Write},
+    process::Child,
+};
+
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+#[derive(Debug)]
+pub struct EvalResult {
+    pub output: String,
+    pub status: ExitStatus,
+}
+
+impl From<(ExitStatus, String)> for EvalResult {
+    fn from(result: (ExitStatus, String)) -> Self {
+        Self {
+            output: result.1,
+            status: result.0,
+        }
+    }
+}
 
 const FN_MAIN: &str = "fn main() {";
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Repl {
-    pub body: Vec<String>,
+    body: Vec<String>,
     cursor: usize,
+    toolchain: ToolChain,
 }
 
 impl Repl {
-    pub fn new() -> Self {
-        Self {
+    pub fn new(toolchain: ToolChain) -> Result<Self> {
+        cargo_new(toolchain)?;
+        Ok(Self {
             body: vec![
                 FN_MAIN.to_string(),
                 "} // Do not write past this line (it will corrupt the repl)".to_string(),
             ],
             cursor: 1,
-        }
+            toolchain,
+        })
     }
 
     pub fn update_from_extern_main_file(&mut self) -> Result<()> {
@@ -33,6 +58,7 @@ impl Repl {
         *self = Self {
             body: main_file.lines().map(ToOwned::to_owned).collect(),
             cursor: cursor_pos,
+            toolchain: self.toolchain,
         };
         Ok(())
     }
@@ -40,7 +66,8 @@ impl Repl {
     // Note: Insert must be followed by write_to_extern if persistance is needed
     // Or else it will be overwritten by the main_extern thread
     // Fix this
-    pub fn insert(&mut self, input: String) {
+    pub fn insert(&mut self, input: impl ToString) {
+        let input = input.to_string();
         // CRATE_ATTRIBUTE are special in the sense that they should be inserted outside of the main function
         // #![feature(unboxed_closures)]
         // fn main() {}
@@ -60,94 +87,102 @@ impl Repl {
         }
     }
 
-    pub fn reset(&mut self, toolchain: ToolChain) -> Result<()> {
-        self.prepare_ground(toolchain)?;
-        *self = Self::new();
+    pub fn reset(&mut self) -> Result<()> {
+        *self = Self::new(self.toolchain)?;
         Ok(())
     }
 
     pub fn show(&self) -> String {
         let mut current_code = self.body.join("\n");
-        // If cargo fmt is present foramt output else ignore
+        // If cargo fmt is present format output else ignore
         if let Ok(fmt_code) = cargo_fmt(&current_code) {
             current_code = fmt_code;
         }
         format!("Current Repl Code:\n{}", current_code)
     }
 
-    // prepare ground
-    pub fn prepare_ground(&self, toolchain: ToolChain) -> Result<()> {
-        cargo_new(toolchain)?;
-        Ok(())
+    pub fn eval(&mut self, input: impl ToString) -> Result<EvalResult> {
+        self.eval_inner(input, None, false)
+    }
+    //Note: These inputs should become a Config struct
+    pub fn eval_with_configuration(
+        &mut self,
+        input: impl ToString,
+        interactive_function: fn(&mut Child) -> Result<()>,
+        color: bool,
+    ) -> Result<EvalResult> {
+        self.eval_inner(input, Some(interactive_function), color)
     }
 
-    pub fn eval(&mut self, input: String, toolchain: ToolChain) -> Result<(ExitStatus, String)> {
+    fn eval_inner(
+        &mut self,
+        input: impl ToString,
+        interactive_function: Option<fn(&mut Child) -> Result<()>>,
+        color: bool,
+    ) -> Result<EvalResult> {
+        let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
-        let mut eval_result = String::new();
-        let mut status = None;
+        let toolchain = self.toolchain;
 
-        self.eval_in_tmp_repl(eval_statement, || -> Result<()> {
-            let (s, result) = cargo_run(true, false, toolchain)?;
-            eval_result = result;
-            status = Some(s);
-            Ok(())
+        let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, || {
+            cargo_run(color, false, toolchain, interactive_function)
         })?;
-        // status is guarenteed to be some
 
-        Ok((status.unwrap(), eval_result))
+        // remove trailing new line
+        eval_result.pop();
+        Ok((status, eval_result).into())
     }
 
-    pub fn eval_build(
+    pub fn eval_build(&mut self, input: impl ToString) -> Result<EvalResult> {
+        let input = input.to_string();
+        let toolchain = self.toolchain;
+        Ok(self
+            .eval_in_tmp_repl(input, || -> Result<(ExitStatus, String)> {
+                Ok(cargo_build_output(true, false, toolchain)?)
+            })?
+            .into())
+    }
+
+    pub fn eval_check(&mut self, buffer: String) -> Result<EvalResult> {
+        let toolchain = self.toolchain;
+        Ok(self
+            .eval_in_tmp_repl(buffer, || Ok(cargo_check_output(toolchain)?))?
+            .into())
+    }
+
+    pub fn eval_in_tmp_repl<T>(
         &mut self,
         input: String,
-        toolchain: ToolChain,
-    ) -> Result<(ExitStatus, String)> {
+        mut f: impl FnMut() -> Result<T>,
+    ) -> Result<T> {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
         self.insert(input);
         self.write()?;
-        let (status, output) = cargo_build_output(true, false, toolchain)?;
+        let result = f();
 
         self.body = orig_body;
         self.cursor = orig_cursor;
-        Ok((status, output))
+
+        result
     }
 
-    pub fn eval_in_tmp_repl(
-        &mut self,
-        input: String,
-        mut f: impl FnMut() -> Result<()>,
-    ) -> Result<()> {
-        let orig_body = self.body.clone();
-        let orig_cursor = self.cursor;
+    pub fn toolchain(&self) -> ToolChain {
+        self.toolchain
+    }
 
-        self.insert(input);
-        self.write()?;
-        f()?;
-
-        self.body = orig_body;
-        self.cursor = orig_cursor;
-
-        Ok(())
+    pub fn set_toolchain(&mut self, toolchain: ToolChain) {
+        self.toolchain = toolchain;
     }
 
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
         cargo_add(dep)
     }
 
-    pub fn build(&self, toolchain: ToolChain) -> std::io::Result<std::process::Child> {
-        cargo_build(toolchain)
-    }
-
-    pub fn check(&mut self, buffer: String, toolchain: ToolChain) -> Result<String> {
-        let mut result = String::new();
-        self.eval_in_tmp_repl(buffer, || {
-            result = cargo_check_output(toolchain)?;
-            Ok(())
-        })?;
-        Ok(result)
+    pub fn build(&self) -> std::io::Result<std::process::Child> {
+        cargo_build(self.toolchain)
     }
 
     pub fn write(&self) -> io::Result<()> {
@@ -196,5 +231,12 @@ impl Repl {
         }
 
         Err("Incorrect line number".into())
+    }
+
+    pub fn lines<'a>(&'a self) -> impl Iterator<Item = &String> + 'a {
+        self.body.iter()
+    }
+    pub fn lines_count(&self) -> usize {
+        self.body.len()
     }
 }
