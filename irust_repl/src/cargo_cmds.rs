@@ -154,16 +154,8 @@ pub fn cargo_check(toolchain: ToolChain) -> std::result::Result<std::process::Ch
 pub fn cargo_check_output(
     toolchain: ToolChain,
 ) -> std::result::Result<(ExitStatus, String), io::Error> {
-    #[cfg(not(windows))]
-    let color = "always";
-    #[cfg(windows)]
-    let color = if crossterm::ansi_support::supports_ansi() {
-        "always"
-    } else {
-        "never"
-    };
     let output = cargo_common!("check", toolchain)
-        .args(&["--color", color])
+        .args(&["--color", "always"])
         .output()?;
 
     let status = output.status;
@@ -182,18 +174,7 @@ pub fn cargo_build_output(
     release: bool,
     toolchain: ToolChain,
 ) -> std::result::Result<(ExitStatus, String), io::Error> {
-    #[cfg(not(windows))]
     let color = if color { "always" } else { "never" };
-    #[cfg(windows)]
-    let color = if crossterm::ansi_support::supports_ansi() {
-        if color {
-            "always"
-        } else {
-            "never"
-        }
-    } else {
-        "never"
-    };
 
     let output = if !release {
         cargo_common!("build", toolchain)
