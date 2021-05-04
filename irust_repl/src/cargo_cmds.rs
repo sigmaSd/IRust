@@ -1,12 +1,12 @@
 use crate::utils::{stdout_and_stderr, ProcessUtils};
 use crate::Result;
 use once_cell::sync::Lazy;
-use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
 use std::{env::temp_dir, process::Stdio};
 use std::{fs, process};
+use std::{io, str::FromStr};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -48,8 +48,9 @@ pub enum ToolChain {
     Nightly,
 }
 
-impl ToolChain {
-    pub fn from_str(s: &str) -> Result<Self> {
+impl FromStr for ToolChain {
+    type Err = Box<dyn std::error::Error>;
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         use ToolChain::*;
         match s.to_lowercase().as_str() {
             "stable" => Ok(Stable),
@@ -58,7 +59,9 @@ impl ToolChain {
             _ => Err("Unkown toolchain".into()),
         }
     }
+}
 
+impl ToolChain {
     fn as_arg(&self) -> String {
         use ToolChain::*;
         match self {

@@ -16,6 +16,12 @@ pub struct Repl {
     cursor: usize,
 }
 
+impl Default for Repl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Repl {
     pub fn new() -> Self {
         Self {

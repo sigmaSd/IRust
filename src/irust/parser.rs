@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crossterm::style::Color;
 
 use super::highlight::highlight;
