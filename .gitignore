@@ -1,3 +1,5 @@
 .vscode
 target/
 printer/Cargo.lock
+irust_api/Cargo.lock
+irust_repl/Cargo.lock
