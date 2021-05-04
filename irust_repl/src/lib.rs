@@ -1,4 +1,5 @@
 pub mod cargo_cmds;
+pub use cargo_cmds::ToolChain;
 use cargo_cmds::*;
 mod utils;
 use std::process::ExitStatus;
@@ -232,6 +233,9 @@ impl Repl {
         Err("Incorrect line number".into())
     }
 
+    pub fn lines<'a>(&'a self) -> impl Iterator<Item = &String> + 'a {
+        self.body.iter()
+    }
     pub fn lines_count(&self) -> usize {
         self.body.len()
     }
