@@ -1,3 +1,6 @@
+**1.7.1**
+-Internal refactor: split the repl engine in its own crate
+
 **1.7.0**
 - Introduce new scripting method codename: scriptv2 , see README for more info
 
