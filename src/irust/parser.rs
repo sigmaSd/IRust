@@ -344,9 +344,10 @@ impl IRust {
             let mut insert_flag = true;
 
             if self.options.check_statements {
-                if let Some(mut e) =
-                    format_check_output(self.repl.check(buffer.clone(), self.options.toolchain)?)
-                {
+                if let Some(mut e) = format_check_output(
+                    self.repl
+                        .eval_check(buffer.clone(), self.options.toolchain)?,
+                ) {
                     print_queue.append(&mut e);
                     insert_flag = false;
                 }

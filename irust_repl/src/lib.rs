@@ -8,6 +8,7 @@ use std::{
 };
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
 const FN_MAIN: &str = "fn main() {";
 
 #[derive(Debug, Clone)]
@@ -121,55 +122,47 @@ impl Repl {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
-        let mut eval_result = String::new();
-        let mut status = None;
 
-        self.eval_in_tmp_repl(eval_statement, || -> Result<()> {
-            let (s, result) = cargo_run(color, false, toolchain, interactive_function)?;
-            eval_result = result;
-            status = Some(s);
-            Ok(())
+        let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, || {
+            cargo_run(color, false, toolchain, interactive_function)
         })?;
 
         // remove trailing new line
         eval_result.pop();
-        // status is guarenteed to be some
-        Ok((status.unwrap(), eval_result))
+        Ok((status, eval_result))
     }
 
     pub fn eval_build(
         &mut self,
-        input: String,
+        input: impl ToString,
         toolchain: ToolChain,
     ) -> Result<(ExitStatus, String)> {
-        let orig_body = self.body.clone();
-        let orig_cursor = self.cursor;
-
-        self.insert(input);
-        self.write()?;
-        let (status, output) = cargo_build_output(true, false, toolchain)?;
-
-        self.body = orig_body;
-        self.cursor = orig_cursor;
-        Ok((status, output))
+        let input = input.to_string();
+        self.eval_in_tmp_repl(input, || -> Result<(ExitStatus, String)> {
+            Ok(cargo_build_output(true, false, toolchain)?)
+        })
     }
 
-    pub fn eval_in_tmp_repl(
+    pub fn eval_check(&mut self, buffer: String, toolchain: ToolChain) -> Result<String> {
+        self.eval_in_tmp_repl(buffer, || Ok(cargo_check_output(toolchain)?))
+    }
+
+    pub fn eval_in_tmp_repl<T>(
         &mut self,
         input: String,
-        mut f: impl FnMut() -> Result<()>,
-    ) -> Result<()> {
+        mut f: impl FnMut() -> Result<T>,
+    ) -> Result<T> {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
         self.insert(input);
         self.write()?;
-        f()?;
+        let result = f();
 
         self.body = orig_body;
         self.cursor = orig_cursor;
 
-        Ok(())
+        result
     }
 
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
@@ -178,15 +171,6 @@ impl Repl {
 
     pub fn build(&self, toolchain: ToolChain) -> std::io::Result<std::process::Child> {
         cargo_build(toolchain)
-    }
-
-    pub fn check(&mut self, buffer: String, toolchain: ToolChain) -> Result<String> {
-        let mut result = String::new();
-        self.eval_in_tmp_repl(buffer, || {
-            result = cargo_check_output(toolchain)?;
-            Ok(())
-        })?;
-        Ok(result)
     }
 
     pub fn write(&self) -> io::Result<()> {
