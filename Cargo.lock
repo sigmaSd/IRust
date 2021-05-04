@@ -180,7 +180,6 @@ dependencies = [
  "irust_repl",
  "libloading",
  "nix",
- "once_cell",
  "printer",
  "serde",
  "toml",

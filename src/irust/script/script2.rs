@@ -1,35 +1,33 @@
 use irust_api::GlobalVariables;
-use once_cell::sync::Lazy;
 use std::{
     collections::HashMap,
     path::PathBuf,
     process::{self, Child, Stdio},
 };
 
-static SCRIPT_PATH: Lazy<PathBuf> = Lazy::new(|| {
-    dirs_next::config_dir()
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("irust")
-        .join("script2")
-});
-
 pub struct ScriptManager2 {
     map: HashMap<String, Child>,
+    script_path: PathBuf,
 }
 
 impl ScriptManager2 {
     pub fn new() -> Self {
+        let script_path = dirs_next::config_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("irust")
+            .join("script2");
         Self {
             map: HashMap::new(),
+            script_path,
         }
     }
 }
 impl super::Script for ScriptManager2 {
     fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
-        if !SCRIPT_PATH.join("input_prompt").exists() {
+        if !self.script_path.join("input_prompt").exists() {
             return None;
         }
-        let mut script = process::Command::new(SCRIPT_PATH.join("input_prompt"))
+        let mut script = process::Command::new(self.script_path.join("input_prompt"))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
@@ -44,10 +42,10 @@ impl super::Script for ScriptManager2 {
     }
 
     fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
-        if !SCRIPT_PATH.join("output_prompt").exists() {
+        if !self.script_path.join("output_prompt").exists() {
             return None;
         }
-        let mut script = process::Command::new(SCRIPT_PATH.join("input_prompt"))
+        let mut script = process::Command::new(self.script_path.join("input_prompt"))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
@@ -61,10 +59,10 @@ impl super::Script for ScriptManager2 {
         bincode::deserialize_from(stdout).ok()
     }
     fn while_compiling(&mut self, global_variables: &GlobalVariables) -> Option<()> {
-        if !SCRIPT_PATH.join("while_compiling").exists() {
+        if !self.script_path.join("while_compiling").exists() {
             return None;
         }
-        let mut script = process::Command::new(SCRIPT_PATH.join("while_compiling"))
+        let mut script = process::Command::new(self.script_path.join("while_compiling"))
             .stdin(Stdio::piped())
             .stderr(Stdio::null())
             .spawn()
