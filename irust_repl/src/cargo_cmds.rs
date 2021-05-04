@@ -11,8 +11,6 @@ use std::{io, str::FromStr};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-// TODO:
-// Move these paths to KnownPaths struct
 pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(temp_dir);
 pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust_host_repl"));
 pub static IRUST_TARGET_DIR: Lazy<PathBuf> = Lazy::new(|| {
@@ -123,9 +121,6 @@ pub fn cargo_run(
 }
 
 pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
-    //TODO is this required?
-    clean_files()?;
-
     Command::new("cargo-add")
         .current_dir(&*IRUST_DIR)
         .arg("add")
@@ -156,7 +151,9 @@ pub fn cargo_check(toolchain: ToolChain) -> std::result::Result<std::process::Ch
         .spawn()
 }
 
-pub fn cargo_check_output(toolchain: ToolChain) -> std::result::Result<String, io::Error> {
+pub fn cargo_check_output(
+    toolchain: ToolChain,
+) -> std::result::Result<(ExitStatus, String), io::Error> {
     #[cfg(not(windows))]
     let color = "always";
     #[cfg(windows)]
@@ -165,12 +162,12 @@ pub fn cargo_check_output(toolchain: ToolChain) -> std::result::Result<String, i
     } else {
         "never"
     };
+    let output = cargo_common!("check", toolchain)
+        .args(&["--color", color])
+        .output()?;
 
-    Ok(stdout_and_stderr(
-        cargo_common!("check", toolchain)
-            .args(&["--color", color])
-            .output()?,
-    ))
+    let status = output.status;
+    Ok((status, stdout_and_stderr(output)))
 }
 
 pub fn cargo_build(toolchain: ToolChain) -> std::result::Result<std::process::Child, io::Error> {
@@ -219,27 +216,6 @@ pub fn cargo_bench(toolchain: ToolChain) -> std::result::Result<String, io::Erro
             .args(&["--color", "always"])
             .output()?,
     ))
-}
-
-fn clean_cargo_toml() -> io::Result<()> {
-    // edition needs to be specified or racer will not be able to autocomplete dependencies
-    // bug maybe?
-    const CARGO_TOML: &str = r#"[package]
-name = "irust_host_repl"
-version = "0.1.0"
-edition = "2018""#;
-    let mut cargo_toml_file = fs::File::create(&*CARGO_TOML_FILE)?;
-    write!(cargo_toml_file, "{}", CARGO_TOML)?;
-    Ok(())
-}
-
-fn clean_files() -> io::Result<()> {
-    const MAIN_SRC: &str = "fn main() {\n\n}";
-    let mut main = fs::File::create(&*MAIN_FILE)?;
-    write!(main, "{}", MAIN_SRC)?;
-    std::fs::copy(&*MAIN_FILE, &*MAIN_FILE_EXTERN)?;
-    let _ = std::fs::remove_file(&*LIB_FILE);
-    Ok(())
 }
 
 pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
@@ -291,5 +267,26 @@ fn try_cargo_fmt_file(file: &Path) -> io::Result<()> {
         .arg(file)
         .spawn()?
         .wait()?;
+    Ok(())
+}
+
+fn clean_cargo_toml() -> io::Result<()> {
+    // edition needs to be specified or racer will not be able to autocomplete dependencies
+    // bug maybe?
+    const CARGO_TOML: &str = r#"[package]
+name = "irust_host_repl"
+version = "0.1.0"
+edition = "2018""#;
+    let mut cargo_toml_file = fs::File::create(&*CARGO_TOML_FILE)?;
+    write!(cargo_toml_file, "{}", CARGO_TOML)?;
+    Ok(())
+}
+
+fn clean_files() -> io::Result<()> {
+    const MAIN_SRC: &str = "fn main() {\n\n}";
+    let mut main = fs::File::create(&*MAIN_FILE)?;
+    write!(main, "{}", MAIN_SRC)?;
+    std::fs::copy(&*MAIN_FILE, &*MAIN_FILE_EXTERN)?;
+    let _ = std::fs::remove_file(&*LIB_FILE);
     Ok(())
 }

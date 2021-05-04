@@ -9,29 +9,41 @@ use std::{
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+#[derive(Debug)]
+pub struct EvalResult {
+    pub output: String,
+    pub status: ExitStatus,
+}
+
+impl From<(ExitStatus, String)> for EvalResult {
+    fn from(result: (ExitStatus, String)) -> Self {
+        Self {
+            output: result.1,
+            status: result.0,
+        }
+    }
+}
+
 const FN_MAIN: &str = "fn main() {";
 
 #[derive(Debug, Clone)]
 pub struct Repl {
     body: Vec<String>,
     cursor: usize,
-}
-
-impl Default for Repl {
-    fn default() -> Self {
-        Self::new()
-    }
+    toolchain: ToolChain,
 }
 
 impl Repl {
-    pub fn new() -> Self {
-        Self {
+    pub fn new(toolchain: ToolChain) -> Result<Self> {
+        cargo_new(toolchain)?;
+        Ok(Self {
             body: vec![
                 FN_MAIN.to_string(),
                 "} // Do not write past this line (it will corrupt the repl)".to_string(),
             ],
             cursor: 1,
-        }
+            toolchain,
+        })
     }
 
     pub fn update_from_extern_main_file(&mut self) -> Result<()> {
@@ -45,6 +57,7 @@ impl Repl {
         *self = Self {
             body: main_file.lines().map(ToOwned::to_owned).collect(),
             cursor: cursor_pos,
+            toolchain: self.toolchain,
         };
         Ok(())
     }
@@ -73,55 +86,43 @@ impl Repl {
         }
     }
 
-    pub fn reset(&mut self, toolchain: ToolChain) -> Result<()> {
-        self.prepare_ground(toolchain)?;
-        *self = Self::new();
+    pub fn reset(&mut self) -> Result<()> {
+        *self = Self::new(self.toolchain)?;
         Ok(())
     }
 
     pub fn show(&self) -> String {
         let mut current_code = self.body.join("\n");
-        // If cargo fmt is present foramt output else ignore
+        // If cargo fmt is present format output else ignore
         if let Ok(fmt_code) = cargo_fmt(&current_code) {
             current_code = fmt_code;
         }
         format!("Current Repl Code:\n{}", current_code)
     }
 
-    // prepare ground
-    pub fn prepare_ground(&self, toolchain: ToolChain) -> Result<()> {
-        cargo_new(toolchain)?;
-        Ok(())
-    }
-
-    pub fn eval(
-        &mut self,
-        input: impl ToString,
-        toolchain: ToolChain,
-    ) -> Result<(ExitStatus, String)> {
-        self.eval_inner(input, toolchain, None, false)
+    pub fn eval(&mut self, input: impl ToString) -> Result<EvalResult> {
+        self.eval_inner(input, None, false)
     }
     //Note: These inputs should become a Config struct
     pub fn eval_with_configuration(
         &mut self,
         input: impl ToString,
-        toolchain: ToolChain,
         interactive_function: fn(&mut Child) -> Result<()>,
         color: bool,
-    ) -> Result<(ExitStatus, String)> {
-        self.eval_inner(input, toolchain, Some(interactive_function), color)
+    ) -> Result<EvalResult> {
+        self.eval_inner(input, Some(interactive_function), color)
     }
 
     fn eval_inner(
         &mut self,
         input: impl ToString,
-        toolchain: ToolChain,
         interactive_function: Option<fn(&mut Child) -> Result<()>>,
         color: bool,
-    ) -> Result<(ExitStatus, String)> {
+    ) -> Result<EvalResult> {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
+        let toolchain = self.toolchain;
 
         let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, || {
             cargo_run(color, false, toolchain, interactive_function)
@@ -129,22 +130,24 @@ impl Repl {
 
         // remove trailing new line
         eval_result.pop();
-        Ok((status, eval_result))
+        Ok((status, eval_result).into())
     }
 
-    pub fn eval_build(
-        &mut self,
-        input: impl ToString,
-        toolchain: ToolChain,
-    ) -> Result<(ExitStatus, String)> {
+    pub fn eval_build(&mut self, input: impl ToString) -> Result<EvalResult> {
         let input = input.to_string();
-        self.eval_in_tmp_repl(input, || -> Result<(ExitStatus, String)> {
-            Ok(cargo_build_output(true, false, toolchain)?)
-        })
+        let toolchain = self.toolchain;
+        Ok(self
+            .eval_in_tmp_repl(input, || -> Result<(ExitStatus, String)> {
+                Ok(cargo_build_output(true, false, toolchain)?)
+            })?
+            .into())
     }
 
-    pub fn eval_check(&mut self, buffer: String, toolchain: ToolChain) -> Result<String> {
-        self.eval_in_tmp_repl(buffer, || Ok(cargo_check_output(toolchain)?))
+    pub fn eval_check(&mut self, buffer: String) -> Result<EvalResult> {
+        let toolchain = self.toolchain;
+        Ok(self
+            .eval_in_tmp_repl(buffer, || Ok(cargo_check_output(toolchain)?))?
+            .into())
     }
 
     pub fn eval_in_tmp_repl<T>(
@@ -165,12 +168,20 @@ impl Repl {
         result
     }
 
+    pub fn toolchain(&self) -> ToolChain {
+        self.toolchain
+    }
+
+    pub fn set_toolchain(&mut self, toolchain: ToolChain) {
+        self.toolchain = toolchain;
+    }
+
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
         cargo_add(dep)
     }
 
-    pub fn build(&self, toolchain: ToolChain) -> std::io::Result<std::process::Child> {
-        cargo_build(toolchain)
+    pub fn build(&self) -> std::io::Result<std::process::Child> {
+        cargo_build(self.toolchain)
     }
 
     pub fn write(&self) -> io::Result<()> {

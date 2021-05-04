@@ -9,7 +9,7 @@ use crate::{
     irust::format::{format_check_output, format_err, format_eval_output},
     utils::ctrlc_cancel,
 };
-use irust_repl::cargo_cmds::*;
+use irust_repl::{cargo_cmds::*, EvalResult};
 use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
@@ -63,7 +63,7 @@ impl IRust {
     }
 
     fn reset(&mut self) -> Result<PrintQueue> {
-        self.repl.reset(self.options.toolchain)?;
+        self.repl.reset()?;
         success!()
     }
 
@@ -93,13 +93,15 @@ impl IRust {
     }
 
     fn toolchain(&mut self) -> Result<PrintQueue> {
-        self.options.toolchain = ToolChain::from_str(
+        let toolchain = ToolChain::from_str(
             self.buffer
                 .to_string()
                 .split_whitespace()
                 .nth(1)
                 .unwrap_or("?"),
         )?;
+        self.repl.set_toolchain(toolchain);
+        self.options.toolchain = toolchain;
         success!()
     }
 
@@ -137,7 +139,7 @@ impl IRust {
         }
 
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
-        self.wait_add(self.repl.build(self.options.toolchain)?, "Build")?;
+        self.wait_add(self.repl.build()?, "Build")?;
 
         if self.options.check_statements {
             self.wait_add(cargo_check(self.options.toolchain)?, "Check")?;
@@ -205,7 +207,7 @@ impl IRust {
             .set_last_loaded_coded_path(path.clone());
 
         // reset repl
-        self.repl.reset(self.options.toolchain)?;
+        self.repl.reset()?;
 
         // read code
         let path_code = std::fs::read(path)?;
@@ -220,7 +222,7 @@ impl IRust {
         let code = remove_main(&code);
 
         // build the code
-        let (status, output) = self.repl.eval_build(code.clone(), self.options.toolchain)?;
+        let EvalResult { output, status } = self.repl.eval_build(code.clone())?;
 
         if !status.success() {
             Ok(format_err(&output))
@@ -344,10 +346,9 @@ impl IRust {
             let mut insert_flag = true;
 
             if self.options.check_statements {
-                if let Some(mut e) = format_check_output(
-                    self.repl
-                        .eval_check(buffer.clone(), self.options.toolchain)?,
-                ) {
+                if let Some(mut e) =
+                    format_check_output(self.repl.eval_check(buffer.clone())?.output)
+                {
                     print_queue.append(&mut e);
                     insert_flag = false;
                 }
@@ -363,22 +364,19 @@ impl IRust {
             let mut outputs = PrintQueue::default();
 
             self.while_compiling_hook();
-            let result = self.repl.eval_with_configuration(
-                buffer,
-                self.options.toolchain,
-                ctrlc_cancel,
-                true,
-            );
+            let result = self
+                .repl
+                .eval_with_configuration(buffer, ctrlc_cancel, true);
             self.after_compiling_hook();
-            let (status, out) = result?;
+            let EvalResult { output, status } = result?;
 
             // Save output if it was a success
             if status.success() {
-                self.global_variables.set_last_output(out.clone());
+                self.global_variables.set_last_output(output.clone());
             }
 
             let output_prompt = self.get_output_prompt();
-            if let Some(mut eval_output) = format_eval_output(status, out, output_prompt) {
+            if let Some(mut eval_output) = format_eval_output(status, output, output_prompt) {
                 outputs.append(&mut eval_output);
             }
 
@@ -390,7 +388,7 @@ impl IRust {
         match self.repl.update_from_extern_main_file() {
             Ok(_) => success!(),
             Err(e) => {
-                self.repl.reset(self.options.toolchain)?;
+                self.repl.reset()?;
                 Err(e)
             }
         }

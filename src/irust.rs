@@ -35,9 +35,8 @@ pub struct IRust {
 
 impl IRust {
     pub fn new(options: Options) -> Self {
-        let out = std::io::stdout();
         // Make sure to call Repl::new at the start so it can set `irust-repl` dir, which might be used by others (ScriptManager)
-        let repl = Repl::new();
+        let repl = Repl::new(options.toolchain).expect("Could not create repl");
 
         let global_variables = GlobalVariables::new();
 
@@ -60,7 +59,7 @@ impl IRust {
             })
             .unwrap_or_else(|| options.input_prompt.clone());
 
-        let printer = Printer::new(out, prompt);
+        let printer = Printer::new(std::io::stdout(), prompt);
 
         let racer = if options.enable_racer {
             Racer::start()
@@ -91,7 +90,6 @@ impl IRust {
             "IRust: {}",
             self.global_variables.get_cwd().display()
         ))?;
-        self.repl.prepare_ground(self.options.toolchain)?;
         self.welcome()?;
         self.printer.print_prompt_if_set()?;
 
