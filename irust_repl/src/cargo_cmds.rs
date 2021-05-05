@@ -130,6 +130,16 @@ pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
         .spawn()
 }
 
+pub fn cargo_rm(dep: &[String]) -> io::Result<std::process::Child> {
+    Command::new("cargo-rm")
+        .current_dir(&*IRUST_DIR)
+        .arg("rm")
+        .args(dep)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+}
+
 macro_rules! cargo_common {
     // The difference in env flags makes cargo recompiles again!!!
     // => make  sure all build env flags are the same

@@ -1,11 +1,12 @@
 pub mod cargo_cmds;
 pub use cargo_cmds::ToolChain;
 use cargo_cmds::*;
+mod executor;
+pub use executor::Executor;
 mod utils;
-use std::process::ExitStatus;
 use std::{
     io::{self, Write},
-    process::Child,
+    process::{Child, ExitStatus},
 };
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -25,26 +26,48 @@ impl From<(ExitStatus, String)> for EvalResult {
     }
 }
 
-const FN_MAIN: &str = "fn main() {";
-
 #[derive(Debug, Clone)]
 pub struct Repl {
     body: Vec<String>,
     cursor: usize,
     toolchain: ToolChain,
+    executor: Executor,
 }
 
 impl Repl {
-    pub fn new(toolchain: ToolChain) -> Result<Self> {
+    pub fn new(toolchain: ToolChain, executor: Executor) -> Result<Self> {
         cargo_new(toolchain)?;
+        // check for required dependencies (in case of async)
+        if let Some(dependecy) = executor.dependecy() {
+            cargo_add(&dependecy)?;
+        }
+
         Ok(Self {
             body: vec![
-                FN_MAIN.to_string(),
+                executor.main(),
                 "} // Do not write past this line (it will corrupt the repl)".to_string(),
             ],
             cursor: 1,
             toolchain,
+            executor,
         })
+    }
+
+    pub fn set_executor(&mut self, executor: Executor) -> Result<()> {
+        // remove old dependecy if it exists
+        if let Some(dependecy) = self.executor.dependecy() {
+            cargo_rm(&dependecy)?;
+        }
+
+        // use the new executor
+        self.executor = executor;
+        // check for required dependencies (in case of async)
+        if let Some(dependecy) = executor.dependecy() {
+            cargo_add(&dependecy)?;
+        }
+        // finally set the correct main function
+        self.body[0] = executor.main();
+        Ok(())
     }
 
     pub fn update_from_extern_main_file(&mut self) -> Result<()> {
@@ -59,6 +82,7 @@ impl Repl {
             body: main_file.lines().map(ToOwned::to_owned).collect(),
             cursor: cursor_pos,
             toolchain: self.toolchain,
+            executor: self.executor,
         };
         Ok(())
     }
@@ -88,7 +112,7 @@ impl Repl {
     }
 
     pub fn reset(&mut self) -> Result<()> {
-        *self = Self::new(self.toolchain)?;
+        *self = Self::new(self.toolchain, self.executor)?;
         Ok(())
     }
 
@@ -205,7 +229,10 @@ impl Repl {
         let mut body = self.body.clone();
 
         // safe unwrap
-        let main_idx = body.iter().position(|l| l == FN_MAIN).unwrap();
+        let main_idx = body
+            .iter()
+            .position(|line| line == &self.executor.main())
+            .unwrap();
         body.remove(main_idx); // remove fn main
         body.pop(); // remove last }
 

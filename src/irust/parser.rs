@@ -9,7 +9,7 @@ use crate::{
     irust::format::{format_check_output, format_err, format_eval_output},
     utils::ctrlc_cancel,
 };
-use irust_repl::{cargo_cmds::*, EvalResult};
+use irust_repl::{cargo_cmds::*, EvalResult, Executor};
 use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
@@ -58,6 +58,8 @@ impl IRust {
             cmd if cmd.starts_with(":time") => self.time(),
             cmd if cmd.starts_with(":bench") => self.bench(),
             cmd if cmd.starts_with(":asm") => self.asm(),
+            cmd if cmd.starts_with(":executor") => self.executor(),
+            cmd if cmd.starts_with(":set_executor") => self.set_executor(),
             _ => self.parse_second_order(),
         }
     }
@@ -532,5 +534,22 @@ impl IRust {
         let asm = cargo_asm(fnn, self.options.toolchain)?;
 
         print_queue!(asm, self.options.eval_color)
+    }
+
+    fn set_executor(&mut self) -> Result<PrintQueue> {
+        let buffer = self.buffer.to_string();
+        let executor = buffer
+            .split_whitespace()
+            .nth(1)
+            .ok_or("No executor specified, available options: sync, tokio, async_std")?;
+        let executor = Executor::from_str(executor.trim())?;
+        self.repl.set_executor(executor)?;
+        // save executor
+        self.options.executor = executor;
+
+        success!()
+    }
+    fn executor(&mut self) -> Result<PrintQueue> {
+        print_queue!(self.options.executor.to_string(), Color::Blue)
     }
 }

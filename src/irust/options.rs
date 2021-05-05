@@ -1,6 +1,6 @@
 use crate::irust::{IRust, Result};
 use crossterm::style::Color;
-use irust_repl::cargo_cmds::ToolChain;
+use irust_repl::{cargo_cmds::ToolChain, Executor};
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 
@@ -34,6 +34,7 @@ pub struct Options {
     pub output_prompt: String,
     pub activate_scripting: bool,
     pub activate_scripting2: bool,
+    pub executor: Executor,
 }
 
 impl Default for Options {
@@ -79,6 +80,7 @@ impl Default for Options {
             output_prompt: "Out: ".to_string(),
             activate_scripting: false,
             activate_scripting2: false,
+            executor: Executor::Sync,
         }
     }
 }
