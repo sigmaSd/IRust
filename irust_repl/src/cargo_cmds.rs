@@ -130,6 +130,22 @@ pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
         .spawn()
 }
 
+pub fn cargo_add_sync(dep: &[String]) -> Result<()> {
+    let process = Command::new("cargo-add")
+        .current_dir(&*IRUST_DIR)
+        .arg("add")
+        .args(dep)
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::piped())
+        .spawn()?
+        .wait()?;
+    if process.success() {
+        Ok(())
+    } else {
+        Err(format!("Failed to add dependency: {:?}", &dep).into())
+    }
+}
+
 pub fn cargo_rm(dep: &[String]) -> io::Result<std::process::Child> {
     Command::new("cargo-rm")
         .current_dir(&*IRUST_DIR)

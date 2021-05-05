@@ -39,7 +39,7 @@ impl Repl {
         cargo_new(toolchain)?;
         // check for required dependencies (in case of async)
         if let Some(dependecy) = executor.dependecy() {
-            cargo_add(&dependecy)?;
+            cargo_add_sync(&dependecy)?;
         }
 
         Ok(Self {
@@ -63,7 +63,7 @@ impl Repl {
         self.executor = executor;
         // check for required dependencies (in case of async)
         if let Some(dependecy) = executor.dependecy() {
-            cargo_add(&dependecy)?;
+            cargo_add_sync(&dependecy)?;
         }
         // finally set the correct main function
         self.body[0] = executor.main();
