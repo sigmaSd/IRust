@@ -41,6 +41,10 @@ Cross Platform Rust Repl
 
 **:asm** *\<function\>* => shows assembly of the specified function, note that the function needs to be public (requires [cargo-asm](https://github.com/gnzlbg/cargo-asm))
 
+**:set_executor** *\<executor\>* => set the executor to be used by IRust, available options are: `sync` `tokio` `async_std`, by  using an async executor, `await` becomes usable with no other modifications
+
+**:executor** => print the currently used executor
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history
