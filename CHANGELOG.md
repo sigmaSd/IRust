@@ -1,3 +1,8 @@
+**1.7.2**
+- Add `:set_executor` command to set the executor used by IRust, available options are: `sync` `tokio` `async_std`, by  using an async executor, `await` becomes usable with no other modifications
+- Hide warnings from evaluation output
+- Added a book with tips and tricks https://sigmasd.github.io/irust_book/ 
+
 **1.7.1**
 -Internal refactor: split the repl engine in its own crate
 
