@@ -241,6 +241,8 @@ pub extern "C" fn output_prompt(global_varibales: &GlobalVariables) -> *mut c_ch
 }
 ```
 
+## Book
+`The IRust Book` is intended to document a couple of tips and tricks https://sigmasd.github.io/irust_book
 
 ## Releases
    Automatic releases by github actions are uploaded here https://github.com/sigmaSd/irust/releases
