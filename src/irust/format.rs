@@ -8,15 +8,16 @@ pub fn format_err(output: &str) -> PrintQueue {
     let actual_error = if lines_count > 8 {
         output
             .lines()
+            // skip warnings
+            .skip_while(|line| !line.contains("irust_host_repl v0.1.0"))
             .skip(1)
-            .take(lines_count - 8)
+            .take_while(|line| !line.contains(": aborting due to "))
             .collect::<Vec<&str>>()
             .join("\n")
     } else {
         output.to_string()
     };
     error.push(PrinterItem::String(actual_error, Color::Red));
-    error.add_new_line(1);
     error
 }
 
