@@ -35,12 +35,20 @@ pub struct Repl {
 }
 
 impl Repl {
-    pub fn new(toolchain: ToolChain, executor: Executor) -> Result<Self> {
-        cargo_new(toolchain)?;
+    pub fn new(toolchain: ToolChain) -> Result<Self> {
+        Self::new_with_executor(toolchain, Executor::Sync)
+    }
+
+    pub fn new_with_executor(toolchain: ToolChain, executor: Executor) -> Result<Self> {
+        cargo_new()?;
         // check for required dependencies (in case of async)
         if let Some(dependecy) = executor.dependecy() {
+            // needs to be sync
+            // repl::new(Tokio)
+            // repl.eval(5); // cargo-edit may not have written to Cargo.toml yet
             cargo_add_sync(&dependecy)?;
         }
+        cargo_build(toolchain)?;
 
         Ok(Self {
             body: vec![
@@ -112,7 +120,7 @@ impl Repl {
     }
 
     pub fn reset(&mut self) -> Result<()> {
-        *self = Self::new(self.toolchain, self.executor)?;
+        *self = Self::new_with_executor(self.toolchain, self.executor)?;
         Ok(())
     }
 

@@ -70,13 +70,12 @@ impl ToolChain {
     }
 }
 
-pub fn cargo_new(toolchain: ToolChain) -> std::result::Result<(), io::Error> {
+pub fn cargo_new() -> std::result::Result<(), io::Error> {
     // Ignore directory exists error
     let _ = std::fs::create_dir_all(&*IRUST_SRC_DIR);
     clean_cargo_toml()?;
     clean_files()?;
 
-    cargo_build(toolchain)?;
     Ok(())
 }
 
