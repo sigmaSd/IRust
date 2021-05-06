@@ -76,7 +76,7 @@ pub fn cargo_new(toolchain: ToolChain) -> std::result::Result<(), io::Error> {
     clean_cargo_toml()?;
     clean_files()?;
 
-    cargo_build(toolchain)?.wait()?;
+    cargo_build(toolchain)?;
     Ok(())
 }
 
