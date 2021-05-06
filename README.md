@@ -39,7 +39,7 @@ Cross Platform Rust Repl
 
 **:bench** => run `cargo bench`
 
-**:asm** *\<function\>* => shows assembly of the specified function, note that the function needs to be public (requires [cargo-asm](https://github.com/gnzlbg/cargo-asm))
+**:asm** *\<function\>* => shows assembly of the specified function, note that the function needs to be public, and there has to be no free standing statements/expressions (requires [cargo-asm](https://github.com/gnzlbg/cargo-asm))
 
 **:set_executor** *\<executor\>* => set the executor to be used by IRust, available options are: `sync` `tokio` `async_std`, by  using an async executor, `await` becomes usable with no other modifications (requires [cargo-edit](https://github.com/killercup/cargo-edit) for async executors)
 
