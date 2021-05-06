@@ -251,6 +251,7 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
         cargo_common!("asm", toolchain)
             .arg("--lib")
             .arg(format!("irust_host_repl::{}", fnn))
+            .arg("--rust")
             .output()?,
     ))
 }
