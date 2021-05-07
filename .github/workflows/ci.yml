@@ -54,5 +54,5 @@ jobs:
 
     - name: Test Packaging
       if: matrix.rust == 'stable'
-      run: cargo package
+      run: cargo package --manifest-path crates/irust/Cargo.toml
       continue-on-error: ${{ matrix.can-fail }}
