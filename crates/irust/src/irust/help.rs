@@ -9,9 +9,9 @@ use printer::{
 impl IRust {
     pub fn help(&mut self) -> Result<PrintQueue> {
         #[cfg(unix)]
-        let readme = include_str!("../../../../README.md");
+        let readme = include_str!("../../README.md");
         #[cfg(windows)]
-        let readme = include_str!("..\\..\\..\\..\\README.md");
+        let readme = include_str!("..\\..\\README.md");
 
         Ok(parse_markdown(&readme.into(), &self.theme))
     }
