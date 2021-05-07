@@ -1,3 +1,6 @@
+**1.8.1**
+- Fix typo in script manager, that caused `output_prompt` script to be ignored - @Aloxaf
+
 **1.8.0**
 - Improve cold startup time by making the first build async
 - Merge `:set_executor/executor` commands in one command `:executor`, if no arguments are provided it will act as a getter, else as setter, `:toolchain` command is updated to have the same behavior
