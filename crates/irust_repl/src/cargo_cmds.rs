@@ -1,15 +1,15 @@
-use crate::utils::{stdout_and_stderr, ProcessUtils};
 use crate::Result;
+use crate::{
+    utils::{stdout_and_stderr, ProcessUtils},
+    ToolChain,
+};
 use once_cell::sync::Lazy;
+use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
 use std::{env::temp_dir, process::Stdio};
 use std::{fs, process};
-use std::{io, str::FromStr};
-
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 
 pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(temp_dir);
 pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust_host_repl"));
@@ -37,38 +37,6 @@ pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/i
 #[cfg(not(windows))]
 pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
     Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_host_repl"));
-
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Copy)]
-pub enum ToolChain {
-    Stable,
-    Beta,
-    Nightly,
-}
-
-impl FromStr for ToolChain {
-    type Err = Box<dyn std::error::Error>;
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        use ToolChain::*;
-        match s.to_lowercase().as_str() {
-            "stable" => Ok(Stable),
-            "beta" => Ok(Beta),
-            "nightly" => Ok(Nightly),
-            _ => Err("Unkown toolchain".into()),
-        }
-    }
-}
-
-impl ToolChain {
-    fn as_arg(&self) -> String {
-        use ToolChain::*;
-        match self {
-            Stable => "+stable".to_string(),
-            Beta => "+beta".to_string(),
-            Nightly => "+nightly".to_string(),
-        }
-    }
-}
 
 pub fn cargo_new() -> std::result::Result<(), io::Error> {
     // Ignore directory exists error

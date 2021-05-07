@@ -1,9 +1,11 @@
 pub mod cargo_cmds;
-pub use cargo_cmds::ToolChain;
 use cargo_cmds::*;
 mod executor;
 pub use executor::Executor;
+mod toolchain;
+pub use toolchain::ToolChain;
 mod utils;
+
 use std::{
     io::{self, Write},
     process::{Child, ExitStatus},
