@@ -57,7 +57,9 @@ dependencies = [
 
 [[package]]
 name = "irust_api"
-version = "0.1.0"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1893b9ebd078877b9a630910e64a084ec78a553e35d40f845011fa365c94507"
 dependencies = [
  "serde",
 ]

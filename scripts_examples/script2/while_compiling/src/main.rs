@@ -1,7 +1,7 @@
 use std::io::stdout;
 
 use crossterm::{
-    cursor::{Hide, MoveTo, RestorePosition, SavePosition, Show},
+    cursor::{Hide, MoveTo, MoveToColumn, RestorePosition, SavePosition, Show},
     execute,
     style::Print,
 };
@@ -19,11 +19,13 @@ fn main() {
         let _ = execute!(
             stdout(),
             SavePosition,
+            Hide,
             MoveTo(
                 globals.prompt_position.0 as u16,
-                globals.prompt_position.1 as u16,
+                globals.prompt_position.1 as u16
             ),
-            Hide,
+            Print(" ".repeat(globals.prompt_len)),
+            MoveToColumn(0),
             Print(msg),
             Show,
             RestorePosition
