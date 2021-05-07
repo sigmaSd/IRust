@@ -22,14 +22,14 @@ use script::{script1::ScriptManager, script2::ScriptManager2, Script};
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub struct IRust {
-    buffer: Buffer,
-    repl: Repl,
-    printer: Printer<std::io::Stdout>,
     options: Options,
-    racer: Option<Racer>,
-    global_variables: GlobalVariables,
+    buffer: Buffer,
+    printer: Printer<std::io::Stdout>,
     theme: Theme,
+    repl: Repl,
+    global_variables: GlobalVariables,
     history: History,
+    racer: Option<Racer>,
     script_mg: Option<Box<dyn Script>>,
 }
 
@@ -73,14 +73,14 @@ impl IRust {
         let history = History::new().unwrap_or_default();
 
         IRust {
-            repl,
-            printer,
             options,
-            racer,
             buffer,
-            global_variables,
+            printer,
             theme,
+            repl,
+            global_variables,
             history,
+            racer,
             script_mg,
         }
     }
