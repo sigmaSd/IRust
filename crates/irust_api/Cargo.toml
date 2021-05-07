@@ -1,15 +1,11 @@
 [package]
 name = "irust_api"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"
 description = "IRust API"
 repository = "https://github.com/sigmaSd/IRust/tree/master/crates/irust_api"
 license = "MIT"
-
-
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 serde = {version = "1.0.125", features = ["derive"]}
