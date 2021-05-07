@@ -1,6 +1,6 @@
 use crate::irust::{IRust, Result};
 use crossterm::style::Color;
-use irust_repl::{cargo_cmds::ToolChain, Executor};
+use irust_repl::{Executor, ToolChain};
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 

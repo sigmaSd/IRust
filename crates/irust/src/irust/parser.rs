@@ -9,7 +9,7 @@ use crate::{
     irust::format::{format_check_output, format_err, format_eval_output},
     utils::ctrlc_cancel,
 };
-use irust_repl::{cargo_cmds::*, EvalResult, Executor};
+use irust_repl::{cargo_cmds::*, EvalResult, Executor, ToolChain};
 use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
@@ -94,16 +94,17 @@ impl IRust {
     }
 
     fn toolchain(&mut self) -> Result<PrintQueue> {
-        let toolchain = ToolChain::from_str(
-            self.buffer
-                .to_string()
-                .split_whitespace()
-                .nth(1)
-                .unwrap_or("?"),
-        )?;
-        self.repl.set_toolchain(toolchain);
-        self.options.toolchain = toolchain;
-        success!()
+        let buffer = self.buffer.to_string();
+        let toolchain = buffer.split_whitespace().nth(1);
+
+        if let Some(toolchain) = toolchain {
+            let toolchain = ToolChain::from_str(toolchain)?;
+            self.repl.set_toolchain(toolchain);
+            self.options.toolchain = toolchain;
+            success!()
+        } else {
+            print_queue!(self.options.toolchain.to_string(), Color::Blue)
+        }
     }
 
     fn add_dep(&mut self) -> Result<PrintQueue> {
