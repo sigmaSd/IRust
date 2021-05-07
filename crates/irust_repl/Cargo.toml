@@ -5,7 +5,7 @@ authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"
 readme = "README.md"
 description = "IRust Repl abstraction"
-repository = "https://github.com/sigmaSd/IRust/tree/master/irust_repl"
+repository = "https://github.com/sigmaSd/IRust/tree/master/crates/irust_repl"
 license = "MIT"
 
 [dependencies]
