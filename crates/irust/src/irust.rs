@@ -39,7 +39,7 @@ impl IRust {
         let repl = Repl::new_with_executor(options.toolchain, options.executor)
             .expect("Could not create repl");
 
-        let global_variables = GlobalVariables::new();
+        let mut global_variables = GlobalVariables::new();
 
         let script_mg = if options.activate_scripting2 {
             Some(Box::new(ScriptManager2::new()) as Box<dyn Script>)
@@ -59,6 +59,8 @@ impl IRust {
                 }
             })
             .unwrap_or_else(|| options.input_prompt.clone());
+
+        global_variables.prompt_len = prompt.chars().count();
 
         let printer = Printer::new(std::io::stdout(), prompt);
 

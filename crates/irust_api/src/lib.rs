@@ -11,6 +11,7 @@ pub struct GlobalVariables {
     pub operation_number: usize,
 
     pub prompt_position: (usize, usize), // (row, col)
+    pub prompt_len: usize,
 }
 
 impl Default for GlobalVariables {
@@ -30,6 +31,7 @@ impl GlobalVariables {
             last_output: None,
             operation_number: 1,
             prompt_position: (0, 0), // (row, col)
+            prompt_len: 0,
         }
     }
 
