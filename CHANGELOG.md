@@ -1,3 +1,10 @@
+**1.8.0**
+- Improve cold startup time by making the first build async
+- Merge `:set_executor/executor` commands in one command `:executor`, if no arguments are provided it will act as a getter, else as setter, `:toolchain` command is updated to have the same behavior
+- Use --rust option with cargo-asm to interleave rust code
+- Organize code with workspace
+- irust_repl: add Repl::new_with_executor to the api, Repl::new defaults to sync
+
 **1.7.2**
 - Add `:set_executor` command to set the executor used by IRust, available options are: `sync` `tokio` `async_std`, by  using an async executor, `await` becomes usable with no other modifications
 - Hide warnings from evaluation output
