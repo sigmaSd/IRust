@@ -45,7 +45,7 @@ impl super::Script for ScriptManager2 {
         if !self.script_path.join("output_prompt").exists() {
             return None;
         }
-        let mut script = process::Command::new(self.script_path.join("input_prompt"))
+        let mut script = process::Command::new(self.script_path.join("output_prompt"))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
