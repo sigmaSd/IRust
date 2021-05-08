@@ -113,14 +113,17 @@ pub fn cargo_add_sync(dep: &[String]) -> Result<()> {
     }
 }
 
-pub fn cargo_rm(dep: &[String]) -> io::Result<std::process::Child> {
+pub fn cargo_rm_sync(dep: &str) -> Result<()> {
+    // Ignore error if dependency doesn't exist
     Command::new("cargo-rm")
         .current_dir(&*IRUST_DIR)
         .arg("rm")
-        .args(dep)
+        .arg(dep)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::piped())
-        .spawn()
+        .spawn()?
+        .wait()?;
+    Ok(())
 }
 
 macro_rules! cargo_common {

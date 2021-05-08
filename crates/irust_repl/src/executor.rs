@@ -18,6 +18,8 @@ impl Executor {
             Executor::AsyncStd => "#[async_std::main]async fn main() {".into(),
         }
     }
+    /// Invokation that can be used with cargo-add
+    /// The first argument is the crate name, it should be used with cargo-rm
     pub(crate) fn dependecy(&self) -> Option<Vec<String>> {
         match self {
             Executor::Sync => None,

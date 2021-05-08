@@ -66,7 +66,8 @@ impl Repl {
     pub fn set_executor(&mut self, executor: Executor) -> Result<()> {
         // remove old dependecy if it exists
         if let Some(dependecy) = self.executor.dependecy() {
-            cargo_rm(&dependecy)?;
+            // cargo rm needs only the crate name
+            cargo_rm_sync(&dependecy[0])?;
         }
 
         // use the new executor
