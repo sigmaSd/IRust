@@ -1,4 +1,5 @@
-use irust_api::GlobalVariables;
+use crossterm::event::Event;
+use irust_api::{Command, GlobalVariables};
 
 pub mod script1;
 pub mod script2;
@@ -9,6 +10,15 @@ pub trait Script {
     fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()> {
         None
     }
+    fn input_event_hook(
+        &mut self,
+        _global_variables: &GlobalVariables,
+        _event: Event,
+    ) -> Option<Command> {
+        None
+    }
+
+    //internal
     fn after_compiling(&mut self) -> Option<()> {
         None
     }
@@ -37,6 +47,16 @@ impl super::IRust {
             script_mg.while_compiling(&self.global_variables);
         }
     }
+    pub fn input_event_hook(&mut self, event: Event) -> Option<Command> {
+        if let Some(ref mut script_mg) = self.script_mg {
+            return script_mg.input_event_hook(&self.global_variables, event);
+        }
+        None
+    }
+
+    // internal
+    ///////////
+
     pub fn after_compiling_hook(&mut self) {
         if let Some(ref mut script_mg) = self.script_mg {
             script_mg.after_compiling();

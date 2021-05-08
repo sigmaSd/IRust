@@ -1,10 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
-
 use crossterm::{
     event::{Event, KeyCode, KeyEvent, KeyModifiers},
     style::Color,
     terminal::ClearType,
 };
+use irust_api::Command;
 use printer::printer::{PrintQueue, PrinterItem};
 
 use crate::irust::{racer::Cycle, Result};
@@ -14,35 +13,16 @@ use crate::{irust::Buffer, utils::StringTools};
 #[derive(Default)]
 pub struct Engine {}
 
-pub enum Command {
-    HandleCharacter(char),
-    HandleEnter(bool),
-    HandleAltEnter,
-    HandleTab,
-    HandleBackTab,
-    HandleRight,
-    HandleLeft,
-    HandleBackSpace,
-    HandleDelete,
-    HandleCtrlC,
-    HandleCtrlD(Rc<RefCell<bool>>),
-    HandleCtrlE,
-    HandleCtrlL,
-    HandleCtrlR,
-    HandleCtrlZ,
-    HandleUp,
-    HandleDown,
-    HandleCtrlRight,
-    HandleCtrlLeft,
-    HandleHome,
-    HandleEnd,
-    RemoveRacerSugesstionsAndReprint,
-    Exit,
-}
-
 impl IRust {
     pub fn execute(&mut self, command: Command) -> Result<()> {
         match command {
+            Command::Continue => Ok(()),
+            Command::Multiple(commands) => {
+                for command in commands {
+                    self.execute(command)?;
+                }
+                Ok(())
+            }
             Command::HandleCharacter(c) => {
                 self.buffer.insert(c);
                 self.print_input()?;
@@ -238,14 +218,14 @@ impl IRust {
                 self.print_input()?;
                 Ok(())
             }
-            Command::HandleCtrlD(exit_flag) => {
+            Command::HandleCtrlD => {
                 if !self.buffer.is_empty() {
                     return Ok(());
                 }
 
                 macro_rules! set_exit_flag_and_return {
                     () => {{
-                        *exit_flag.borrow_mut() = true;
+                        self.exit_flag = true;
                         break Ok(());
                     }};
                 }
@@ -570,6 +550,8 @@ impl IRust {
                 self.printer.cursor.show();
                 Ok(())
             }
+            Command::SetThinCursor => Ok(()),
+            Command::SetWideCursor => Ok(()),
         }
     }
 

@@ -1,4 +1,5 @@
-use irust_api::GlobalVariables;
+use crossterm::event::Event;
+use irust_api::{Command, GlobalVariables};
 use std::{
     collections::HashMap,
     path::PathBuf,
@@ -73,6 +74,30 @@ impl super::Script for ScriptManager2 {
         self.map.insert("while_compiling".into(), script);
         None
     }
+    fn input_event_hook(
+        &mut self,
+        global_variables: &GlobalVariables,
+        event: Event,
+    ) -> Option<Command> {
+        if !self.script_path.join("input_event").exists() {
+            return None;
+        }
+        let mut script = process::Command::new(self.script_path.join("input_event"))
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .ok()?;
+        let mut stdin = script.stdin.as_mut().expect("stdin is piped");
+        bincode::serialize_into(&mut stdin, global_variables).ok()?;
+        bincode::serialize_into(stdin, &event).ok()?;
+
+        let stdout = script.stdout.as_mut().expect("stdout is piped");
+        let command: Option<Command> = bincode::deserialize_from(stdout).ok()?;
+
+        command
+    }
+
+    //internal
     fn after_compiling(&mut self) -> Option<()> {
         self.map.get_mut("while_compiling")?.kill().ok()
     }

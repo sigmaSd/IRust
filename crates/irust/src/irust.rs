@@ -1,6 +1,4 @@
 mod engine;
-use std::{cell::RefCell, rc::Rc};
-
 use engine::Engine;
 mod art;
 mod format;
@@ -15,14 +13,12 @@ use crossterm::event::KeyModifiers;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use highlight::theme::Theme;
 use history::History;
-use irust_api::GlobalVariables;
+use irust_api::{Command, GlobalVariables};
 use irust_repl::Repl;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
 use script::{script1::ScriptManager, script2::ScriptManager2, Script};
-
-use self::engine::Command;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -31,6 +27,7 @@ pub struct IRust {
     buffer: Buffer,
     printer: Printer<std::io::Stdout>,
     _engine: Engine,
+    exit_flag: bool,
     theme: Theme,
     repl: Repl,
     global_variables: GlobalVariables,
@@ -78,6 +75,7 @@ impl IRust {
 
         let buffer = Buffer::new();
         let _engine = Engine::default();
+        let exit_flag = false;
         let theme = highlight::theme::theme().unwrap_or_default();
         let history = History::new().unwrap_or_default();
 
@@ -86,6 +84,7 @@ impl IRust {
             buffer,
             printer,
             _engine,
+            exit_flag,
             theme,
             repl,
             global_variables,
@@ -118,7 +117,6 @@ impl IRust {
     pub fn run(&mut self) -> Result<()> {
         self.prepare()?;
 
-        let exit_flag = Rc::new(RefCell::new(false));
         loop {
             // flush queued output after each key
             // some events that have an inner input loop like ctrl-r/ ctrl-d require flushing inside their respective handler function
@@ -126,8 +124,8 @@ impl IRust {
 
             match crossterm::event::read() {
                 Ok(ev) => {
-                    self.handle_input_event(ev, exit_flag.clone())?;
-                    if *exit_flag.borrow() {
+                    self.handle_input_event(ev)?;
+                    if self.exit_flag {
                         break Ok(());
                     }
                 }
@@ -136,11 +134,14 @@ impl IRust {
         }
     }
 
-    fn handle_input_event(
-        &mut self,
-        ev: crossterm::event::Event,
-        exit_flag: Rc<RefCell<bool>>,
-    ) -> Result<()> {
+    fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<()> {
+        // check if a script want to act upon this event
+        // if so scripts have precedence over normal flow
+        if let Some(command) = self.input_event_hook(ev) {
+            self.execute(command)?;
+            return Ok(());
+        }
+
         // handle input event
         match ev {
             Event::Mouse(_) => (),
@@ -204,7 +205,7 @@ impl IRust {
                     code: KeyCode::Char('d'),
                     modifiers: KeyModifiers::CONTROL,
                 } => {
-                    self.execute(Command::HandleCtrlD(exit_flag))?;
+                    self.execute(Command::HandleCtrlD)?;
                 }
                 KeyEvent {
                     code: KeyCode::Char('z'),
