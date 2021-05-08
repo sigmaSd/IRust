@@ -85,6 +85,7 @@ impl super::Script for ScriptManager2 {
         let mut script = process::Command::new(self.script_path.join("input_event"))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
+            .stderr(Stdio::null())
             .spawn()
             .ok()?;
         let mut stdin = script.stdin.as_mut().expect("stdin is piped");
