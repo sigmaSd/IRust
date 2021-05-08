@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, path::PathBuf};
+use std::path::PathBuf;
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use irust_api::Command;
 use once_cell::sync::Lazy;
 
 static SCRIPT_PATH: Lazy<PathBuf> =
-    Lazy::new(|| std::env::temp_dir().join("irust_input_event_state"));
+    Lazy::new(|| std::env::temp_dir().join("irust_input_event"));
 
 fn main() {
     if !SCRIPT_PATH.exists() {
@@ -123,7 +123,7 @@ impl State {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Serialize, Deserialize, PartialEq)]
 enum Mode {
     Normal,
     Insert,
@@ -131,23 +131,14 @@ enum Mode {
 
 impl Mode {
     fn get() -> Self {
-        let mode = std::fs::read_to_string(SCRIPT_PATH.join("mode")).unwrap_or("i".to_string());
-        match mode.as_str() {
-            "n" => Mode::Normal,
-            "i" => Mode::Insert,
-            _ => unreachable!(),
+        if let Ok(f) = std::fs::File::open(SCRIPT_PATH.join("mode")) {
+            bincode::deserialize_from(f).unwrap()
+        } else {
+            Mode::Insert
         }
     }
     fn set(mode: Mode) {
-        std::fs::write(SCRIPT_PATH.join("mode"), mode.to_string()).unwrap();
-    }
-}
-
-impl Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Mode::Normal => write!(f, "n"),
-            Mode::Insert => write!(f, "i"),
-        }
+        let f = std::fs::File::create(SCRIPT_PATH.join("mode")).unwrap();
+        bincode::serialize_into(f, &mode).unwrap();
     }
 }
