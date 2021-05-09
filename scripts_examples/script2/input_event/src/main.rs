@@ -5,8 +5,7 @@ use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use irust_api::Command;
 use once_cell::sync::Lazy;
 
-static SCRIPT_PATH: Lazy<PathBuf> =
-    Lazy::new(|| std::env::temp_dir().join("irust_input_event"));
+static SCRIPT_PATH: Lazy<PathBuf> = Lazy::new(|| std::env::temp_dir().join("irust_input_event"));
 
 fn main() {
     if !SCRIPT_PATH.exists() {
@@ -21,6 +20,12 @@ fn main() {
 
     let mode = Mode::get();
     let state = State::get();
+
+    macro_rules! reset_state {
+        () => {
+            State::set(State::Empty);
+        };
+    }
 
     let cmd = (|| match event {
         Event::Key(key) => match key {
@@ -51,23 +56,17 @@ fn main() {
                         }
                         'I' => {
                             Mode::set(Mode::Insert);
-                            let mut commands = vec![];
-                            commands.push(Command::SetThinCursor);
-                            commands.push(Command::HandleHome);
+                            let commands = vec![Command::SetThinCursor, Command::HandleHome];
                             Some(Command::Multiple(commands))
                         }
                         'a' => {
                             Mode::set(Mode::Insert);
-                            let mut commands = vec![];
-                            commands.push(Command::SetThinCursor);
-                            commands.push(Command::HandleRight);
+                            let commands = vec![Command::SetThinCursor, Command::HandleRight];
                             Some(Command::Multiple(commands))
                         }
                         'A' => {
                             Mode::set(Mode::Insert);
-                            let mut commands = vec![];
-                            commands.push(Command::SetThinCursor);
-                            commands.push(Command::HandleEnd);
+                            let commands = vec![Command::SetThinCursor, Command::HandleEnd];
                             Some(Command::Multiple(commands))
                         }
                         'd' => {
@@ -77,7 +76,7 @@ fn main() {
                                     Some(Command::Continue)
                                 }
                                 State::d => {
-                                    State::set(State::Empty);
+                                    reset_state!();
                                     //TODO: ADD cut line command
                                     Some(Command::HandleCtrlC)
                                 }
@@ -98,6 +97,20 @@ fn main() {
         Event::Mouse(_) => None,
         Event::Resize(_, _) => None,
     })();
+
+    // Second match to update the state
+    if !matches!(
+        event,
+        Event::Key(KeyEvent {
+            code: KeyCode::Char('d'),
+            modifiers: KeyModifiers::NONE
+        }) | Event::Key(KeyEvent {
+            code: KeyCode::Char('d'),
+            modifiers: KeyModifiers::SHIFT
+        })
+    ) {
+        reset_state!()
+    }
 
     bincode::serialize_into(std::io::stdout(), &cmd).unwrap();
 }
