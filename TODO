@@ -6,3 +6,4 @@ Actual unicde support
 Cranelift support
 Make all options modifiable at runtime
 racer autocomplete commands arguments
+script register action
