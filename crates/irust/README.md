@@ -176,6 +176,7 @@ The executables need to have the following properties:
 | input_prompt     | irust_api::GlobalVariables  | String  | return the input prompt value as a string
 | output_prompt    | irust_api::GlobalVariables  | String  | return the output prompt value as a string
 | while_compiling  | irust_api::GlobalVariables  | ()      | do arbitrary things while IRust is compiling an expression (print some waiting animation for example)
+| input_event      | irust_api::GlobalVariables, crossterm::event::Event  |  irust_api::Command      | all crossterm events will be passed to this scipt, it can choose to act upon it and return a Some(irust_api::Command) or let the normal irust flow continue by returning None (See examlpes for vi-mode built upon this)
 
 All scripts should add bincode and irust_api as dependecy
 

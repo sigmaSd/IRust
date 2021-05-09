@@ -1,5 +1,6 @@
+mod engine;
+use engine::Engine;
 mod art;
-mod events;
 mod format;
 mod help;
 pub mod highlight;
@@ -12,7 +13,7 @@ use crossterm::event::KeyModifiers;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use highlight::theme::Theme;
 use history::History;
-use irust_api::GlobalVariables;
+use irust_api::{Command, GlobalVariables};
 use irust_repl::Repl;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
@@ -25,6 +26,8 @@ pub struct IRust {
     options: Options,
     buffer: Buffer,
     printer: Printer<std::io::Stdout>,
+    _engine: Engine,
+    exit_flag: bool,
     theme: Theme,
     repl: Repl,
     global_variables: GlobalVariables,
@@ -71,6 +74,8 @@ impl IRust {
         };
 
         let buffer = Buffer::new();
+        let _engine = Engine::default();
+        let exit_flag = false;
         let theme = highlight::theme::theme().unwrap_or_default();
         let history = History::new().unwrap_or_default();
 
@@ -78,6 +83,8 @@ impl IRust {
             options,
             buffer,
             printer,
+            _engine,
+            exit_flag,
             theme,
             repl,
             global_variables,
@@ -117,8 +124,8 @@ impl IRust {
 
             match crossterm::event::read() {
                 Ok(ev) => {
-                    let exit = self.handle_input_event(ev)?;
-                    if exit {
+                    self.handle_input_event(ev)?;
+                    if self.exit_flag {
                         break Ok(());
                     }
                 }
@@ -127,14 +134,21 @@ impl IRust {
         }
     }
 
-    fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<bool> {
+    fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<()> {
+        // check if a script want to act upon this event
+        // if so scripts have precedence over normal flow
+        if let Some(command) = self.input_event_hook(ev) {
+            self.execute(command)?;
+            return Ok(());
+        }
+
         // handle input event
         match ev {
             Event::Mouse(_) => (),
             Event::Resize(width, height) => {
                 self.printer.cursor.update_dimensions(width, height);
                 //Hack
-                self.handle_ctrl_c()?;
+                self.execute(Command::HandleCtrlC)?;
             }
             Event::Key(key_event) => match key_event {
                 KeyEvent {
@@ -144,126 +158,86 @@ impl IRust {
                 | KeyEvent {
                     code: KeyCode::Char(c),
                     modifiers: KeyModifiers::SHIFT,
-                } => {
-                    self.handle_character(c)?;
-                }
+                } => self.execute(Command::HandleCharacter(c))?,
                 KeyEvent {
                     code: KeyCode::Char('e'),
                     modifiers: KeyModifiers::CONTROL,
-                } => {
-                    self.handle_ctrl_e()?;
-                }
+                } => self.execute(Command::HandleCtrlE)?,
                 KeyEvent {
                     code: KeyCode::Enter,
                     modifiers: KeyModifiers::ALT,
-                } => {
-                    self.handle_alt_enter()?;
-                }
+                } => self.execute(Command::HandleAltEnter)?,
                 KeyEvent {
                     code: KeyCode::Enter,
                     ..
-                } => {
-                    self.handle_enter(false)?;
-                }
+                } => self.execute(Command::HandleEnter(false))?,
                 KeyEvent {
                     code: KeyCode::Tab, ..
-                } => {
-                    self.handle_tab()?;
-                }
+                } => self.execute(Command::HandleTab)?,
                 KeyEvent {
                     code: KeyCode::BackTab,
                     ..
-                } => {
-                    self.handle_back_tab()?;
-                }
+                } => self.execute(Command::HandleBackTab)?,
                 KeyEvent {
                     code: KeyCode::Left,
                     modifiers: KeyModifiers::NONE,
-                } => {
-                    self.handle_left()?;
-                }
+                } => self.execute(Command::HandleLeft)?,
                 KeyEvent {
                     code: KeyCode::Right,
                     modifiers: KeyModifiers::NONE,
-                } => {
-                    self.handle_right()?;
-                }
+                } => self.execute(Command::HandleRight)?,
                 KeyEvent {
                     code: KeyCode::Up, ..
-                } => {
-                    self.handle_up()?;
-                }
+                } => self.execute(Command::HandleUp)?,
                 KeyEvent {
                     code: KeyCode::Down,
                     ..
-                } => {
-                    self.handle_down()?;
-                }
+                } => self.execute(Command::HandleDown)?,
                 KeyEvent {
                     code: KeyCode::Backspace,
                     ..
-                } => {
-                    self.handle_backspace()?;
-                }
+                } => self.execute(Command::HandleBackSpace)?,
                 KeyEvent {
                     code: KeyCode::Char('c'),
                     modifiers: KeyModifiers::CONTROL,
-                } => {
-                    self.handle_ctrl_c()?;
-                }
+                } => self.execute(Command::HandleCtrlC)?,
                 KeyEvent {
                     code: KeyCode::Char('d'),
                     modifiers: KeyModifiers::CONTROL,
                 } => {
-                    return self.handle_ctrl_d();
+                    self.execute(Command::HandleCtrlD)?;
                 }
                 KeyEvent {
                     code: KeyCode::Char('z'),
                     modifiers: KeyModifiers::CONTROL,
-                } => {
-                    self.handle_ctrl_z()?;
-                }
+                } => self.execute(Command::HandleCtrlZ)?,
                 KeyEvent {
                     code: KeyCode::Char('l'),
                     modifiers: KeyModifiers::CONTROL,
-                } => {
-                    self.handle_ctrl_l()?;
-                }
+                } => self.execute(Command::HandleCtrlL)?,
                 KeyEvent {
                     code: KeyCode::Char('r'),
                     modifiers: KeyModifiers::CONTROL,
-                } => {
-                    self.handle_ctrl_r()?;
-                }
+                } => self.execute(Command::HandleCtrlR)?,
                 KeyEvent {
                     code: KeyCode::Home,
                     ..
-                } => {
-                    self.handle_home_key()?;
-                }
+                } => self.execute(Command::HandleHome)?,
                 KeyEvent {
                     code: KeyCode::End, ..
-                } => {
-                    self.handle_end_key()?;
-                }
+                } => self.execute(Command::HandleEnd)?,
                 KeyEvent {
                     code: KeyCode::Left,
                     modifiers: KeyModifiers::CONTROL,
-                } => {
-                    self.handle_ctrl_left()?;
-                }
+                } => self.execute(Command::HandleCtrlLeft)?,
                 KeyEvent {
                     code: KeyCode::Right,
                     modifiers: KeyModifiers::CONTROL,
-                } => {
-                    self.handle_ctrl_right()?;
-                }
+                } => self.execute(Command::HandleCtrlRight)?,
                 KeyEvent {
                     code: KeyCode::Delete,
                     ..
-                } => {
-                    self.handle_del()?;
-                }
+                } => self.execute(Command::HandleDelete)?,
                 keyevent => {
                     // Handle AltGr on windows
                     if keyevent
@@ -271,20 +245,20 @@ impl IRust {
                         .contains(KeyModifiers::CONTROL | KeyModifiers::ALT)
                     {
                         if let KeyCode::Char(c) = keyevent.code {
-                            self.handle_character(c)?;
+                            self.execute(Command::HandleCharacter(c))?;
                         }
                     }
                 }
             },
         }
-        Ok(false)
+        Ok(())
     }
 }
 
 impl Drop for IRust {
     fn drop(&mut self) {
         // ignore errors on drop with let _
-        let _ = self.exit();
+        let _ = self.execute(Command::Exit);
         if std::thread::panicking() {
             let _ = self.printer.writer.raw.write("IRust panicked, to log the error you can redirect stderror to a file, example irust 2>log");
         }

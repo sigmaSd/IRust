@@ -1,6 +1,37 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+#[derive(Debug, Serialize, Deserialize)]
+pub enum Command {
+    Continue,
+    Multiple(Vec<Command>),
+    SetThinCursor,
+    SetWideCursor,
+    HandleCharacter(char),
+    HandleEnter(bool),
+    HandleAltEnter,
+    HandleTab,
+    HandleBackTab,
+    HandleRight,
+    HandleLeft,
+    HandleBackSpace,
+    HandleDelete,
+    HandleCtrlC,
+    HandleCtrlD,
+    HandleCtrlE,
+    HandleCtrlL,
+    HandleCtrlR,
+    HandleCtrlZ,
+    HandleUp,
+    HandleDown,
+    HandleCtrlRight,
+    HandleCtrlLeft,
+    HandleHome,
+    HandleEnd,
+    RemoveRacerSugesstionsAndReprint,
+    Exit,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct GlobalVariables {
     current_working_dir: PathBuf,
