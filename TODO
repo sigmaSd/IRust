@@ -7,3 +7,4 @@ Cranelift support
 Make all options modifiable at runtime
 racer autocomplete commands arguments
 script register action
+add &Buffer to rust api
