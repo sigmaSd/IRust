@@ -65,5 +65,11 @@ impl super::IRust {
 
     pub fn update_script_state(&mut self) {
         self.global_variables.prompt_position = self.printer.cursor.starting_pos();
+        self.global_variables.is_racer_suggestion_active = self
+            .racer
+            .as_ref()
+            .map(|r| r.active_suggestion.as_ref())
+            .flatten()
+            .is_some();
     }
 }

@@ -135,6 +135,9 @@ impl IRust {
     }
 
     fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<()> {
+        // update_script_state before anything else
+        self.update_script_state();
+
         // check if a script want to act upon this event
         // if so scripts have precedence over normal flow
         if let Some(command) = self.input_event_hook(ev) {

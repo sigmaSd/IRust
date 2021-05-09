@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Command {
+    AcceptSuggestion,
     Continue,
     DeleteNextWord,
     Multiple(Vec<Command>),
@@ -29,11 +30,11 @@ pub enum Command {
     HandleCtrlLeft,
     HandleHome,
     HandleEnd,
-    RemoveRacerSugesstionsAndReprint,
+    RemoveRacerSugesstion,
     Exit,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct GlobalVariables {
     current_working_dir: PathBuf,
     previous_working_dir: PathBuf,
@@ -44,6 +45,8 @@ pub struct GlobalVariables {
 
     pub prompt_position: (usize, usize), // (row, col)
     pub prompt_len: usize,
+    pub pid: u32,
+    pub is_racer_suggestion_active: bool,
 }
 
 impl Default for GlobalVariables {
@@ -64,6 +67,8 @@ impl GlobalVariables {
             operation_number: 1,
             prompt_position: (0, 0), // (row, col)
             prompt_len: 0,
+            pid: std::process::id(),
+            is_racer_suggestion_active: false,
         }
     }
 

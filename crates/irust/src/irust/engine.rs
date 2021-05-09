@@ -17,6 +17,19 @@ pub struct Engine {}
 impl IRust {
     pub fn execute(&mut self, command: Command) -> Result<()> {
         match command {
+            Command::AcceptSuggestion => {
+                if let Some(suggestion) = self
+                    .racer
+                    .as_mut()
+                    .map(|r| r.active_suggestion.take())
+                    .flatten()
+                {
+                    for c in suggestion.chars() {
+                        self.execute(Command::HandleCharacter(c))?;
+                    }
+                }
+                Ok(())
+            }
             Command::Continue => Ok(()),
             //NOTE: Maybe this command should be taken out of the engine, if the script gets access to self.buffer.current_char()
             Command::DeleteNextWord => {
@@ -59,15 +72,12 @@ impl IRust {
                 Ok(())
             }
             Command::HandleEnter(force_eval) => {
-                self.update_script_state();
                 self.history.unlock();
 
                 let buffer = self.buffer.to_string();
 
                 if !force_eval && !input_is_cmd_or_shell(&buffer) && incomplete_input(&buffer) {
-                    self.buffer.insert('\n');
-                    self.print_input()?;
-                    self.printer.cursor.move_right();
+                    self.execute(Command::HandleAltEnter)?;
                     return Ok(());
                 }
 
@@ -111,6 +121,7 @@ impl IRust {
                 Ok(())
             }
             Command::HandleAltEnter => {
+                self.execute(Command::RemoveRacerSugesstion)?;
                 self.buffer.insert('\n');
                 self.print_input()?;
                 self.printer.cursor.move_right();
@@ -161,7 +172,8 @@ impl IRust {
                     self.handle_history(Dir::Up, buffer)?;
                     self.history.lock();
                 } else {
-                    self.execute(Command::RemoveRacerSugesstionsAndReprint)?;
+                    self.execute(Command::RemoveRacerSugesstion)?;
+                    self.print_input()?;
                     self.printer.cursor.move_up_bounded(1);
                     // set buffer cursor
                     let buffer_pos = self.printer.cursor.cursor_pos_to_buffer_pos();
@@ -178,7 +190,8 @@ impl IRust {
                     self.handle_history(Dir::Down, buffer)?;
                     self.history.lock();
                 } else {
-                    self.execute(Command::RemoveRacerSugesstionsAndReprint)?;
+                    self.execute(Command::RemoveRacerSugesstion)?;
+                    self.print_input()?;
                     self.printer.cursor.move_down_bounded(1, &self.buffer);
                     // set buffer cursor
                     let buffer_pos = self.printer.cursor.cursor_pos_to_buffer_pos();
@@ -203,7 +216,8 @@ impl IRust {
                 Ok(())
             }
             Command::HandleLeft => {
-                self.execute(Command::RemoveRacerSugesstionsAndReprint)?;
+                self.execute(Command::RemoveRacerSugesstion)?;
+                self.print_input()?;
 
                 if !self.buffer.is_at_start() && !self.buffer.is_empty() {
                     self.printer.cursor.move_left();
@@ -436,7 +450,8 @@ impl IRust {
                     }
                 }
                 self.printer.clear_last_line()?;
-                self.execute(Command::RemoveRacerSugesstionsAndReprint)?;
+                self.execute(Command::RemoveRacerSugesstion)?;
+                self.print_input()?;
                 let buffer_pos = self.printer.cursor.cursor_pos_to_buffer_pos();
                 self.buffer.set_buffer_pos(buffer_pos);
                 Ok(())
@@ -541,30 +556,12 @@ impl IRust {
                     self.printer.cursor.move_right();
                 }
                 // check for racer suggestion at the end
-                if let Some(suggestion) = self
-                    .racer
-                    .as_mut()
-                    .map(|r| r.active_suggestion.take())
-                    .flatten()
-                {
-                    for c in suggestion.chars() {
-                        self.execute(Command::HandleCharacter(c))?;
-                    }
-                }
+                self.execute(Command::AcceptSuggestion)?;
                 Ok(())
             }
-            Command::RemoveRacerSugesstionsAndReprint => {
+            Command::RemoveRacerSugesstion => {
                 // remove any active suggestion
-                if self
-                    .racer
-                    .as_mut()
-                    .map(|r| r.active_suggestion.take())
-                    .flatten()
-                    .is_some()
-                {
-                    // and reprint
-                    self.print_input()?;
-                }
+                let _ = self.racer.as_mut().map(|r| r.active_suggestion.take());
                 Ok(())
             }
             Command::Exit => {
