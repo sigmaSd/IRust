@@ -551,7 +551,9 @@ impl IRust {
                 Ok(())
             }
             Command::HandleEnd => {
-                while !self.buffer.is_empty() && !self.printer.cursor.is_at_line_end() {
+                while !self.buffer.is_empty()
+                    && self.printer.cursor.current_pos().0 < self.printer.cursor.current_row_bound()
+                {
                     self.buffer.move_forward();
                     self.printer.cursor.move_right();
                 }
@@ -562,6 +564,7 @@ impl IRust {
             Command::RemoveRacerSugesstion => {
                 // remove any active suggestion
                 let _ = self.racer.as_mut().map(|r| r.active_suggestion.take());
+
                 Ok(())
             }
             Command::Exit => {
