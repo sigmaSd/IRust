@@ -108,11 +108,6 @@ impl StringTools {
         removed_char
     }
 
-    pub fn _get_char_at_idx(buffer: &str, idx: usize) -> Option<char> {
-        let buffer_chars: Vec<char> = buffer.chars().collect();
-        buffer_chars.into_iter().nth(idx)
-    }
-
     pub fn chars_count(buffer: &str) -> usize {
         buffer.chars().count()
     }
