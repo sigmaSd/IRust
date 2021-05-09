@@ -17,6 +17,30 @@ impl IRust {
     pub fn execute(&mut self, command: Command) -> Result<()> {
         match command {
             Command::Continue => Ok(()),
+            //NOTE: Maybe this command should be taken out of the engine, if the script gets access to self.buffer.current_char()
+            Command::DeleteNextWord => {
+                let current_char = self.buffer.current_char();
+                if current_char.is_none() {
+                    return Ok(());
+                }
+                let current_char = current_char.unwrap();
+
+                let delete_predicate_function: &dyn Fn(&char) -> bool =
+                    if current_char.is_whitespace() {
+                        &|c| c.is_whitespace()
+                    } else {
+                        &|c| !c.is_whitespace()
+                    };
+
+                // safe unwrap because the first char is checked and the next ones will be caught inside the loop
+                while delete_predicate_function(self.buffer.current_char().unwrap()) {
+                    self.execute(Command::HandleDelete)?;
+                    if self.buffer.current_char().is_none() {
+                        break;
+                    }
+                }
+                Ok(())
+            }
             Command::Multiple(commands) => {
                 for command in commands {
                     self.execute(command)?;

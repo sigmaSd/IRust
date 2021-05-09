@@ -46,8 +46,24 @@ fn main() {
                         'j' => Some(Command::HandleDown),
                         'k' => Some(Command::HandleUp),
                         'l' => Some(Command::HandleRight),
-                        'b' => Some(Command::HandleCtrlLeft),
-                        'w' => Some(Command::HandleCtrlRight),
+                        'b' => {
+                            if state == State::d {
+                                Some(Command::Multiple(vec![
+                                    Command::HandleCtrlLeft,
+                                    Command::DeleteNextWord,
+                                ]))
+                            } else {
+                                Some(Command::HandleCtrlLeft)
+                            }
+                        }
+                        'w' => {
+                            if state == State::d {
+                                Some(Command::DeleteNextWord)
+                            } else {
+                                Some(Command::HandleCtrlRight)
+                            }
+                        }
+                        'x' => Some(Command::HandleDelete),
                         '$' => Some(Command::HandleEnd),
                         '^' => Some(Command::HandleHome),
                         'i' => {

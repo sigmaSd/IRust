@@ -4,6 +4,7 @@ use std::path::PathBuf;
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Command {
     Continue,
+    DeleteNextWord,
     Multiple(Vec<Command>),
     SetThinCursor,
     SetWideCursor,
