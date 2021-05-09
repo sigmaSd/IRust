@@ -55,6 +55,24 @@ impl IRust {
                 }
                 Ok(())
             }
+            Command::DeleteUntilNewLine(delete_new_line) => {
+                loop {
+                    match self.buffer.current_char() {
+                        Some(c) if c == &'\n' => break,
+                        None => break,
+                        _ => (),
+                    }
+                    self.execute(Command::HandleDelete)?;
+                }
+                if delete_new_line {
+                    if self.buffer.current_char().is_some() {
+                        self.execute(Command::HandleDelete)?;
+                    } else {
+                        self.execute(Command::HandleBackSpace)?;
+                    }
+                }
+                Ok(())
+            }
             Command::Multiple(commands) => {
                 for command in commands {
                     self.execute(command)?;

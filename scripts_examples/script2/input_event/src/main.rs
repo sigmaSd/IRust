@@ -94,10 +94,14 @@ fn main() {
                                 State::d => {
                                     reset_state!();
                                     //TODO: ADD cut line command
-                                    Some(Command::HandleCtrlC)
+                                    Some(Command::Multiple(vec![
+                                        Command::HandleHome,
+                                        Command::DeleteUntilNewLine(true),
+                                    ]))
                                 }
                             }
                         }
+                        'D' => Some(Command::DeleteUntilNewLine(false)),
                         _ => Some(Command::Continue),
                     }
                 }

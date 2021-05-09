@@ -6,6 +6,7 @@ pub enum Command {
     AcceptSuggestion,
     Continue,
     DeleteNextWord,
+    DeleteUntilNewLine(bool),
     Multiple(Vec<Command>),
     SetThinCursor,
     SetWideCursor,
