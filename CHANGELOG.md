@@ -1,3 +1,8 @@
+**1.9.0**
+- Refactor internals to use Engine/Commands style and add a new script `input_event`, this script can intercept crossterm events and return irust_api::Command to control IRust behavior, a vim mode example based on this script is also provided
+
+- Fix race condition with cargo rm
+- Expose prompt length in the irust api
 **1.8.1**
 - Fix typo in script manager, that caused `output_prompt` script to be ignored - @Aloxaf
 
