@@ -106,7 +106,7 @@ fn main() {
                 code: KeyCode::Esc, ..
             } => {
                 Mode::set(Mode::Normal);
-                None
+                Some(Command::SetWideCursor)
             }
             _ => None,
         },
