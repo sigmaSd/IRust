@@ -23,8 +23,7 @@ pub trait Script {
         None
     }
 
-    //internal
-    fn after_compiling(&mut self) -> Option<()> {
+    fn after_compile(&mut self) -> Option<()> {
         None
     }
 }
@@ -76,7 +75,7 @@ impl super::IRust {
 
     pub fn after_compiling_hook(&mut self) {
         if let Some(ref mut script_mg) = self.script_mg {
-            script_mg.after_compiling();
+            script_mg.after_compile();
         }
     }
 

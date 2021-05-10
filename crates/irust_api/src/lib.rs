@@ -10,6 +10,10 @@ pub struct ScriptInfo {
 #[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum Hook {
     InputEvent,
+    SetInputPrompt,
+    SetOutputPrompt,
+    WhileCompiling,
+    AfterCompile,
 }
 
 #[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]

@@ -15,11 +15,13 @@ type OneshotMap = HashMap<Hook, Vec<PathBuf>>;
 pub struct ScriptManager3 {
     daemon_map: DaemonMap,
     oneshot_map: OneshotMap,
+    //
+    active_oneshot: HashMap<String, Child>,
 }
 
 impl Script for ScriptManager3 {
-    fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()> {
-        None
+    fn while_compiling(&mut self, global_variables: &GlobalVariables) -> Option<()> {
+        self.trigger_while_compiling_hook(global_variables)
     }
 
     fn input_event_hook(
@@ -30,16 +32,16 @@ impl Script for ScriptManager3 {
         self.trigger_input_event_hook(event, global_variables)
     }
 
-    fn after_compiling(&mut self) -> Option<()> {
-        None
+    fn after_compile(&mut self) -> Option<()> {
+        self.trigger_after_compile_hook()
     }
 
-    fn input_prompt(&self, _global_variables: &GlobalVariables) -> Option<String> {
-        None
+    fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
+        self.trigger_prompt_hook(Hook::SetInputPrompt, global_variables)
     }
 
-    fn get_output_prompt(&self, _global_variables: &GlobalVariables) -> Option<String> {
-        None
+    fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
+        self.trigger_prompt_hook(Hook::SetInputPrompt, global_variables)
     }
 }
 
@@ -51,10 +53,75 @@ impl ScriptManager3 {
         Some(Self {
             daemon_map,
             oneshot_map,
+            active_oneshot: HashMap::new(),
         })
     }
+    fn trigger_while_compiling_hook(&mut self, global_variables: &GlobalVariables) -> Option<()> {
+        let mut taged_script = None;
 
-    pub fn trigger_input_event_hook(
+        let mut oneshot_fn = |script_path: &Path| -> Option<()> {
+            let mut script = process::Command::new(script_path)
+                .stdin(Stdio::piped())
+                .spawn()
+                .ok()?;
+            let mut stdin = script.stdin.as_mut().expect("stdin is piped");
+            bincode::serialize_into(&mut stdin, &Message::Hook).ok()?;
+            bincode::serialize_into(&mut stdin, &Hook::WhileCompiling).ok()?;
+            bincode::serialize_into(&mut stdin, global_variables).ok()?;
+
+            taged_script = Some(script);
+            Some(())
+        };
+        let _ = self.trigger_hook(Hook::WhileCompiling, None, Some(&mut oneshot_fn));
+        self.active_oneshot
+            .insert("while_compiling".to_string(), taged_script?);
+        Some(())
+    }
+    fn trigger_after_compile_hook(&mut self) -> Option<()> {
+        if let Some(mut process) = self.active_oneshot.remove("while_compiling") {
+            process.kill().ok()?;
+        }
+        Some(())
+    }
+    fn trigger_prompt_hook(
+        &self,
+        hook: Hook,
+        global_variables: &GlobalVariables,
+    ) -> Option<String> {
+        let common_fn = |script: &mut Child| {
+            let mut stdin = script.stdin.as_mut().expect("stdin is piped");
+            bincode::serialize_into(&mut stdin, &Message::Hook).ok()?;
+            bincode::serialize_into(&mut stdin, &hook).ok()?;
+            bincode::serialize_into(&mut stdin, global_variables).ok()?;
+            let stdout = script.stdout.as_mut().expect("stdout is piped");
+            let prompt: String = bincode::deserialize_from(stdout).ok()?;
+            Some(prompt)
+        };
+
+        let mut daemon_fn = |script: Rc<RefCell<Child>>| -> Option<String> {
+            let mut script = script.borrow_mut();
+            common_fn(&mut *script)
+        };
+
+        let mut oneshot_fn = |script_path: &Path| -> Option<String> {
+            let mut script = process::Command::new(script_path)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .spawn()
+                .ok()?;
+            common_fn(&mut script)
+        };
+
+        let mut commands = self.trigger_hook(hook, Some(&mut daemon_fn), Some(&mut oneshot_fn));
+        if !commands.is_empty() {
+            // If different scripts want to set the prompt, just select the first one
+            Some(commands.remove(0))
+        } else {
+            None
+        }
+    }
+
+    fn trigger_input_event_hook(
         &mut self,
         event: Event,
         global_variables: &GlobalVariables,
@@ -72,12 +139,12 @@ impl ScriptManager3 {
             command
         };
 
-        let daemon_fn = |script: Rc<RefCell<Child>>| -> Option<Command> {
+        let mut daemon_fn = |script: Rc<RefCell<Child>>| -> Option<Command> {
             let mut script = script.borrow_mut();
             common_fn(&mut *script)
         };
 
-        let oneshot_fn = |script_path: &Path| -> Option<Command> {
+        let mut oneshot_fn = |script_path: &Path| -> Option<Command> {
             let mut script = process::Command::new(script_path)
                 .stdin(Stdio::piped())
                 .stdout(Stdio::piped())
@@ -86,7 +153,7 @@ impl ScriptManager3 {
             common_fn(&mut script)
         };
 
-        let commands = self.trigger_hook(hook, &daemon_fn, &oneshot_fn);
+        let commands = self.trigger_hook(hook, Some(&mut daemon_fn), Some(&mut oneshot_fn));
         if !commands.is_empty() {
             Some(Command::Multiple(commands))
         } else {
@@ -94,27 +161,31 @@ impl ScriptManager3 {
         }
     }
 
-    pub fn trigger_hook<T>(
-        &mut self,
+    fn trigger_hook<T>(
+        &self,
         hook: Hook,
-        daemon_fn: &dyn Fn(Rc<RefCell<Child>>) -> Option<T>,
-        oneshot_fn: &dyn Fn(&Path) -> Option<T>,
+        daemon_fn: Option<&mut dyn FnMut(Rc<RefCell<Child>>) -> Option<T>>,
+        oneshot_fn: Option<&mut dyn FnMut(&Path) -> Option<T>>,
     ) -> Vec<T> {
         let mut commands = vec![];
-        for (registered_hook, scripts) in self.daemon_map.iter() {
-            if registered_hook == &hook {
-                for script in scripts {
-                    if let Some(command) = daemon_fn(script.clone()) {
-                        commands.push(command);
+        if let Some(daemon_fn) = daemon_fn {
+            for (registered_hook, scripts) in self.daemon_map.iter() {
+                if registered_hook == &hook {
+                    for script in scripts {
+                        if let Some(command) = daemon_fn(script.clone()) {
+                            commands.push(command);
+                        }
                     }
                 }
             }
         }
-        for (registered_hook, scripts_path) in self.oneshot_map.iter() {
-            if registered_hook == &hook {
-                for script_path in scripts_path {
-                    if let Some(command) = oneshot_fn(&script_path) {
-                        commands.push(command);
+        if let Some(oneshot_fn) = oneshot_fn {
+            for (registered_hook, scripts_path) in self.oneshot_map.iter() {
+                if registered_hook == &hook {
+                    for script_path in scripts_path {
+                        if let Some(command) = oneshot_fn(&script_path) {
+                            commands.push(command);
+                        }
                     }
                 }
             }

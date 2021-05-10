@@ -98,8 +98,7 @@ impl super::Script for ScriptManager2 {
         command
     }
 
-    //internal
-    fn after_compiling(&mut self) -> Option<()> {
+    fn after_compile(&mut self) -> Option<()> {
         self.map.get_mut("while_compiling")?.kill().ok()
     }
 }
