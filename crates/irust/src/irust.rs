@@ -18,9 +18,7 @@ use irust_repl::Repl;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
-use script::{script1::ScriptManager, script2::ScriptManager2, Script};
-
-use self::script::script3::ScriptManager3;
+use script::Script;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -36,7 +34,6 @@ pub struct IRust {
     history: History,
     racer: Option<Racer>,
     script_mg: Option<Box<dyn Script>>,
-    script_mg3: ScriptManager3,
 }
 
 impl IRust {
@@ -47,14 +44,7 @@ impl IRust {
 
         let mut global_variables = GlobalVariables::new();
 
-        let script_mg = if options.activate_scripting2 {
-            Some(Box::new(ScriptManager2::new()) as Box<dyn Script>)
-        } else if options.activate_scripting {
-            ScriptManager::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
-        } else {
-            None
-        };
-
+        let script_mg = Self::choose_script_mg(&options);
         let prompt = script_mg
             .as_ref()
             .map(|script_mg| {
@@ -82,8 +72,6 @@ impl IRust {
         let theme = highlight::theme::theme().unwrap_or_default();
         let history = History::new().unwrap_or_default();
 
-        let script_mg3 = ScriptManager3::new().unwrap();
-
         IRust {
             options,
             buffer,
@@ -96,7 +84,6 @@ impl IRust {
             history,
             racer,
             script_mg,
-            script_mg3,
         }
     }
 
@@ -143,14 +130,6 @@ impl IRust {
     fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<()> {
         // update_script_state before anything else
         self.update_script_state();
-
-        if let Some(command) = self
-            .script_mg3
-            .trigger_input_event_hook(ev, &self.global_variables)
-        {
-            self.execute(command)?;
-            return Ok(());
-        }
 
         // check if a script want to act upon this event
         // if so scripts have precedence over normal flow

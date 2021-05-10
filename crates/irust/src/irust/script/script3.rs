@@ -7,12 +7,40 @@ use std::{fs, process::Stdio};
 use std::{path::Path, process};
 use std::{path::PathBuf, process::Child};
 
+use super::Script;
+
 type DaemonMap = HashMap<Hook, Vec<Rc<RefCell<Child>>>>;
 type OneshotMap = HashMap<Hook, Vec<PathBuf>>;
 
 pub struct ScriptManager3 {
     daemon_map: DaemonMap,
     oneshot_map: OneshotMap,
+}
+
+impl Script for ScriptManager3 {
+    fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()> {
+        None
+    }
+
+    fn input_event_hook(
+        &mut self,
+        global_variables: &GlobalVariables,
+        event: Event,
+    ) -> Option<Command> {
+        self.trigger_input_event_hook(event, global_variables)
+    }
+
+    fn after_compiling(&mut self) -> Option<()> {
+        None
+    }
+
+    fn input_prompt(&self, _global_variables: &GlobalVariables) -> Option<String> {
+        None
+    }
+
+    fn get_output_prompt(&self, _global_variables: &GlobalVariables) -> Option<String> {
+        None
+    }
 }
 
 impl ScriptManager3 {

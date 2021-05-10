@@ -1,6 +1,10 @@
 use crossterm::event::Event;
 use irust_api::{Command, GlobalVariables};
 
+use self::{script1::ScriptManager, script2::ScriptManager2, script3::ScriptManager3};
+
+use super::options::Options;
+
 pub mod script1;
 pub mod script2;
 pub mod script3;
@@ -57,6 +61,18 @@ impl super::IRust {
 
     // internal
     ///////////
+    ///
+    pub fn choose_script_mg(options: &Options) -> Option<Box<dyn Script>> {
+        if options.activate_scripting3 {
+            ScriptManager3::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
+        } else if options.activate_scripting2 {
+            Some(Box::new(ScriptManager2::new()) as Box<dyn Script>)
+        } else if options.activate_scripting {
+            ScriptManager::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
+        } else {
+            None
+        }
+    }
 
     pub fn after_compiling_hook(&mut self) {
         if let Some(ref mut script_mg) = self.script_mg {
