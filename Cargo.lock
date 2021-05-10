@@ -183,7 +183,6 @@ dependencies = [
 name = "irust_api"
 version = "0.5.0"
 dependencies = [
- "crossterm",
  "serde",
 ]
 

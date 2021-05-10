@@ -1,4 +1,5 @@
-use irust_api::{Command, HookData, Message};
+use crossterm::event::Event;
+use irust_api::{Command, GlobalVariables, Message};
 use irust_api::{Hook, ScriptInfo};
 use std::{cell::RefCell, collections::HashMap, io, rc::Rc};
 use std::{fs, process::Stdio};
@@ -25,54 +26,72 @@ impl ScriptManager3 {
         })
     }
 
-    pub fn trigger_hook(&mut self, hook: Hook, hook_data: HookData) -> Option<Command> {
+    pub fn trigger_input_event_hook(
+        &mut self,
+        event: Event,
+        global_variables: &GlobalVariables,
+    ) -> Option<Command> {
+        let hook = Hook::InputEvent;
+
+        let common_fn = |script: &mut Child| {
+            let mut stdin = script.stdin.as_mut().expect("stdin is piped");
+            bincode::serialize_into(&mut stdin, &Message::Hook).ok()?;
+            bincode::serialize_into(&mut stdin, &hook).ok()?;
+            bincode::serialize_into(&mut stdin, global_variables).ok()?;
+            bincode::serialize_into(&mut stdin, &event).ok()?;
+            let stdout = script.stdout.as_mut().expect("stdout is piped");
+            let command: Option<Command> = bincode::deserialize_from(stdout).ok()?;
+            command
+        };
+
+        let daemon_fn = |script: Rc<RefCell<Child>>| -> Option<Command> {
+            let mut script = script.borrow_mut();
+            common_fn(&mut *script)
+        };
+
+        let oneshot_fn = |script_path: &Path| -> Option<Command> {
+            let mut script = process::Command::new(script_path)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .spawn()
+                .ok()?;
+            common_fn(&mut script)
+        };
+
+        let commands = self.trigger_hook(hook, &daemon_fn, &oneshot_fn);
+        if !commands.is_empty() {
+            Some(Command::Multiple(commands))
+        } else {
+            None
+        }
+    }
+
+    pub fn trigger_hook<T>(
+        &mut self,
+        hook: Hook,
+        daemon_fn: &dyn Fn(Rc<RefCell<Child>>) -> Option<T>,
+        oneshot_fn: &dyn Fn(&Path) -> Option<T>,
+    ) -> Vec<T> {
         let mut commands = vec![];
         for (registered_hook, scripts) in self.daemon_map.iter() {
             if registered_hook == &hook {
                 for script in scripts {
-                    if let Some(command) = (|| -> Option<Command> {
-                        let mut script = script.borrow_mut();
-                        let mut stdin = script.stdin.as_mut().expect("stdin is piped");
-                        bincode::serialize_into(&mut stdin, &Message::Hook).ok()?;
-                        bincode::serialize_into(&mut stdin, &hook).ok()?;
-                        bincode::serialize_into(&mut stdin, &hook_data).ok()?;
-                        let stdout = script.stdout.as_mut().expect("stdout is piped");
-                        let command: Option<Command> = bincode::deserialize_from(stdout).ok()?;
-                        command
-                    })() {
+                    if let Some(command) = daemon_fn(script.clone()) {
                         commands.push(command);
-                    };
+                    }
                 }
             }
         }
         for (registered_hook, scripts_path) in self.oneshot_map.iter() {
             if registered_hook == &hook {
                 for script_path in scripts_path {
-                    if let Some(command) = (|| -> Option<Command> {
-                        let mut script = process::Command::new(script_path)
-                            .stdin(Stdio::piped())
-                            .stdout(Stdio::piped())
-                            .spawn()
-                            .ok()?;
-                        let mut stdin = script.stdin.as_mut().expect("stdin is piped");
-                        bincode::serialize_into(&mut stdin, &Message::Hook).ok()?;
-                        bincode::serialize_into(&mut stdin, &hook).ok()?;
-                        bincode::serialize_into(&mut stdin, &hook_data).ok()?;
-
-                        let stdout = script.stdout.as_mut().expect("stdout is piped");
-                        let command: Option<Command> = bincode::deserialize_from(stdout).ok()?;
-                        command
-                    })() {
+                    if let Some(command) = oneshot_fn(&script_path) {
                         commands.push(command);
                     }
                 }
             }
         }
-        if commands.is_empty() {
-            None
-        } else {
-            Some(Command::Multiple(commands))
-        }
+        commands
     }
 }
 

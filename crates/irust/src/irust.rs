@@ -13,7 +13,7 @@ use crossterm::event::KeyModifiers;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use highlight::theme::Theme;
 use history::History;
-use irust_api::{Command, GlobalVariables, Hook, HookData};
+use irust_api::{Command, GlobalVariables};
 use irust_repl::Repl;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
@@ -144,13 +144,10 @@ impl IRust {
         // update_script_state before anything else
         self.update_script_state();
 
-        if let Some(command) = self.script_mg3.trigger_hook(
-            Hook::InputEvent,
-            HookData::InputEvent {
-                globals: self.global_variables.clone(),
-                event: ev,
-            },
-        ) {
+        if let Some(command) = self
+            .script_mg3
+            .trigger_input_event_hook(ev, &self.global_variables)
+        {
             self.execute(command)?;
             return Ok(());
         }

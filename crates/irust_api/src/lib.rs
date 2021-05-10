@@ -1,4 +1,3 @@
-use crossterm::event::Event;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -8,17 +7,9 @@ pub struct ScriptInfo {
     pub hooks: Vec<Hook>,
     pub is_daemon: bool,
 }
-#[derive(Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub enum Hook {
     InputEvent,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum HookData {
-    InputEvent {
-        globals: GlobalVariables,
-        event: Event,
-    },
 }
 
 #[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]
