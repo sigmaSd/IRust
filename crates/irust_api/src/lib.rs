@@ -1,5 +1,31 @@
+use crossterm::event::Event;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ScriptInfo {
+    pub path: PathBuf,
+    pub hooks: Vec<Hook>,
+    pub is_daemon: bool,
+}
+#[derive(Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Hook {
+    InputEvent,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum HookData {
+    InputEvent {
+        globals: GlobalVariables,
+        event: Event,
+    },
+}
+
+#[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]
+pub enum Message {
+    Greeting,
+    Hook,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Command {
@@ -35,7 +61,7 @@ pub enum Command {
     Exit,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GlobalVariables {
     current_working_dir: PathBuf,
     previous_working_dir: PathBuf,

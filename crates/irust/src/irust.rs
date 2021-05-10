@@ -13,12 +13,14 @@ use crossterm::event::KeyModifiers;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use highlight::theme::Theme;
 use history::History;
-use irust_api::{Command, GlobalVariables};
+use irust_api::{Command, GlobalVariables, Hook, HookData};
 use irust_repl::Repl;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
 use script::{script1::ScriptManager, script2::ScriptManager2, Script};
+
+use self::script::script3::ScriptManager3;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -34,6 +36,7 @@ pub struct IRust {
     history: History,
     racer: Option<Racer>,
     script_mg: Option<Box<dyn Script>>,
+    script_mg3: ScriptManager3,
 }
 
 impl IRust {
@@ -79,6 +82,8 @@ impl IRust {
         let theme = highlight::theme::theme().unwrap_or_default();
         let history = History::new().unwrap_or_default();
 
+        let script_mg3 = ScriptManager3::new().unwrap();
+
         IRust {
             options,
             buffer,
@@ -91,6 +96,7 @@ impl IRust {
             history,
             racer,
             script_mg,
+            script_mg3,
         }
     }
 
@@ -137,6 +143,17 @@ impl IRust {
     fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<()> {
         // update_script_state before anything else
         self.update_script_state();
+
+        if let Some(command) = self.script_mg3.trigger_hook(
+            Hook::InputEvent,
+            HookData::InputEvent {
+                globals: self.global_variables.clone(),
+                event: ev,
+            },
+        ) {
+            self.execute(command)?;
+            return Ok(());
+        }
 
         // check if a script want to act upon this event
         // if so scripts have precedence over normal flow

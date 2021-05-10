@@ -3,6 +3,7 @@ use irust_api::{Command, GlobalVariables};
 
 pub mod script1;
 pub mod script2;
+pub mod script3;
 
 pub trait Script {
     fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String>;
