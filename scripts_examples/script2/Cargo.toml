@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+    "./input_event",
+    "./input_prompt",
+    "./output_prompt",
+    "./while_compiling",
+]
+

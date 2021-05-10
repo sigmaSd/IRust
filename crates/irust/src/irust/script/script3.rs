@@ -41,7 +41,7 @@ impl Script for ScriptManager3 {
     }
 
     fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
-        self.trigger_prompt_hook(Hook::SetInputPrompt, global_variables)
+        self.trigger_prompt_hook(Hook::SetOutputPrompt, global_variables)
     }
 }
 
