@@ -43,6 +43,10 @@ impl Script for ScriptManager3 {
     fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
         self.trigger_prompt_hook(Hook::SetOutputPrompt, global_variables)
     }
+
+    fn output_event_hook(&self, input: &str, global_variables: &GlobalVariables) -> Option<String> {
+        self.trigger_output_event_hook(input, global_variables)
+    }
 }
 
 impl ScriptManager3 {
@@ -115,6 +119,46 @@ impl ScriptManager3 {
         let mut commands = self.trigger_hook(hook, Some(&mut daemon_fn), Some(&mut oneshot_fn));
         if !commands.is_empty() {
             // If different scripts want to set the prompt, just select the first one
+            Some(commands.remove(0))
+        } else {
+            None
+        }
+    }
+    fn trigger_output_event_hook(
+        &self,
+        input: &str,
+        global_variables: &GlobalVariables,
+    ) -> Option<String> {
+        let hook = Hook::OutputEvent;
+
+        let common_fn = |script: &mut Child| {
+            let mut stdin = script.stdin.as_mut().expect("stdin is piped");
+            bincode::serialize_into(&mut stdin, &Message::Hook).ok()?;
+            bincode::serialize_into(&mut stdin, &hook).ok()?;
+            bincode::serialize_into(&mut stdin, global_variables).ok()?;
+            bincode::serialize_into(&mut stdin, &input).ok()?;
+            let stdout = script.stdout.as_mut().expect("stdout is piped");
+            let command: Option<String> = bincode::deserialize_from(stdout).ok()?;
+            command
+        };
+
+        let mut daemon_fn = |script: Rc<RefCell<Child>>| {
+            let mut script = script.borrow_mut();
+            common_fn(&mut *script)
+        };
+
+        let mut oneshot_fn = |script_path: &Path| {
+            let mut script = process::Command::new(script_path)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .spawn()
+                .ok()?;
+            common_fn(&mut script)
+        };
+
+        let mut commands = self.trigger_hook(hook, Some(&mut daemon_fn), Some(&mut oneshot_fn));
+        if !commands.is_empty() {
+            // if multiple scripts want to act on the output event, use the first result
             Some(commands.remove(0))
         } else {
             None

@@ -35,8 +35,15 @@ macro_rules! print_queue {
 
 impl IRust {
     pub fn parse(&mut self) -> Result<PrintQueue> {
+        let buffer = self.buffer.to_string();
+        // check if a script want to act upon the input
+        // if so scripts have precedence over normal flow
+        if let Some(output) = self.output_event_hook(&buffer, &self.global_variables) {
+            return print_queue!(output, Color::Blue);
+        }
+
         // Order matters in this match
-        match self.buffer.to_string().as_str() {
+        match buffer.as_str() {
             ":help" => self.help(),
             ":reset" => self.reset(),
             ":show" => Ok(self.show()),

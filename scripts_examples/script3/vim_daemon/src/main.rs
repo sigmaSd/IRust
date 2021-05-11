@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{StdinLock, Write};
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use irust_api::{Command, GlobalVariables, Hook, Message, ScriptInfo};
@@ -12,7 +12,7 @@ fn main() {
 
     if message == Message::Greeting {
         let script_info = ScriptInfo {
-            hooks: vec![Hook::InputEvent],
+            hooks: vec![Hook::InputEvent, Hook::OutputEvent],
             path: std::env::current_exe().unwrap(),
             is_daemon: true,
         };
@@ -20,21 +20,80 @@ fn main() {
         std::io::stdout().flush().unwrap();
     }
 
+    let mut active = false;
     let mut mode = Mode::Insert;
     let mut state = State::Empty;
-
-    macro_rules! reset_state {
-        () => {
-            state = State::Empty;
-        };
-    }
     loop {
         // message is Message::Hook
         let _message: Message = bincode::deserialize_from(&mut handle).unwrap();
         let hook: Hook = bincode::deserialize_from(&mut handle).unwrap();
-        assert_eq!(hook, Hook::InputEvent);
+
+        match hook {
+            Hook::InputEvent => handle_input_event(&mut handle, &mut state, &mut mode, &active),
+            Hook::OutputEvent => {
+                handle_output_event(&mut handle, &mut active);
+            }
+
+            _ => unreachable!(),
+        }
+        std::io::stdout().flush().unwrap();
+    }
+
+    fn handle_output_event(mut handle: &mut StdinLock, active: &mut bool) {
+        let _g: GlobalVariables = bincode::deserialize_from(&mut handle).unwrap();
+        let input: String = bincode::deserialize_from(&mut handle).unwrap();
+        if input.starts_with(":vim") {
+            let action = input.split_whitespace().nth(1);
+            match action {
+                Some("on") => {
+                    *active = true;
+                    bincode::serialize_into(
+                        std::io::stdout(),
+                        &Some("vim mode activated".to_string()),
+                    )
+                    .unwrap();
+                }
+                Some("off") => {
+                    *active = false;
+                    bincode::serialize_into(
+                        std::io::stdout(),
+                        &Some("vim mode deactivated".to_string()),
+                    )
+                    .unwrap();
+                }
+                _ => {
+                    bincode::serialize_into(
+                        std::io::stdout(),
+                        &Some(format!("vim mode state: {}", active)),
+                    )
+                    .unwrap();
+                }
+            }
+        } else {
+            let no_action: Option<String> = None;
+            bincode::serialize_into(std::io::stdout(), &no_action).unwrap();
+        }
+    }
+
+    fn handle_input_event(
+        mut handle: &mut StdinLock,
+        state: &mut State,
+        mode: &mut Mode,
+        active: &bool,
+    ) {
         let _g: GlobalVariables = bincode::deserialize_from(&mut handle).unwrap();
         let event: Event = bincode::deserialize_from(&mut handle).unwrap();
+        if !active {
+            let cmd: Option<Command> = None;
+            bincode::serialize_into(std::io::stdout(), &cmd).unwrap();
+            return;
+        }
+
+        macro_rules! reset_state {
+            () => {
+                *state = State::Empty;
+            };
+        }
 
         let cmd = (|| match event {
             Event::Key(key) => match key {
@@ -46,7 +105,7 @@ fn main() {
                         return None;
                     }
 
-                    if mode == Mode::Insert {
+                    if *mode == Mode::Insert {
                         Some(Command::HandleCharacter(c))
                     } else {
                         // Command Mode
@@ -56,7 +115,7 @@ fn main() {
                             'k' => Some(Command::HandleUp),
                             'l' => Some(Command::HandleRight),
                             'b' => {
-                                if state == State::d {
+                                if *state == State::d {
                                     Some(Command::Multiple(vec![
                                         Command::HandleCtrlLeft,
                                         Command::DeleteNextWord,
@@ -66,7 +125,7 @@ fn main() {
                                 }
                             }
                             'w' => {
-                                if state == State::d {
+                                if *state == State::d {
                                     Some(Command::DeleteNextWord)
                                 } else {
                                     Some(Command::HandleCtrlRight)
@@ -76,28 +135,28 @@ fn main() {
                             '$' => Some(Command::HandleEnd),
                             '^' => Some(Command::HandleHome),
                             'i' => {
-                                mode = Mode::Insert;
+                                *mode = Mode::Insert;
                                 Some(Command::SetThinCursor)
                             }
                             'I' => {
-                                mode = Mode::Insert;
+                                *mode = Mode::Insert;
                                 let commands = vec![Command::SetThinCursor, Command::HandleHome];
                                 Some(Command::Multiple(commands))
                             }
                             'a' => {
-                                mode = Mode::Insert;
+                                *mode = Mode::Insert;
                                 let commands = vec![Command::SetThinCursor, Command::HandleRight];
                                 Some(Command::Multiple(commands))
                             }
                             'A' => {
-                                mode = Mode::Insert;
+                                *mode = Mode::Insert;
                                 let commands = vec![Command::SetThinCursor, Command::HandleEnd];
                                 Some(Command::Multiple(commands))
                             }
                             'd' => {
                                 match state {
                                     State::Empty => {
-                                        state = State::d;
+                                        *state = State::d;
                                         Some(Command::Continue)
                                     }
                                     State::d => {
@@ -118,7 +177,7 @@ fn main() {
                 KeyEvent {
                     code: KeyCode::Esc, ..
                 } => {
-                    mode = Mode::Normal;
+                    *mode = Mode::Normal;
                     Some(Command::SetWideCursor)
                 }
                 _ => None,
@@ -142,7 +201,6 @@ fn main() {
         }
 
         bincode::serialize_into(std::io::stdout(), &cmd).unwrap();
-        std::io::stdout().flush().unwrap();
     }
 }
 

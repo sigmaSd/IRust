@@ -26,6 +26,13 @@ pub trait Script {
     fn after_compile(&mut self) -> Option<()> {
         None
     }
+    fn output_event_hook(
+        &self,
+        _input: &str,
+        _global_variables: &GlobalVariables,
+    ) -> Option<String> {
+        None
+    }
 }
 
 // Scripts
@@ -57,6 +64,22 @@ impl super::IRust {
         }
         None
     }
+    pub fn after_compiling_hook(&mut self) {
+        if let Some(ref mut script_mg) = self.script_mg {
+            script_mg.after_compile();
+        }
+    }
+
+    pub fn output_event_hook(
+        &self,
+        input: &str,
+        global_variables: &GlobalVariables,
+    ) -> Option<String> {
+        if let Some(ref script_mg) = self.script_mg {
+            return script_mg.output_event_hook(input, global_variables);
+        }
+        None
+    }
 
     // internal
     ///////////
@@ -70,12 +93,6 @@ impl super::IRust {
             ScriptManager::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
         } else {
             None
-        }
-    }
-
-    pub fn after_compiling_hook(&mut self) {
-        if let Some(ref mut script_mg) = self.script_mg {
-            script_mg.after_compile();
         }
     }
 
