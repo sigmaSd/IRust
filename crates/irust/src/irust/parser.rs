@@ -356,9 +356,10 @@ impl IRust {
             let mut insert_flag = true;
 
             if self.options.check_statements {
-                if let Some(mut e) =
-                    format_check_output(self.repl.eval_check(buffer.clone())?.output)
-                {
+                self.while_compiling_hook();
+                let check_result = self.repl.eval_check(buffer.clone());
+                self.after_compiling_hook();
+                if let Some(mut e) = format_check_output(check_result?.output) {
                     print_queue.append(&mut e);
                     insert_flag = false;
                 }
