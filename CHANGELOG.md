@@ -1,3 +1,11 @@
+**1.10.0**
+- Add Script V3 support, check out the README for more info
+- Add `:scripts` command that list currently loaded scripts (Script V3 only)
+- Improve the performance of printing the input (by not moving the cursor when not needed)
+- Add new commands to the API
+- Improve tab behavior
+- Bugfixes
+
 **1.9.0**
 - Refactor internals to use Engine/Commands style and add a new script `input_event`, this script can intercept crossterm events and return irust_api::Command to control IRust behavior, a vim mode example based on this script is also provided
 
