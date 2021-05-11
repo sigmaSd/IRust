@@ -143,6 +143,15 @@ fn main() {
                                 let commands = vec![Command::SetThinCursor, Command::HandleHome];
                                 Some(Command::Multiple(commands))
                             }
+                            'o' => {
+                                *mode = Mode::Insert;
+                                let commands = vec![
+                                    Command::SetThinCursor,
+                                    Command::HandleEnd,
+                                    Command::HandleAltEnter,
+                                ];
+                                Some(Command::Multiple(commands))
+                            }
                             'a' => {
                                 *mode = Mode::Insert;
                                 let commands = vec![Command::SetThinCursor, Command::HandleRight];
