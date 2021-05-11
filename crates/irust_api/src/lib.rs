@@ -23,7 +23,7 @@ pub enum Message {
     Hook,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Command {
     AcceptSuggestion,
     Continue,
@@ -67,6 +67,7 @@ pub struct GlobalVariables {
     pub operation_number: usize,
 
     pub prompt_position: (usize, usize), // (row, col)
+    pub cursor_position: (usize, usize), // (row, col)
     pub prompt_len: usize,
     pub pid: u32,
     pub is_racer_suggestion_active: bool,
@@ -89,6 +90,7 @@ impl GlobalVariables {
             last_output: None,
             operation_number: 1,
             prompt_position: (0, 0), // (row, col)
+            cursor_position: (0, 0), // (row, col)
             prompt_len: 0,
             pid: std::process::id(),
             is_racer_suggestion_active: false,

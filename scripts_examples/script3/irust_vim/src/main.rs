@@ -81,7 +81,7 @@ fn main() {
         mode: &mut Mode,
         active: &bool,
     ) {
-        let _g: GlobalVariables = bincode::deserialize_from(&mut handle).unwrap();
+        let global_variables: GlobalVariables = bincode::deserialize_from(&mut handle).unwrap();
         let event: Event = bincode::deserialize_from(&mut handle).unwrap();
         if !active {
             let cmd: Option<Command> = None;
@@ -131,6 +131,22 @@ fn main() {
                                     Some(Command::HandleCtrlRight)
                                 }
                             }
+                            'g' => match state {
+                                State::Empty => {
+                                    *state = State::g;
+                                    Some(Command::Continue)
+                                }
+                                State::g => {
+                                    reset_state!();
+                                    let rows_diff = global_variables.cursor_position.1
+                                        - global_variables.prompt_position.1;
+                                    Some(Command::Multiple(vec![Command::HandleUp; rows_diff]))
+                                }
+                                _ => {
+                                    reset_state!();
+                                    Some(Command::Continue)
+                                }
+                            },
                             'x' => Some(Command::HandleDelete),
                             '$' => Some(Command::HandleEnd),
                             '^' => Some(Command::HandleHome),
@@ -176,6 +192,10 @@ fn main() {
                                             Command::DeleteUntilNewLine(true),
                                         ]))
                                     }
+                                    _ => {
+                                        reset_state!();
+                                        Some(Command::Continue)
+                                    }
                                 }
                             }
                             'D' => Some(Command::DeleteUntilNewLine(false)),
@@ -204,6 +224,9 @@ fn main() {
             }) | Event::Key(KeyEvent {
                 code: KeyCode::Char('d'),
                 modifiers: KeyModifiers::SHIFT
+            }) | Event::Key(KeyEvent {
+                code: KeyCode::Char('g'),
+                modifiers: KeyModifiers::NONE
             })
         ) {
             reset_state!()
@@ -214,10 +237,11 @@ fn main() {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum State {
     Empty,
     d,
+    g,
 }
 
 #[derive(PartialEq)]
