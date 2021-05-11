@@ -155,7 +155,16 @@ Default theme file:
 
 ```
 ## Scripts
-Since release `1.7.0` `IRust` has a new script mechanism codename script2, the old method is still available but deprecated for now see below if you still want to use it.
+**Since release `1.10.0` `IRust` has script v3 support**
+
+the advantages are:
+- No need to hardcode binaries name
+- One script can listen onto multiple hooks
+- Scripts can run on daemon or oneshot mode
+
+IRust will look for any exectuable under `$Config/irust/script3` and run it, it needs to exchange a greeting message at startup and specify which hooks its interested in, later it will be called by IRust when a specified hook is triggered, check out the [examples](https://github.com/sigmaSd/IRust/tree/master/scripts_examples/script3) for more info
+
+**Since release `1.7.0` `IRust` has a new script mechanism codename script2, the old method is still available but deprecated for now see below if you still want to use it.**
 
 The main advantages are:
 
