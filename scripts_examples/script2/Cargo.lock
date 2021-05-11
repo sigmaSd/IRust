@@ -53,7 +53,7 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "crossterm",
- "irust_api 0.5.0",
+ "irust_api",
  "once_cell",
  "serde",
 ]
@@ -63,7 +63,7 @@ name = "input_prompt"
 version = "0.1.0"
 dependencies = [
  "bincode",
- "irust_api 0.1.2",
+ "irust_api",
 ]
 
 [[package]]
@@ -77,18 +77,7 @@ dependencies = [
 
 [[package]]
 name = "irust_api"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1893b9ebd078877b9a630910e64a084ec78a553e35d40f845011fa365c94507"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "irust_api"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4289f74e2f3464bb33997e9d1c111ca6a758d67553889e5b883addd67e9f915"
+version = "0.9.0"
 dependencies = [
  "serde",
 ]
@@ -165,7 +154,7 @@ name = "output_prompt"
 version = "0.1.0"
 dependencies = [
  "bincode",
- "irust_api 0.1.2",
+ "irust_api",
 ]
 
 [[package]]
@@ -295,7 +284,7 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "crossterm",
- "irust_api 0.1.2",
+ "irust_api",
 ]
 
 [[package]]
