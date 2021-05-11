@@ -62,8 +62,7 @@ impl<W: std::io::Write> Writer<W> {
     ) -> Result<()> {
         self.raw.write(c)?;
         // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because it moves automatically
-        // This optimization is currently disabled for simplicity
-        cursor.move_right_unbounded();
+        cursor.move_right_inner_optimized(c);
         Ok(())
     }
 
