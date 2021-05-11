@@ -12,6 +12,7 @@ fn main() {
 
     if message == Message::Greeting {
         let script_info = ScriptInfo {
+            name: "Vim".into(),
             hooks: vec![Hook::InputEvent, Hook::OutputEvent],
             path: std::env::current_exe().unwrap(),
             is_daemon: true,

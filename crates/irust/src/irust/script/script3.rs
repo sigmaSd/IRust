@@ -15,6 +15,7 @@ type OneshotMap = HashMap<Hook, Vec<PathBuf>>;
 pub struct ScriptManager3 {
     daemon_map: DaemonMap,
     oneshot_map: OneshotMap,
+    meta: Vec<ScriptInfo>,
     //
     active_oneshot: HashMap<String, Child>,
 }
@@ -47,16 +48,38 @@ impl Script for ScriptManager3 {
     fn output_event_hook(&self, input: &str, global_variables: &GlobalVariables) -> Option<String> {
         self.trigger_output_event_hook(input, global_variables)
     }
+    fn list(&self) -> Option<String> {
+        if self.meta.is_empty() {
+            return None;
+        }
+        let mut list = String::new();
+        for meta in &self.meta {
+            let line = format!(
+                "{:10} || {:5} || {}",
+                &meta.name,
+                if meta.is_daemon { "daemon" } else { "oneshot" },
+                &meta.path.display().to_string()
+            );
+            list.push_str(&line);
+            list.push_str("\n\n");
+        }
+        // remove last \n\n
+        list.pop();
+        list.pop();
+
+        Some(list)
+    }
 }
 
 impl ScriptManager3 {
     pub fn new() -> Option<Self> {
         let script_path = dirs_next::config_dir()?.join("irust").join("script3");
 
-        let (daemon_map, oneshot_map) = look_for_scripts(&script_path).ok()?;
+        let (daemon_map, oneshot_map, meta) = look_for_scripts(&script_path).ok()?;
         Some(Self {
             daemon_map,
             oneshot_map,
+            meta,
             active_oneshot: HashMap::new(),
         })
     }
@@ -238,9 +261,10 @@ impl ScriptManager3 {
     }
 }
 
-fn look_for_scripts(dir: &Path) -> io::Result<(DaemonMap, OneshotMap)> {
+fn look_for_scripts(dir: &Path) -> io::Result<(DaemonMap, OneshotMap, Vec<ScriptInfo>)> {
     let mut daemon_map = HashMap::new();
     let mut oneshot_map = HashMap::new();
+    let mut meta = vec![];
 
     for entry in fs::read_dir(dir)? {
         (|| -> Option<()> {
@@ -258,6 +282,8 @@ fn look_for_scripts(dir: &Path) -> io::Result<(DaemonMap, OneshotMap)> {
 
                 let stdout = script.stdout.as_mut().expect("stdout is piped");
                 let info: ScriptInfo = bincode::deserialize_from(stdout).ok()?;
+
+                meta.push(info.clone());
                 if info.is_daemon {
                     let script = Rc::new(RefCell::new(script));
                     for hook in info.hooks {
@@ -275,7 +301,7 @@ fn look_for_scripts(dir: &Path) -> io::Result<(DaemonMap, OneshotMap)> {
             Some(())
         })();
     }
-    Ok((daemon_map, oneshot_map))
+    Ok((daemon_map, oneshot_map, meta))
 }
 
 impl Drop for ScriptManager3 {

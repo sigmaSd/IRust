@@ -15,6 +15,7 @@ fn main() {
     let message: Message = bincode::deserialize_from(&mut handle).unwrap();
     if message == Message::Greeting {
         let script_info = ScriptInfo {
+            name: "Compile Animation".to_string(),
             hooks: vec![Hook::WhileCompiling],
             path: std::env::current_exe().unwrap(),
             is_daemon: false,

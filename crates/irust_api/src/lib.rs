@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScriptInfo {
+    pub name: String,
     pub path: PathBuf,
     pub hooks: Vec<Hook>,
     pub is_daemon: bool,

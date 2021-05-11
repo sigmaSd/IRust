@@ -9,6 +9,7 @@ fn main() {
 
     if message == Message::Greeting {
         let script_info = ScriptInfo {
+            name: "Set Prompt".into(),
             hooks: vec![Hook::SetInputPrompt, Hook::SetOutputPrompt],
             path: std::env::current_exe().unwrap(),
             is_daemon: false,

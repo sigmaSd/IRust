@@ -66,6 +66,7 @@ impl IRust {
             cmd if cmd.starts_with(":bench") => self.bench(),
             cmd if cmd.starts_with(":asm") => self.asm(),
             cmd if cmd.starts_with(":executor") => self.executor(),
+            cmd if cmd.starts_with(":scripts") => self.scripts(),
             _ => self.parse_second_order(),
         }
     }
@@ -554,6 +555,13 @@ impl IRust {
             success!()
         } else {
             print_queue!(self.options.executor.to_string(), Color::Blue)
+        }
+    }
+    fn scripts(&mut self) -> Result<PrintQueue> {
+        if let Some(scripts_list) = self.scripts_list() {
+            print_queue!(scripts_list, Color::Cyan)
+        } else {
+            Err("No scripts found (this command only detects Script V3)".into())
         }
     }
 }

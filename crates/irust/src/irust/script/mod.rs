@@ -33,6 +33,9 @@ pub trait Script {
     ) -> Option<String> {
         None
     }
+    fn list(&self) -> Option<String> {
+        None
+    }
 }
 
 // Scripts
@@ -77,6 +80,13 @@ impl super::IRust {
     ) -> Option<String> {
         if let Some(ref script_mg) = self.script_mg {
             return script_mg.output_event_hook(input, global_variables);
+        }
+        None
+    }
+
+    pub fn scripts_list(&self) -> Option<String> {
+        if let Some(ref script_mg) = self.script_mg {
+            return script_mg.list();
         }
         None
     }
