@@ -1,9 +1,8 @@
 [workspace]
 
 members = [
-    "./vim_daemon",
-    "./vim_oneshot",
+    "./irust_vim",
     "./irust_prompt",
-    "./compile_animation",
+    "./irust_compile_animation",
 ]
 

@@ -1,5 +1,5 @@
 [package]
-name = "compile_animation"
+name = "irust_compile_animation"
 version = "0.1.0"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"

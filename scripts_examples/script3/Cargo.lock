@@ -22,15 +22,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "compile_animation"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "crossterm",
- "irust_api",
-]
-
-[[package]]
 name = "crossterm"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -73,6 +64,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "irust_compile_animation"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "crossterm",
+ "irust_api",
+]
+
+[[package]]
 name = "irust_prompt"
 version = "0.1.0"
 dependencies = [
@@ -85,17 +85,6 @@ dependencies = [
 
 [[package]]
 name = "irust_vim"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "crossterm",
- "irust_api",
- "once_cell",
- "serde",
-]
-
-[[package]]
-name = "irust_vim_d"
 version = "0.1.0"
 dependencies = [
  "bincode",
