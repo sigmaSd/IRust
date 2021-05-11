@@ -34,6 +34,7 @@ pub struct Options {
     pub output_prompt: String,
     pub activate_scripting: bool,
     pub activate_scripting2: bool,
+    pub activate_scripting3: bool,
     pub executor: Executor,
 }
 
@@ -80,6 +81,7 @@ impl Default for Options {
             output_prompt: "Out: ".to_string(),
             activate_scripting: false,
             activate_scripting2: false,
+            activate_scripting3: false,
             executor: Executor::Sync,
         }
     }

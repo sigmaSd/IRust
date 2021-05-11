@@ -1,8 +1,13 @@
 use crossterm::event::Event;
 use irust_api::{Command, GlobalVariables};
 
+use self::{script1::ScriptManager, script2::ScriptManager2, script3::ScriptManager3};
+
+use super::options::Options;
+
 pub mod script1;
 pub mod script2;
+pub mod script3;
 
 pub trait Script {
     fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String>;
@@ -18,8 +23,14 @@ pub trait Script {
         None
     }
 
-    //internal
-    fn after_compiling(&mut self) -> Option<()> {
+    fn after_compile(&mut self) -> Option<()> {
+        None
+    }
+    fn output_event_hook(
+        &self,
+        _input: &str,
+        _global_variables: &GlobalVariables,
+    ) -> Option<String> {
         None
     }
 }
@@ -53,18 +64,41 @@ impl super::IRust {
         }
         None
     }
+    pub fn after_compiling_hook(&mut self) {
+        if let Some(ref mut script_mg) = self.script_mg {
+            script_mg.after_compile();
+        }
+    }
+
+    pub fn output_event_hook(
+        &self,
+        input: &str,
+        global_variables: &GlobalVariables,
+    ) -> Option<String> {
+        if let Some(ref script_mg) = self.script_mg {
+            return script_mg.output_event_hook(input, global_variables);
+        }
+        None
+    }
 
     // internal
     ///////////
-
-    pub fn after_compiling_hook(&mut self) {
-        if let Some(ref mut script_mg) = self.script_mg {
-            script_mg.after_compiling();
+    ///
+    pub fn choose_script_mg(options: &Options) -> Option<Box<dyn Script>> {
+        if options.activate_scripting3 {
+            ScriptManager3::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
+        } else if options.activate_scripting2 {
+            Some(Box::new(ScriptManager2::new()) as Box<dyn Script>)
+        } else if options.activate_scripting {
+            ScriptManager::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
+        } else {
+            None
         }
     }
 
     pub fn update_script_state(&mut self) {
         self.global_variables.prompt_position = self.printer.cursor.starting_pos();
+        self.global_variables.cursor_position = self.printer.cursor.current_pos();
         self.global_variables.is_racer_suggestion_active = self
             .racer
             .as_ref()

@@ -1,3 +1,6 @@
+**0.2.5**
+- Performance: Don't Move cursor on each character
+
 **0.2.4**
 - Clear should not try to predict the prompt position
 

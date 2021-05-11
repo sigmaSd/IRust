@@ -11,3 +11,7 @@ members = [
 exclude = [
     "scripts_examples"
 ]
+
+# flamegraph
+ [profile.release]
+ debug = true

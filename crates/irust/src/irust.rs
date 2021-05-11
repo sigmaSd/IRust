@@ -18,7 +18,7 @@ use irust_repl::Repl;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
-use script::{script1::ScriptManager, script2::ScriptManager2, Script};
+use script::Script;
 
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -44,14 +44,7 @@ impl IRust {
 
         let mut global_variables = GlobalVariables::new();
 
-        let script_mg = if options.activate_scripting2 {
-            Some(Box::new(ScriptManager2::new()) as Box<dyn Script>)
-        } else if options.activate_scripting {
-            ScriptManager::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
-        } else {
-            None
-        };
-
+        let script_mg = Self::choose_script_mg(&options);
         let prompt = script_mg
             .as_ref()
             .map(|script_mg| {

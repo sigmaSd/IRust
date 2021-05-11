@@ -1,6 +1,6 @@
 [package]
 name = "printer"
-version = "0.2.5"
+version = "0.2.6"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -10,3 +10,4 @@ license = "MIT"
 
 [dependencies]
 crossterm = "0.19.0"
+unicode-width = "0.1.8"

@@ -2,6 +2,28 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ScriptInfo {
+    pub path: PathBuf,
+    pub hooks: Vec<Hook>,
+    pub is_daemon: bool,
+}
+#[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
+pub enum Hook {
+    InputEvent,
+    OutputEvent,
+    SetInputPrompt,
+    SetOutputPrompt,
+    WhileCompiling,
+    AfterCompile,
+}
+
+#[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]
+pub enum Message {
+    Greeting,
+    Hook,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Command {
     AcceptSuggestion,
     Continue,
@@ -35,7 +57,7 @@ pub enum Command {
     Exit,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GlobalVariables {
     current_working_dir: PathBuf,
     previous_working_dir: PathBuf,
@@ -45,6 +67,7 @@ pub struct GlobalVariables {
     pub operation_number: usize,
 
     pub prompt_position: (usize, usize), // (row, col)
+    pub cursor_position: (usize, usize), // (row, col)
     pub prompt_len: usize,
     pub pid: u32,
     pub is_racer_suggestion_active: bool,
@@ -67,6 +90,7 @@ impl GlobalVariables {
             last_output: None,
             operation_number: 1,
             prompt_position: (0, 0), // (row, col)
+            cursor_position: (0, 0), // (row, col)
             prompt_len: 0,
             pid: std::process::id(),
             is_racer_suggestion_active: false,
