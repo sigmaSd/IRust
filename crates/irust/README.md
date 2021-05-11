@@ -43,6 +43,8 @@ Cross Platform Rust Repl
 
 **:executor** *\<executor\>* => set the executor to be used by IRust, available options are: `sync` `tokio` `async_std`, by  using an async executor, `await` becomes usable with no other modifications (requires [cargo-edit](https://github.com/killercup/cargo-edit) for async executors)
 
+**:scripts:** => print a list of the currently loaded scripts (supports only Script V3 for now)
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history
