@@ -74,8 +74,12 @@ impl Buffer {
 
     pub fn is_at_string_line_start(&self) -> bool {
         self.is_empty()
-            || self.previous_char() == Some(&'\n')
-            || self.previous_char() == Some(&'\t')
+            || self.buffer[..self.buffer_pos]
+                .rsplitn(2, |d| d == &'\n')
+                .next()
+                .unwrap_or_default()
+                .iter()
+                .all(|c| c.is_whitespace())
     }
 
     pub fn is_at_start(&self) -> bool {

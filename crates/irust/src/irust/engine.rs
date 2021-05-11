@@ -147,7 +147,7 @@ impl IRust {
             }
             Command::HandleTab => {
                 if self.buffer.is_at_string_line_start() {
-                    const TAB: &str = "   \t";
+                    const TAB: &str = "    ";
 
                     self.buffer.insert_str(TAB);
                     self.print_input()?;
