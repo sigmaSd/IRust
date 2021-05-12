@@ -17,7 +17,15 @@ pub struct History {
 
 impl History {
     pub fn new() -> Result<Self> {
-        let history_file_path = IRUST_DIR.join("history");
+        let history_file_path = if let Some(cache_dir) = dirs_next::cache_dir() {
+            let irust_cache = cache_dir.join("irust");
+            let _ = std::fs::create_dir_all(&irust_cache);
+            irust_cache.join("history")
+        } else {
+            // If we can't acess the cache, we use irust_repl::IRUST_DIR which is located in tmp and is already created
+            IRUST_DIR.join("history")
+        };
+
         if !history_file_path.exists() {
             fs::File::create(&history_file_path)?;
         }
