@@ -368,6 +368,7 @@ impl IRust {
             // if cargo_check is disabled or if cargo_check is enabled but returned no error
             if insert_flag {
                 self.repl.insert(buffer);
+                self.repl.write_to_extern()?;
             }
 
             Ok(print_queue)
