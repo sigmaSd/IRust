@@ -316,6 +316,7 @@ impl IRust {
         const PUB: &str = "pub ";
         const WHILE: &str = "while ";
         const EXTERN: &str = "extern ";
+        const MACRO_RULES: &str = "macro_rules!";
 
         // attribute exp:
         // #[derive(Debug)]
@@ -342,6 +343,7 @@ impl IRust {
             || self.options.auto_insert_semicolon
                 && (buffer_trimmed.starts_with(FUNCTION_DEF)
                     || buffer_trimmed.starts_with(ASYNC_FUNCTION_DEF)
+                    || buffer_trimmed.starts_with(MACRO_RULES)
                     || buffer_trimmed.starts_with(ENUM_DEF)
                     || buffer_trimmed.starts_with(STRUCT_DEF)
                     || buffer_trimmed.starts_with(TRAIT_DEF)
