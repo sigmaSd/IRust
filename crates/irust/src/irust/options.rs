@@ -69,7 +69,7 @@ impl Default for Options {
 
             //other
             first_irust_run: true,
-            toolchain: ToolChain::Stable,
+            toolchain: ToolChain::Default,
             check_statements: true,
             auto_insert_semicolon: true,
 

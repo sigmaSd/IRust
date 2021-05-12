@@ -8,39 +8,42 @@ pub enum ToolChain {
     Stable,
     Beta,
     Nightly,
+    // cargo with no +argument, it can be different from the above
+    Default,
 }
 
 impl FromStr for ToolChain {
     type Err = Box<dyn std::error::Error>;
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        use ToolChain::*;
         match s.to_lowercase().as_str() {
-            "stable" => Ok(Stable),
-            "beta" => Ok(Beta),
-            "nightly" => Ok(Nightly),
+            "stable" => Ok(ToolChain::Stable),
+            "beta" => Ok(ToolChain::Beta),
+            "nightly" => Ok(ToolChain::Nightly),
+            "default" => Ok(ToolChain::Default),
             _ => Err("Unknown toolchain".into()),
         }
     }
 }
 
 impl ToolChain {
-    pub(crate) fn as_arg(&self) -> String {
-        use ToolChain::*;
+    pub(crate) fn as_arg(&self) -> &str {
         match self {
-            Stable => "+stable".to_string(),
-            Beta => "+beta".to_string(),
-            Nightly => "+nightly".to_string(),
+            ToolChain::Stable => "+stable",
+            ToolChain::Beta => "+beta",
+            ToolChain::Nightly => "+nightly",
+            // The caller should not call as_arg for the default toolchain
+            ToolChain::Default => unreachable!(),
         }
     }
 }
 
 impl Display for ToolChain {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use ToolChain::*;
         match self {
-            Stable => write!(f, "stable"),
-            Beta => write!(f, "beta"),
-            Nightly => write!(f, "nightly"),
+            ToolChain::Stable => write!(f, "stable"),
+            ToolChain::Beta => write!(f, "beta"),
+            ToolChain::Nightly => write!(f, "nightly"),
+            ToolChain::Default => write!(f, "default"),
         }
     }
 }

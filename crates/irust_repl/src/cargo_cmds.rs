@@ -126,22 +126,26 @@ pub fn cargo_rm_sync(dep: &str) -> Result<()> {
     Ok(())
 }
 
-macro_rules! cargo_common {
-    // The difference in env flags makes cargo recompiles again!!!
-    // => make  sure all build env flags are the same
-    // Or even better dont use any
-    ($cmd: literal, $toolchain: ident) => {
-        Command::new("cargo")
-            .arg($toolchain.as_arg())
-            .arg($cmd)
-            .env("CARGO_TARGET_DIR", &*IRUST_TARGET_DIR)
-            //.env("RUSTFLAGS", "-Awarnings") // Not required anymore
-            .current_dir(&*IRUST_DIR)
-    };
+// The difference in env flags makes cargo recompiles again!!!
+// => make  sure all build env flags are the same
+// Or even better dont use any
+fn cargo_common<'a>(
+    cargo: &'a mut process::Command,
+    cmd: &str,
+    toolchain: ToolChain,
+) -> &'a mut Command {
+    match toolchain {
+        ToolChain::Default => cargo,
+        _ => cargo.arg(toolchain.as_arg()),
+    }
+    .arg(cmd)
+    .env("CARGO_TARGET_DIR", &*IRUST_TARGET_DIR)
+    .current_dir(&*IRUST_DIR)
 }
 
 pub fn cargo_check(toolchain: ToolChain) -> std::result::Result<std::process::Child, io::Error> {
-    cargo_common!("check", toolchain)
+    let mut cmd = Command::new("cargo");
+    cargo_common(&mut cmd, "check", toolchain)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn()
@@ -150,7 +154,8 @@ pub fn cargo_check(toolchain: ToolChain) -> std::result::Result<std::process::Ch
 pub fn cargo_check_output(
     toolchain: ToolChain,
 ) -> std::result::Result<(ExitStatus, String), io::Error> {
-    let output = cargo_common!("check", toolchain)
+    let mut cmd = Command::new("cargo");
+    let output = cargo_common(&mut cmd, "check", toolchain)
         .args(&["--color", "always"])
         .output()?;
 
@@ -159,7 +164,8 @@ pub fn cargo_check_output(
 }
 
 pub fn cargo_build(toolchain: ToolChain) -> std::result::Result<std::process::Child, io::Error> {
-    cargo_common!("build", toolchain)
+    let mut cmd = Command::new("cargo");
+    cargo_common(&mut cmd, "build", toolchain)
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn()
@@ -171,13 +177,14 @@ pub fn cargo_build_output(
     toolchain: ToolChain,
 ) -> std::result::Result<(ExitStatus, String), io::Error> {
     let color = if color { "always" } else { "never" };
+    let mut cmd = Command::new("cargo");
 
     let output = if !release {
-        cargo_common!("build", toolchain)
+        cargo_common(&mut cmd, "build", toolchain)
             .args(&["--color", color])
             .output()?
     } else {
-        cargo_common!("build", toolchain)
+        cargo_common(&mut cmd, "build", toolchain)
             .arg("--release")
             .args(&["--color", color])
             .output()?
@@ -188,8 +195,9 @@ pub fn cargo_build_output(
 }
 
 pub fn cargo_bench(toolchain: ToolChain) -> std::result::Result<String, io::Error> {
+    let mut cmd = Command::new("cargo");
     Ok(stdout_and_stderr(
-        cargo_common!("bench", toolchain)
+        cargo_common(&mut cmd, "bench", toolchain)
             .args(&["--color", "always"])
             .output()?,
     ))
@@ -218,8 +226,9 @@ pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
 }
 
 pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
+    let mut cmd = Command::new("cargo");
     Ok(stdout_and_stderr(
-        cargo_common!("asm", toolchain)
+        cargo_common(&mut cmd, "asm", toolchain)
             .arg("--lib")
             .arg(format!("irust_host_repl::{}", fnn))
             .arg("--rust")
