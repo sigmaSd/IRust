@@ -1,3 +1,9 @@
+**1.11.0**
+- Fix regression: Restore history caching to disk
+- Add default toolchain, and use it by default
+- Add macro_rules to automatic `;` insert list
+- Fix regression: Reflect repl changes on main_extern so it can be seen by gui editors (when using :edit command)
+
 **1.10.0**
 - Add Script V3 support, check out the README for more info
 - Add `:scripts` command that list currently loaded scripts (Script V3 only)
