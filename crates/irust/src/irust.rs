@@ -233,7 +233,10 @@ impl IRust {
                 KeyEvent {
                     code: KeyCode::Delete,
                     ..
-                } => self.execute(Command::HandleDelete)?,
+                } => {
+                    self.execute(Command::HandleDelete)?;
+                    self.execute(Command::PrintInput)?;
+                }
                 keyevent => {
                     // Handle AltGr on windows
                     if keyevent

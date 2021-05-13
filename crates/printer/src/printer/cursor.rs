@@ -285,6 +285,11 @@ impl<W: std::io::Write> Cursor<W> {
         let input_last_row = self.input_last_pos(buffer).1;
         self.goto(0, input_last_row);
     }
+    pub fn goto_last_row(&mut self, buffer: &Buffer) {
+        self.pos.current_pos.1 = self.input_last_pos(buffer).1;
+        self.pos.current_pos.0 = std::cmp::min(self.pos.current_pos.0, self.current_row_bound());
+        self.goto_internal_pos();
+    }
 
     pub fn is_at_first_input_line(&self) -> bool {
         self.pos.current_pos.1 == self.pos.starting_pos.1

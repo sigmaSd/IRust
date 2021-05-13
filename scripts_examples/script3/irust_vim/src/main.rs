@@ -21,7 +21,7 @@ fn main() {
         std::io::stdout().flush().unwrap();
     }
 
-    let mut active = false;
+    let mut active = true;
     let mut mode = Mode::Insert;
     let mut state = State::Empty;
     loop {
@@ -109,6 +109,11 @@ fn main() {
                     if *mode == Mode::Insert {
                         Some(Command::HandleCharacter(c))
                     } else {
+                        match *state {
+                            State::f => return Some(Command::MoveForwardTillChar(c)),
+                            State::F => return Some(Command::MoveBackwardTillChar(c)),
+                            _ => (),
+                        }
                         // Command Mode
                         match c {
                             'h' => Some(Command::HandleLeft),
@@ -148,9 +153,39 @@ fn main() {
                                     Some(Command::Continue)
                                 }
                             },
-                            'x' => Some(Command::HandleDelete),
+                            'G' => {
+                                if *state == State::d {
+                                    Some(Command::DeleteTillEnd)
+                                } else {
+                                    Some(Command::GoToLastRow)
+                                }
+                            }
+                            'x' => Some(Command::Multiple(vec![
+                                Command::HandleDelete,
+                                Command::PrintInput,
+                            ])),
                             '$' => Some(Command::HandleEnd),
                             '^' => Some(Command::HandleHome),
+                            'f' => match state {
+                                State::Empty => {
+                                    *state = State::f;
+                                    Some(Command::Continue)
+                                }
+                                _ => {
+                                    reset_state!();
+                                    Some(Command::Continue)
+                                }
+                            },
+                            'F' => match state {
+                                State::Empty => {
+                                    *state = State::F;
+                                    Some(Command::Continue)
+                                }
+                                _ => {
+                                    reset_state!();
+                                    Some(Command::Continue)
+                                }
+                            },
                             'i' => {
                                 *mode = Mode::Insert;
                                 Some(Command::SetThinCursor)
@@ -179,27 +214,24 @@ fn main() {
                                 let commands = vec![Command::SetThinCursor, Command::HandleEnd];
                                 Some(Command::Multiple(commands))
                             }
-                            'd' => {
-                                match state {
-                                    State::Empty => {
-                                        *state = State::d;
-                                        Some(Command::Continue)
-                                    }
-                                    State::d => {
-                                        reset_state!();
-                                        //TODO: ADD cut line command
-                                        Some(Command::Multiple(vec![
-                                            Command::HandleHome,
-                                            Command::DeleteUntilNewLine(true),
-                                        ]))
-                                    }
-                                    _ => {
-                                        reset_state!();
-                                        Some(Command::Continue)
-                                    }
+                            'd' => match state {
+                                State::Empty => {
+                                    *state = State::d;
+                                    Some(Command::Continue)
                                 }
-                            }
-                            'D' => Some(Command::DeleteUntilNewLine(false)),
+                                State::d => {
+                                    reset_state!();
+                                    Some(Command::Multiple(vec![
+                                        Command::HandleHome,
+                                        Command::DeleteUntilChar('\n', true),
+                                    ]))
+                                }
+                                _ => {
+                                    reset_state!();
+                                    Some(Command::Continue)
+                                }
+                            },
+                            'D' => Some(Command::DeleteUntilChar('\n', false)),
                             _ => Some(Command::Continue),
                         }
                     }
@@ -223,11 +255,17 @@ fn main() {
                 code: KeyCode::Char('d'),
                 modifiers: KeyModifiers::NONE
             }) | Event::Key(KeyEvent {
-                code: KeyCode::Char('d'),
+                code: KeyCode::Char('D'),
                 modifiers: KeyModifiers::SHIFT
             }) | Event::Key(KeyEvent {
                 code: KeyCode::Char('g'),
                 modifiers: KeyModifiers::NONE
+            }) | Event::Key(KeyEvent {
+                code: KeyCode::Char('f'),
+                modifiers: KeyModifiers::NONE
+            }) | Event::Key(KeyEvent {
+                code: KeyCode::Char('F'),
+                modifiers: KeyModifiers::SHIFT
             })
         ) {
             reset_state!()
@@ -243,6 +281,8 @@ enum State {
     Empty,
     d,
     g,
+    f,
+    F,
 }
 
 #[derive(PartialEq)]

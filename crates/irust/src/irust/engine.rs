@@ -31,7 +31,12 @@ impl IRust {
                 Ok(())
             }
             Command::Continue => Ok(()),
-            //NOTE: Maybe this command should be taken out of the engine, if the script gets access to self.buffer.current_char()
+            Command::GoToLastRow => {
+                self.printer.cursor.goto_last_row(&self.buffer);
+                let buffer_pos = self.printer.cursor.cursor_pos_to_buffer_pos();
+                self.buffer.set_buffer_pos(buffer_pos);
+                Ok(())
+            }
             Command::DeleteNextWord => {
                 let current_char = self.buffer.current_char();
                 if current_char.is_none() {
@@ -53,24 +58,71 @@ impl IRust {
                         break;
                     }
                 }
+                self.execute(Command::PrintInput)?;
                 Ok(())
             }
-            Command::DeleteUntilNewLine(delete_new_line) => {
+            Command::MoveForwardTillChar(cchar) => {
+                if self
+                    .buffer
+                    .iter()
+                    .skip(self.buffer.buffer_pos + 1)
+                    .find(|c| c == &&cchar)
+                    .is_none()
+                {
+                    return Ok(());
+                }
+                loop {
+                    self.execute(Command::HandleRight)?;
+                    match self.buffer.current_char() {
+                        Some(c) if c == &cchar => break Ok(()),
+                        None => break Ok(()),
+                        _ => (),
+                    }
+                }
+            }
+            Command::MoveBackwardTillChar(cchar) => {
+                if self
+                    .buffer
+                    .iter()
+                    .take(self.buffer.buffer_pos)
+                    .find(|c| c == &&cchar)
+                    .is_none()
+                {
+                    return Ok(());
+                }
+                loop {
+                    self.execute(Command::HandleLeft)?;
+                    match self.buffer.current_char() {
+                        Some(c) if c == &cchar => break Ok(()),
+                        None => break Ok(()),
+                        _ => (),
+                    }
+                }
+            }
+            Command::DeleteUntilChar(cchar, delete_char) => {
                 loop {
                     match self.buffer.current_char() {
-                        Some(c) if c == &'\n' => break,
+                        Some(c) if c == &cchar => break,
                         None => break,
                         _ => (),
                     }
                     self.execute(Command::HandleDelete)?;
                 }
-                if delete_new_line {
+                if delete_char {
                     if self.buffer.current_char().is_some() {
                         self.execute(Command::HandleDelete)?;
                     } else {
                         self.execute(Command::HandleBackSpace)?;
                     }
                 }
+                self.execute(Command::PrintInput)?;
+                Ok(())
+            }
+            Command::DeleteTillEnd => {
+                while !self.buffer.is_at_end() {
+                    self.execute(Command::HandleDelete)?;
+                }
+                self.execute(Command::PrintInput)?;
                 Ok(())
             }
             Command::Multiple(commands) => {
@@ -258,11 +310,14 @@ impl IRust {
             Command::HandleDelete => {
                 if !self.buffer.is_empty() {
                     self.buffer.remove_current_char();
-                    self.print_input()?;
                     self.history.unlock();
                     // Ignore RacerDisabled error
                     let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
                 }
+                Ok(())
+            }
+            Command::PrintInput => {
+                self.print_input()?;
                 Ok(())
             }
             Command::HandleCtrlC => {
