@@ -112,6 +112,13 @@ fn main() {
                         match *state {
                             State::f => return Some(Command::MoveForwardTillChar(c)),
                             State::F => return Some(Command::MoveBackwardTillChar(c)),
+                            State::r => {
+                                return Some(Command::Multiple(vec![
+                                    Command::HandleDelete,
+                                    Command::HandleCharacter(c),
+                                    Command::HandleLeft,
+                                ]))
+                            }
                             State::ci => {
                                 *mode = Mode::Insert;
                                 return Some(Command::Multiple(vec![
@@ -179,6 +186,12 @@ fn main() {
                                 } else {
                                     Some(Command::GoToLastRow)
                                 }
+                            }
+                            'r' => {
+                                if *state == State::Empty {
+                                    *state = State::r;
+                                }
+                                Some(Command::Continue)
                             }
                             'x' => Some(Command::Multiple(vec![
                                 Command::HandleDelete,
@@ -320,6 +333,7 @@ enum State {
     g,
     f,
     F,
+    r,
 }
 
 #[derive(PartialEq)]
