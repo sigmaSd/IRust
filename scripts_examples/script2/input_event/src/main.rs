@@ -96,12 +96,12 @@ fn main() {
                                     //TODO: ADD cut line command
                                     Some(Command::Multiple(vec![
                                         Command::HandleHome,
-                                        Command::DeleteUntilNewLine(true),
+                                        Command::DeleteUntilChar('\n', true),
                                     ]))
                                 }
                             }
                         }
-                        'D' => Some(Command::DeleteUntilNewLine(false)),
+                        'D' => Some(Command::DeleteUntilChar('\n', false)),
                         _ => Some(Command::Continue),
                     }
                 }
