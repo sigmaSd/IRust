@@ -112,6 +112,21 @@ fn main() {
                         match *state {
                             State::f => return Some(Command::MoveForwardTillChar(c)),
                             State::F => return Some(Command::MoveBackwardTillChar(c)),
+                            State::ci => {
+                                *mode = Mode::Insert;
+                                return Some(Command::Multiple(vec![
+                                    Command::MoveBackwardTillChar(c),
+                                    Command::HandleRight,
+                                    Command::DeleteUntilChar(c, false),
+                                ]));
+                            }
+                            State::di => {
+                                return Some(Command::Multiple(vec![
+                                    Command::MoveBackwardTillChar(c),
+                                    Command::HandleRight,
+                                    Command::DeleteUntilChar(c, false),
+                                ]))
+                            }
                             _ => (),
                         }
                         // Command Mode
@@ -120,24 +135,29 @@ fn main() {
                             'j' => Some(Command::HandleDown),
                             'k' => Some(Command::HandleUp),
                             'l' => Some(Command::HandleRight),
-                            'b' => {
-                                if *state == State::d {
+                            'b' => match *state {
+                                State::d => Some(Command::Multiple(vec![
+                                    Command::HandleCtrlLeft,
+                                    Command::DeleteNextWord,
+                                ])),
+                                State::c => {
+                                    *mode = Mode::Insert;
                                     Some(Command::Multiple(vec![
                                         Command::HandleCtrlLeft,
                                         Command::DeleteNextWord,
                                     ]))
-                                } else {
-                                    Some(Command::HandleCtrlLeft)
                                 }
-                            }
-                            'w' => {
-                                if *state == State::d {
+                                _ => Some(Command::HandleCtrlLeft),
+                            },
+                            'w' => match *state {
+                                State::d => Some(Command::DeleteNextWord),
+                                State::c => {
+                                    *mode = Mode::Insert;
                                     Some(Command::DeleteNextWord)
-                                } else {
-                                    Some(Command::HandleCtrlRight)
                                 }
-                            }
-                            'g' => match state {
+                                _ => Some(Command::HandleCtrlRight),
+                            },
+                            'g' => match *state {
                                 State::Empty => {
                                     *state = State::g;
                                     Some(Command::Continue)
@@ -186,10 +206,20 @@ fn main() {
                                     Some(Command::Continue)
                                 }
                             },
-                            'i' => {
-                                *mode = Mode::Insert;
-                                Some(Command::SetThinCursor)
-                            }
+                            'i' => match *state {
+                                State::c => {
+                                    *state = State::ci;
+                                    Some(Command::Continue)
+                                }
+                                State::d => {
+                                    *state = State::di;
+                                    Some(Command::Continue)
+                                }
+                                _ => {
+                                    *mode = Mode::Insert;
+                                    Some(Command::SetThinCursor)
+                                }
+                            },
                             'I' => {
                                 *mode = Mode::Insert;
                                 let commands = vec![Command::SetThinCursor, Command::HandleHome];
@@ -232,6 +262,28 @@ fn main() {
                                 }
                             },
                             'D' => Some(Command::DeleteUntilChar('\n', false)),
+                            'c' => match state {
+                                State::Empty => {
+                                    *state = State::c;
+                                    Some(Command::Continue)
+                                }
+                                State::c => {
+                                    *mode = Mode::Insert;
+                                    reset_state!();
+                                    Some(Command::Multiple(vec![
+                                        Command::HandleHome,
+                                        Command::DeleteUntilChar('\n', true),
+                                    ]))
+                                }
+                                _ => {
+                                    reset_state!();
+                                    Some(Command::Continue)
+                                }
+                            },
+                            'C' => {
+                                *mode = Mode::Insert;
+                                Some(Command::DeleteUntilChar('\n', false))
+                            }
                             _ => Some(Command::Continue),
                         }
                     }
@@ -249,25 +301,7 @@ fn main() {
         })();
 
         // Second match to update the state
-        if !matches!(
-            event,
-            Event::Key(KeyEvent {
-                code: KeyCode::Char('d'),
-                modifiers: KeyModifiers::NONE
-            }) | Event::Key(KeyEvent {
-                code: KeyCode::Char('D'),
-                modifiers: KeyModifiers::SHIFT
-            }) | Event::Key(KeyEvent {
-                code: KeyCode::Char('g'),
-                modifiers: KeyModifiers::NONE
-            }) | Event::Key(KeyEvent {
-                code: KeyCode::Char('f'),
-                modifiers: KeyModifiers::NONE
-            }) | Event::Key(KeyEvent {
-                code: KeyCode::Char('F'),
-                modifiers: KeyModifiers::SHIFT
-            })
-        ) {
+        if !matches!(cmd, Some(Command::Continue)) {
             reset_state!()
         }
 
@@ -279,7 +313,10 @@ fn main() {
 #[derive(Debug, PartialEq)]
 enum State {
     Empty,
+    c,
+    ci,
     d,
+    di,
     g,
     f,
     F,

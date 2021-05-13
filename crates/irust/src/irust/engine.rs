@@ -45,10 +45,10 @@ impl IRust {
                 let current_char = current_char.unwrap();
 
                 let delete_predicate_function: &dyn Fn(&char) -> bool =
-                    if current_char.is_whitespace() {
-                        &|c| c.is_whitespace()
+                    if current_char.is_alphabetic() {
+                        &|c| c.is_alphabetic()
                     } else {
-                        &|c| !c.is_whitespace()
+                        &|c| !c.is_alphabetic()
                     };
 
                 // safe unwrap because the first char is checked and the next ones will be caught inside the loop
