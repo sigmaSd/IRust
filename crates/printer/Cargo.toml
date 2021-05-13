@@ -1,6 +1,6 @@
 [package]
 name = "printer"
-version = "0.2.7"
+version = "0.2.8"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"
 readme = "README.md"
