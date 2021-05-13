@@ -1,3 +1,6 @@
+**1.12.0**
+- Add more commands/ update vim script
+
 **1.11.0**
 - Fix regression: Restore history caching to disk
 - Add default toolchain, and use it by default
