@@ -48,6 +48,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "input_event"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "crossterm",
+ "irust_api",
+ "once_cell",
+ "serde",
+]
+
+[[package]]
 name = "instant"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -58,49 +69,8 @@ dependencies = [
 
 [[package]]
 name = "irust_api"
-version = "0.10.0"
+version = "0.3.0"
 dependencies = [
- "serde",
-]
-
-[[package]]
-name = "irust_compile_animation"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "crossterm",
- "irust_api",
-]
-
-[[package]]
-name = "irust_emacs"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "crossterm",
- "irust_api",
- "serde",
-]
-
-[[package]]
-name = "irust_prompt"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "crossterm",
- "irust_api",
- "once_cell",
- "serde",
-]
-
-[[package]]
-name = "irust_vim"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "crossterm",
- "irust_api",
- "once_cell",
  "serde",
 ]
 
@@ -216,9 +186,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.2.8"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "742739e41cd49414de871ea5e549afb7e2a3ac77b589bcbebe8c82fab37147fc"
+checksum = "8270314b5ccceb518e7e578952f0b72b88222d02e8f77f5ecf7abbb673539041"
 dependencies = [
  "bitflags",
 ]
