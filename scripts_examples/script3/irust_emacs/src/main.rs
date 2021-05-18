@@ -54,7 +54,7 @@ impl EmacsMode {
                 self.write(&Some("Emacs mode deactivated"))
             }
             _ => {
-                self.write(&format!("Emacs mode state: {}", self.active))
+                self.write(&Some(format!("Emacs mode state: {}", self.active)))
             }
         }
     }
