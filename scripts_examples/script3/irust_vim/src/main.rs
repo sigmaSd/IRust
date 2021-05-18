@@ -1,98 +1,89 @@
-use std::io::{StdinLock, Write};
-
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use irust_api::{Command, GlobalVariables, Hook, Message, ScriptInfo};
+use serde::{de::DeserializeOwned, Serialize};
 
-fn main() {
-    let stdin = std::io::stdin();
-    let mut handle = stdin.lock();
+use std::io::{Stdin, Stdout, Write};
 
-    let message: Message = bincode::deserialize_from(&mut handle).unwrap();
-    assert_eq!(message, Message::Greeting);
+#[allow(non_camel_case_types)]
+#[derive(Debug, PartialEq)]
+enum State {
+    Empty,
+    c,
+    ci,
+    d,
+    di,
+    g,
+    f,
+    F,
+    r,
+}
 
-    if message == Message::Greeting {
-        let script_info = ScriptInfo {
-            name: "Vim".into(),
-            hooks: vec![Hook::InputEvent, Hook::OutputEvent],
-            path: std::env::current_exe().unwrap(),
-            is_daemon: true,
-        };
-        bincode::serialize_into(std::io::stdout(), &script_info).unwrap();
-        std::io::stdout().flush().unwrap();
-    }
+#[derive(PartialEq)]
+enum Mode {
+    Normal,
+    Insert,
+}
 
-    let mut active = true;
-    let mut mode = Mode::Insert;
-    let mut state = State::Empty;
-    loop {
-        // message is Message::Hook
-        let _message: Message = bincode::deserialize_from(&mut handle).unwrap();
-        let hook: Hook = bincode::deserialize_from(&mut handle).unwrap();
+struct VimMode {
+    active: bool,
+    state: State,
+    mode: Mode,
+    stdin: Stdin,
+    stdout: Stdout,
+}
 
-        match hook {
-            Hook::InputEvent => handle_input_event(&mut handle, &mut state, &mut mode, &active),
-            Hook::OutputEvent => {
-                handle_output_event(&mut handle, &mut active);
-            }
-
-            _ => unreachable!(),
-        }
-        std::io::stdout().flush().unwrap();
-    }
-
-    fn handle_output_event(mut handle: &mut StdinLock, active: &mut bool) {
-        let _g: GlobalVariables = bincode::deserialize_from(&mut handle).unwrap();
-        let input: String = bincode::deserialize_from(&mut handle).unwrap();
-        if input.starts_with(":vim") {
-            let action = input.split_whitespace().nth(1);
-            match action {
-                Some("on") => {
-                    *active = true;
-                    bincode::serialize_into(
-                        std::io::stdout(),
-                        &Some("vim mode activated".to_string()),
-                    )
-                    .unwrap();
-                }
-                Some("off") => {
-                    *active = false;
-                    bincode::serialize_into(
-                        std::io::stdout(),
-                        &Some("vim mode deactivated".to_string()),
-                    )
-                    .unwrap();
-                }
-                _ => {
-                    bincode::serialize_into(
-                        std::io::stdout(),
-                        &Some(format!("vim mode state: {}", active)),
-                    )
-                    .unwrap();
-                }
-            }
-        } else {
-            let no_action: Option<String> = None;
-            bincode::serialize_into(std::io::stdout(), &no_action).unwrap();
+impl VimMode {
+    fn new() -> Self {
+        Self {
+            active: true,
+            state: State::Empty,
+            mode: Mode::Insert,
+            stdin: std::io::stdin(),
+            stdout: std::io::stdout(),
         }
     }
 
-    fn handle_input_event(
-        mut handle: &mut StdinLock,
-        state: &mut State,
-        mode: &mut Mode,
-        active: &bool,
-    ) {
-        let global_variables: GlobalVariables = bincode::deserialize_from(&mut handle).unwrap();
-        let event: Event = bincode::deserialize_from(&mut handle).unwrap();
-        if !active {
-            let cmd: Option<Command> = None;
-            bincode::serialize_into(std::io::stdout(), &cmd).unwrap();
-            return;
+    fn read<T: DeserializeOwned>(&mut self) -> bincode::Result<T> {
+        bincode::deserialize_from(&mut self.stdin)
+    }
+
+    fn write<T: Serialize>(&mut self, value: &T) -> bincode::Result<()> {
+        bincode::serialize_into(&mut self.stdout, value)
+    }
+
+    fn handle_output_event(&mut self) -> bincode::Result<()> {
+        let _ = self.read::<GlobalVariables>()?;
+        let input = self.read::<String>()?;
+
+        if !input.starts_with(":vim") {
+            return self.write(&Option::<&str>::None);
+        }
+
+        let action = input.split_ascii_whitespace().nth(1);
+        match action {
+            Some("on") => {
+                self.active = true;
+                self.write(&Some("vim mode activated"))
+            }
+            Some("off") => {
+                self.active = false;
+                self.write(&Some("vim mode deactivated"))
+            }
+            _ => self.write(&Some(format!("vim mode state: {}", self.active))),
+        }
+    }
+
+    fn handle_input_event(&mut self) -> bincode::Result<()> {
+        let global = self.read::<GlobalVariables>()?;
+        let event = self.read::<Event>()?;
+
+        if !self.active {
+            return self.write(&Option::<Command>::None);
         }
 
         macro_rules! reset_state {
             () => {
-                *state = State::Empty;
+                self.state = State::Empty;
             };
         }
 
@@ -106,10 +97,10 @@ fn main() {
                         return None;
                     }
 
-                    if *mode == Mode::Insert {
+                    if self.mode == Mode::Insert {
                         Some(Command::HandleCharacter(c))
                     } else {
-                        match *state {
+                        match self.state {
                             State::f => return Some(Command::MoveForwardTillChar(c)),
                             State::F => return Some(Command::MoveBackwardTillChar(c)),
                             State::r => {
@@ -120,7 +111,7 @@ fn main() {
                                 ]))
                             }
                             State::ci => {
-                                *mode = Mode::Insert;
+                                self.mode = Mode::Insert;
                                 return Some(Command::Multiple(vec![
                                     Command::MoveBackwardTillChar(c),
                                     Command::HandleRight,
@@ -142,13 +133,13 @@ fn main() {
                             'j' => Some(Command::HandleDown),
                             'k' => Some(Command::HandleUp),
                             'l' => Some(Command::HandleRight),
-                            'b' => match *state {
+                            'b' => match self.state {
                                 State::d => Some(Command::Multiple(vec![
                                     Command::HandleCtrlLeft,
                                     Command::DeleteNextWord,
                                 ])),
                                 State::c => {
-                                    *mode = Mode::Insert;
+                                    self.mode = Mode::Insert;
                                     Some(Command::Multiple(vec![
                                         Command::HandleCtrlLeft,
                                         Command::DeleteNextWord,
@@ -156,23 +147,23 @@ fn main() {
                                 }
                                 _ => Some(Command::HandleCtrlLeft),
                             },
-                            'w' => match *state {
+                            'w' => match self.state {
                                 State::d => Some(Command::DeleteNextWord),
                                 State::c => {
-                                    *mode = Mode::Insert;
+                                    self.mode = Mode::Insert;
                                     Some(Command::DeleteNextWord)
                                 }
                                 _ => Some(Command::HandleCtrlRight),
                             },
-                            'g' => match *state {
+                            'g' => match self.state {
                                 State::Empty => {
-                                    *state = State::g;
+                                    self.state = State::g;
                                     Some(Command::Continue)
                                 }
                                 State::g => {
                                     reset_state!();
-                                    let rows_diff = global_variables.cursor_position.1
-                                        - global_variables.prompt_position.1;
+                                    let rows_diff =
+                                        global.cursor_position.1 - global.prompt_position.1;
                                     Some(Command::Multiple(vec![Command::HandleUp; rows_diff]))
                                 }
                                 _ => {
@@ -181,15 +172,15 @@ fn main() {
                                 }
                             },
                             'G' => {
-                                if *state == State::d {
+                                if self.state == State::d {
                                     Some(Command::DeleteTillEnd)
                                 } else {
                                     Some(Command::GoToLastRow)
                                 }
                             }
                             'r' => {
-                                if *state == State::Empty {
-                                    *state = State::r;
+                                if self.state == State::Empty {
+                                    self.state = State::r;
                                 }
                                 Some(Command::Continue)
                             }
@@ -199,9 +190,9 @@ fn main() {
                             ])),
                             '$' => Some(Command::HandleEnd),
                             '^' => Some(Command::HandleHome),
-                            'f' => match state {
+                            'f' => match self.state {
                                 State::Empty => {
-                                    *state = State::f;
+                                    self.state = State::f;
                                     Some(Command::Continue)
                                 }
                                 _ => {
@@ -209,9 +200,9 @@ fn main() {
                                     Some(Command::Continue)
                                 }
                             },
-                            'F' => match state {
+                            'F' => match self.state {
                                 State::Empty => {
-                                    *state = State::F;
+                                    self.state = State::F;
                                     Some(Command::Continue)
                                 }
                                 _ => {
@@ -219,27 +210,27 @@ fn main() {
                                     Some(Command::Continue)
                                 }
                             },
-                            'i' => match *state {
+                            'i' => match self.state {
                                 State::c => {
-                                    *state = State::ci;
+                                    self.state = State::ci;
                                     Some(Command::Continue)
                                 }
                                 State::d => {
-                                    *state = State::di;
+                                    self.state = State::di;
                                     Some(Command::Continue)
                                 }
                                 _ => {
-                                    *mode = Mode::Insert;
+                                    self.mode = Mode::Insert;
                                     Some(Command::SetThinCursor)
                                 }
                             },
                             'I' => {
-                                *mode = Mode::Insert;
+                                self.mode = Mode::Insert;
                                 let commands = vec![Command::SetThinCursor, Command::HandleHome];
                                 Some(Command::Multiple(commands))
                             }
                             'o' => {
-                                *mode = Mode::Insert;
+                                self.mode = Mode::Insert;
                                 let commands = vec![
                                     Command::SetThinCursor,
                                     Command::HandleEnd,
@@ -248,18 +239,18 @@ fn main() {
                                 Some(Command::Multiple(commands))
                             }
                             'a' => {
-                                *mode = Mode::Insert;
+                                self.mode = Mode::Insert;
                                 let commands = vec![Command::SetThinCursor, Command::HandleRight];
                                 Some(Command::Multiple(commands))
                             }
                             'A' => {
-                                *mode = Mode::Insert;
+                                self.mode = Mode::Insert;
                                 let commands = vec![Command::SetThinCursor, Command::HandleEnd];
                                 Some(Command::Multiple(commands))
                             }
-                            'd' => match state {
+                            'd' => match self.state {
                                 State::Empty => {
-                                    *state = State::d;
+                                    self.state = State::d;
                                     Some(Command::Continue)
                                 }
                                 State::d => {
@@ -275,13 +266,13 @@ fn main() {
                                 }
                             },
                             'D' => Some(Command::DeleteUntilChar('\n', false)),
-                            'c' => match state {
+                            'c' => match self.state {
                                 State::Empty => {
-                                    *state = State::c;
+                                    self.state = State::c;
                                     Some(Command::Continue)
                                 }
                                 State::c => {
-                                    *mode = Mode::Insert;
+                                    self.mode = Mode::Insert;
                                     reset_state!();
                                     Some(Command::Multiple(vec![
                                         Command::HandleHome,
@@ -294,7 +285,7 @@ fn main() {
                                 }
                             },
                             'C' => {
-                                *mode = Mode::Insert;
+                                self.mode = Mode::Insert;
                                 Some(Command::DeleteUntilChar('\n', false))
                             }
                             _ => Some(Command::Continue),
@@ -304,7 +295,7 @@ fn main() {
                 KeyEvent {
                     code: KeyCode::Esc, ..
                 } => {
-                    *mode = Mode::Normal;
+                    self.mode = Mode::Normal;
                     Some(Command::SetWideCursor)
                 }
                 _ => None,
@@ -318,26 +309,38 @@ fn main() {
             reset_state!()
         }
 
-        bincode::serialize_into(std::io::stdout(), &cmd).unwrap();
+        self.write(&cmd)
+    }
+
+    fn run(&mut self) -> bincode::Result<()> {
+        loop {
+            let _ = self.read::<Message>()?;
+            let hook = self.read::<Hook>()?;
+
+            match hook {
+                Hook::InputEvent => self.handle_input_event()?,
+                Hook::OutputEvent => self.handle_output_event()?,
+                _ => unreachable!(),
+            }
+
+            self.stdout.flush().unwrap();
+        }
     }
 }
 
-#[allow(non_camel_case_types)]
-#[derive(Debug, PartialEq)]
-enum State {
-    Empty,
-    c,
-    ci,
-    d,
-    di,
-    g,
-    f,
-    F,
-    r,
-}
+fn main() {
+    let message: Message = bincode::deserialize_from(&mut std::io::stdin()).unwrap();
+    assert_eq!(message, Message::Greeting);
 
-#[derive(PartialEq)]
-enum Mode {
-    Normal,
-    Insert,
+    let script_info = ScriptInfo {
+        name: "Vim".into(),
+        hooks: vec![Hook::InputEvent, Hook::OutputEvent],
+        path: std::env::current_exe().unwrap(),
+        is_daemon: true,
+    };
+    bincode::serialize_into(std::io::stdout(), &script_info).unwrap();
+    std::io::stdout().flush().unwrap();
+
+    let mut vim = VimMode::new();
+    vim.run().unwrap()
 }
