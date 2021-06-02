@@ -5,6 +5,8 @@ Actual unicde support
 
 Cranelift support
 Make all options modifiable at runtime
-racer autocomplete commands arguments
-script register action
-add &Buffer to rust api
+Racer autocomplete commands arguments
+Script register action
+Add &Buffer to rust api
+
+Investigate how `git tag` can use `vscode` synchronously
