@@ -13,3 +13,4 @@ let mut repl = Repl::new(ToolChain::Stable).unwrap();
 repl.insert("let a = 5");
 assert_eq!(repl.eval("a+a").unwrap().output, "10");
 ```
+Checkout the examples and tests folders for more info.
