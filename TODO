@@ -10,3 +10,4 @@ Script register action
 Add &Buffer to rust api
 
 Investigate how `git tag` can use `vscode` synchronously
+Rustc explain errors
