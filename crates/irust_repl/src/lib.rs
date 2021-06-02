@@ -13,6 +13,17 @@ use std::{
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+pub fn default_evaluator(code: String) -> String {
+    format!("println!(\"{{:?}}\", {{\n{}\n}});", code)
+}
+
+pub struct EvalConfig<S: ToString> {
+    pub input: S,
+    pub interactive_function: Option<fn(&mut Child) -> Result<()>>,
+    pub color: bool,
+    pub evaluator: fn(String) -> String,
+}
+
 #[derive(Debug)]
 pub struct EvalResult {
     pub output: String,
@@ -137,16 +148,20 @@ impl Repl {
     }
 
     pub fn eval(&mut self, input: impl ToString) -> Result<EvalResult> {
-        self.eval_inner(input, None, false)
+        self.eval_inner(input, None, false, default_evaluator)
     }
     //Note: These inputs should become a Config struct
     pub fn eval_with_configuration(
         &mut self,
-        input: impl ToString,
-        interactive_function: fn(&mut Child) -> Result<()>,
-        color: bool,
+        eval_config: EvalConfig<impl ToString>,
     ) -> Result<EvalResult> {
-        self.eval_inner(input, Some(interactive_function), color)
+        let EvalConfig {
+            input,
+            interactive_function,
+            color,
+            evaluator,
+        } = eval_config;
+        self.eval_inner(input, interactive_function, color, evaluator)
     }
 
     fn eval_inner(
@@ -154,10 +169,11 @@ impl Repl {
         input: impl ToString,
         interactive_function: Option<fn(&mut Child) -> Result<()>>,
         color: bool,
+        evaluator: fn(String) -> String,
     ) -> Result<EvalResult> {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
-        let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
+        let eval_statement = evaluator(input);
         let toolchain = self.toolchain;
 
         let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, || {

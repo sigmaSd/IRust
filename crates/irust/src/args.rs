@@ -32,7 +32,6 @@ pub fn handle_args(options: &mut Options) -> bool {
             "--reset-config" => {
                 options.reset();
             }
-
             x => {
                 eprintln!("Unknown argument: {}", x);
             }
