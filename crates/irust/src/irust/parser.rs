@@ -9,7 +9,7 @@ use crate::{
     irust::format::{format_check_output, format_err, format_eval_output},
     utils::ctrlc_cancel,
 };
-use irust_repl::{cargo_cmds::*, default_evaluator, EvalConfig, EvalResult, Executor, ToolChain};
+use irust_repl::{cargo_cmds::*, EvalConfig, EvalResult, Executor, ToolChain, DEFAULT_EVALUATOR};
 use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
@@ -382,7 +382,7 @@ impl IRust {
                 input: buffer,
                 interactive_function: Some(ctrlc_cancel),
                 color: true,
-                evaluator: default_evaluator,
+                evaluator: DEFAULT_EVALUATOR,
             });
             self.after_compiling_hook();
             let EvalResult { output, status } = result?;

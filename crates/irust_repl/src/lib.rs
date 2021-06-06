@@ -13,15 +13,13 @@ use std::{
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-pub fn default_evaluator(code: String) -> String {
-    format!("println!(\"{{:?}}\", {{\n{}\n}});", code)
-}
+pub const DEFAULT_EVALUATOR: [&str; 2] = ["println!(\"{:?}\", {\n", "\n});"];
 
 pub struct EvalConfig<S: ToString> {
     pub input: S,
     pub interactive_function: Option<fn(&mut Child) -> Result<()>>,
     pub color: bool,
-    pub evaluator: fn(String) -> String,
+    pub evaluator: [&'static str; 2],
 }
 
 #[derive(Debug)]
@@ -148,7 +146,7 @@ impl Repl {
     }
 
     pub fn eval(&mut self, input: impl ToString) -> Result<EvalResult> {
-        self.eval_inner(input, None, false, default_evaluator)
+        self.eval_inner(input, None, false, DEFAULT_EVALUATOR)
     }
     //Note: These inputs should become a Config struct
     pub fn eval_with_configuration(
@@ -169,11 +167,11 @@ impl Repl {
         input: impl ToString,
         interactive_function: Option<fn(&mut Child) -> Result<()>>,
         color: bool,
-        evaluator: fn(String) -> String,
+        evaluator: [&'static str; 2],
     ) -> Result<EvalResult> {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
-        let eval_statement = evaluator(input);
+        let eval_statement = format!("{}{}{}", evaluator[0], input, evaluator[1]);
         let toolchain = self.toolchain;
 
         let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, || {

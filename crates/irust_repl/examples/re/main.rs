@@ -28,15 +28,13 @@ fn eval(deps: Option<&str>, code: &str) {
             input: code,
             interactive_function: None,
             color: true,
-            evaluator: display_eval,
+            evaluator: DISPLAY_EVAL,
         })
         .unwrap();
     println!("{}", result.output);
 }
 
-pub fn display_eval(code: String) -> String {
-    format!("println!(\"{{}}\", {{\n{}\n}});", code)
-}
+const DISPLAY_EVAL: [&str; 2] = ["println!(\"{}\", {\n", "\n});"];
 
 // Unreleated TODO
 // eval should take &self
