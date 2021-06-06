@@ -3,6 +3,7 @@ use cargo_cmds::*;
 mod executor;
 pub use executor::Executor;
 mod toolchain;
+use once_cell::sync::Lazy;
 pub use toolchain::ToolChain;
 mod utils;
 
@@ -13,13 +14,14 @@ use std::{
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-pub const DEFAULT_EVALUATOR: [&str; 2] = ["println!(\"{:?}\", {\n", "\n});"];
+pub static DEFAULT_EVALUATOR: Lazy<[String; 2]> =
+    Lazy::new(|| ["println!(\"{:?}\", {\n".into(), "\n});".into()]);
 
-pub struct EvalConfig<S: ToString> {
+pub struct EvalConfig<'a, S: ToString> {
     pub input: S,
     pub interactive_function: Option<fn(&mut Child) -> Result<()>>,
     pub color: bool,
-    pub evaluator: [&'static str; 2],
+    pub evaluator: &'a [String],
 }
 
 #[derive(Debug)]
@@ -146,7 +148,7 @@ impl Repl {
     }
 
     pub fn eval(&mut self, input: impl ToString) -> Result<EvalResult> {
-        self.eval_inner(input, None, false, DEFAULT_EVALUATOR)
+        self.eval_inner(input, None, false, &*DEFAULT_EVALUATOR)
     }
     //Note: These inputs should become a Config struct
     pub fn eval_with_configuration(
@@ -167,7 +169,7 @@ impl Repl {
         input: impl ToString,
         interactive_function: Option<fn(&mut Child) -> Result<()>>,
         color: bool,
-        evaluator: [&'static str; 2],
+        evaluator: &[String],
     ) -> Result<EvalResult> {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages

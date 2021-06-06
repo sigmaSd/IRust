@@ -1,4 +1,5 @@
 use irust_repl::{EvalConfig, Repl, ToolChain};
+use once_cell::sync::Lazy;
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -28,13 +29,14 @@ fn eval(deps: Option<&str>, code: &str) {
             input: code,
             interactive_function: None,
             color: true,
-            evaluator: DISPLAY_EVAL,
+            evaluator: &*DISPLAY_EVAL,
         })
         .unwrap();
     println!("{}", result.output);
 }
 
-const DISPLAY_EVAL: [&str; 2] = ["println!(\"{}\", {\n", "\n});"];
+static DISPLAY_EVAL: Lazy<[String; 2]> =
+    Lazy::new(|| ["println!(\"{}\", {\n".into(), "\n});".into()]);
 
 // Unreleated TODO
 // eval should take &self

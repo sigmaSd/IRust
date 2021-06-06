@@ -1,6 +1,6 @@
 use crate::irust::{IRust, Result};
 use crossterm::style::Color;
-use irust_repl::{Executor, ToolChain};
+use irust_repl::{Executor, ToolChain, DEFAULT_EVALUATOR};
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 
@@ -36,6 +36,7 @@ pub struct Options {
     pub activate_scripting2: bool,
     pub activate_scripting3: bool,
     pub executor: Executor,
+    pub evaluator: Vec<String>,
 }
 
 impl Default for Options {
@@ -83,6 +84,10 @@ impl Default for Options {
             activate_scripting2: false,
             activate_scripting3: false,
             executor: Executor::Sync,
+            evaluator: DEFAULT_EVALUATOR
+                .iter()
+                .map(|part| part.to_string())
+                .collect(),
         }
     }
 }
