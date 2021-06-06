@@ -21,8 +21,9 @@ fn main() {
 fn eval(deps: Option<&str>, code: &str) {
     let mut repl = Repl::new(ToolChain::Default).unwrap();
     if let Some(deps) = deps {
-        let deps: Vec<String> = deps.split(',').map(ToOwned::to_owned).collect();
-        repl.add_dep(&deps).unwrap();
+        let mut deps: Vec<String> = deps.split(',').map(ToOwned::to_owned).collect();
+        deps.push("--offline".to_string());
+        repl.add_dep(&deps).unwrap().wait().unwrap();
     }
     let result = repl
         .eval_with_configuration(EvalConfig {
