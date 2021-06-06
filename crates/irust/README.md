@@ -131,6 +131,11 @@ IRust config file is located in:
   
   # activate scripting feature
   activate_scripting = false
+  activate_scripting2 = false
+  activate_scripting3 = false
+  
+  # select executor (Sync, Tokio, Asyncstd)
+  executor = "Sync"
 ```
 
 ## Theme
