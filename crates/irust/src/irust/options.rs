@@ -116,6 +116,13 @@ impl Options {
         *self = Self::default();
     }
 
+    pub fn reset_evaluator(&mut self) {
+        self.evaluator = DEFAULT_EVALUATOR
+            .iter()
+            .map(|part| part.to_string())
+            .collect();
+    }
+
     pub fn config_path() -> Option<std::path::PathBuf> {
         let config_dir = match dirs_next::config_dir() {
             Some(dir) => dir.join("irust"),

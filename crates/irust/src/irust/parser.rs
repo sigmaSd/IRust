@@ -66,6 +66,7 @@ impl IRust {
             cmd if cmd.starts_with(":bench") => self.bench(),
             cmd if cmd.starts_with(":asm") => self.asm(),
             cmd if cmd.starts_with(":executor") => self.executor(),
+            cmd if cmd.starts_with(":evaluator") => self.evaluator(),
             cmd if cmd.starts_with(":scripts") => self.scripts(),
             _ => self.parse_second_order(),
         }
@@ -564,6 +565,40 @@ impl IRust {
             print_queue!(self.options.executor.to_string(), Color::Blue)
         }
     }
+
+    fn evaluator(&mut self) -> Result<PrintQueue> {
+        let buffer = self.buffer.to_string();
+        let evaluator = buffer
+            .strip_prefix(":evaluator")
+            .expect("already checked")
+            .trim();
+        // get
+        if evaluator.is_empty() {
+            return print_queue!(self.options.evaluator.join("$$"), Color::Blue);
+        }
+
+        // reset
+        if evaluator == "reset" {
+            self.options.reset_evaluator();
+            return success!();
+        }
+
+        // set
+        if !evaluator.contains("$$") {
+            return Err(
+                "evaluator must contain `$$`, `$$` will be replaced by IRust by the code input"
+                    .into(),
+            );
+        }
+        let evaluator: Vec<String> = evaluator.split("$$").map(ToOwned::to_owned).collect();
+        if evaluator.len() != 2 {
+            return Err("evaluator requires two parts".into());
+        }
+
+        self.options.evaluator = evaluator;
+        success!()
+    }
+
     fn scripts(&mut self) -> Result<PrintQueue> {
         if let Some(scripts_list) = self.scripts_list() {
             print_queue!(scripts_list, Color::Cyan)

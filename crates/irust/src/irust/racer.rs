@@ -21,7 +21,7 @@ pub struct Racer {
     // suggestions: (Name, definition)
     suggestions: Vec<(String, String)>,
     suggestion_idx: usize,
-    cmds: [String; 17],
+    cmds: [String; 19],
     update_lock: bool,
     pub active_suggestion: Option<String>,
 }
@@ -56,6 +56,8 @@ impl Racer {
             "time_release".to_string(),
             "bench".to_string(),
             "executor".to_string(),
+            "evaluator".to_string(),
+            "asm".to_string(),
         ];
 
         Some(Racer {
