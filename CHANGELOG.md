@@ -1,3 +1,10 @@
+**1.13.0**
+- IRust: Add `:evaluator` command, it allows changing the evaluator used by IRust, checkout the README for more info on its usage
+- irust-repl: Make the evaluator swap-able
+- Update deps
+- Improve vim-mode script
+- Color `unsafe` keyword
+
 **1.12.0**
 - Add more commands/ update vim script
 
