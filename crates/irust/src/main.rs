@@ -9,7 +9,7 @@ use crate::irust::IRust;
 use dependencies::{check_required_deps, warn_about_opt_deps};
 
 use crate::args::handle_args;
-use crossterm::style::Colorize;
+use crossterm::style::Stylize;
 use std::process::exit;
 
 fn main() {

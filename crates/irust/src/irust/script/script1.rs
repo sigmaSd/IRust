@@ -1,4 +1,4 @@
-use crossterm::style::Colorize;
+use crossterm::style::Stylize;
 use irust_api::GlobalVariables;
 use libloading::{Library, Symbol};
 use std::{ffi::CString, io::Write};
