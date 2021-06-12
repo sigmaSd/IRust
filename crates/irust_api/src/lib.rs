@@ -16,6 +16,7 @@ pub enum Hook {
     SetOutputPrompt,
     WhileCompiling,
     AfterCompile,
+    Shutdown,
 }
 
 #[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]

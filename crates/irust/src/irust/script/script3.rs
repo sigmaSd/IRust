@@ -48,6 +48,11 @@ impl Script for ScriptManager3 {
     fn output_event_hook(&self, input: &str, global_variables: &GlobalVariables) -> Option<String> {
         self.trigger_output_event_hook(input, global_variables)
     }
+
+    fn shutdown_hook(&self, global_variables: &GlobalVariables) -> Option<Command> {
+        self.trigger_shutdown_hook(global_variables)
+    }
+
     fn list(&self) -> Option<String> {
         if self.meta.is_empty() {
             return None;
@@ -183,6 +188,41 @@ impl ScriptManager3 {
         if !commands.is_empty() {
             // if multiple scripts want to act on the output event, use the first result
             Some(commands.remove(0))
+        } else {
+            None
+        }
+    }
+
+    fn trigger_shutdown_hook(&self, global_variables: &GlobalVariables) -> Option<Command> {
+        let hook = Hook::Shutdown;
+
+        let common_fn = |script: &mut Child| {
+            let mut stdin = script.stdin.as_mut().expect("stdin is piped");
+            bincode::serialize_into(&mut stdin, &Message::Hook).ok()?;
+            bincode::serialize_into(&mut stdin, &hook).ok()?;
+            bincode::serialize_into(&mut stdin, global_variables).ok()?;
+            let stdout = script.stdout.as_mut().expect("stdout is piped");
+            let command: Option<Command> = bincode::deserialize_from(stdout).ok()?;
+            command
+        };
+
+        let mut daemon_fn = |script: Rc<RefCell<Child>>| -> Option<Command> {
+            let mut script = script.borrow_mut();
+            common_fn(&mut *script)
+        };
+
+        let mut oneshot_fn = |script_path: &Path| -> Option<Command> {
+            let mut script = process::Command::new(script_path)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .spawn()
+                .ok()?;
+            common_fn(&mut script)
+        };
+
+        let commands = self.trigger_hook(hook, Some(&mut daemon_fn), Some(&mut oneshot_fn));
+        if !commands.is_empty() {
+            Some(Command::Multiple(commands))
         } else {
             None
         }

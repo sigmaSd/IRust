@@ -51,6 +51,11 @@ impl VimMode {
         bincode::serialize_into(&mut self.stdout, value)
     }
 
+    fn clean_up(&mut self) -> bincode::Result<()> {
+        let _ = self.read::<GlobalVariables>()?;
+        self.write(&Some(Command::SetWideCursor))
+    }
+
     fn handle_output_event(&mut self) -> bincode::Result<()> {
         let _ = self.read::<GlobalVariables>()?;
         let input = self.read::<String>()?;
@@ -320,6 +325,7 @@ impl VimMode {
             match hook {
                 Hook::InputEvent => self.handle_input_event()?,
                 Hook::OutputEvent => self.handle_output_event()?,
+                Hook::Shutdown => self.clean_up()?,
                 _ => unreachable!(),
             }
 
@@ -334,7 +340,7 @@ fn main() {
 
     let script_info = ScriptInfo {
         name: "Vim".into(),
-        hooks: vec![Hook::InputEvent, Hook::OutputEvent],
+        hooks: vec![Hook::InputEvent, Hook::OutputEvent, Hook::Shutdown],
         path: std::env::current_exe().unwrap(),
         is_daemon: true,
     };

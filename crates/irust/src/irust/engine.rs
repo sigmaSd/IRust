@@ -641,6 +641,9 @@ impl IRust {
                 Ok(())
             }
             Command::Exit => {
+                if let Some(cmd) = self.shutdown_hook(&self.global_variables) {
+                    self.execute(cmd)?;
+                }
                 self.history.save()?;
                 self.options.save()?;
                 self.theme.save()?;

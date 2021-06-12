@@ -33,6 +33,9 @@ pub trait Script {
     ) -> Option<String> {
         None
     }
+    fn shutdown_hook(&self, _global_variables: &GlobalVariables) -> Option<Command> {
+        None
+    }
     fn list(&self) -> Option<String> {
         None
     }
@@ -80,6 +83,13 @@ impl super::IRust {
     ) -> Option<String> {
         if let Some(ref script_mg) = self.script_mg {
             return script_mg.output_event_hook(input, global_variables);
+        }
+        None
+    }
+
+    pub fn shutdown_hook(&self, global_variables: &GlobalVariables) -> Option<Command> {
+        if let Some(ref script_mg) = self.script_mg {
+            return script_mg.shutdown_hook(global_variables);
         }
         None
     }
