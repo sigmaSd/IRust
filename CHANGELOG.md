@@ -1,3 +1,8 @@
+**1.14.0**
+- Add a shutdown hook (gives a change for scritps to cleanup)
+- Vim-mode script: use different cursor shapes for different modes
+- Update to crossterm 0.20.0
+
 **1.13.0**
 - IRust: Add `:evaluator` command, it allows changing the evaluator used by IRust, checkout the README for more info on its usage
 - irust-repl: Make the evaluator swap-able
