@@ -37,7 +37,7 @@ impl VimMode {
         Self {
             active: true,
             state: State::Empty,
-            mode: Mode::Insert,
+            mode: Mode::Normal,
             stdin: std::io::stdin(),
             stdout: std::io::stdout(),
         }

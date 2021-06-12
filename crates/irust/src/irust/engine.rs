@@ -1,5 +1,5 @@
 use crossterm::{
-    //    cursor::{CursorShape, SetCursorShape},
+    cursor::{CursorShape, SetCursorShape},
     event::{Event, KeyCode, KeyEvent, KeyModifiers},
     style::Color,
     terminal::ClearType,
@@ -648,14 +648,14 @@ impl IRust {
                 self.printer.cursor.show();
                 Ok(())
             }
-            Command::SetThinCursor => Ok(()), /*Ok(crossterm::queue!(
-            std::io::stdout(),
-            SetCursorShape(CursorShape::Line)
-            )?),*/
-            Command::SetWideCursor => Ok(()), /*Ok(crossterm::queue!(
-                                                  std::io::stdout(),
-                                                  SetCursorShape(CursorShape::Block)
-                                              )?),*/
+            Command::SetThinCursor => Ok(crossterm::queue!(
+                std::io::stdout(),
+                SetCursorShape(CursorShape::Line)
+            )?),
+            Command::SetWideCursor => Ok(crossterm::queue!(
+                std::io::stdout(),
+                SetCursorShape(CursorShape::Block)
+            )?),
         }
     }
 
