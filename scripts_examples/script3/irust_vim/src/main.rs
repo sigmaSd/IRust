@@ -118,6 +118,7 @@ impl VimMode {
                             State::ci => {
                                 self.mode = Mode::Insert;
                                 return Some(Command::Multiple(vec![
+                                    Command::SetThinCursor,
                                     Command::MoveBackwardTillChar(c),
                                     Command::HandleRight,
                                     Command::DeleteUntilChar(c, false),
@@ -146,6 +147,7 @@ impl VimMode {
                                 State::c => {
                                     self.mode = Mode::Insert;
                                     Some(Command::Multiple(vec![
+                                        Command::SetThinCursor,
                                         Command::HandleCtrlLeft,
                                         Command::DeleteNextWord,
                                     ]))
@@ -156,7 +158,10 @@ impl VimMode {
                                 State::d => Some(Command::DeleteNextWord),
                                 State::c => {
                                     self.mode = Mode::Insert;
-                                    Some(Command::DeleteNextWord)
+                                    Some(Command::Multiple(vec![
+                                        Command::SetThinCursor,
+                                        Command::DeleteNextWord,
+                                    ]))
                                 }
                                 _ => Some(Command::HandleCtrlRight),
                             },
@@ -280,8 +285,9 @@ impl VimMode {
                                     self.mode = Mode::Insert;
                                     reset_state!();
                                     Some(Command::Multiple(vec![
+                                        Command::SetThinCursor,
                                         Command::HandleHome,
-                                        Command::DeleteUntilChar('\n', true),
+                                        Command::DeleteUntilChar('\n', false),
                                     ]))
                                 }
                                 _ => {
@@ -291,7 +297,10 @@ impl VimMode {
                             },
                             'C' => {
                                 self.mode = Mode::Insert;
-                                Some(Command::DeleteUntilChar('\n', false))
+                                Some(Command::Multiple(vec![
+                                    Command::SetThinCursor,
+                                    Command::DeleteUntilChar('\n', false),
+                                ]))
                             }
                             _ => Some(Command::Continue),
                         }
