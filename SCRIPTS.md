@@ -1,8 +1,10 @@
 # Scripts
 **Since release `1.15.0` `IRust` has script v4 support**
+
 The scripting engine is now extracted in its own crate [rscript](https://github.com/sigmaSd/Rscript)\
 The advantages over v3 are mainly ergonomics and more compile time guarantees\
 Also the script manager now supports Activating/deactivating individual scripts\
+Script examples are located here https://github.com/sigmaSd/IRust/tree/master/scripts_examples/script4
 
 **Since release `1.10.0` `IRust` has script v3 support**
 
