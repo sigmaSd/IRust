@@ -8,6 +8,6 @@ repository = "https://github.com/sigmaSd/IRust/tree/master/crates/irust_api"
 license = "MIT"
 
 [dependencies]
-crossterm = "0.20.0"
-rscript = "0.1.0"
+crossterm = { version = "0.20.0", features = ["serde"] }
+rscript = "0.2.0"
 serde = { version = "1.0.126", features = ["derive"] }
