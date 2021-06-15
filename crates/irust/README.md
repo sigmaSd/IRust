@@ -168,9 +168,9 @@ Default theme file:
 
 ## Scripts
 IRust supports scripting, all over the code base there are hooks that scripts can react to and usually answer back to IRust with a command.\
-IRust supports different versions, the latest version is the most supported one. \
+IRust supports different versions of scripting, the latest version is the most supported one. \
 The older versions are kept for backward compatibility reasons but mainly because scirpting is currently on developement and I haven't decided which metod is the best yet.\
-Check out *SCRIPTS.md* for more info.
+Check out **SCRIPTS.md** for more info.
 
 ## Book
 `The IRust Book` is intended to document a couple of tips and tricks https://sigmasd.github.io/irust_book
