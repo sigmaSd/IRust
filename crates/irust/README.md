@@ -46,7 +46,7 @@ Cross Platform Rust Repl
 **:evaluator** *\<evaluator>\>* => set the evaluator statement, exmaple: `:evaluator println!("{}",{$$})` the `$$`
  will be replaced by IRust by the input code (the default evaluator uses debug formatting). To reset the evaluator to default you can use `:evaluator reset`
  
-**:scripts:** => print a list of the currently loaded scripts (supports only Script V3 for now)
+**:scripts:** => only supported by script v3/v4, if invoked with no arguments it prints a list of detected scripts, if invoked with on argument it print that script info if it exits, if invoked with 2 arguments, it tries to activate/deactivate a script, example: `:scripts Vim deactivate`
 
 **::** => run a shell command, example `::ls`
 
