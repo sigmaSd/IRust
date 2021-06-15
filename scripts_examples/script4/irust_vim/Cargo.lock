@@ -48,25 +48,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "input_event"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "crossterm",
- "irust_api",
- "once_cell",
- "serde",
-]
-
-[[package]]
-name = "input_prompt"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "irust_api",
-]
-
-[[package]]
 name = "instant"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -80,6 +61,18 @@ name = "irust_api"
 version = "0.11.0"
 dependencies = [
  "crossterm",
+ "rscript",
+ "serde",
+]
+
+[[package]]
+name = "irust_vim"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "crossterm",
+ "irust_api",
+ "once_cell",
  "rscript",
  "serde",
 ]
@@ -146,14 +139,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af8b08b04175473088b46763e51ee54da5f9a164bc162f615b91bc179dbf15a3"
 
 [[package]]
-name = "output_prompt"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "irust_api",
-]
-
-[[package]]
 name = "parking_lot"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -198,9 +183,9 @@ dependencies = [
 
 [[package]]
 name = "redox_syscall"
-version = "0.2.8"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "742739e41cd49414de871ea5e549afb7e2a3ac77b589bcbebe8c82fab37147fc"
+checksum = "8270314b5ccceb518e7e578952f0b72b88222d02e8f77f5ecf7abbb673539041"
 dependencies = [
  "bitflags",
 ]
@@ -208,8 +193,6 @@ dependencies = [
 [[package]]
 name = "rscript"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2057b872e5ec54131a82447e51d8b110f6475c173bcd4fe0d5d36fe965a44892"
 dependencies = [
  "bincode",
  "serde",
@@ -293,15 +276,6 @@ name = "unicode-xid"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
-
-[[package]]
-name = "while_compiling"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "crossterm",
- "irust_api",
-]
 
 [[package]]
 name = "winapi"

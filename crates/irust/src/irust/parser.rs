@@ -600,10 +600,69 @@ impl IRust {
     }
 
     fn scripts(&mut self) -> Result<PrintQueue> {
-        if let Some(scripts_list) = self.scripts_list() {
-            print_queue!(scripts_list, Color::Cyan)
+        let scripts_list = if let Some(scripts_list) = self.scripts_list() {
+            scripts_list
         } else {
-            Err("No scripts found (this command only detects Script V3)".into())
+            return Err("No scripts found (this command only detects Script V3)".into());
+        };
+
+        let buffer = self.buffer.to_string();
+        let buffer: Vec<&str> = buffer
+            .strip_prefix(":scripts")
+            .expect("already checked")
+            .trim()
+            .split_whitespace()
+            .collect();
+
+        //TODO: This code can be improved *a lot* by doing formatting here, instead of letting each script manager do its own thing
+
+        match buffer.len() {
+            0 => {
+                //Print script list
+                print_queue!(scripts_list, Color::Blue)
+            }
+            1 => {
+                // Print script
+                if let Some(script) = scripts_list
+                    .lines()
+                    .skip(1)
+                    .find(|line| line.contains(&buffer[0]))
+                {
+                    let header = scripts_list
+                        .lines()
+                        .next()
+                        .expect("header should be always present")
+                        .to_string();
+                    print_queue!(header + "\n" + script, Color::Blue)
+                } else {
+                    Err(format!("script: {} not found", &buffer[0]).into())
+                }
+            }
+            2 => {
+                // Set script state {0:script_name} {1:[activate|deactivate]}
+                if let Some(script) = scripts_list.lines().skip(1).find_map(|line| {
+                    if line.contains(&buffer[0]) {
+                        Some(line.split_whitespace().next()?)
+                    } else {
+                        None
+                    }
+                }) {
+                    match buffer[1] {
+                        "activate" => {
+                            self.activate_script(script)?;
+                            success!()
+                        }
+                        "deactivate" => {
+                            self.deactivate_script(script)?;
+                            success!()
+                        }
+                        _ => Err(format!("Unknown argument: {}", &buffer[1]).into()),
+                    }
+                } else {
+                    Err(format!("script: {} not found", &buffer[0]).into())
+                }
+            }
+            _ => Err("Incorrect number of arguments for `:scripts` command".into()),
         }
     }
 }

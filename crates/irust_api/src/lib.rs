@@ -19,6 +19,27 @@ pub enum Hook {
     Shutdown,
 }
 
+pub mod script4 {
+    use rscript::Hook;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Serialize, Deserialize)]
+    pub struct InputEvent(pub super::GlobalVariables, pub crossterm::event::Event);
+
+    impl Hook for InputEvent {
+        const NAME: &'static str = "InputEvent";
+        type Output = Option<super::Command>;
+    }
+
+    #[derive(Serialize, Deserialize)]
+    pub struct Shutdown(pub super::GlobalVariables);
+
+    impl Hook for Shutdown {
+        const NAME: &'static str = "Shutdown";
+        type Output = Option<super::Command>;
+    }
+}
+
 #[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Message {
     Greeting,

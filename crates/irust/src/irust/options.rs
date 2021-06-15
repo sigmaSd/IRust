@@ -35,6 +35,7 @@ pub struct Options {
     pub activate_scripting: bool,
     pub activate_scripting2: bool,
     pub activate_scripting3: bool,
+    pub activate_scripting4: bool,
     pub executor: Executor,
     pub evaluator: Vec<String>,
 }
@@ -83,6 +84,7 @@ impl Default for Options {
             activate_scripting: false,
             activate_scripting2: false,
             activate_scripting3: false,
+            activate_scripting4: false,
             executor: Executor::Sync,
             evaluator: DEFAULT_EVALUATOR
                 .iter()

@@ -114,6 +114,7 @@ dependencies = [
  "libloading",
  "nix",
  "printer",
+ "rscript",
  "serde",
  "toml",
 ]
@@ -122,6 +123,8 @@ dependencies = [
 name = "irust_api"
 version = "0.11.0"
 dependencies = [
+ "crossterm",
+ "rscript",
  "serde",
 ]
 
@@ -294,6 +297,16 @@ checksum = "528532f3d801c87aec9def2add9ca802fe569e44a544afe633765267840abe64"
 dependencies = [
  "getrandom",
  "redox_syscall",
+]
+
+[[package]]
+name = "rscript"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2057b872e5ec54131a82447e51d8b110f6475c173bcd4fe0d5d36fe965a44892"
+dependencies = [
+ "bincode",
+ "serde",
 ]
 
 [[package]]

@@ -49,7 +49,7 @@ impl Script for ScriptManager3 {
         self.trigger_output_event_hook(input, global_variables)
     }
 
-    fn shutdown_hook(&self, global_variables: &GlobalVariables) -> Option<Command> {
+    fn shutdown_hook(&mut self, global_variables: &GlobalVariables) -> Option<Command> {
         self.trigger_shutdown_hook(global_variables)
     }
 

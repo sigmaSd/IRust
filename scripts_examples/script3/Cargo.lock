@@ -60,6 +60,8 @@ dependencies = [
 name = "irust_api"
 version = "0.11.0"
 dependencies = [
+ "crossterm",
+ "rscript",
  "serde",
 ]
 
@@ -205,6 +207,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "742739e41cd49414de871ea5e549afb7e2a3ac77b589bcbebe8c82fab37147fc"
 dependencies = [
  "bitflags",
+]
+
+[[package]]
+name = "rscript"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2057b872e5ec54131a82447e51d8b110f6475c173bcd4fe0d5d36fe965a44892"
+dependencies = [
+ "bincode",
+ "serde",
 ]
 
 [[package]]

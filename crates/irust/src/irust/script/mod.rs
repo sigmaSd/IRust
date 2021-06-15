@@ -1,17 +1,25 @@
 use crossterm::event::Event;
 use irust_api::{Command, GlobalVariables};
 
-use self::{script1::ScriptManager, script2::ScriptManager2, script3::ScriptManager3};
+use self::{
+    script1::ScriptManager, script2::ScriptManager2, script3::ScriptManager3,
+    script4::ScriptManager4,
+};
 
 use super::options::Options;
 
 pub mod script1;
 pub mod script2;
 pub mod script3;
+pub mod script4;
 
 pub trait Script {
-    fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String>;
-    fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String>;
+    fn input_prompt(&self, _global_variables: &GlobalVariables) -> Option<String> {
+        None
+    }
+    fn get_output_prompt(&self, _global_variables: &GlobalVariables) -> Option<String> {
+        None
+    }
     fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()> {
         None
     }
@@ -33,11 +41,17 @@ pub trait Script {
     ) -> Option<String> {
         None
     }
-    fn shutdown_hook(&self, _global_variables: &GlobalVariables) -> Option<Command> {
+    fn shutdown_hook(&mut self, _global_variables: &GlobalVariables) -> Option<Command> {
         None
     }
     fn list(&self) -> Option<String> {
         None
+    }
+    fn activate(&mut self, _script: &str) -> Result<(), &'static str> {
+        Ok(())
+    }
+    fn deactivate(&mut self, _script: &str) -> Result<(), &'static str> {
+        Ok(())
     }
 }
 
@@ -87,9 +101,9 @@ impl super::IRust {
         None
     }
 
-    pub fn shutdown_hook(&self, global_variables: &GlobalVariables) -> Option<Command> {
-        if let Some(ref script_mg) = self.script_mg {
-            return script_mg.shutdown_hook(global_variables);
+    pub fn shutdown_hook(&mut self) -> Option<Command> {
+        if let Some(ref mut script_mg) = self.script_mg {
+            return script_mg.shutdown_hook(&self.global_variables);
         }
         None
     }
@@ -100,12 +114,26 @@ impl super::IRust {
         }
         None
     }
+    pub fn activate_script(&mut self, script: &str) -> Result<(), &'static str> {
+        if let Some(ref mut script_mg) = self.script_mg {
+            return script_mg.activate(script);
+        }
+        Ok(())
+    }
+    pub fn deactivate_script(&mut self, script: &str) -> Result<(), &'static str> {
+        if let Some(ref mut script_mg) = self.script_mg {
+            return script_mg.deactivate(script);
+        }
+        Ok(())
+    }
 
     // internal
     ///////////
     ///
     pub fn choose_script_mg(options: &Options) -> Option<Box<dyn Script>> {
-        if options.activate_scripting3 {
+        if options.activate_scripting4 {
+            ScriptManager4::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
+        } else if options.activate_scripting3 {
             ScriptManager3::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
         } else if options.activate_scripting2 {
             Some(Box::new(ScriptManager2::new()) as Box<dyn Script>)
