@@ -1,3 +1,7 @@
+**1.15.0**
+- Improve `:scripts` command, scripts can now be individually activated/deactivated
+- Add Script v4 support (see Scripts.md for more info)
+
 **1.14.0**
 - Add a shutdown hook (gives a change for scritps to cleanup)
 - Vim-mode script: use different cursor shapes for different modes
