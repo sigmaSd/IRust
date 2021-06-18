@@ -1,3 +1,9 @@
+**1.16.0**
+- Add persistence for scripts states: (active/inactive will be saved and restored automatically)
+- Add a new hook `Startup`
+- `:scripts $script activate/deactivate`, will now send Hook::Startup and hook::Shutdown respectively
+- Improvement to irust-vim mode script
+
 **1.15.0**
 - Improve `:scripts` command, scripts can now be individually activated/deactivated
 - Add Script v4 support (see Scripts.md for more info)
