@@ -62,12 +62,11 @@ impl IRust {
                 Ok(())
             }
             Command::MoveForwardTillChar(cchar) => {
-                if self
+                if !self
                     .buffer
                     .iter()
                     .skip(self.buffer.buffer_pos + 1)
-                    .find(|c| c == &&cchar)
-                    .is_none()
+                    .any(|c| c == &cchar)
                 {
                     return Ok(());
                 }
@@ -81,12 +80,11 @@ impl IRust {
                 }
             }
             Command::MoveBackwardTillChar(cchar) => {
-                if self
+                if !self
                     .buffer
                     .iter()
                     .take(self.buffer.buffer_pos)
-                    .find(|c| c == &&cchar)
-                    .is_none()
+                    .any(|c| c == &cchar)
                 {
                     return Ok(());
                 }
