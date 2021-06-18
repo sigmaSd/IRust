@@ -37,7 +37,11 @@ impl Scripter for Vim {
     }
 
     fn hooks() -> &'static [&'static str] {
-        &[script4::InputEvent::NAME, script4::Shutdown::NAME]
+        &[
+            script4::InputEvent::NAME,
+            script4::Shutdown::NAME,
+            script4::Startup::NAME,
+        ]
     }
 }
 
@@ -55,12 +59,17 @@ impl Vim {
         match hook_name {
             script4::InputEvent::NAME => {
                 let hook: script4::InputEvent = bincode::deserialize_from(&mut stdin).unwrap();
-                let output = self.handle_input_event(hook);
+                let output: Option<irust_api::Command> = self.handle_input_event(hook);
                 bincode::serialize_into(&mut stdout, &output).unwrap();
             }
             script4::Shutdown::NAME => {
                 let hook: script4::Shutdown = bincode::deserialize_from(&mut stdin).unwrap();
-                let output = self.clean_up(hook);
+                let output: Option<irust_api::Command> = self.clean_up(hook);
+                bincode::serialize_into(&mut stdout, &output).unwrap();
+            }
+            script4::Startup::NAME => {
+                let hook: script4::Startup = bincode::deserialize_from(&mut stdin).unwrap();
+                let output: Option<irust_api::Command> = self.start_up(hook);
                 bincode::serialize_into(&mut stdout, &output).unwrap();
             }
             _ => unreachable!(),

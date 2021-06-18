@@ -649,11 +649,17 @@ impl IRust {
                 }) {
                     match buffer[1] {
                         "activate" => {
-                            self.activate_script(script)?;
+                            if let Some(command) = self.activate_script(script)? {
+                                // script start up command
+                                self.execute(command)?;
+                            }
                             success!()
                         }
                         "deactivate" => {
-                            self.deactivate_script(script)?;
+                            if let Some(command) = self.deactivate_script(script)? {
+                                // script clean up command
+                                self.execute(command)?;
+                            }
                             success!()
                         }
                         _ => Err(format!("Unknown argument: {}", &buffer[1]).into()),

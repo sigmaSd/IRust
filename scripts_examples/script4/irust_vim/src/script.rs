@@ -11,7 +11,14 @@ impl Vim {
             mode: Mode::Normal,
         }
     }
+    pub fn start_up(&mut self, _: script4::Startup) -> <script4::Startup as Hook>::Output {
+        self.state = State::Empty;
+        self.mode = Mode::Normal;
+        Some(Command::SetWideCursor)
+    }
     pub fn clean_up(&mut self, _: script4::Shutdown) -> <script4::Shutdown as Hook>::Output {
+        self.state = State::Empty;
+        self.mode = Mode::Normal;
         Some(Command::SetWideCursor)
     }
     pub fn handle_input_event(

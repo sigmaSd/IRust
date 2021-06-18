@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crossterm::event::Event;
 use irust_api::{Command, GlobalVariables};
 
@@ -5,14 +7,66 @@ use super::Script;
 
 pub struct ScriptManager4(rscript::ScriptManager);
 
+macro_rules! mtry {
+    ($e: expr) => {
+        (|| -> Result<_, Box<dyn std::error::Error>> { Ok($e) })()
+    };
+}
 impl ScriptManager4 {
     pub fn new() -> Option<Self> {
         let mut sm = rscript::ScriptManager::default();
         let script_path = dirs_next::config_dir()?.join("irust").join("script4");
         sm.add_scripts_by_path(script_path).ok()?;
+
+        // read conf if available
+        let script_conf_path = dirs_next::config_dir()?.join("irust").join("script4.conf");
+
+        // ignore any error that happens while trying to read conf
+        // If an error happens, a new configuration will be written anyway when ScriptManager is
+        // dropped
+
+        if let Ok(script_state) =
+            mtry!(toml::from_str(&std::fs::read_to_string(script_conf_path)?)?)
+        {
+            // type inference
+            let script_state: HashMap<String, bool> = script_state;
+
+            sm.scripts_mut().iter_mut().for_each(|script| {
+                let script_name = &script.metadata().name;
+                if let Some(state) = script_state.get(script_name) {
+                    if *state {
+                        script.activate();
+                    } else {
+                        script.deactivate();
+                    }
+                }
+            })
+        }
+
         Some(ScriptManager4(sm))
     }
 }
+impl Drop for ScriptManager4 {
+    fn drop(&mut self) {
+        let mut script_state = HashMap::new();
+        for script in self.0.scripts() {
+            script_state.insert(script.metadata().name.clone(), script.is_active());
+        }
+        // Ignore errors on drop
+        let _ = mtry!({
+            let script_conf_path = dirs_next::config_dir()
+                .ok_or("could not find config directory")?
+                .join("irust")
+                .join("script4.conf");
+            std::fs::write(script_conf_path, toml::to_string(&script_state)?)
+        });
+    }
+}
+
+/* NOTE: Toml: serilizing tuple struct is not working?
+#[derive(Serialize, Deserialize, Debug)]
+struct ScriptState(HashMap<String, bool>);
+*/
 
 impl Script for ScriptManager4 {
     fn input_event_hook(
@@ -55,7 +109,11 @@ impl Script for ScriptManager4 {
 
         Some(scripts.join("\n"))
     }
-    fn activate(&mut self, script_name: &str) -> Result<(), &'static str> {
+    fn activate(
+        &mut self,
+        script_name: &str,
+        global_variables: &GlobalVariables,
+    ) -> Result<Option<Command>, &'static str> {
         if let Some(script) = self
             .0
             .scripts_mut()
@@ -63,12 +121,23 @@ impl Script for ScriptManager4 {
             .find(|script| script.metadata().name == script_name)
         {
             script.activate();
-            Ok(())
+            // We send a startup message in case the script is listening for one
+            if let Ok(maybe_command) =
+                script.trigger(&irust_api::script4::Startup(global_variables.clone()))
+            {
+                Ok(maybe_command)
+            } else {
+                Ok(None)
+            }
         } else {
             Err("Script not found")
         }
     }
-    fn deactivate(&mut self, script_name: &str) -> Result<(), &'static str> {
+    fn deactivate(
+        &mut self,
+        script_name: &str,
+        global_variables: &GlobalVariables,
+    ) -> Result<Option<Command>, &'static str> {
         if let Some(script) = self
             .0
             .scripts_mut()
@@ -76,7 +145,14 @@ impl Script for ScriptManager4 {
             .find(|script| script.metadata().name == script_name)
         {
             script.deactivate();
-            Ok(())
+            // We send a shutdown message in case the script is listening for one
+            if let Ok(maybe_command) =
+                script.trigger(&irust_api::script4::Shutdown(global_variables.clone()))
+            {
+                Ok(maybe_command)
+            } else {
+                Ok(None)
+            }
         } else {
             Err("Script not found")
         }

@@ -11,5 +11,5 @@ bincode = "1.3.3"
 crossterm = { version = "0.20.0", features = ["serde"] }
 irust_api = { path = "../../../crates/irust_api/" }
 once_cell = "1.7.2"
-rscript = "0.2.0"
+rscript = "0.3.0"
 serde = { version = "1.0.125", features = ["derive"] }

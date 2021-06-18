@@ -47,11 +47,19 @@ pub trait Script {
     fn list(&self) -> Option<String> {
         None
     }
-    fn activate(&mut self, _script: &str) -> Result<(), &'static str> {
-        Ok(())
+    fn activate(
+        &mut self,
+        _script: &str,
+        _global_variables: &GlobalVariables,
+    ) -> Result<Option<Command>, &'static str> {
+        Ok(None)
     }
-    fn deactivate(&mut self, _script: &str) -> Result<(), &'static str> {
-        Ok(())
+    fn deactivate(
+        &mut self,
+        _script: &str,
+        _global_variables: &GlobalVariables,
+    ) -> Result<Option<Command>, &'static str> {
+        Ok(None)
     }
 }
 
@@ -114,17 +122,17 @@ impl super::IRust {
         }
         None
     }
-    pub fn activate_script(&mut self, script: &str) -> Result<(), &'static str> {
+    pub fn activate_script(&mut self, script: &str) -> Result<Option<Command>, &'static str> {
         if let Some(ref mut script_mg) = self.script_mg {
-            return script_mg.activate(script);
+            return script_mg.activate(script, &self.global_variables);
         }
-        Ok(())
+        Ok(None)
     }
-    pub fn deactivate_script(&mut self, script: &str) -> Result<(), &'static str> {
+    pub fn deactivate_script(&mut self, script: &str) -> Result<Option<Command>, &'static str> {
         if let Some(ref mut script_mg) = self.script_mg {
-            return script_mg.deactivate(script);
+            return script_mg.deactivate(script, &self.global_variables);
         }
-        Ok(())
+        Ok(None)
     }
 
     // internal

@@ -38,6 +38,14 @@ pub mod script4 {
         const NAME: &'static str = "Shutdown";
         type Output = Option<super::Command>;
     }
+
+    #[derive(Serialize, Deserialize)]
+    pub struct Startup(pub super::GlobalVariables);
+
+    impl Hook for Startup {
+        const NAME: &'static str = "Startup";
+        type Output = Option<super::Command>;
+    }
 }
 
 #[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]
