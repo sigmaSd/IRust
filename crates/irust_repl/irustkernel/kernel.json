@@ -1,0 +1,4 @@
+{"argv":["python","-m","irust", "-f", "{connection_file}"],
+ "display_name":"IRustKernel"
+}
+

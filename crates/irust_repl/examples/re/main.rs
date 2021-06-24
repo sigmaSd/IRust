@@ -1,5 +1,4 @@
-use irust_repl::{EvalConfig, Repl, ToolChain};
-use once_cell::sync::Lazy;
+use irust_repl::{EvalConfig, Repl, ToolChain, DEFAULT_EVALUATOR};
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -21,8 +20,7 @@ fn main() {
 fn eval(deps: Option<&str>, code: &str) {
     let mut repl = Repl::new(ToolChain::Default).unwrap();
     if let Some(deps) = deps {
-        let mut deps: Vec<String> = deps.split(',').map(ToOwned::to_owned).collect();
-        deps.push("--offline".to_string());
+        let deps: Vec<String> = split_args(deps.to_string());
         repl.add_dep(&deps).unwrap().wait().unwrap();
     }
     let result = repl
@@ -30,14 +28,34 @@ fn eval(deps: Option<&str>, code: &str) {
             input: code,
             interactive_function: None,
             color: true,
-            evaluator: &*DISPLAY_EVAL,
+            evaluator: &*DEFAULT_EVALUATOR,
         })
         .unwrap();
     println!("{}", result.output);
 }
 
-static DISPLAY_EVAL: Lazy<[String; 2]> =
-    Lazy::new(|| ["println!(\"{}\", {\n".into(), "\n});".into()]);
+fn split_args(s: String) -> Vec<String> {
+    let mut args = vec![];
+    let mut tmp = String::new();
+    let mut quote = false;
 
-// Unreleated TODO
-// eval should take &self
+    for c in s.chars() {
+        match c {
+            ' ' => {
+                if !quote && !tmp.is_empty() {
+                    args.push(tmp.drain(..).collect());
+                } else {
+                    tmp.push(' ');
+                }
+            }
+            '"' => {
+                quote = !quote;
+            }
+            _ => tmp.push(c),
+        }
+    }
+    if !tmp.is_empty() {
+        args.push(tmp);
+    }
+    args
+}

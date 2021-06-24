@@ -1,5 +1,3 @@
 .vscode
 target/
-printer/Cargo.lock
-irust_api/Cargo.lock
-irust_repl/Cargo.lock
+crates/irust_repl/.ipynb_checkpoints
