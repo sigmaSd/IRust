@@ -2,6 +2,7 @@ use irust_api::{script4, GlobalVariables};
 use rscript::{scripting::Scripter, Hook, ScriptType};
 
 struct Prompt;
+
 impl Scripter for Prompt {
     fn script_type() -> ScriptType {
         ScriptType::OneShot
@@ -18,12 +19,6 @@ impl Scripter for Prompt {
             script4::Shutdown::NAME,
         ]
     }
-}
-impl Prompt {}
-
-fn main() {
-    Prompt::greet();
-    Prompt::execute(&mut |hook_name| Prompt::run(hook_name));
 }
 
 impl Prompt {
@@ -58,4 +53,9 @@ impl Prompt {
     fn clean_up() -> Option<irust_api::Command> {
         Some(irust_api::Command::ResetPrompt)
     }
+}
+
+fn main() {
+    Prompt::greet();
+    Prompt::execute(&mut |hook_name| Prompt::run(hook_name));
 }
