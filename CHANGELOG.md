@@ -1,3 +1,7 @@
+**1.17.0**
+- Add SetInputPrompt/SetOutputPrompt script v4 hooks, ResetPrompt command, and a irust_prompt script example
+- Update v4 scripts to rscript 0.5.0
+
 **1.16.0**
 - Add persistence for scripts states: (active/inactive will be saved and restored automatically)
 - Add a new hook `Startup`
