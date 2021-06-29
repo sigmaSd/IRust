@@ -14,10 +14,10 @@ pub mod script3;
 pub mod script4;
 
 pub trait Script {
-    fn input_prompt(&self, _global_variables: &GlobalVariables) -> Option<String> {
+    fn input_prompt(&mut self, _global_variables: &GlobalVariables) -> Option<String> {
         None
     }
-    fn get_output_prompt(&self, _global_variables: &GlobalVariables) -> Option<String> {
+    fn get_output_prompt(&mut self, _global_variables: &GlobalVariables) -> Option<String> {
         None
     }
     fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()> {
@@ -66,14 +66,14 @@ pub trait Script {
 // Scripts
 impl super::IRust {
     pub fn update_input_prompt(&mut self) {
-        if let Some(ref script_mg) = self.script_mg {
+        if let Some(ref mut script_mg) = self.script_mg {
             if let Some(prompt) = script_mg.input_prompt(&self.global_variables) {
                 self.printer.set_prompt(prompt);
             }
         }
     }
     pub fn get_output_prompt(&mut self) -> String {
-        if let Some(ref script_mg) = self.script_mg {
+        if let Some(ref mut script_mg) = self.script_mg {
             if let Some(prompt) = script_mg.get_output_prompt(&self.global_variables) {
                 return prompt;
             }

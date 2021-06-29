@@ -88,6 +88,20 @@ impl Script for ScriptManager4 {
             .next()?
             .ok()?
     }
+    fn get_output_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
+        self.0
+            .trigger(irust_api::script4::SetOutputPrompt(
+                global_variables.clone(),
+            ))
+            .next()?
+            .ok()
+    }
+    fn input_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
+        self.0
+            .trigger(irust_api::script4::SetInputPrompt(global_variables.clone()))
+            .next()?
+            .ok()
+    }
     fn list(&self) -> Option<String> {
         let mut scripts: Vec<String> = self
             .0

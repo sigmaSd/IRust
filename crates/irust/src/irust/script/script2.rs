@@ -24,7 +24,7 @@ impl ScriptManager2 {
     }
 }
 impl super::Script for ScriptManager2 {
-    fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
+    fn input_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         if !self.script_path.join("input_prompt").exists() {
             return None;
         }
@@ -42,7 +42,7 @@ impl super::Script for ScriptManager2 {
         bincode::deserialize_from(stdout).ok()
     }
 
-    fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
+    fn get_output_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         if !self.script_path.join("output_prompt").exists() {
             return None;
         }

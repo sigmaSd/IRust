@@ -2,5 +2,6 @@
 
 members = [
     "./irust_vim",
+    "./irust_prompt",
 ]
 

@@ -23,29 +23,46 @@ pub mod script4 {
     use rscript::Hook;
     use serde::{Deserialize, Serialize};
 
-    #[derive(Serialize, Deserialize)]
-    pub struct InputEvent(pub super::GlobalVariables, pub crossterm::event::Event);
+    macro_rules! hookit {
 
-    impl Hook for InputEvent {
-        const NAME: &'static str = "InputEvent";
-        type Output = Option<super::Command>;
-    }
+        (Hook => $hook: ident,
+         Input => ($($input: ty $(,)?)*),
+         Output => $output: ty) => (
 
     #[derive(Serialize, Deserialize)]
-    pub struct Shutdown(pub super::GlobalVariables);
+    pub struct $hook($(pub $input,)*);
 
-    impl Hook for Shutdown {
-        const NAME: &'static str = "Shutdown";
-        type Output = Option<super::Command>;
+    impl Hook for $hook {
+        const NAME: &'static str = stringify!($hook);
+        type Output = $output;
     }
+    )}
 
-    #[derive(Serialize, Deserialize)]
-    pub struct Startup(pub super::GlobalVariables);
-
-    impl Hook for Startup {
-        const NAME: &'static str = "Startup";
-        type Output = Option<super::Command>;
-    }
+    hookit!(
+    Hook => InputEvent,
+    Input => (super::GlobalVariables, crossterm::event::Event),
+    Output => Option<super::Command>
+    );
+    hookit!(
+    Hook => Shutdown,
+    Input => (super::GlobalVariables),
+    Output => Option<super::Command>
+    );
+    hookit!(
+    Hook => Startup,
+    Input => (super::GlobalVariables),
+    Output => Option<super::Command>
+    );
+    hookit!(
+    Hook => SetInputPrompt,
+    Input => (super::GlobalVariables),
+    Output => String
+    );
+    hookit!(
+    Hook => SetOutputPrompt,
+    Input => (super::GlobalVariables),
+    Output => String
+    );
 }
 
 #[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]
@@ -90,6 +107,7 @@ pub enum Command {
     HandleHome,
     HandleEnd,
     RemoveRacerSugesstion,
+    ResetPrompt,
     Exit,
 }
 

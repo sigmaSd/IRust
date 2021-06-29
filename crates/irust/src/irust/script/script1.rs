@@ -103,7 +103,7 @@ impl ScriptManager {
 }
 
 impl super::Script for ScriptManager {
-    fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
+    fn input_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         unsafe {
             let script: PromptFn = self.lib.get(b"input_prompt").ok()?;
             Some(
@@ -115,7 +115,7 @@ impl super::Script for ScriptManager {
         }
     }
 
-    fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
+    fn get_output_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         unsafe {
             let script: PromptFn = self.lib.get(b"output_prompt").ok()?;
             Some(

@@ -44,9 +44,9 @@ impl IRust {
 
         let mut global_variables = GlobalVariables::new();
 
-        let script_mg = Self::choose_script_mg(&options);
+        let mut script_mg = Self::choose_script_mg(&options);
         let prompt = script_mg
-            .as_ref()
+            .as_mut()
             .map(|script_mg| {
                 if let Some(prompt) = script_mg.input_prompt(&global_variables) {
                     prompt

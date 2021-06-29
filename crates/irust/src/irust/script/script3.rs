@@ -37,11 +37,11 @@ impl Script for ScriptManager3 {
         self.trigger_after_compile_hook()
     }
 
-    fn input_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
+    fn input_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         self.trigger_prompt_hook(Hook::SetInputPrompt, global_variables)
     }
 
-    fn get_output_prompt(&self, global_variables: &GlobalVariables) -> Option<String> {
+    fn get_output_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         self.trigger_prompt_hook(Hook::SetOutputPrompt, global_variables)
     }
 

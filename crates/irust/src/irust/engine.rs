@@ -658,6 +658,13 @@ impl IRust {
                 std::io::stdout(),
                 SetCursorShape(CursorShape::Block)
             )?),
+            Command::ResetPrompt => {
+                let prompt = self.options.input_prompt.clone();
+                self.global_variables.prompt_len = prompt.chars().count();
+                self.printer.set_prompt(prompt);
+
+                Ok(())
+            }
         }
     }
 
