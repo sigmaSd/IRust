@@ -56,6 +56,5 @@ impl Prompt {
 }
 
 fn main() {
-    Prompt::greet();
     Prompt::execute(&mut |hook_name| Prompt::run(hook_name));
 }

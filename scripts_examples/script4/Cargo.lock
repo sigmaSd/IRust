@@ -206,9 +206,9 @@ dependencies = [
 
 [[package]]
 name = "rscript"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "952d18be09a0c6bd7b9b8690ff104f404ea9210b5e175ec2172e980ca61593d3"
+checksum = "c78558e9f3b77d8b127faf055a07da47cdf8eed20e680b40fff341ac272669cf"
 dependencies = [
  "bincode",
  "serde",

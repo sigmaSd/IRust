@@ -47,7 +47,6 @@ impl Scripter for Vim {
 
 fn main() {
     let mut vim = Vim::new();
-    Vim::greet(); // this line  will exit automatically if script is OneShot and the message is Message::Greeting
     Vim::execute(&mut |hook_name| Vim::run(&mut vim, hook_name));
 }
 
