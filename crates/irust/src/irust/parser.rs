@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use std::time::Instant;
 
 use crossterm::style::Color;
 
@@ -68,6 +69,7 @@ impl IRust {
             cmd if cmd.starts_with(":executor") => self.executor(),
             cmd if cmd.starts_with(":evaluator") => self.evaluator(),
             cmd if cmd.starts_with(":scripts") => self.scripts(),
+            cmd if cmd.starts_with(":compile_time") => self.compile_time(),
             _ => self.parse_second_order(),
         }
     }
@@ -324,6 +326,13 @@ impl IRust {
         // struct B{}
         const ATTRIBUTE: &str = "#";
 
+        // Time irust compiling (includes rustc compiling + irust code)
+        let timer = if self.options.compile_time {
+            Some(Instant::now())
+        } else {
+            None
+        };
+
         let buffer = {
             let mut buffer = self.buffer.to_string();
             // check for replace marker option
@@ -338,8 +347,8 @@ impl IRust {
         // This trimmed buffer should not be inserted nor evaluated
         let buffer_trimmed = buffer.trim();
 
-        if buffer_trimmed.is_empty() {
-            Ok(PrintQueue::default())
+        let mut print_queue = if buffer_trimmed.is_empty() {
+            PrintQueue::default()
         } else if buffer_trimmed.ends_with(';')
             || self.options.auto_insert_semicolon
                 && (buffer_trimmed.starts_with(FUNCTION_DEF)
@@ -374,7 +383,7 @@ impl IRust {
                 self.repl.write_to_extern()?;
             }
 
-            Ok(print_queue)
+            print_queue
         } else {
             let mut outputs = PrintQueue::default();
 
@@ -398,8 +407,23 @@ impl IRust {
                 outputs.append(&mut eval_output);
             }
 
-            Ok(outputs)
+            outputs
+        };
+
+        // Print compile time
+        if let Some(timer) = timer {
+            let time = PrinterItem::String(
+                format!(
+                    "[-] compiling took: {} millisseconds",
+                    timer.elapsed().as_millis()
+                ),
+                Color::Magenta,
+            );
+            print_queue.add_new_line(1);
+            print_queue.push(time);
         }
+
+        Ok(print_queue)
     }
 
     pub fn sync(&mut self) -> Result<PrintQueue> {
@@ -669,6 +693,32 @@ impl IRust {
                 }
             }
             _ => Err("Incorrect number of arguments for `:scripts` command".into()),
+        }
+    }
+    fn compile_time(&mut self) -> Result<PrintQueue> {
+        let buffer = self.buffer.to_string();
+        let buffer: Vec<&str> = buffer
+            .strip_prefix(":compile_time")
+            .expect("already checked")
+            .trim()
+            .split_whitespace()
+            .collect();
+        match buffer.len() {
+            0 => {
+                print_queue!(self.options.compile_time.to_string(), Color::Blue)
+            }
+            1 => match buffer[0].to_lowercase().as_str() {
+                "on" => {
+                    self.options.compile_time = true;
+                    success!()
+                }
+                "off" => {
+                    self.options.compile_time = false;
+                    success!()
+                }
+                _ => Err("Invalid argument (only accepts on/off)".into()),
+            },
+            _ => Err("Invalid number of arguments".into()),
         }
     }
 }

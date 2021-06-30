@@ -48,6 +48,8 @@ Cross Platform Rust Repl
  
 **:scripts:** => only supported by script v3/v4, if invoked with no arguments it prints a list of detected scripts, if invoked with on argument it print that script info if it exits, if invoked with 2 arguments, it tries to activate/deactivate a script, example: `:scripts Vim deactivate`
 
+**:compile_time** *\<on/off\>* => if set to on, IRust will print compiling time on each input, compile time includes rustc compiling + some IRust code (should be marginal)
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history

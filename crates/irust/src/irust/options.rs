@@ -38,6 +38,7 @@ pub struct Options {
     pub activate_scripting4: bool,
     pub executor: Executor,
     pub evaluator: Vec<String>,
+    pub compile_time: bool,
 }
 
 impl Default for Options {
@@ -90,6 +91,7 @@ impl Default for Options {
                 .iter()
                 .map(|part| part.to_string())
                 .collect(),
+            compile_time: false,
         }
     }
 }
