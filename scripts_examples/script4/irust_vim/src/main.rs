@@ -52,24 +52,21 @@ fn main() {
 
 impl Vim {
     fn run(&mut self, hook_name: &str) {
-        let mut stdin = std::io::stdin();
-        let mut stdout = std::io::stdout();
-
         match hook_name {
             script4::InputEvent::NAME => {
-                let hook: script4::InputEvent = bincode::deserialize_from(&mut stdin).unwrap();
+                let hook: script4::InputEvent = Self::read();
                 let output: Option<irust_api::Command> = self.handle_input_event(hook);
-                bincode::serialize_into(&mut stdout, &output).unwrap();
+                Self::write(&output);
             }
             script4::Shutdown::NAME => {
-                let hook: script4::Shutdown = bincode::deserialize_from(&mut stdin).unwrap();
+                let hook: script4::Shutdown = Self::read();
                 let output: Option<irust_api::Command> = self.clean_up(hook);
-                bincode::serialize_into(&mut stdout, &output).unwrap();
+                Self::write(&output);
             }
             script4::Startup::NAME => {
-                let hook: script4::Startup = bincode::deserialize_from(&mut stdin).unwrap();
+                let hook: script4::Startup = Self::read();
                 let output: Option<irust_api::Command> = self.start_up(hook);
-                bincode::serialize_into(&mut stdout, &output).unwrap();
+                Self::write(&output);
             }
             _ => unreachable!(),
         }

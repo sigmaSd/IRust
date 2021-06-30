@@ -26,26 +26,21 @@ impl Prompt {
         format!("In [{}]: ", global.operation_number)
     }
     fn run(hook_name: &str) {
-        let mut stdin = std::io::stdin();
-        let mut stdout = std::io::stdout();
-
         match hook_name {
             script4::SetInputPrompt::NAME => {
-                let script4::SetInputPrompt(global) =
-                    bincode::deserialize_from(&mut stdin).unwrap();
+                let script4::SetInputPrompt(global) = Self::read();
                 let output: String = Self::prompt(global);
-                bincode::serialize_into(&mut stdout, &output).unwrap();
+                Self::write(&output);
             }
             script4::SetOutputPrompt::NAME => {
-                let script4::SetOutputPrompt(global) =
-                    bincode::deserialize_from(&mut stdin).unwrap();
+                let script4::SetOutputPrompt(global) = Self::read();
                 let output: String = Self::prompt(global);
-                bincode::serialize_into(&mut stdout, &output).unwrap();
+                Self::write(&output);
             }
             script4::Shutdown::NAME => {
-                let _hook: script4::Shutdown = bincode::deserialize_from(&mut stdin).unwrap();
+                let _hook: script4::Shutdown = Self::read();
                 let output: Option<irust_api::Command> = Self::clean_up();
-                bincode::serialize_into(&mut stdout, &output).unwrap();
+                Self::write(&output);
             }
             _ => unreachable!(),
         }
