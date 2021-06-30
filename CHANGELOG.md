@@ -1,3 +1,8 @@
+**1.18.0**
+- Add a new `:compile_time` command, set it to on will make IRust print compiling time on each input
+- Update to rscript 0.6.0 (improves script writing ergonomics, scripts also updated)
+
+
 **1.17.0**
 - Add SetInputPrompt/SetOutputPrompt script v4 hooks, ResetPrompt command, and a irust_prompt script example
 - Update v4 scripts to rscript 0.5.0
