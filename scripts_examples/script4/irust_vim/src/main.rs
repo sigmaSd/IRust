@@ -44,7 +44,7 @@ impl Scripter for Vim {
         ]
     }
     fn version() -> Version {
-        Version::Exact("1.18.0".into())
+        Version::Exact("1.19.0".into())
     }
 }
 

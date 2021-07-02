@@ -627,7 +627,7 @@ impl IRust {
         let scripts_list = if let Some(scripts_list) = self.scripts_list() {
             scripts_list
         } else {
-            return Err("No scripts found (this command only detects Script V3)".into());
+            return Err("No scripts found".into());
         };
 
         let buffer = self.buffer.to_string();

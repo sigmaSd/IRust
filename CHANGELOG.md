@@ -1,3 +1,6 @@
+**1.19.0**
+- Update to rscript 0.7.0, the advantage is scripts are now checked for incompatibility with versioning, previously an incompatibile script could be loaded by IRust which lead to subtle undefined behaviors
+
 **1.18.0**
 - Add a new `:compile_time` command, set it to on will make IRust print compiling time on each input
 - Update to rscript 0.6.0 (improves script writing ergonomics, scripts also updated)
