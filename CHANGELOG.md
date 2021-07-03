@@ -1,3 +1,6 @@
+**1.20.0**
+- Update to rscript 0.8.0, the advantage is scripts can specify different comparators for specifying the irust version requirement (used to be only exact versioning was supported)
+
 **1.19.0**
 - Update to rscript 0.7.0, the advantage is scripts are now checked for incompatibility with versioning, previously an incompatibile script could be loaded by IRust which lead to subtle undefined behaviors
 
