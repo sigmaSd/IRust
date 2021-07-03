@@ -1,5 +1,5 @@
 use irust_api::{script4, GlobalVariables};
-use rscript::{scripting::Scripter, Hook, ScriptType, Version};
+use rscript::{scripting::Scripter, Hook, ScriptType, VersionReq};
 
 struct Prompt;
 
@@ -19,8 +19,8 @@ impl Scripter for Prompt {
             script4::Shutdown::NAME,
         ]
     }
-    fn version() -> Version {
-        Version::Exact("1.19.0".into())
+    fn version_requirement() -> VersionReq {
+        VersionReq::parse(">=1.19.0").expect("correct version requirement")
     }
 }
 

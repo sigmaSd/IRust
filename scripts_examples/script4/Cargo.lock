@@ -206,11 +206,12 @@ dependencies = [
 
 [[package]]
 name = "rscript"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7715ac3151a46f129ec67d143e1863831e47973f0ac58dc7cc54cd338ab9e028"
+checksum = "067fb8a65fc9053a450ab537681b3af03dc783f32942e1f3da49c499461329b8"
 dependencies = [
  "bincode",
+ "semver",
  "serde",
 ]
 
@@ -219,6 +220,15 @@ name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
+
+[[package]]
+name = "semver"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f3aac57ee7f3272d8395c6e4f502f434f0e289fcd62876f70daa008c20dcabe"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "serde"

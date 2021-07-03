@@ -1,5 +1,5 @@
 use irust_api::script4;
-use rscript::{scripting::Scripter, Hook, ScriptType, Version};
+use rscript::{scripting::Scripter, Hook, ScriptType, VersionReq};
 mod script;
 
 struct Vim {
@@ -43,8 +43,8 @@ impl Scripter for Vim {
             script4::Startup::NAME,
         ]
     }
-    fn version() -> Version {
-        Version::Exact("1.19.0".into())
+    fn version_requirement() -> VersionReq {
+        VersionReq::parse(">=1.19.0").expect("correct version requirement")
     }
 }
 

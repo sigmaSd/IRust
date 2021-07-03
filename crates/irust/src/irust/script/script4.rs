@@ -18,7 +18,7 @@ impl ScriptManager4 {
         let script_path = dirs_next::config_dir()?.join("irust").join("script4");
         sm.add_scripts_by_path(
             script_path,
-            rscript::Version::Exact(crate::args::VERSION.into()),
+            rscript::Version::parse(crate::args::VERSION).expect("correct version"),
         )
         .ok()?;
 
