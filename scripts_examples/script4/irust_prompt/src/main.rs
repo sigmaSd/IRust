@@ -32,18 +32,18 @@ impl Prompt {
         match hook_name {
             script4::SetInputPrompt::NAME => {
                 let script4::SetInputPrompt(global) = Self::read();
-                let output: String = Self::prompt(global);
-                Self::write(&output);
+                let output = Self::prompt(global);
+                Self::write::<script4::SetInputPrompt>(&output);
             }
             script4::SetOutputPrompt::NAME => {
                 let script4::SetOutputPrompt(global) = Self::read();
-                let output: String = Self::prompt(global);
-                Self::write(&output);
+                let output = Self::prompt(global);
+                Self::write::<script4::SetOutputPrompt>(&output);
             }
             script4::Shutdown::NAME => {
                 let _hook: script4::Shutdown = Self::read();
-                let output: Option<irust_api::Command> = Self::clean_up();
-                Self::write(&output);
+                let output = Self::clean_up();
+                Self::write::<script4::Shutdown>(&output);
             }
             _ => unreachable!(),
         }

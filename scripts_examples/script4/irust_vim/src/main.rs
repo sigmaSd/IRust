@@ -58,18 +58,18 @@ impl Vim {
         match hook_name {
             script4::InputEvent::NAME => {
                 let hook: script4::InputEvent = Self::read();
-                let output: Option<irust_api::Command> = self.handle_input_event(hook);
-                Self::write(&output);
+                let output = self.handle_input_event(hook);
+                Self::write::<script4::InputEvent>(&output);
             }
             script4::Shutdown::NAME => {
                 let hook: script4::Shutdown = Self::read();
-                let output: Option<irust_api::Command> = self.clean_up(hook);
-                Self::write(&output);
+                let output = self.clean_up(hook);
+                Self::write::<script4::Shutdown>(&output);
             }
             script4::Startup::NAME => {
                 let hook: script4::Startup = Self::read();
-                let output: Option<irust_api::Command> = self.start_up(hook);
-                Self::write(&output);
+                let output = self.start_up(hook);
+                Self::write::<script4::Startup>(&output);
             }
             _ => unreachable!(),
         }
