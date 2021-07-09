@@ -49,7 +49,7 @@ impl Script for ScriptManager3 {
         self.trigger_output_event_hook(input, global_variables)
     }
 
-    fn shutdown_hook(&mut self, global_variables: &GlobalVariables) -> Option<Command> {
+    fn shutdown_hook(&mut self, global_variables: &GlobalVariables) -> Vec<Option<Command>> {
         self.trigger_shutdown_hook(global_variables)
     }
 
@@ -193,7 +193,7 @@ impl ScriptManager3 {
         }
     }
 
-    fn trigger_shutdown_hook(&self, global_variables: &GlobalVariables) -> Option<Command> {
+    fn trigger_shutdown_hook(&self, global_variables: &GlobalVariables) -> Vec<Option<Command>> {
         let hook = Hook::Shutdown;
 
         let common_fn = |script: &mut Child| {
@@ -221,11 +221,8 @@ impl ScriptManager3 {
         };
 
         let commands = self.trigger_hook(hook, Some(&mut daemon_fn), Some(&mut oneshot_fn));
-        if !commands.is_empty() {
-            Some(Command::Multiple(commands))
-        } else {
-            None
-        }
+        // FIXME
+        commands.into_iter().map(Option::Some).collect()
     }
 
     fn trigger_input_event_hook(

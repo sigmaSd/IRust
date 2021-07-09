@@ -86,11 +86,11 @@ impl Script for ScriptManager4 {
             .next()?
             .ok()?
     }
-    fn shutdown_hook(&mut self, global_variables: &GlobalVariables) -> Option<Command> {
+    fn shutdown_hook(&mut self, global_variables: &GlobalVariables) -> Vec<Option<Command>> {
         self.0
             .trigger(irust_api::script4::Shutdown(global_variables.clone()))
-            .next()?
-            .ok()?
+            .filter_map(Result::ok)
+            .collect()
     }
     fn get_output_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         self.0

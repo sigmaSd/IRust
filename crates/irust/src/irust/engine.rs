@@ -639,7 +639,7 @@ impl IRust {
                 Ok(())
             }
             Command::Exit => {
-                if let Some(cmd) = self.shutdown_hook() {
+                for cmd in self.shutdown_hook().into_iter().flatten() {
                     self.execute(cmd)?;
                 }
 

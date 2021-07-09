@@ -41,8 +41,8 @@ pub trait Script {
     ) -> Option<String> {
         None
     }
-    fn shutdown_hook(&mut self, _global_variables: &GlobalVariables) -> Option<Command> {
-        None
+    fn shutdown_hook(&mut self, _global_variables: &GlobalVariables) -> Vec<Option<Command>> {
+        vec![]
     }
     fn list(&self) -> Option<String> {
         None
@@ -109,11 +109,11 @@ impl super::IRust {
         None
     }
 
-    pub fn shutdown_hook(&mut self) -> Option<Command> {
+    pub fn shutdown_hook(&mut self) -> Vec<Option<Command>> {
         if let Some(ref mut script_mg) = self.script_mg {
             return script_mg.shutdown_hook(&self.global_variables);
         }
-        None
+        vec![]
     }
 
     pub fn scripts_list(&self) -> Option<String> {
