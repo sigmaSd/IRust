@@ -1,3 +1,6 @@
+**1.21.0**
+- Process all scripts shutdown commands instead of the just the first one
+
 **1.20.0**
 - Update to rscript 0.8.0, the advantage is scripts can specify different comparators for specifying the irust version requirement (used to be only exact versioning was supported)
 
