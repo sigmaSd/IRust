@@ -293,6 +293,7 @@ impl Repl {
             })
             .unwrap();
         body.remove(main_idx); // remove fn main
+        body.pop(); // remove result type [() | Ok(())]
         body.pop(); // remove last }
 
         write!(lib_file, "{}", body.join("\n"))?;
