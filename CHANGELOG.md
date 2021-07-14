@@ -1,3 +1,6 @@
+**1.22.1**
+- Fix regressions (:type :evaluator)
+
 **1.22.0**
 - repl:
     - remove `new` and change `new_with_executor` to `new`
