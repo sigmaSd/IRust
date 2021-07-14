@@ -1,3 +1,11 @@
+**1.22.0**
+- repl:
+    - remove `new` and change `new_with_executor` to `new`
+    - implement Default for Repl
+    - Add a new type MainResult, available options are Unit or Result 
+- irust:
+    - Add new command `main_result` to switch between main result types, using MainResult::Result allows using `?` with no boilerplate
+
 **1.21.0**
 - Process all scripts shutdown commands instead of the just the first one
 
