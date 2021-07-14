@@ -623,6 +623,7 @@ impl IRust {
             return success!();
         }
 
+        // Sanity checks
         // set
         if !evaluator.contains("$$") {
             return Err(
@@ -630,6 +631,10 @@ impl IRust {
                     .into(),
             );
         }
+        if !evaluator.ends_with(';') {
+            return Err("evaluator must end with ;".into());
+        }
+
         let evaluator: Vec<String> = evaluator.split("$$").map(ToOwned::to_owned).collect();
         if evaluator.len() != 2 {
             return Err("evaluator requires two parts".into());
