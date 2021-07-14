@@ -50,7 +50,7 @@ Cross Platform Rust Repl
 
 **:compile_time** *\<on/off\>* => if set to on, IRust will print compiling time on each input, compile time includes rustc compiling + some IRust code (should be marginal)
 
-**:main_result** *\<value\>* => Change main result type, available options are `Unit` and `Result` (which is Result<(), Box<dyn std::error::Error>>), Using `Result` as type allows to use `?` in the repl without any boilerplate
+**:main_result** *\<value\>* => Change main result type, available options are `Unit` and `Result` (which is Result\<(), Box<dyn std::error::Error\>\>), Using `Result` as type allows to use `?` in the repl without any boilerplate
 
 **::** => run a shell command, example `::ls`
 
