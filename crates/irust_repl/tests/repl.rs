@@ -2,7 +2,7 @@ use irust_repl::*;
 
 #[test]
 fn repl() {
-    let mut repl = Repl::new(ToolChain::Stable).unwrap();
+    let mut repl = Repl::default();
     repl.insert("let a = 4;");
     repl.insert("let b = 6;");
     assert_eq!(repl.eval("a+b").unwrap().output, "10");

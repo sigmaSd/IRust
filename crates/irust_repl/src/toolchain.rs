@@ -11,6 +11,11 @@ pub enum ToolChain {
     // cargo with no +argument, it can be different from the above
     Default,
 }
+impl Default for ToolChain {
+    fn default() -> Self {
+        ToolChain::Default
+    }
+}
 
 impl FromStr for ToolChain {
     type Err = Box<dyn std::error::Error>;

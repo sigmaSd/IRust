@@ -9,13 +9,18 @@ pub enum Executor {
     Tokio,
     AsyncStd,
 }
+impl Default for Executor {
+    fn default() -> Self {
+        Executor::Sync
+    }
+}
 
 impl Executor {
     pub(crate) fn main(&self) -> String {
         match self {
-            Executor::Sync => "fn main() {".into(),
-            Executor::Tokio => "#[tokio::main]async fn main() {".into(),
-            Executor::AsyncStd => "#[async_std::main]async fn main() {".into(),
+            Executor::Sync => "fn main()".into(),
+            Executor::Tokio => "#[tokio::main]async fn main()".into(),
+            Executor::AsyncStd => "#[async_std::main]async fn main()".into(),
         }
     }
     /// Invokation that can be used with cargo-add

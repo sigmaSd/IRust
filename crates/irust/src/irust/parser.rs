@@ -10,7 +10,7 @@ use crate::{
     irust::format::{format_check_output, format_err, format_eval_output},
     utils::ctrlc_cancel,
 };
-use irust_repl::{cargo_cmds::*, EvalConfig, EvalResult, Executor, ToolChain};
+use irust_repl::{cargo_cmds::*, EvalConfig, EvalResult, Executor, MainResult, ToolChain};
 use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
@@ -61,6 +61,7 @@ impl IRust {
             cmd if cmd.starts_with(":cd") => self.cd(),
             cmd if cmd.starts_with(":color") => self.color(),
             cmd if cmd.starts_with(":toolchain") => self.toolchain(),
+            cmd if cmd.starts_with(":main_result") => self.main_result(),
             cmd if cmd.starts_with(":check_statements") => self.check_statements(),
             cmd if cmd.starts_with(":time_release") => self.time_release(),
             cmd if cmd.starts_with(":time") => self.time(),
@@ -115,6 +116,20 @@ impl IRust {
             success!()
         } else {
             print_queue!(self.options.toolchain.to_string(), Color::Blue)
+        }
+    }
+
+    fn main_result(&mut self) -> Result<PrintQueue> {
+        let buffer = self.buffer.to_string();
+        let main_result = buffer.split_whitespace().nth(1);
+
+        if let Some(main_result) = main_result {
+            let main_result = MainResult::from_str(main_result)?;
+            self.repl.set_main_result(main_result);
+            self.options.main_result = main_result;
+            success!()
+        } else {
+            print_queue!(self.options.main_result.to_string(), Color::Blue)
         }
     }
 

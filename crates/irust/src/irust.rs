@@ -39,7 +39,7 @@ pub struct IRust {
 impl IRust {
     pub fn new(options: Options) -> Self {
         // Make sure to call Repl::new at the start so it can set `irust-repl` dir, which might be used by others (ScriptManager)
-        let repl = Repl::new_with_executor(options.toolchain, options.executor)
+        let repl = Repl::new(options.toolchain, options.executor, options.main_result)
             .expect("Could not create repl");
 
         let mut global_variables = GlobalVariables::new();

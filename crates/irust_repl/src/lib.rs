@@ -3,8 +3,11 @@ use cargo_cmds::*;
 mod executor;
 pub use executor::Executor;
 mod toolchain;
-use once_cell::sync::Lazy;
 pub use toolchain::ToolChain;
+mod main_result;
+pub use main_result::MainResult;
+
+use once_cell::sync::Lazy;
 mod utils;
 
 use std::{
@@ -45,14 +48,21 @@ pub struct Repl {
     cursor: usize,
     toolchain: ToolChain,
     executor: Executor,
+    main_result: MainResult,
+}
+impl Default for Repl {
+    fn default() -> Self {
+        Repl::new(
+            ToolChain::default(),
+            Executor::default(),
+            MainResult::default(),
+        )
+        .expect("Paniced while trying to create repl")
+    }
 }
 
 impl Repl {
-    pub fn new(toolchain: ToolChain) -> Result<Self> {
-        Self::new_with_executor(toolchain, Executor::Sync)
-    }
-
-    pub fn new_with_executor(toolchain: ToolChain, executor: Executor) -> Result<Self> {
+    pub fn new(toolchain: ToolChain, executor: Executor, main_result: MainResult) -> Result<Self> {
         cargo_new()?;
         // check for required dependencies (in case of async)
         if let Some(dependecy) = executor.dependecy() {
@@ -63,15 +73,22 @@ impl Repl {
         }
         cargo_build(toolchain)?;
 
+        let (header, footer) = Self::generate_body_delimiters(executor, main_result);
         Ok(Self {
-            body: vec![
-                executor.main(),
-                "} // Do not write past this line (it will corrupt the repl)".to_string(),
-            ],
+            body: vec![header, footer, "}".to_string()],
             cursor: 1,
             toolchain,
             executor,
+            main_result,
         })
+    }
+
+    fn generate_body_delimiters(executor: Executor, main_result: MainResult) -> (String, String) {
+        (
+            executor.main() + " -> " + main_result.ttype() + "{",
+            main_result.instance().to_string()
+                + " // Do not write past this line (it will corrupt the repl)",
+        )
     }
 
     pub fn set_executor(&mut self, executor: Executor) -> Result<()> {
@@ -88,7 +105,10 @@ impl Repl {
             cargo_add_sync(&dependecy)?;
         }
         // finally set the correct main function
-        self.body[0] = executor.main();
+        let (header, footer) = Self::generate_body_delimiters(self.executor, self.main_result);
+        let footer_pos = self.body.len() - 2;
+        self.body[0] = header;
+        self.body[footer_pos] = footer;
         Ok(())
     }
 
@@ -98,13 +118,14 @@ impl Repl {
         if lines_num < 2 {
             return Err("main.rs file corrupted, resetting irust..".into());
         }
-        let cursor_pos = lines_num - 1;
+        let cursor_pos = lines_num - 2;
 
         *self = Self {
             body: main_file.lines().map(ToOwned::to_owned).collect(),
             cursor: cursor_pos,
             toolchain: self.toolchain,
             executor: self.executor,
+            main_result: self.main_result,
         };
         Ok(())
     }
@@ -134,7 +155,7 @@ impl Repl {
     }
 
     pub fn reset(&mut self) -> Result<()> {
-        *self = Self::new_with_executor(self.toolchain, self.executor)?;
+        *self = Self::new(self.toolchain, self.executor, self.main_result)?;
         Ok(())
     }
 
@@ -228,6 +249,15 @@ impl Repl {
         self.toolchain = toolchain;
     }
 
+    pub fn set_main_result(&mut self, main_result: MainResult) {
+        self.main_result = main_result;
+        // rebuild main fn
+        let (header, footer) = Self::generate_body_delimiters(self.executor, self.main_result);
+        let footer_pos = self.body.len() - 2;
+        self.body[0] = header;
+        self.body[footer_pos] = footer;
+    }
+
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
         cargo_add(dep)
     }
@@ -258,7 +288,9 @@ impl Repl {
         // safe unwrap
         let main_idx = body
             .iter()
-            .position(|line| line == &self.executor.main())
+            .position(|line| {
+                line == &Self::generate_body_delimiters(self.executor, self.main_result).0
+            })
             .unwrap();
         body.remove(main_idx); // remove fn main
         body.pop(); // remove last }
@@ -291,6 +323,6 @@ impl Repl {
         self.body.iter()
     }
     pub fn lines_count(&self) -> usize {
-        self.body.len()
+        self.body.len() - 1
     }
 }

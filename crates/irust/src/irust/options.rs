@@ -1,6 +1,6 @@
 use crate::irust::{IRust, Result};
 use crossterm::style::Color;
-use irust_repl::{Executor, ToolChain, DEFAULT_EVALUATOR};
+use irust_repl::{Executor, MainResult, ToolChain, DEFAULT_EVALUATOR};
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 
@@ -39,6 +39,7 @@ pub struct Options {
     pub executor: Executor,
     pub evaluator: Vec<String>,
     pub compile_time: bool,
+    pub main_result: MainResult,
 }
 
 impl Default for Options {
@@ -92,6 +93,7 @@ impl Default for Options {
                 .map(|part| part.to_string())
                 .collect(),
             compile_time: false,
+            main_result: MainResult::Unit,
         }
     }
 }

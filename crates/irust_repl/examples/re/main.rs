@@ -1,4 +1,4 @@
-use irust_repl::{EvalConfig, Repl, ToolChain, DEFAULT_EVALUATOR};
+use irust_repl::{EvalConfig, Repl, DEFAULT_EVALUATOR};
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -18,7 +18,7 @@ fn main() {
 }
 
 fn eval(deps: Option<&str>, code: &str) {
-    let mut repl = Repl::new(ToolChain::Default).unwrap();
+    let mut repl = Repl::default();
     if let Some(deps) = deps {
         let deps: Vec<String> = split_args(deps.to_string());
         repl.add_dep(&deps).unwrap().wait().unwrap();
