@@ -1,3 +1,6 @@
+**1.22.2**
+- Fix regressions (:asm)
+
 **1.22.1**
 - Fix regressions (:type :evaluator)
 
