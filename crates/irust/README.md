@@ -33,7 +33,7 @@ Cross Platform Rust Repl
 
 **:color** *\<key\>* *\<value\>* => change token highlight color at runtime, for the token list and value representation check the Theme section, exp: `:color function red` `:color macro #ff12ab` `:color reset`
 
-**:toolchain** *\<value\>* => switch between toolchains, supported value are: `stable`, `beta`, `nighty`
+**:toolchain** *\<value\>* => switch between toolchains, supported value are: `stable`, `beta`, `nighty`, `default`
   
 **:check_statements** *true*/*false* => If its set to true, irust will check each statemnt (input that ends with ;) with cargo_check before inserting it to the repl
 
@@ -49,6 +49,8 @@ Cross Platform Rust Repl
 **:scripts:** => only supported by script v3/v4, if invoked with no arguments it prints a list of detected scripts, if invoked with on argument it print that script info if it exits, if invoked with 2 arguments, it tries to activate/deactivate a script, example: `:scripts Vim deactivate`
 
 **:compile_time** *\<on/off\>* => if set to on, IRust will print compiling time on each input, compile time includes rustc compiling + some IRust code (should be marginal)
+
+**:main_result** *\<value\>* => Change main result type, available options are `Unit` and `Result` (which is Result<(), Box<dyn std::error::Error>>), Using `Result` as type allows to use `?` in the repl without any boilerplate
 
 **::** => run a shell command, example `::ls`
 
@@ -142,6 +144,9 @@ IRust config file is located in:
   
   # select executor (Sync, Tokio, Asyncstd)
   executor = "Sync"
+  evaluator = ["println!(\"{:?}\", {\n", "\n});"]
+  compile_time = false
+  main_result = "Unit"
 ```
 
 ## Theme
