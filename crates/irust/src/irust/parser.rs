@@ -277,8 +277,9 @@ impl IRust {
         let mut raw_out = String::new();
 
         let toolchain = self.options.toolchain;
-        self.repl.eval_in_tmp_repl(variable, || -> Result<()> {
-            let (_status, out) = cargo_run(false, false, toolchain, Some(ctrlc_cancel))?;
+        let get_type = format!("let _:() = {};", variable);
+        self.repl.eval_in_tmp_repl(get_type, || -> Result<()> {
+            let (_status, out) = cargo_build_output(false, false, toolchain)?;
             raw_out = out;
             Ok(())
         })?;
