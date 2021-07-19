@@ -5,7 +5,7 @@ use crossterm::style::Color;
 
 use super::highlight::highlight;
 use crate::irust::{IRust, Result};
-use crate::utils::{remove_main, stdout_and_stderr};
+use crate::utils::stdout_and_stderr;
 use crate::{
     irust::format::{format_check_output, format_err, format_eval_output},
     utils::ctrlc_cancel,
@@ -238,16 +238,7 @@ impl IRust {
         self.repl.reset()?;
 
         // read code
-        let path_code = std::fs::read(path)?;
-        let code = if let Ok(code) = String::from_utf8(path_code) {
-            code
-        } else {
-            return Err("The specified file is not utf8 encoded").map_err(Into::into);
-        };
-
-        // Format code to make `remove_main` function work correctly
-        let code = cargo_fmt(&code)?;
-        let code = remove_main(&code);
+        let code = std::fs::read_to_string(path)?;
 
         // build the code
         let EvalResult { output, status } = self.repl.eval_build(code.clone())?;

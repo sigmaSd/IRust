@@ -50,13 +50,13 @@ pub fn stdout_and_stderr(out: std::process::Output) -> String {
     String::from_utf8(out).unwrap_or_default()
 }
 
-pub fn remove_main(script: &str) -> String {
+fn _remove_main(script: &str) -> String {
     const MAIN_FN: &str = "fn main() {";
 
     let mut script = remove_comments(script);
 
     let main_start = match script.find(MAIN_FN) {
-        Some(idx) if balanced_quotes(&script[..idx]) => idx,
+        Some(idx) if _balanced_quotes(&script[..idx]) => idx,
         _ => return script,
     };
 
@@ -278,7 +278,7 @@ fn remove_comments(s: &str) -> String {
         .collect()
 }
 
-fn balanced_quotes(s: &str) -> bool {
+fn _balanced_quotes(s: &str) -> bool {
     s.match_indices(|p| p == '"' || p == '\'').count() % 2 == 0
 }
 
