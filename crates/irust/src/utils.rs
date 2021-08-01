@@ -123,7 +123,7 @@ impl StringTools {
     pub fn strings_unique(s1: &str, s2: &mut String) {
         let mut idx = s2.len();
         loop {
-            if !s2[..idx].is_empty() && s1.ends_with(&s2[..idx]) {
+            if s2.get(..idx).is_some() && !s2[..idx].is_empty() && s1.ends_with(&s2[..idx]) {
                 for _ in 0..idx {
                     s2.remove(0);
                 }
