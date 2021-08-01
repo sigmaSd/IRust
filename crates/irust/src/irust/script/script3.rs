@@ -287,7 +287,7 @@ impl ScriptManager3 {
             for (registered_hook, scripts_path) in self.oneshot_map.iter() {
                 if registered_hook == &hook {
                     for script_path in scripts_path {
-                        if let Some(command) = oneshot_fn(&script_path) {
+                        if let Some(command) = oneshot_fn(script_path) {
                             commands.push(command);
                         }
                     }

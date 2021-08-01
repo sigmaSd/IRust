@@ -259,10 +259,10 @@ fn parse_character_lifetime<'a>(
     // a'  b' c' d' \r' \t'
     // try as char
 
-    let mut counter = 0;
     let mut previous_char = None;
     let mut characters = String::new();
-    while let Some(c) = s.next() {
+
+    for (counter, c) in s.enumerate() {
         if c == &'\'' && previous_char != Some('\\') {
             // we reached the end
             characters.push('\'');
@@ -275,7 +275,6 @@ fn parse_character_lifetime<'a>(
             }
         }
         previous_char = Some(*c);
-        counter += 1;
     }
 
     // try as lifetime

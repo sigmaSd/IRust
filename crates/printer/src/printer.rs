@@ -102,14 +102,14 @@ impl<W: std::io::Write> Printer<W> {
 
         self.cursor.hide();
         // scroll if needed before writing the input
-        self.scroll_if_needed_for_input(&buffer);
+        self.scroll_if_needed_for_input(buffer);
         self.cursor.save_position();
         self.cursor.goto_start();
         self.writer.raw.clear(ClearType::FromCursorDown)?;
 
         self.print_prompt_if_set()?;
 
-        self.print_input_inner(process_function(&buffer))?;
+        self.print_input_inner(process_function(buffer))?;
         //bound last row to last position
         self.cursor.bound_current_row_at_current_col();
 
@@ -122,7 +122,7 @@ impl<W: std::io::Write> Printer<W> {
     pub fn print_input_from_queue(&mut self, queue: PrintQueue, buffer: &Buffer) -> Result<()> {
         self.cursor.hide();
         // scroll if needed before writing the input
-        self.scroll_if_needed_for_input(&buffer);
+        self.scroll_if_needed_for_input(buffer);
         self.cursor.save_position();
         self.cursor.goto_start();
         self.writer.raw.clear(ClearType::FromCursorDown)?;
@@ -146,7 +146,7 @@ impl<W: std::io::Write> Printer<W> {
                     self.print_input_str(&string, color)?;
                 }
                 PrinterItem::Str(string, color) => {
-                    self.print_input_str(&string, color)?;
+                    self.print_input_str(string, color)?;
                 }
                 PrinterItem::Char(c, color) => {
                     self.print_input_char(c, color)?;
@@ -200,7 +200,7 @@ impl<W: std::io::Write> Printer<W> {
                     self.print_out_str(&string, color)?;
                 }
                 PrinterItem::Str(string, color) => {
-                    self.print_out_str(&string, color)?;
+                    self.print_out_str(string, color)?;
                 }
                 PrinterItem::NewLine => {
                     self.writer.raw.write("\r\n")?;
@@ -219,7 +219,7 @@ impl<W: std::io::Write> Printer<W> {
     }
 
     pub fn scroll_if_needed_for_input(&mut self, buffer: &Buffer) {
-        let input_last_row = self.cursor.input_last_pos(&buffer).1;
+        let input_last_row = self.cursor.input_last_pos(buffer).1;
 
         let height_overflow = input_last_row.saturating_sub(self.cursor.height() - 1);
         if height_overflow > 0 {
@@ -245,7 +245,7 @@ impl<W: std::io::Write> Printer<W> {
 
     fn check_for_offscreen_render_hack(&mut self, buffer: &Buffer) -> Result<bool> {
         // Hack
-        if self.cursor.buffer_pos_to_cursor_pos(&buffer).1 >= self.cursor.height() {
+        if self.cursor.buffer_pos_to_cursor_pos(buffer).1 >= self.cursor.height() {
             self.print_input(&default_process_fn, &"It looks like the input is larger then the termnial, this is not currently supported, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue".into() )?;
             Ok(true)
         } else {
@@ -305,7 +305,7 @@ impl<W: std::io::Write> Printer<W> {
 
     pub fn print_prompt_if_set(&mut self) -> Result<()> {
         let prompt = &self.prompt.clone();
-        self.write_from_terminal_start(&prompt, Color::Yellow)?;
+        self.write_from_terminal_start(prompt, Color::Yellow)?;
         Ok(())
     }
 

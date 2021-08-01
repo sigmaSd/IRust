@@ -101,7 +101,7 @@ impl Default for Options {
 impl Options {
     pub fn save(&mut self) -> Result<()> {
         if let Some(path) = Self::config_path() {
-            Self::write_config_file(path, &self)?;
+            Self::write_config_file(path, self)?;
         }
         Ok(())
     }

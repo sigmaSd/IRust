@@ -399,7 +399,7 @@ impl IRust {
                 const SEARCH_TITLE: &str = "search history: ";
                 const TITLE_WIDTH: usize = 16; // SEARCH_TITLE.chars().count()
                 self.printer.write_at_no_cursor(
-                    &SEARCH_TITLE,
+                    SEARCH_TITLE,
                     Color::Red,
                     0,
                     self.printer.cursor.height() - 1,
@@ -495,7 +495,7 @@ impl IRust {
                                 needle.clear();
                                 self.printer.clear_last_line()?;
                                 self.printer.write_at_no_cursor(
-                                    &SEARCH_TITLE,
+                                    SEARCH_TITLE,
                                     Color::Red,
                                     0,
                                     self.printer.cursor.height() - 1,
@@ -698,7 +698,7 @@ enum Dir {
 // helper functions
 
 fn incomplete_input(buffer: &str) -> bool {
-    StringTools::unmatched_brackets(&buffer)
+    StringTools::unmatched_brackets(buffer)
         || buffer
             .trim_end()
             .ends_with(|c| c == ':' || c == '.' || c == '=')

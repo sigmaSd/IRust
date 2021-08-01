@@ -315,7 +315,7 @@ impl Racer {
         let suggestions_num = std::cmp::min(self.suggestions.len(), options.racer_max_suggestions);
 
         // if The total input + suggestion >  screen height don't draw the suggestions
-        if printer.cursor.buffer_pos_to_cursor_pos(&buffer).1 + suggestions_num
+        if printer.cursor.buffer_pos_to_cursor_pos(buffer).1 + suggestions_num
             >= printer.cursor.height() - 1
         {
             return Ok(());
@@ -354,7 +354,7 @@ impl Racer {
         }
 
         printer.cursor.save_position();
-        printer.cursor.move_to_input_last_row(&buffer);
+        printer.cursor.move_to_input_last_row(buffer);
 
         let max_width = printer.cursor.width() - 1;
         printer.cursor.current_pos().0 = 0;
@@ -406,7 +406,7 @@ impl Racer {
         printer.writer.raw.reset_color()?;
         printer.cursor.restore_position();
         printer.cursor.goto_internal_pos();
-        printer.recalculate_bounds(highlight(&buffer, theme))?;
+        printer.recalculate_bounds(highlight(buffer, theme))?;
 
         Ok(())
     }

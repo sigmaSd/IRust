@@ -29,7 +29,7 @@ impl Dep {
 pub fn check_required_deps() -> bool {
     const REQUIRED_DEPS: &[&str] = &["cargo"];
     for dep in REQUIRED_DEPS {
-        if !dep_installed(&dep) {
+        if !dep_installed(dep) {
             eprintln!(
                 "{0} is not insalled!\n{0} is required for IRust to work.",
                 dep
