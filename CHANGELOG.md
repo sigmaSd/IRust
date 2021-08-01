@@ -1,3 +1,8 @@
+**1.24.0**
+- Fix and simplify `read_until_bytes` (used by racer)
+- Fix crash on unicode char boundary
+-Improve the emoji situation 2: Accept that dealing with emoji is too troublesome and just replace any char with width != 1 with '�'. The char is not actually replaced, only the printing is affected, this means the output wont change
+
 **1.23.0**
 - Improvement to `:load` command
     - irust `{path_to_rust_file}` will now start IRust with the file loaded in the repl
