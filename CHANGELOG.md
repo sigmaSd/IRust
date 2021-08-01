@@ -1,3 +1,9 @@
+**1.23.0**
+- Improvement to `:load` command
+    - irust `{path_to_rust_file}` will now start IRust with the file loaded in the repl
+    - Simplified `:load` command by removing `find and remove main` logic
+- Update dependencies
+
 **1.22.2**
 - Fix regressions (:asm)
 
