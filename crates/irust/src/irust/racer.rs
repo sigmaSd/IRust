@@ -117,7 +117,7 @@ impl Racer {
         let mut raw_output = vec![];
         read_until_bytes(
             &mut std::io::BufReader::new(stdout),
-            b"END",
+            b"END\n",
             &mut raw_output,
         )?;
         let raw_output = String::from_utf8(raw_output.to_vec())
