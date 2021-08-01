@@ -93,7 +93,7 @@ impl<W: std::io::Write> Cursor<W> {
         self.move_right_inner(self.current_row_bound());
     }
 
-    pub fn move_right_inner_optimized(&mut self, c: char) {
+    pub fn move_right_inner_optimized(&mut self) {
         // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because it moves automatically
         if self.pos.current_pos.0 == self.bound.width - 1 {
             self.pos.current_pos.0 = self.prompt_len;
@@ -101,12 +101,6 @@ impl<W: std::io::Write> Cursor<W> {
             self.goto_internal_pos();
         } else {
             self.pos.current_pos.0 += 1;
-            // tab move the cursor by 4
-            // If a character is wider than 1 unit, readjust the cursor (this will overwrite part of that character in the screen)
-            // need to adjust the screen cursor
-            if c == '\t' || unicode_width::UnicodeWidthChar::width(c).unwrap_or(1) > 1 {
-                self.goto_internal_pos();
-            }
         }
     }
     fn move_right_inner(&mut self, bound: usize) {

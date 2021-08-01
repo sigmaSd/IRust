@@ -60,9 +60,34 @@ impl<W: std::io::Write> Writer<W> {
         c: char,
         cursor: &mut super::cursor::Cursor<W>,
     ) -> Result<()> {
+        let c = Self::validate_char(c);
+        if c == '\t' {
+            self.handle_tab(cursor)?;
+            return Ok(());
+        }
         self.raw.write(c)?;
         // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because it moves automatically
-        cursor.move_right_inner_optimized(c);
+        cursor.move_right_inner_optimized();
+        Ok(())
+    }
+
+    fn validate_char(c: char) -> char {
+        // HACK: only accept chars with witdh == 1
+        // if c_w == witdh=0 or if c_w > witdh=1 replace c with '�'
+        let width = unicode_width::UnicodeWidthChar::width(c).unwrap_or(1);
+        if width == 0 || width > 1 {
+            '�'
+        } else {
+            c
+        }
+    }
+
+    fn handle_tab(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
+        //Tab hack
+        for _ in 0..4 {
+            self.raw.write(' ')?;
+            cursor.move_right_inner_optimized();
+        }
         Ok(())
     }
 
