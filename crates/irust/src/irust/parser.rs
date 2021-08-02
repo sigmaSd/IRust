@@ -315,24 +315,6 @@ impl IRust {
     }
 
     fn parse_second_order(&mut self) -> Result<PrintQueue> {
-        // these consts are used to detect statements that don't require to be terminated with ';'
-        // `loop` can return a value so we don't add it here, exp: `loop {break 4}`
-        const FUNCTION_DEF: &str = "fn ";
-        const ASYNC_FUNCTION_DEF: &str = "async fn ";
-        const ENUM_DEF: &str = "enum ";
-        const STRUCT_DEF: &str = "struct ";
-        const TRAIT_DEF: &str = "trait ";
-        const IMPL: &str = "impl ";
-        const PUB: &str = "pub ";
-        const WHILE: &str = "while ";
-        const EXTERN: &str = "extern ";
-        const MACRO_RULES: &str = "macro_rules!";
-
-        // attribute exp:
-        // #[derive(Debug)]
-        // struct B{}
-        const ATTRIBUTE: &str = "#";
-
         // Time irust compiling (includes rustc compiling + irust code)
         let timer = if self.options.compile_time {
             Some(Instant::now())
@@ -358,17 +340,29 @@ impl IRust {
             PrintQueue::default()
         } else if buffer_trimmed.ends_with(';')
             || self.options.auto_insert_semicolon
-                && (buffer_trimmed.starts_with(FUNCTION_DEF)
-                    || buffer_trimmed.starts_with(ASYNC_FUNCTION_DEF)
-                    || buffer_trimmed.starts_with(MACRO_RULES)
-                    || buffer_trimmed.starts_with(ENUM_DEF)
-                    || buffer_trimmed.starts_with(STRUCT_DEF)
-                    || buffer_trimmed.starts_with(TRAIT_DEF)
-                    || buffer_trimmed.starts_with(IMPL)
-                    || buffer_trimmed.starts_with(ATTRIBUTE)
-                    || buffer_trimmed.starts_with(PUB)
-                    || buffer_trimmed.starts_with(WHILE)
-                    || buffer_trimmed.starts_with(EXTERN))
+                // These patterns are used to detect statements that don't require to be terminated with ';'
+                // Note: `loop` can return a value so we don't add it here, exp: `loop {break 4}`
+                && match buffer_trimmed
+                    .split_whitespace()
+                    .collect::<Vec<_>>()
+                    .as_slice()
+                {
+                    // async fn|const fn|unsafe fn
+                    [_, "fn", ..]
+                    | ["fn", ..]
+                    | ["enum", ..]
+                    | ["struct", ..]
+                    | ["trait", ..]
+                    | ["impl", ..]
+                    | ["pub", ..]
+                    | ["extern", ..]
+                    | ["macro_rules!", ..] => true,
+                    // attribute exp:
+                    // #[derive(Debug)]
+                    // struct B{}
+                    [tag, ..] if tag.starts_with('#') => true,
+                    _ => false,
+                }
         {
             let mut print_queue = PrintQueue::default();
 
