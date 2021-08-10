@@ -10,7 +10,9 @@ use crate::{
     irust::format::{format_check_output, format_err, format_eval_output},
     utils::ctrlc_cancel,
 };
-use irust_repl::{cargo_cmds::*, EvalConfig, EvalResult, Executor, MainResult, ToolChain};
+use irust_repl::{
+    cargo_cmds::*, EvalConfig, EvalResult, Executor, MainResult, TargetFile, ToolChain,
+};
 use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
@@ -71,6 +73,8 @@ impl IRust {
             cmd if cmd.starts_with(":evaluator") => self.evaluator(),
             cmd if cmd.starts_with(":scripts") => self.scripts(),
             cmd if cmd.starts_with(":compile_time") => self.compile_time(),
+            cmd if cmd.starts_with(":proc_macro") => self.proc_macro(),
+            cmd if cmd.starts_with(":file") => self.file(),
             _ => self.parse_second_order(),
         }
     }
@@ -727,4 +731,46 @@ impl IRust {
             _ => Err("Invalid number of arguments".into()),
         }
     }
+    fn proc_macro(&mut self) -> Result<PrintQueue> {
+        let buffer = self.buffer.to_string();
+        let proc_mode = buffer
+            .strip_prefix(":proc_macro")
+            .expect("already checked")
+            .trim();
+        match proc_mode {
+            "" => print_queue!(self.repl.proc_macro().to_string(), Color::Blue),
+            "on" => {
+                self.repl.activate_proc_macro()?;
+                success!()
+            }
+            "off" => {
+                self.repl.deactivate_proc_macro()?;
+                success!()
+            }
+            _ => Err("allowed values are on/off".into()),
+        }
+    }
+    fn file(&mut self) -> Result<PrintQueue> {
+        let buffer = self.buffer.to_string();
+        let file = buffer
+            .strip_prefix(":file")
+            .expect("already checked")
+            .trim();
+        match file {
+            "" => {
+                print_queue!(self.repl.target_file().to_string(), Color::Blue)
+            }
+            "main" => {
+                self.repl.set_target_file(TargetFile::Main);
+                success!()
+            }
+            "lib" => {
+                self.repl.set_target_file(TargetFile::Lib);
+                success!()
+            }
+            _ => Err("allowed values are {Empty}/main.rs/lib.rs".into()),
+        }
+    }
+
+    // reset
 }

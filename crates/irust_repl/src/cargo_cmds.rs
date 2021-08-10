@@ -41,7 +41,7 @@ pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
 pub fn cargo_new() -> std::result::Result<(), io::Error> {
     // Ignore directory exists error
     let _ = std::fs::create_dir_all(&*IRUST_SRC_DIR);
-    clean_cargo_toml()?;
+    write_cargo_toml(CargoToml { proc_macro: false })?;
     clean_files()?;
 
     Ok(())
@@ -257,15 +257,28 @@ fn try_cargo_fmt_file(file: &Path) -> io::Result<()> {
     Ok(())
 }
 
-fn clean_cargo_toml() -> io::Result<()> {
+#[derive(Debug, Clone, Copy)]
+pub(super) struct CargoToml {
+    pub(super) proc_macro: bool,
+}
+pub(super) fn write_cargo_toml(options: CargoToml) -> io::Result<()> {
     // edition needs to be specified or racer will not be able to autocomplete dependencies
     // bug maybe?
-    const CARGO_TOML: &str = r#"[package]
+    let mut cargo_toml = r#"[package]
 name = "irust_host_repl"
 version = "0.1.0"
-edition = "2018""#;
+edition = "2018""#
+        .to_string();
+    if options.proc_macro {
+        cargo_toml.push_str(
+            "
+                            [lib]
+                            proc-macro = true",
+        );
+    }
+
     let mut cargo_toml_file = fs::File::create(&*CARGO_TOML_FILE)?;
-    write!(cargo_toml_file, "{}", CARGO_TOML)?;
+    write!(cargo_toml_file, "{}", cargo_toml)?;
     Ok(())
 }
 
