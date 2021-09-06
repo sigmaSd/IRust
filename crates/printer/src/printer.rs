@@ -231,7 +231,7 @@ impl<W: std::io::Write> Printer<W> {
     /// Simply use `crossterm::cusror::position` to figure out where we are after printing the output and add one to that
     /// This is not a hot path so using `position` here is okay
     fn readjust_cursor_pos(&mut self) -> Result<()> {
-        let pos = self.cursor.raw.get_current_pos()?;
+        let pos = self.cursor.raw.get_current_pos().unwrap_or((0, 0));
         self.cursor
             .set_current_pos(self.cursor.current_pos().0, pos.1 as usize + 1);
         self.cursor
