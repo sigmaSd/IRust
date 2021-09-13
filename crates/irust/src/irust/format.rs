@@ -3,17 +3,41 @@ use crossterm::style::Color;
 use printer::printer::{PrintQueue, PrinterItem};
 
 pub fn format_err(output: &str) -> PrintQueue {
+    const BEFORE_2021_END_TAG: &str = ": aborting due to ";
     let mut error = PrintQueue::default();
     let lines_count = output.lines().count();
     let actual_error = if lines_count > 8 {
-        output
-            .lines()
-            // skip warnings
-            .skip_while(|line| !line.contains("irust_host_repl v0.1.0"))
-            .skip(1)
-            .take_while(|line| !line.contains(": aborting due to "))
-            .collect::<Vec<&str>>()
-            .join("\n")
+        let handle_error = |output: &str| {
+            output
+                .lines()
+                // skips some messages (maybe in case of panic)
+                .skip_while(|line| !line.contains("irust_host_repl v0.1.0"))
+                .skip(1)
+                .take_while(|line| !line.contains(BEFORE_2021_END_TAG))
+                .collect::<Vec<&str>>()
+                .join("\n")
+        };
+        let handle_error_2021 = |output: &str| {
+            output
+                .lines()
+                // skips some messages (maybe in case of panic)
+                .skip_while(|line| !line.contains("irust_host_repl v0.1.0"))
+                .skip(1)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .skip_while(|line| !line.is_empty())
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect::<Vec<&str>>()
+                .join("\n")
+        };
+        if output.contains(BEFORE_2021_END_TAG) {
+            handle_error(output)
+        } else {
+            handle_error_2021(output)
+        }
     } else {
         output.to_string()
     };
