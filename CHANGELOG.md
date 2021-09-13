@@ -1,3 +1,12 @@
+**1.25.0**
+- Handle rust2021 new error format
+- Add `show_warngings` option
+- Add `macro` to keywords
+- Add `macro` to auto statement
+- Add `const fn` and `unsafe fn` to statements that don't require `;` to be inserted, also score some style points with pattern matching
+- Add new expect tests
+- Update deps
+
 **1.24.0**
 - Fix and simplify `read_until_bytes` (used by racer)
 - Fix crash on unicode char boundary
