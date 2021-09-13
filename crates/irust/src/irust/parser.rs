@@ -244,7 +244,7 @@ impl IRust {
         let EvalResult { output, status } = self.repl.eval_build(code.clone())?;
 
         if !status.success() {
-            Ok(format_err(&output))
+            Ok(format_err(&output, self.options.show_warnings))
         } else {
             self.repl.insert(code);
             success!()
@@ -372,7 +372,9 @@ impl IRust {
                 self.while_compiling_hook();
                 let check_result = self.repl.eval_check(buffer.clone());
                 self.after_compiling_hook();
-                if let Some(mut e) = format_check_output(check_result?.output) {
+                if let Some(mut e) =
+                    format_check_output(check_result?.output, self.options.show_warnings)
+                {
                     print_queue.append(&mut e);
                     insert_flag = false;
                 }
@@ -404,7 +406,9 @@ impl IRust {
             }
 
             let output_prompt = self.get_output_prompt();
-            if let Some(mut eval_output) = format_eval_output(status, output, output_prompt) {
+            if let Some(mut eval_output) =
+                format_eval_output(status, output, output_prompt, self.options.show_warnings)
+            {
                 outputs.append(&mut eval_output);
             }
 
@@ -552,8 +556,13 @@ impl IRust {
 
         let output_prompt = self.get_output_prompt();
         // safe unwrap
-        Ok(format_eval_output(status.unwrap(), raw_out, output_prompt)
-            .ok_or("failed to bench function")?)
+        Ok(format_eval_output(
+            status.unwrap(),
+            raw_out,
+            output_prompt,
+            self.options.show_warnings,
+        )
+        .ok_or("failed to bench function")?)
     }
 
     fn bench(&mut self) -> Result<PrintQueue> {

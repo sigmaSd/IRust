@@ -40,6 +40,7 @@ pub struct Options {
     pub evaluator: Vec<String>,
     pub compile_time: bool,
     pub main_result: MainResult,
+    pub show_warnings: bool,
 }
 
 impl Default for Options {
@@ -94,6 +95,7 @@ impl Default for Options {
                 .collect(),
             compile_time: false,
             main_result: MainResult::Unit,
+            show_warnings: false,
         }
     }
 }

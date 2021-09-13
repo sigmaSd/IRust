@@ -2,56 +2,71 @@ use crossterm::style::Color;
 
 use printer::printer::{PrintQueue, PrinterItem};
 
-pub fn format_err(output: &str) -> PrintQueue {
+pub fn format_err<'a>(output: &'a str, show_warnings: bool) -> PrintQueue {
     const BEFORE_2021_END_TAG: &str = ": aborting due to ";
-    let mut error = PrintQueue::default();
-    let lines_count = output.lines().count();
-    let actual_error = if lines_count > 8 {
-        let handle_error = |output: &str| {
+    // Relies on --color=always
+    const ERROR_TAG: &str = "\u{1b}[0m\u{1b}[1m\u{1b}[38;5;9merror";
+    const WARNING_TAG: &str = "\u{1b}[0m\u{1b}[1m\u{1b}[33mwarning";
+
+    if output.lines().count() <= 8 {
+        return PrinterItem::String(output.into(), Color::Red).into();
+    }
+
+    let go_to_start = |output: &'a str| -> Vec<&'a str> {
+        if show_warnings {
             output
                 .lines()
-                // skips some messages (maybe in case of panic)
                 .skip_while(|line| !line.contains("irust_host_repl v0.1.0"))
                 .skip(1)
-                .take_while(|line| !line.contains(BEFORE_2021_END_TAG))
-                .collect::<Vec<&str>>()
-                .join("\n")
-        };
-        let handle_error_2021 = |output: &str| {
-            output
-                .lines()
-                // skips some messages (maybe in case of panic)
-                .skip_while(|line| !line.contains("irust_host_repl v0.1.0"))
-                .skip(1)
-                .collect::<Vec<_>>()
-                .into_iter()
-                .rev()
-                .skip_while(|line| !line.is_empty())
-                .collect::<Vec<_>>()
-                .into_iter()
-                .rev()
-                .collect::<Vec<&str>>()
-                .join("\n")
-        };
-        if output.contains(BEFORE_2021_END_TAG) {
-            handle_error(output)
+                .collect()
         } else {
-            handle_error_2021(output)
+            output
+                .lines()
+                .skip_while(|line| !line.starts_with(ERROR_TAG))
+                .collect()
         }
-    } else {
-        output.to_string()
     };
-    error.push(PrinterItem::String(actual_error, Color::Red));
-    error
+    let go_to_end = |output: Box<dyn Iterator<Item = &str>>| -> String {
+        if show_warnings {
+            output
+        } else {
+            Box::new(output.take_while(|line| !line.starts_with(WARNING_TAG)))
+        }
+        .collect::<Vec<_>>()
+        .join("\n")
+    };
+
+    let handle_error = |output: &'a str| {
+        go_to_start(output)
+            .into_iter()
+            .take_while(|line| !line.contains(BEFORE_2021_END_TAG))
+    };
+    let handle_error_2021 = |output: &'a str| {
+        go_to_start(output)
+            .into_iter()
+            .rev()
+            .skip_while(|line| !line.is_empty())
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+    };
+
+    let output: Box<dyn Iterator<Item = &str>> = if output.contains(BEFORE_2021_END_TAG) {
+        Box::new(handle_error(output))
+    } else {
+        Box::new(handle_error_2021(output))
+    };
+    PrinterItem::String(go_to_end(output), Color::Red).into()
 }
 
 pub fn format_eval_output(
     status: std::process::ExitStatus,
     output: String,
     prompt: String,
+    show_warnings: bool,
 ) -> Option<PrintQueue> {
     if !status.success() {
-        return Some(format_err(&output));
+        return Some(format_err(&output, show_warnings));
     }
     if output.trim() == "()" {
         return None;
@@ -68,9 +83,9 @@ fn check_is_err(s: &str) -> bool {
     !s.contains("dev [unoptimized + debuginfo]")
 }
 
-pub fn format_check_output(output: String) -> Option<PrintQueue> {
+pub fn format_check_output(output: String, show_warnings: bool) -> Option<PrintQueue> {
     if check_is_err(&output) {
-        Some(format_err(&output))
+        Some(format_err(&output, show_warnings))
     } else {
         None
     }
