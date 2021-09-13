@@ -388,7 +388,7 @@ fn is_const(p: &Token) -> bool {
 const KEYWORDS: &[&str] = &[
     "async", "await", "while", "use", "super", "self", "Self", "for", "impl", "trait", "type",
     "pub", "in", "const", "static", "match", "use", "mut", "continue", "loop", "break", "if",
-    "else",
+    "else", "macro",
 ];
 const KEYWORDS2: &[&str] = &["unsafe", "move", "fn", "let", "struct", "enum", "dyn"];
 
