@@ -9,7 +9,7 @@ repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
 [dependencies]
-crossterm = { version = "0.20.0", features = ["serde"] }
+crossterm = { version = "0.21.0", features = ["serde"] }
 dirs-next = "2.0.0"
 toml = "0.5.8"
 serde = { version = "1.0.126", features = ["derive"] }
