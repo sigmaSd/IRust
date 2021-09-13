@@ -55,5 +55,10 @@ send("""fn fact(n: usize) -> usize {
 }""")
 assert_eq("fact(4)", "24")
 
+assert_eq(':toolchain nightly', "Ok!")
+send('#![feature(decl_macro)]')
+send('macro inc($n: expr) {$n + 1}')
+assert_eq('inc!({1+1})', '3')
+
 
 print("All tests passed!")
