@@ -1,6 +1,6 @@
 [package]
 name = "printer"
-version = "0.2.12"
+version = "0.3.0"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -9,5 +9,5 @@ repository = "https://github.com/sigmaSd/IRust/tree/master/crates/printer"
 license = "MIT"
 
 [dependencies]
-crossterm = "0.21.0"
+crossterm = "0.20.0"
 unicode-width = "0.1.8"

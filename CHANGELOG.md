@@ -1,3 +1,6 @@
+**1.26.0**
+- Downgrade crossterm due to upstream bug https://github.com/crossterm-rs/crossterm/issues/601
+
 **1.25.0**
 - Handle rust2021 new error format
 - Add `show_warngings` option

@@ -1,6 +1,6 @@
 [package]
 name = "irust_api"
-version = "0.19.1"
+version = "0.20.0"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2018"
 description = "IRust API"
@@ -8,6 +8,6 @@ repository = "https://github.com/sigmaSd/IRust/tree/master/crates/irust_api"
 license = "MIT"
 
 [dependencies]
-crossterm = { version = "0.21.0", features = ["serde"] }
+crossterm = { version = "0.20.0", features = ["serde"] }
 rscript = "0.10.0"
 serde = { version = "1.0.126", features = ["derive"] }
