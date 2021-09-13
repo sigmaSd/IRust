@@ -8,10 +8,6 @@ pub fn format_err<'a>(output: &'a str, show_warnings: bool) -> PrintQueue {
     const ERROR_TAG: &str = "\u{1b}[0m\u{1b}[1m\u{1b}[38;5;9merror";
     const WARNING_TAG: &str = "\u{1b}[0m\u{1b}[1m\u{1b}[33mwarning";
 
-    if output.lines().count() <= 8 {
-        return PrinterItem::String(output.into(), Color::Red).into();
-    }
-
     let go_to_start = |output: &'a str| -> Vec<&'a str> {
         if show_warnings {
             output
