@@ -121,7 +121,7 @@ dependencies = [
 
 [[package]]
 name = "irust_api"
-version = "0.19.0"
+version = "0.19.1"
 dependencies = [
  "crossterm",
  "rscript",
@@ -256,7 +256,7 @@ dependencies = [
 
 [[package]]
 name = "printer"
-version = "0.2.11"
+version = "0.2.12"
 dependencies = [
  "crossterm",
  "unicode-width",
