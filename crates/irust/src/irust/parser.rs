@@ -356,6 +356,7 @@ impl IRust {
                     | ["impl", ..]
                     | ["pub", ..]
                     | ["extern", ..]
+                    | ["macro", ..] => true,
                     | ["macro_rules!", ..] => true,
                     // attribute exp:
                     // #[derive(Debug)]
