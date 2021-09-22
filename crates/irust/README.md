@@ -52,6 +52,8 @@ Cross Platform Rust Repl
 
 **:main_result** *\<value\>* => Change main result type, available options are `Unit` and `Result` (which is Result\<(), Box<dyn std::error::Error\>\>), Using `Result` as type allows to use `?` in the repl without any boilerplate
 
+**:exit** | **:quit** => Exit IRust immediately
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history
