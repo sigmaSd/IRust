@@ -293,7 +293,7 @@ impl IRust {
         } else if raw_out.contains(EMPTY_TYPE_MSG) {
             "()".into()
         } else {
-            "Uknown".into()
+            "Unknown".into()
         };
 
         print_queue!(var_type, self.options.ok_color)
