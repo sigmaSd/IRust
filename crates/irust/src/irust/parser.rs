@@ -51,6 +51,7 @@ impl IRust {
             ":pop" => self.pop(),
             ":irust" => self.irust(),
             ":sync" => self.sync(),
+            ":exit" | ":quit" => self.exit(),
             cmd if cmd.starts_with("::") => self.run_cmd(),
             cmd if cmd.starts_with(":edit") => self.extern_edit(),
             cmd if cmd.starts_with(":add") => self.add_dep(),
@@ -736,5 +737,9 @@ impl IRust {
             },
             _ => Err("Invalid number of arguments".into()),
         }
+    }
+    fn exit(&mut self) -> Result<PrintQueue> {
+        self.exit_flag = true;
+        Ok(PrintQueue::default())
     }
 }

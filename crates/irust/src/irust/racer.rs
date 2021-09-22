@@ -21,7 +21,7 @@ pub struct Racer {
     // suggestions: (Name, definition)
     suggestions: Vec<(String, String)>,
     suggestion_idx: usize,
-    cmds: [String; 21],
+    cmds: [String; 26],
     update_lock: bool,
     pub active_suggestion: Option<String>,
 }
@@ -39,27 +39,32 @@ impl Racer {
         //.map_err(|_| IRustError::RacerDisabled)?;
         let cursor = (2, 0);
         let cmds = [
-            "show".to_string(),
             "help".to_string(),
-            "pop".to_string(),
-            "del".to_string(),
-            "add".to_string(),
             "reset".to_string(),
+            "show".to_string(),
+            "pop".to_string(),
+            "sync".to_string(),
+            "exit".to_string(),
+            "quit".to_string(),
+            "edit".to_string(),
+            "add".to_string(),
             "load".to_string(),
             "reload".to_string(),
             "type".to_string(),
+            "del".to_string(),
             "cd".to_string(),
             "color".to_string(),
             "toolchain".to_string(),
+            "main_result".to_string(),
             "check_statements".to_string(),
-            "time".to_string(),
             "time_release".to_string(),
+            "time".to_string(),
             "bench".to_string(),
+            "asm".to_string(),
             "executor".to_string(),
             "evaluator".to_string(),
-            "asm".to_string(),
+            "scripts".to_string(),
             "compile_time".to_string(),
-            "main_result".to_string(),
         ];
 
         Some(Racer {

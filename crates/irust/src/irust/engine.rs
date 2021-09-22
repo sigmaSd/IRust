@@ -151,9 +151,6 @@ impl IRust {
 
                 self.printer.cursor.hide();
 
-                // create a new line
-                self.printer.write_newline(&self.buffer);
-
                 // add commands to history
                 if self.should_push_to_history(&buffer) {
                     self.history.push(buffer);
@@ -173,6 +170,11 @@ impl IRust {
                 // ensure buffer is cleaned
                 self.buffer.clear();
 
+                // create a new line if we're not exiting
+                if !self.exit_flag {
+                    self.printer.write_newline(&self.buffer);
+                }
+
                 // print output
                 if !output.is_empty() {
                     // clear racer suggestions is present
@@ -181,11 +183,14 @@ impl IRust {
                     self.global_variables.operation_number += 1;
                     self.update_input_prompt();
                 }
-
-                // print a new input prompt
-                self.printer.print_prompt_if_set()?;
+                // Don't print a new input prompt if we're exiting
+                if !self.exit_flag {
+                    // print a new input prompt
+                    self.printer.print_prompt_if_set()?;
+                }
 
                 self.printer.cursor.show();
+
                 Ok(())
             }
             Command::HandleAltEnter => {
