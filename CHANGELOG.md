@@ -1,3 +1,8 @@
+**1.27.0**
+- Add more completions to racer
+- Add :exit :quit commands
+- Fix Typo in :type
+
 **1.26.0**
 - Downgrade crossterm due to upstream bug https://github.com/crossterm-rs/crossterm/issues/601
 
