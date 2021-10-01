@@ -1,3 +1,4 @@
+use std::env;
 use std::str::FromStr;
 use std::time::Instant;
 
@@ -447,7 +448,13 @@ impl IRust {
         // exp: :edit vi
         let editor: String = match self.buffer.to_string().split_whitespace().nth(1) {
             Some(ed) => ed.to_string(),
-            None => return Err("No editor specified".into()),
+            None => {
+                if let Ok(ed) = env::var("EDITOR") {
+                    ed
+                } else {
+                    return Err("No editor specified".into());
+                }
+            }
         };
 
         self.printer.writer.raw.write_with_color(
