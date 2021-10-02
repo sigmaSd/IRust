@@ -156,6 +156,10 @@ impl IRust {
                     self.history.push(buffer);
                 }
 
+                // Add a new line *before* the output
+                // Some commands that uses raw writer depends on this (exp: add, edit)
+                self.printer.write_newline(&self.buffer);
+
                 // parse and handle errors
                 let output = match self.parse() {
                     Ok(out) => out,
@@ -169,11 +173,6 @@ impl IRust {
 
                 // ensure buffer is cleaned
                 self.buffer.clear();
-
-                // create a new line if we're not exiting
-                if !self.exit_flag {
-                    self.printer.write_newline(&self.buffer);
-                }
 
                 // print output
                 if !output.is_empty() {
