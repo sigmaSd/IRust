@@ -1,3 +1,7 @@
+**1.28.0**
+- :edit command now looks for a EDITOR variable for an editor it its invoked with no arguments
+- BugFix: Fix output position after Enter
+
 **1.27.0**
 - Add more completions to racer
 - Add :exit :quit commands
