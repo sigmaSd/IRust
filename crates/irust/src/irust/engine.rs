@@ -158,6 +158,7 @@ impl IRust {
 
                 // Add a new line *before* the output
                 // Some commands that uses raw writer depends on this (exp: add, edit)
+                // This is also important to move the cursor after the all the input
                 self.printer.write_newline(&self.buffer);
 
                 // parse and handle errors
