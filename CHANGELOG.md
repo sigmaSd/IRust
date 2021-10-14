@@ -1,3 +1,6 @@
+**1.29.0**
+- Fix a bug where an output > SIZE can hang indefinitely (see https://users.rust-lang.org/t/weird-interaction-between-stdio-piped-and-child-try-wait/65898)
+
 **1.28.0**
 - :edit command now looks for a EDITOR variable for an editor it its invoked with no arguments
 - BugFix: Fix output position after Enter
