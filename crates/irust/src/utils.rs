@@ -1,5 +1,3 @@
-use std::process::Child;
-
 use crate::irust::Result;
 
 pub fn split_args(s: String) -> Vec<String> {
@@ -257,25 +255,6 @@ fn remove_comments(s: &str) -> String {
 
 fn _balanced_quotes(s: &str) -> bool {
     s.match_indices(|p| p == '"' || p == '\'').count() % 2 == 0
-}
-
-pub trait ProcessUtils {
-    fn interactive_output(
-        self,
-        function: fn(&mut Child) -> Result<()>,
-    ) -> Result<std::process::Output>;
-}
-
-impl ProcessUtils for std::process::Child {
-    fn interactive_output(
-        mut self,
-        function: fn(&mut Child) -> Result<()>,
-    ) -> Result<std::process::Output> {
-        while self.try_wait()?.is_none() {
-            function(&mut self)?;
-        }
-        self.wait_with_output().map_err(Into::into)
-    }
 }
 
 pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {
