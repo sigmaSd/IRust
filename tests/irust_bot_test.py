@@ -20,9 +20,10 @@ def send(op):
     child.send(f"{op}\r")
 
 
-def assert_eq(op, val):
+def assert_eq(op, val, sinkN=0):
     print(f"[testing] `{op}` => `{val}`")
     send(op)
+    sink(sinkN)
     out = child.readline().strip().decode("utf-8")
     if out == op:
         print("Race condition detected, test needs to be restarted (a couple of retries might be needed)")
@@ -39,13 +40,13 @@ sink(2)
 assert_eq(":add regex", "Ok!")
 assert_eq('regex::Regex::new("a.*a").unwrap()', "a.*a")
 
-assert_eq("z", "cannot find value `z` in this scope\x1b[0m")
+assert_eq("z", "cannot find value `z` in this scope\x1b[0m", sinkN=1)
 sink(4)
 
-assert_eq("1+2", "3")
+assert_eq("1+2", "3", sinkN=1)
 
 send('let a = "hello";')
-assert_eq(':type a', "`&str`")
+assert_eq(':type a', "`&str`", sinkN=2)
 
 send("""fn fact(n: usize) -> usize {
     match n {
@@ -53,12 +54,12 @@ send("""fn fact(n: usize) -> usize {
         n => n * fact(n-1)
     }
 }""")
-assert_eq("fact(4)", "24")
+assert_eq("fact(4)", "24", sinkN=1)
 
-assert_eq(':toolchain nightly', "Ok!")
+assert_eq(':toolchain nightly', "Ok!", sinkN=1)
 send('#![feature(decl_macro)]')
 send('macro inc($n: expr) {$n + 1}')
-assert_eq('inc!({1+1})', '3')
+assert_eq('inc!({1+1})', '3', sinkN=2)
 
 
 print("All tests passed!")
