@@ -92,6 +92,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "irust_vim_dylib"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "crossterm",
+ "irust_api",
+ "once_cell",
+ "rscript",
+ "serde",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.97"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -216,9 +228,9 @@ dependencies = [
 
 [[package]]
 name = "rscript"
-version = "0.11.0"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4fae4ca8b0319e8a5915c0d91e5710f89e6d02260a2bed61149526dc34fefe1"
+checksum = "0a4a21cc4d346e448d5a11c5c136e5f5eb6204682b950465ca07fabd36aa048b"
 dependencies = [
  "bincode",
  "libloading",

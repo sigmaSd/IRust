@@ -142,8 +142,7 @@ impl Script for ScriptManager4 {
         {
             script.activate();
             // We send a startup message in case the script is listening for one
-            if let Ok(maybe_command) =
-                script.trigger(&irust_api::Startup(global_variables.clone()))
+            if let Ok(maybe_command) = script.trigger(&irust_api::Startup(global_variables.clone()))
             {
                 Ok(maybe_command)
             } else {

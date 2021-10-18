@@ -1,5 +1,5 @@
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
-use irust_api::{script4, Command};
+use irust_api::Command;
 use rscript::Hook;
 
 use super::{Mode, State, Vim};
@@ -11,21 +11,21 @@ impl Vim {
             mode: Mode::Normal,
         }
     }
-    pub fn start_up(&mut self, _: script4::Startup) -> <script4::Startup as Hook>::Output {
+    pub fn start_up(&mut self, _: irust_api::Startup) -> <irust_api::Startup as Hook>::Output {
         self.state = State::Empty;
         self.mode = Mode::Normal;
         Some(Command::SetWideCursor)
     }
-    pub fn clean_up(&mut self, _: script4::Shutdown) -> <script4::Shutdown as Hook>::Output {
+    pub fn clean_up(&mut self, _: irust_api::Shutdown) -> <irust_api::Shutdown as Hook>::Output {
         self.state = State::Empty;
         self.mode = Mode::Normal;
         Some(Command::SetWideCursor)
     }
     pub fn handle_input_event(
         &mut self,
-        input_event: script4::InputEvent,
-    ) -> <script4::InputEvent as Hook>::Output {
-        let script4::InputEvent(global, event) = input_event;
+        input_event: irust_api::InputEvent,
+    ) -> <irust_api::InputEvent as Hook>::Output {
+        let irust_api::InputEvent(global, event) = input_event;
         macro_rules! reset_state {
             () => {{
                 self.state = State::Empty;

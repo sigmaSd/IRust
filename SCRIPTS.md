@@ -7,7 +7,7 @@ Script examples are located here https://github.com/sigmaSd/IRust/tree/master/sc
 
 ## Usage:
 - Set `activate_scripting` to `true` in config file.
-- Compile a script (it can be oneshot/daemon/ dylib(unsafe)), see examples
+- Compile a script (it can be oneshot/daemon/dylib(unsafe)), see examples
 - Copy it to ~/.config/irust/script4/
 
 That's it you can verify that scripts are detected with `:scripts`\
