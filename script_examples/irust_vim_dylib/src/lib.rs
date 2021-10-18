@@ -29,7 +29,7 @@ enum Mode {
 static mut VIM: Vim = Vim::new();
 
 #[no_mangle]
-pub fn script_info() -> FFiVec {
+pub extern "C" fn script_info() -> FFiVec {
     let info = ScriptInfo::new(
         "VimDylib",
         ScriptType::DynamicLib,
@@ -43,29 +43,26 @@ pub fn script_info() -> FFiVec {
     FFiVec::serialize_from(&info).unwrap()
 }
 
-/// # Safety
-/// No stable ABI => Not safe
 #[no_mangle]
 pub extern "C" fn script(hook: FFiVec, data: FFiVec) -> FFiVec {
     let hook: String = hook.deserialize().unwrap();
-    unsafe {
-        match hook.as_str() {
-            irust_api::InputEvent::NAME => {
-                let hook: irust_api::InputEvent = data.deserialize().unwrap();
-                let output = VIM.handle_input_event(hook);
-                FFiVec::serialize_from(&output).unwrap()
-            }
-            irust_api::Shutdown::NAME => {
-                let hook: irust_api::Shutdown = data.deserialize().unwrap();
-                let output = VIM.clean_up(hook);
-                FFiVec::serialize_from(&output).unwrap()
-            }
-            irust_api::Startup::NAME => {
-                let hook: irust_api::Startup = data.deserialize().unwrap();
-                let output = VIM.start_up(hook);
-                FFiVec::serialize_from(&output).unwrap()
-            }
-            _ => unreachable!(),
+    match hook.as_str() {
+        irust_api::InputEvent::NAME => {
+            let hook: irust_api::InputEvent = data.deserialize().unwrap();
+            let output: <irust_api::InputEvent as Hook>::Output =
+                unsafe { VIM.handle_input_event(hook) };
+            FFiVec::serialize_from(&output).unwrap()
         }
+        irust_api::Shutdown::NAME => {
+            let hook: irust_api::Shutdown = data.deserialize().unwrap();
+            let output: <irust_api::Shutdown as Hook>::Output = unsafe { VIM.clean_up(hook) };
+            FFiVec::serialize_from(&output).unwrap()
+        }
+        irust_api::Startup::NAME => {
+            let hook: irust_api::Startup = data.deserialize().unwrap();
+            let output: <irust_api::Startup as Hook>::Output = unsafe { VIM.start_up(hook) };
+            FFiVec::serialize_from(&output).unwrap()
+        }
+        _ => unreachable!(),
     }
 }
