@@ -5,7 +5,7 @@ use rscript::Hook;
 use super::{Mode, State, Vim};
 
 impl Vim {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             state: State::Empty,
             mode: Mode::Normal,
@@ -27,9 +27,9 @@ impl Vim {
     ) -> <script4::InputEvent as Hook>::Output {
         let script4::InputEvent(global, event) = input_event;
         macro_rules! reset_state {
-            () => {
+            () => {{
                 self.state = State::Empty;
-            };
+            }};
         }
 
         let cmd = (|| match event {

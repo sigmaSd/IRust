@@ -1,4 +1,3 @@
-use irust_api::script4;
 use rscript::{scripting::Scripter, Hook, ScriptType, VersionReq};
 mod script;
 
@@ -38,9 +37,9 @@ impl Scripter for Vim {
 
     fn hooks() -> &'static [&'static str] {
         &[
-            script4::InputEvent::NAME,
-            script4::Shutdown::NAME,
-            script4::Startup::NAME,
+            irust_api::InputEvent::NAME,
+            irust_api::Shutdown::NAME,
+            irust_api::Startup::NAME,
         ]
     }
     fn version_requirement() -> VersionReq {
@@ -56,20 +55,20 @@ fn main() {
 impl Vim {
     fn run(&mut self, hook_name: &str) {
         match hook_name {
-            script4::InputEvent::NAME => {
-                let hook: script4::InputEvent = Self::read();
+            irust_api::InputEvent::NAME => {
+                let hook: irust_api::InputEvent = Self::read();
                 let output = self.handle_input_event(hook);
-                Self::write::<script4::InputEvent>(&output);
+                Self::write::<irust_api::InputEvent>(&output);
             }
-            script4::Shutdown::NAME => {
-                let hook: script4::Shutdown = Self::read();
+            irust_api::Shutdown::NAME => {
+                let hook: irust_api::Shutdown = Self::read();
                 let output = self.clean_up(hook);
-                Self::write::<script4::Shutdown>(&output);
+                Self::write::<irust_api::Shutdown>(&output);
             }
-            script4::Startup::NAME => {
-                let hook: script4::Startup = Self::read();
+            irust_api::Startup::NAME => {
+                let hook: irust_api::Startup = Self::read();
                 let output = self.start_up(hook);
-                Self::write::<script4::Startup>(&output);
+                Self::write::<irust_api::Startup>(&output);
             }
             _ => unreachable!(),
         }

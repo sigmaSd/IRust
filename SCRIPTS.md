@@ -1,4 +1,20 @@
 # Scripts
+**Release `1.30.0`:**
+
+Script v4 is now the only scripting interface available.
+It uses [rscript](https://github.com/sigmaSd/Rscript)\
+Script examples are located here https://github.com/sigmaSd/IRust/tree/master/scripts_examples
+
+## Usage:
+- Set `activate_scripting` to `true` in config file.
+- Compile a script (it can be oneshot/daemon/ dylib(unsafe)), see examples
+- Copy it to ~/.config/irust/script4/
+
+That's it you can verify that scripts are detected with `:scripts`\
+You can activate/deactivate scripts with `:script $myscript activate` (or deactivate)
+
+## Old informations
+
 **Since release `1.15.0` `IRust` has script v4 support**
 
 The scripting engine is now extracted in its own crate [rscript](https://github.com/sigmaSd/Rscript)\

@@ -17,10 +17,17 @@ impl ScriptManager4 {
         let mut sm = rscript::ScriptManager::default();
         let script_path = dirs_next::config_dir()?.join("irust").join("script4");
         sm.add_scripts_by_path(
-            script_path,
+            &script_path,
             rscript::Version::parse(crate::args::VERSION).expect("correct version"),
         )
         .ok()?;
+        unsafe {
+            sm.add_dynamic_scripts_by_path(
+                script_path,
+                rscript::Version::parse(crate::args::VERSION).expect("correct version"),
+            )
+            .ok()?;
+        }
 
         // read conf if available
         let script_conf_path = dirs_next::config_dir()?.join("irust").join("script4.conf");
@@ -79,30 +86,25 @@ impl Script for ScriptManager4 {
         event: Event,
     ) -> Option<Command> {
         self.0
-            .trigger(irust_api::script4::InputEvent(
-                global_variables.clone(),
-                event,
-            ))
+            .trigger(irust_api::InputEvent(global_variables.clone(), event))
             .next()?
             .ok()?
     }
     fn shutdown_hook(&mut self, global_variables: &GlobalVariables) -> Vec<Option<Command>> {
         self.0
-            .trigger(irust_api::script4::Shutdown(global_variables.clone()))
+            .trigger(irust_api::Shutdown(global_variables.clone()))
             .filter_map(Result::ok)
             .collect()
     }
     fn get_output_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         self.0
-            .trigger(irust_api::script4::SetOutputPrompt(
-                global_variables.clone(),
-            ))
+            .trigger(irust_api::SetOutputPrompt(global_variables.clone()))
             .next()?
             .ok()
     }
     fn input_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         self.0
-            .trigger(irust_api::script4::SetInputPrompt(global_variables.clone()))
+            .trigger(irust_api::SetInputPrompt(global_variables.clone()))
             .next()?
             .ok()
     }
@@ -141,7 +143,7 @@ impl Script for ScriptManager4 {
             script.activate();
             // We send a startup message in case the script is listening for one
             if let Ok(maybe_command) =
-                script.trigger(&irust_api::script4::Startup(global_variables.clone()))
+                script.trigger(&irust_api::Startup(global_variables.clone()))
             {
                 Ok(maybe_command)
             } else {
@@ -165,7 +167,7 @@ impl Script for ScriptManager4 {
             script.deactivate();
             // We send a shutdown message in case the script is listening for one
             if let Ok(maybe_command) =
-                script.trigger(&irust_api::script4::Shutdown(global_variables.clone()))
+                script.trigger(&irust_api::Shutdown(global_variables.clone()))
             {
                 Ok(maybe_command)
             } else {

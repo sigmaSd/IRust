@@ -33,9 +33,6 @@ pub struct Options {
     pub input_prompt: String,
     pub output_prompt: String,
     pub activate_scripting: bool,
-    pub activate_scripting2: bool,
-    pub activate_scripting3: bool,
-    pub activate_scripting4: bool,
     pub executor: Executor,
     pub evaluator: Vec<String>,
     pub compile_time: bool,
@@ -85,9 +82,6 @@ impl Default for Options {
             input_prompt: "In: ".to_string(),
             output_prompt: "Out: ".to_string(),
             activate_scripting: false,
-            activate_scripting2: false,
-            activate_scripting3: false,
-            activate_scripting4: false,
             executor: Executor::Sync,
             evaluator: DEFAULT_EVALUATOR
                 .iter()

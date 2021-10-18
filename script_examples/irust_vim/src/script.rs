@@ -1,95 +1,35 @@
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
-use irust_api::{Command, GlobalVariables, Hook, Message, ScriptInfo};
-use serde::{de::DeserializeOwned, Serialize};
+use irust_api::Command;
+use rscript::Hook;
 
-use std::io::{Stdin, Stdout, Write};
+use super::{Mode, State, Vim};
 
-#[allow(non_camel_case_types)]
-#[derive(Debug, PartialEq)]
-enum State {
-    Empty,
-    c,
-    ci,
-    d,
-    di,
-    g,
-    f,
-    F,
-    r,
-}
-
-#[derive(PartialEq)]
-enum Mode {
-    Normal,
-    Insert,
-}
-
-struct VimMode {
-    active: bool,
-    state: State,
-    mode: Mode,
-    stdin: Stdin,
-    stdout: Stdout,
-}
-
-impl VimMode {
-    fn new() -> Self {
+impl Vim {
+    pub fn new() -> Self {
         Self {
-            active: true,
             state: State::Empty,
             mode: Mode::Normal,
-            stdin: std::io::stdin(),
-            stdout: std::io::stdout(),
         }
     }
-
-    fn read<T: DeserializeOwned>(&mut self) -> bincode::Result<T> {
-        bincode::deserialize_from(&mut self.stdin)
+    pub fn start_up(&mut self, _: irust_api::Startup) -> <irust_api::Startup as Hook>::Output {
+        self.state = State::Empty;
+        self.mode = Mode::Normal;
+        Some(Command::SetWideCursor)
     }
-
-    fn write<T: Serialize>(&mut self, value: &T) -> bincode::Result<()> {
-        bincode::serialize_into(&mut self.stdout, value)
+    pub fn clean_up(&mut self, _: irust_api::Shutdown) -> <irust_api::Shutdown as Hook>::Output {
+        self.state = State::Empty;
+        self.mode = Mode::Normal;
+        Some(Command::SetWideCursor)
     }
-
-    fn clean_up(&mut self) -> bincode::Result<()> {
-        let _ = self.read::<GlobalVariables>()?;
-        self.write(&Some(Command::SetWideCursor))
-    }
-
-    fn handle_output_event(&mut self) -> bincode::Result<()> {
-        let _ = self.read::<GlobalVariables>()?;
-        let input = self.read::<String>()?;
-
-        if !input.starts_with(":vim") {
-            return self.write(&Option::<&str>::None);
-        }
-
-        let action = input.split_ascii_whitespace().nth(1);
-        match action {
-            Some("on") => {
-                self.active = true;
-                self.write(&Some("vim mode activated"))
-            }
-            Some("off") => {
-                self.active = false;
-                self.write(&Some("vim mode deactivated"))
-            }
-            _ => self.write(&Some(format!("vim mode state: {}", self.active))),
-        }
-    }
-
-    fn handle_input_event(&mut self) -> bincode::Result<()> {
-        let global = self.read::<GlobalVariables>()?;
-        let event = self.read::<Event>()?;
-
-        if !self.active {
-            return self.write(&Option::<Command>::None);
-        }
-
+    pub fn handle_input_event(
+        &mut self,
+        input_event: irust_api::InputEvent,
+    ) -> <irust_api::InputEvent as Hook>::Output {
+        let irust_api::InputEvent(global, event) = input_event;
         macro_rules! reset_state {
-            () => {
+            () => {{
                 self.state = State::Empty;
-            };
+            }};
         }
 
         let cmd = (|| match event {
@@ -323,39 +263,6 @@ impl VimMode {
             reset_state!()
         }
 
-        self.write(&cmd)
+        cmd
     }
-
-    fn run(&mut self) -> bincode::Result<()> {
-        loop {
-            let _ = self.read::<Message>()?;
-            let hook = self.read::<Hook>()?;
-
-            match hook {
-                Hook::InputEvent => self.handle_input_event()?,
-                Hook::OutputEvent => self.handle_output_event()?,
-                Hook::Shutdown => self.clean_up()?,
-                _ => unreachable!(),
-            }
-
-            self.stdout.flush().unwrap();
-        }
-    }
-}
-
-fn main() {
-    let message: Message = bincode::deserialize_from(&mut std::io::stdin()).unwrap();
-    assert_eq!(message, Message::Greeting);
-
-    let script_info = ScriptInfo {
-        name: "Vim".into(),
-        hooks: vec![Hook::InputEvent, Hook::OutputEvent, Hook::Shutdown],
-        path: std::env::current_exe().unwrap(),
-        is_daemon: true,
-    };
-    bincode::serialize_into(std::io::stdout(), &script_info).unwrap();
-    std::io::stdout().flush().unwrap();
-
-    let mut vim = VimMode::new();
-    vim.run().unwrap()
 }

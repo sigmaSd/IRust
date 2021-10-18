@@ -106,12 +106,10 @@ dependencies = [
 name = "irust"
 version = "1.29.0"
 dependencies = [
- "bincode",
  "crossterm",
  "dirs-next",
  "irust_api",
  "irust_repl",
- "libloading",
  "nix",
  "printer",
  "rscript",
@@ -144,9 +142,9 @@ checksum = "320cfe77175da3a483efed4bc0adc1968ca050b098ce4f2f1c13a56626128790"
 
 [[package]]
 name = "libloading"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f84d96438c15fcd6c3f244c8fce01d1e2b9c6b5623e9c711dc9286d8fc92d6a"
+checksum = "c0cf036d15402bea3c5d4de17b3fce76b3e4a56ebc1f577be0e7a72f7c607cf0"
 dependencies = [
  "cfg-if",
  "winapi",
@@ -301,11 +299,12 @@ dependencies = [
 
 [[package]]
 name = "rscript"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d920cdd250dcdcaacc5b3c3dcb7168b6dc8a7eae2e7a17e4f99d1b5da9c47a8c"
+checksum = "f4fae4ca8b0319e8a5915c0d91e5710f89e6d02260a2bed61149526dc34fefe1"
 dependencies = [
  "bincode",
+ "libloading",
  "semver",
  "serde",
 ]

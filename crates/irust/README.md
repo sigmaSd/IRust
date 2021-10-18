@@ -46,7 +46,7 @@ Cross Platform Rust Repl
 **:evaluator** *\<evaluator>\>* => set the evaluator statement, exmaple: `:evaluator println!("{}",{$$})` the `$$`
  will be replaced by IRust by the input code (the default evaluator uses debug formatting). To reset the evaluator to default you can use `:evaluator reset`
  
-**:scripts:** => only supported by script v3/v4, if invoked with no arguments it prints a list of detected scripts, if invoked with on argument it print that script info if it exits, if invoked with 2 arguments, it tries to activate/deactivate a script, example: `:scripts Vim deactivate`
+**:scripts:** => if invoked with no arguments it prints a list of detected scripts, if invoked with on argument it print that script info if it exits, if invoked with 2 arguments, it tries to activate/deactivate a script, example: `:scripts Vim deactivate`
 
 **:compile_time** *\<on/off\>* => if set to on, IRust will print compiling time on each input, compile time includes rustc compiling + some IRust code (should be marginal)
 
@@ -140,15 +140,13 @@ IRust config file is located in:
   
   # activate scripting feature
   activate_scripting = false
-  activate_scripting2 = false
-  activate_scripting3 = false
-  activate_scripting4 = false
   
   # select executor (Sync, Tokio, Asyncstd)
   executor = "Sync"
   evaluator = ["println!(\"{:?}\", {\n", "\n});"]
   compile_time = false
   main_result = "Unit"
+  show_warnings = false
 ```
 
 ## Theme
@@ -177,8 +175,6 @@ Default theme file:
 
 ## Scripts
 IRust supports scripting, all over the code base there are hooks that scripts can react to and usually answer back to IRust with a command.\
-IRust supports different versions of scripting, the latest version is the most supported one. \
-The older versions are kept for backward compatibility reasons but mainly because scirpting is currently on developement and I haven't decided which method is the best yet.\
 Check out [SCRIPTS.md](https://github.com/sigmaSd/IRust/blob/master/SCRIPTS.md) for more info.
 
 ## Book

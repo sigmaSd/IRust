@@ -1,33 +1,12 @@
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScriptInfo {
-    pub name: String,
-    pub path: PathBuf,
-    pub hooks: Vec<Hook>,
-    pub is_daemon: bool,
-}
-#[derive(Clone, Copy, Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
-pub enum Hook {
-    InputEvent,
-    OutputEvent,
-    SetInputPrompt,
-    SetOutputPrompt,
-    WhileCompiling,
-    AfterCompile,
-    Shutdown,
-}
+use rscript::Hook;
+use serde::{Deserialize, Serialize};
 
-pub mod script4 {
-    use rscript::Hook;
-    use serde::{Deserialize, Serialize};
-
-    macro_rules! hookit {
-
-        (Hook => $hook: ident,
-         Input => ($($input: ty $(,)?)*),
-         Output => $output: ty) => (
+macro_rules! hookit {
+    (Hook => $hook: ident,
+     Input => ($($input: ty $(,)?)*),
+     Output => $output: ty) => (
 
     #[derive(Serialize, Deserialize)]
     pub struct $hook($(pub $input,)*);
@@ -36,40 +15,33 @@ pub mod script4 {
         const NAME: &'static str = stringify!($hook);
         type Output = $output;
     }
-    )}
+)}
 
-    hookit!(
-    Hook => InputEvent,
-    Input => (super::GlobalVariables, crossterm::event::Event),
-    Output => Option<super::Command>
-    );
-    hookit!(
-    Hook => Shutdown,
-    Input => (super::GlobalVariables),
-    Output => Option<super::Command>
-    );
-    hookit!(
-    Hook => Startup,
-    Input => (super::GlobalVariables),
-    Output => Option<super::Command>
-    );
-    hookit!(
-    Hook => SetInputPrompt,
-    Input => (super::GlobalVariables),
-    Output => String
-    );
-    hookit!(
-    Hook => SetOutputPrompt,
-    Input => (super::GlobalVariables),
-    Output => String
-    );
-}
-
-#[derive(Eq, PartialEq, Debug, Serialize, Deserialize)]
-pub enum Message {
-    Greeting,
-    Hook,
-}
+hookit!(
+Hook => InputEvent,
+Input => (GlobalVariables, crossterm::event::Event),
+Output => Option<Command>
+);
+hookit!(
+Hook => Shutdown,
+Input => (GlobalVariables),
+Output => Option<Command>
+);
+hookit!(
+Hook => Startup,
+Input => (GlobalVariables),
+Output => Option<Command>
+);
+hookit!(
+Hook => SetInputPrompt,
+Input => (GlobalVariables),
+Output => String
+);
+hookit!(
+Hook => SetOutputPrompt,
+Input => (GlobalVariables),
+Output => String
+);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Command {

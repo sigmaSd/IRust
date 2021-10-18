@@ -1,4 +1,4 @@
-use irust_api::{script4, GlobalVariables};
+use irust_api::GlobalVariables;
 use rscript::{scripting::Scripter, Hook, ScriptType, VersionReq};
 
 struct Prompt;
@@ -14,9 +14,9 @@ impl Scripter for Prompt {
 
     fn hooks() -> &'static [&'static str] {
         &[
-            script4::SetInputPrompt::NAME,
-            script4::SetOutputPrompt::NAME,
-            script4::Shutdown::NAME,
+            irust_api::SetInputPrompt::NAME,
+            irust_api::SetOutputPrompt::NAME,
+            irust_api::Shutdown::NAME,
         ]
     }
     fn version_requirement() -> VersionReq {
@@ -30,20 +30,20 @@ impl Prompt {
     }
     fn run(hook_name: &str) {
         match hook_name {
-            script4::SetInputPrompt::NAME => {
-                let script4::SetInputPrompt(global) = Self::read();
+            irust_api::SetInputPrompt::NAME => {
+                let irust_api::SetInputPrompt(global) = Self::read();
                 let output = Self::prompt(global);
-                Self::write::<script4::SetInputPrompt>(&output);
+                Self::write::<irust_api::SetInputPrompt>(&output);
             }
-            script4::SetOutputPrompt::NAME => {
-                let script4::SetOutputPrompt(global) = Self::read();
+            irust_api::SetOutputPrompt::NAME => {
+                let irust_api::SetOutputPrompt(global) = Self::read();
                 let output = Self::prompt(global);
-                Self::write::<script4::SetOutputPrompt>(&output);
+                Self::write::<irust_api::SetOutputPrompt>(&output);
             }
-            script4::Shutdown::NAME => {
-                let _hook: script4::Shutdown = Self::read();
+            irust_api::Shutdown::NAME => {
+                let _hook: irust_api::Shutdown = Self::read();
                 let output = Self::clean_up();
-                Self::write::<script4::Shutdown>(&output);
+                Self::write::<irust_api::Shutdown>(&output);
             }
             _ => unreachable!(),
         }
