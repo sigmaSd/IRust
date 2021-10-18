@@ -1,3 +1,6 @@
+**1.30.0**
+- Refactor script interface, keep only v4 as supported
+
 **1.29.0**
 - Fix a bug where an output > SIZE can hang indefinitely (see https://users.rust-lang.org/t/weird-interaction-between-stdio-piped-and-child-try-wait/65898)
 
