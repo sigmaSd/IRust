@@ -1,3 +1,6 @@
+**1.30.1**
+- Update dependencies
+
 **1.30.0**
 - Refactor script interface, keep only v4 as supported
 
