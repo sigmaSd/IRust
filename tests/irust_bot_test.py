@@ -40,13 +40,13 @@ sink(2)
 assert_eq(":add regex", "Ok!")
 assert_eq('regex::Regex::new("a.*a").unwrap()', "a.*a")
 
-assert_eq("z", "cannot find value `z` in this scope\x1b[0m", sinkN=1)
+assert_eq("z", "cannot find value `z` in this scope\x1b[0m")
 sink(4)
 
-assert_eq("1+2", "3", sinkN=1)
+assert_eq("1+2", "3")
 
 send('let a = "hello";')
-assert_eq(':type a', "`&str`", sinkN=2)
+assert_eq(':type a', "`&str`")
 
 send("""fn fact(n: usize) -> usize {
     match n {
@@ -54,12 +54,12 @@ send("""fn fact(n: usize) -> usize {
         n => n * fact(n-1)
     }
 }""")
-assert_eq("fact(4)", "24", sinkN=1)
+assert_eq("fact(4)", "24")
 
-assert_eq(':toolchain nightly', "Ok!", sinkN=1)
+assert_eq(':toolchain nightly', "Ok!")
 send('#![feature(decl_macro)]')
 send('macro inc($n: expr) {$n + 1}')
-assert_eq('inc!({1+1})', '3', sinkN=2)
+assert_eq('inc!({1+1})', '3')
 
 
 print("All tests passed!")
