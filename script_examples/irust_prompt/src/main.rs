@@ -24,20 +24,33 @@ impl Scripter for Prompt {
     }
 }
 
+enum PType {
+    In,
+    Out,
+}
+impl std::fmt::Display for PType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PType::In => write!(f, "In"),
+            PType::Out => write!(f, "Out"),
+        }
+    }
+}
+
 impl Prompt {
-    fn prompt(global: GlobalVariables) -> String {
-        format!("In [{}]: ", global.operation_number)
+    fn prompt(global: GlobalVariables, ptype: PType) -> String {
+        format!("{} [{}]: ", ptype, global.operation_number)
     }
     fn run(hook_name: &str) {
         match hook_name {
             irust_api::SetInputPrompt::NAME => {
                 let irust_api::SetInputPrompt(global) = Self::read();
-                let output = Self::prompt(global);
+                let output = Self::prompt(global, PType::In);
                 Self::write::<irust_api::SetInputPrompt>(&output);
             }
             irust_api::SetOutputPrompt::NAME => {
                 let irust_api::SetOutputPrompt(global) = Self::read();
-                let output = Self::prompt(global);
+                let output = Self::prompt(global, PType::Out);
                 Self::write::<irust_api::SetOutputPrompt>(&output);
             }
             irust_api::Shutdown::NAME => {
