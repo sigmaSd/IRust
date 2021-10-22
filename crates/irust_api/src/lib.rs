@@ -3,6 +3,11 @@ use std::path::PathBuf;
 use rscript::Hook;
 use serde::{Deserialize, Serialize};
 
+// Reexport crossterm event types
+pub mod event {
+    pub use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+}
+
 macro_rules! hookit {
     (Hook => $hook: ident,
      Input => ($($input: ty $(,)?)*),
@@ -19,7 +24,7 @@ macro_rules! hookit {
 
 hookit!(
 Hook => InputEvent,
-Input => (GlobalVariables, crossterm::event::Event),
+Input => (GlobalVariables, event::Event),
 Output => Option<Command>
 );
 hookit!(

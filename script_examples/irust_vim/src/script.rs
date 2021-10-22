@@ -1,5 +1,5 @@
-use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use irust_api::Command;
+use irust_api::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use rscript::Hook;
 
 use super::{Mode, State, Vim};
