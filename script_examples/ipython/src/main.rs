@@ -24,7 +24,7 @@ impl Scripter for IPython {
         &[irust_api::OutputEvent::NAME, irust_api::Shutdown::NAME]
     }
     fn version_requirement() -> VersionReq {
-        VersionReq::parse(">=1.30.3").expect("correct version requirement")
+        VersionReq::parse(">=1.30.4").expect("correct version requirement")
     }
 }
 

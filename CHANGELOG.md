@@ -1,3 +1,6 @@
+**1.30.4**
+- Activate OutputEvent hook
+
 **1.30.3**
 - Update rscript
 
