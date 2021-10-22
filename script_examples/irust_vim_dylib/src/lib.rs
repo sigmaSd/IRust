@@ -1,5 +1,5 @@
 use rscript::{
-    scripting::{DynamicScript, FFiVec},
+    scripting::{DynamicScript, FFiData, FFiStr},
     Hook, ScriptInfo, ScriptType, VersionReq,
 };
 mod script;
@@ -12,7 +12,7 @@ pub static SCRIPT: DynamicScript = DynamicScript {
 
 static mut VIM: Vim = Vim::new();
 
-extern "C" fn script_info() -> FFiVec {
+extern "C" fn script_info() -> FFiData {
     let info = ScriptInfo::new(
         "VimDylib",
         ScriptType::DynamicLib,
@@ -23,27 +23,25 @@ extern "C" fn script_info() -> FFiVec {
         ],
         VersionReq::parse(">=1.30.2").expect("correct version requirement"),
     );
-    FFiVec::serialize_from(&info).unwrap()
+    info.into_ffi_data()
 }
 
-extern "C" fn script(name: FFiVec, data: FFiVec) -> FFiVec {
-    let name: String = name.deserialize().unwrap();
+extern "C" fn script(name: FFiStr, hook: FFiData) -> FFiData {
     match name.as_str() {
         irust_api::InputEvent::NAME => {
-            let hook: irust_api::InputEvent = data.deserialize().unwrap();
-            let output: <irust_api::InputEvent as Hook>::Output =
-                unsafe { VIM.handle_input_event(hook) };
-            FFiVec::serialize_from(&output).unwrap()
+            let hook: irust_api::InputEvent = DynamicScript::read(hook);
+            let output = unsafe { VIM.handle_input_event(hook) };
+            DynamicScript::write::<irust_api::InputEvent>(&output)
         }
         irust_api::Shutdown::NAME => {
-            let hook: irust_api::Shutdown = data.deserialize().unwrap();
-            let output: <irust_api::Shutdown as Hook>::Output = unsafe { VIM.clean_up(hook) };
-            FFiVec::serialize_from(&output).unwrap()
+            let hook: irust_api::Shutdown = DynamicScript::read(hook);
+            let output = unsafe { VIM.clean_up(hook) };
+            DynamicScript::write::<irust_api::Shutdown>(&output)
         }
         irust_api::Startup::NAME => {
-            let hook: irust_api::Startup = data.deserialize().unwrap();
-            let output: <irust_api::Startup as Hook>::Output = unsafe { VIM.start_up(hook) };
-            FFiVec::serialize_from(&output).unwrap()
+            let hook: irust_api::Startup = DynamicScript::read(hook);
+            let output = unsafe { VIM.start_up(hook) };
+            DynamicScript::write::<irust_api::Startup>(&output)
         }
         _ => unreachable!(),
     }

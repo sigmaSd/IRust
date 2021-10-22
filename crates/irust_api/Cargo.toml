@@ -9,5 +9,5 @@ license = "MIT"
 
 [dependencies]
 crossterm = { version = "0.22.1", features = ["serde"] }
-rscript = "0.13.0"
+rscript = "0.14.0"
 serde = { version = "1.0.126", features = ["derive"] }
