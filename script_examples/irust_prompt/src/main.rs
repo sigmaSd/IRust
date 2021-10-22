@@ -20,7 +20,7 @@ impl Scripter for Prompt {
         ]
     }
     fn version_requirement() -> VersionReq {
-        VersionReq::parse(">=1.30.2").expect("correct version requirement")
+        VersionReq::parse(">=1.30.3").expect("correct version requirement")
     }
 }
 

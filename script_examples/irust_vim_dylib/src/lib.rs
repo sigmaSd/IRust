@@ -21,7 +21,7 @@ extern "C" fn script_info() -> FFiData {
             irust_api::Shutdown::NAME,
             irust_api::Startup::NAME,
         ],
-        VersionReq::parse(">=1.30.2").expect("correct version requirement"),
+        VersionReq::parse(">=1.30.3").expect("correct version requirement"),
     );
     info.into_ffi_data()
 }
