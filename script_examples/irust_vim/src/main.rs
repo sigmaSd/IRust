@@ -43,7 +43,7 @@ impl Scripter for Vim {
         ]
     }
     fn version_requirement() -> VersionReq {
-        VersionReq::parse(">=1.30.3").expect("correct version requirement")
+        VersionReq::parse(">=1.30.5").expect("correct version requirement")
     }
 }
 

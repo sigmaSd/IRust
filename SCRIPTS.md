@@ -2,7 +2,8 @@
 **Release `1.30.0`:**
 
 Script v4 is now the only scripting interface available. (uses [rscript](https://github.com/sigmaSd/Rscript))\
-The api is here https://github.com/sigmaSd/IRust/blob/master/crates/irust_api/src/lib.rs
+The API is here https://github.com/sigmaSd/IRust/blob/master/crates/irust_api/src/lib.rs \
+Scripts should depend on `irust_api` and `rscript` crates
 
 Script examples are located here https://github.com/sigmaSd/IRust/tree/master/script_examples
 

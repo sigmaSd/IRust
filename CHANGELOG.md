@@ -1,3 +1,6 @@
+**1.30.5**
+- Organize IRust API
+
 **1.30.4**
 - Activate OutputEvent hook
 
