@@ -23,6 +23,11 @@ Input => (GlobalVariables, crossterm::event::Event),
 Output => Option<Command>
 );
 hookit!(
+Hook => OutputEvent,
+Input => (GlobalVariables, String),
+Output => Option<String>
+);
+hookit!(
 Hook => Shutdown,
 Input => (GlobalVariables),
 Output => Option<Command>

@@ -90,6 +90,19 @@ impl Script for ScriptManager4 {
             .next()?
             .ok()?
     }
+    fn output_event_hook(
+        &mut self,
+        input: &str,
+        global_variables: &GlobalVariables,
+    ) -> Option<String> {
+        self.0
+            .trigger(irust_api::OutputEvent(
+                global_variables.clone(),
+                input.to_string(),
+            ))
+            .next()?
+            .ok()?
+    }
     fn shutdown_hook(&mut self, global_variables: &GlobalVariables) -> Vec<Option<Command>> {
         self.0
             .trigger(irust_api::Shutdown(global_variables.clone()))
@@ -175,5 +188,13 @@ impl Script for ScriptManager4 {
         } else {
             Err("Script not found")
         }
+    }
+
+    fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()> {
+        None
+    }
+
+    fn after_compile(&mut self) -> Option<()> {
+        None
     }
 }

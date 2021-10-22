@@ -40,7 +40,7 @@ impl IRust {
         let buffer = self.buffer.to_string();
         // check if a script want to act upon the input
         // if so scripts have precedence over normal flow
-        if let Some(output) = self.output_event_hook(&buffer, &self.global_variables) {
+        if let Some(output) = self.output_event_hook(&buffer) {
             return print_queue!(output, Color::Blue);
         }
 

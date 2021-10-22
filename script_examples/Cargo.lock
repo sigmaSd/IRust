@@ -59,6 +59,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ipython"
+version = "0.1.0"
+dependencies = [
+ "irust_api",
+ "rscript",
+]
+
+[[package]]
 name = "irust_api"
 version = "0.23.0"
 dependencies = [

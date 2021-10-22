@@ -8,53 +8,32 @@ use super::options::Options;
 pub mod script4;
 
 pub trait Script {
-    fn input_prompt(&mut self, _global_variables: &GlobalVariables) -> Option<String> {
-        None
-    }
-    fn get_output_prompt(&mut self, _global_variables: &GlobalVariables) -> Option<String> {
-        None
-    }
-    fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()> {
-        None
-    }
+    fn input_prompt(&mut self, _global_variables: &GlobalVariables) -> Option<String>;
+    fn get_output_prompt(&mut self, _global_variables: &GlobalVariables) -> Option<String>;
+    fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()>;
     fn input_event_hook(
         &mut self,
         _global_variables: &GlobalVariables,
         _event: Event,
-    ) -> Option<Command> {
-        None
-    }
-
-    fn after_compile(&mut self) -> Option<()> {
-        None
-    }
+    ) -> Option<Command>;
+    fn after_compile(&mut self) -> Option<()>;
     fn output_event_hook(
-        &self,
+        &mut self,
         _input: &str,
         _global_variables: &GlobalVariables,
-    ) -> Option<String> {
-        None
-    }
-    fn shutdown_hook(&mut self, _global_variables: &GlobalVariables) -> Vec<Option<Command>> {
-        vec![]
-    }
-    fn list(&self) -> Option<String> {
-        None
-    }
+    ) -> Option<String>;
+    fn shutdown_hook(&mut self, _global_variables: &GlobalVariables) -> Vec<Option<Command>>;
+    fn list(&self) -> Option<String>;
     fn activate(
         &mut self,
         _script: &str,
         _global_variables: &GlobalVariables,
-    ) -> Result<Option<Command>, &'static str> {
-        Ok(None)
-    }
+    ) -> Result<Option<Command>, &'static str>;
     fn deactivate(
         &mut self,
         _script: &str,
         _global_variables: &GlobalVariables,
-    ) -> Result<Option<Command>, &'static str> {
-        Ok(None)
-    }
+    ) -> Result<Option<Command>, &'static str>;
 }
 
 // Scripts
@@ -92,13 +71,9 @@ impl super::IRust {
         }
     }
 
-    pub fn output_event_hook(
-        &self,
-        input: &str,
-        global_variables: &GlobalVariables,
-    ) -> Option<String> {
-        if let Some(ref script_mg) = self.script_mg {
-            return script_mg.output_event_hook(input, global_variables);
+    pub fn output_event_hook(&mut self, input: &str) -> Option<String> {
+        if let Some(ref mut script_mg) = self.script_mg {
+            return script_mg.output_event_hook(input, &self.global_variables);
         }
         None
     }
