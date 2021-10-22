@@ -26,9 +26,9 @@ extern "C" fn script_info() -> FFiVec {
     FFiVec::serialize_from(&info).unwrap()
 }
 
-extern "C" fn script(hook: FFiVec, data: FFiVec) -> FFiVec {
-    let hook: String = hook.deserialize().unwrap();
-    match hook.as_str() {
+extern "C" fn script(name: FFiVec, data: FFiVec) -> FFiVec {
+    let name: String = name.deserialize().unwrap();
+    match name.as_str() {
         irust_api::InputEvent::NAME => {
             let hook: irust_api::InputEvent = data.deserialize().unwrap();
             let output: <irust_api::InputEvent as Hook>::Output =
