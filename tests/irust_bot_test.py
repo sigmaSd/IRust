@@ -20,10 +20,9 @@ def send(op):
     child.send(f"{op}\r")
 
 
-def assert_eq(op, val, sinkN=0):
+def assert_eq(op, val):
     print(f"[testing] `{op}` => `{val}`")
     send(op)
-    sink(sinkN)
     out = child.readline().strip().decode("utf-8")
     if out == op:
         print("Race condition detected, test needs to be restarted (a couple of retries might be needed)")
