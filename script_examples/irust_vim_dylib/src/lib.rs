@@ -21,7 +21,7 @@ extern "C" fn script_info() -> FFiVec {
             irust_api::Shutdown::NAME,
             irust_api::Startup::NAME,
         ],
-        VersionReq::parse(">=1.30.0").expect("correct version requirement"),
+        VersionReq::parse(">=1.30.2").expect("correct version requirement"),
     );
     FFiVec::serialize_from(&info).unwrap()
 }

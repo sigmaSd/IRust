@@ -1,3 +1,6 @@
+**1.30.2**
+- Update rscript
+
 **1.30.1**
 - Update dependencies
 
