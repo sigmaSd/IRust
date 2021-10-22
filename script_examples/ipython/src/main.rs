@@ -87,6 +87,7 @@ impl IPython {
             let mut buf = [0; 512];
             let _ = stdout.read(&mut buf).unwrap();
             let _ = stdout.read(&mut buf).unwrap();
+            tx.send(String::new()).unwrap();
 
             loop {
                 let n = stdout.read(&mut buf).unwrap();
@@ -110,6 +111,8 @@ impl IPython {
                 tx.send(out).unwrap();
             }
         });
+        // Wait for IPython to start
+        rx.recv().unwrap();
 
         IPython { stdin, stdout: rx }
     }
