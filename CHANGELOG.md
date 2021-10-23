@@ -1,3 +1,6 @@
+**1.30.6**
+- Add `SetTitle` `SetWelcomeMsg` hooks
+
 **1.30.5**
 - Organize IRust API
 
