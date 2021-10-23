@@ -97,11 +97,17 @@ impl IRust {
 
     pub fn welcome(&mut self) -> Result<()> {
         let default_msg = "Welcome to IRust".to_string();
-        let msg = if !self.options.welcome_msg.is_empty() {
-            self.fit_msg(&self.options.welcome_msg.clone())
-        } else {
-            self.fit_msg(&default_msg)
-        };
+        let msg = (|| {
+            if let Some(msg) = self.trigger_set_msg_hook() {
+                return self.fit_msg(&msg);
+            }
+
+            if !self.options.welcome_msg.is_empty() {
+                self.fit_msg(&self.options.welcome_msg.clone())
+            } else {
+                self.fit_msg(&default_msg)
+            }
+        })();
 
         self.printer.writer.raw.set_fg(self.options.welcome_color)?;
         self.printer.writer.raw.write(&msg)?;

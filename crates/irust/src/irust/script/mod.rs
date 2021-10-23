@@ -34,6 +34,8 @@ pub trait Script {
         _script: &str,
         _global_variables: &GlobalVariables,
     ) -> Result<Option<Command>, &'static str>;
+    fn trigger_set_title_hook(&mut self) -> Option<String>;
+    fn trigger_set_msg_hook(&mut self) -> Option<String>;
 }
 
 // Scripts
@@ -83,6 +85,19 @@ impl super::IRust {
             return script_mg.shutdown_hook(&self.global_variables);
         }
         vec![]
+    }
+
+    pub fn trigger_set_title_hook(&mut self) -> Option<String> {
+        if let Some(ref mut script_mg) = self.script_mg {
+            return script_mg.trigger_set_title_hook();
+        }
+        None
+    }
+    pub fn trigger_set_msg_hook(&mut self) -> Option<String> {
+        if let Some(ref mut script_mg) = self.script_mg {
+            return script_mg.trigger_set_msg_hook();
+        }
+        None
     }
 
     pub fn scripts_list(&self) -> Option<String> {

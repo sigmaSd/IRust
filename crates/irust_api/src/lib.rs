@@ -33,6 +33,16 @@ Input => (GlobalVariables, String),
 Output => Option<String>
 );
 hookit!(
+Hook => SetTitle,
+Input => (),
+Output => Option<String>
+);
+hookit!(
+Hook => SetWelcomeMsg,
+Input => (),
+Output => Option<String>
+);
+hookit!(
 Hook => Shutdown,
 Input => (GlobalVariables),
 Output => Option<Command>

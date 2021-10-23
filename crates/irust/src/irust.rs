@@ -89,10 +89,12 @@ impl IRust {
 
     fn prepare(&mut self) -> Result<()> {
         // title is optional
-        self.printer.writer.raw.set_title(&format!(
-            "IRust: {}",
-            self.global_variables.get_cwd().display()
-        ))?;
+        let title = if let Some(title) = self.trigger_set_title_hook() {
+            title
+        } else {
+            format!("IRust: {}", self.global_variables.get_cwd().display())
+        };
+        self.printer.writer.raw.set_title(&title)?;
         self.welcome()?;
         self.printer.print_prompt_if_set()?;
 

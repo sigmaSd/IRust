@@ -21,7 +21,13 @@ impl Scripter for IPython {
     }
 
     fn hooks() -> &'static [&'static str] {
-        &[irust_api::OutputEvent::NAME, irust_api::Shutdown::NAME]
+        &[
+            irust_api::SetTitle::NAME,
+            irust_api::SetWelcomeMsg::NAME,
+            irust_api::OutputEvent::NAME,
+            irust_api::Startup::NAME,
+            irust_api::Shutdown::NAME,
+        ]
     }
     fn version_requirement() -> VersionReq {
         VersionReq::parse(">=1.30.5").expect("correct version requirement")
@@ -41,16 +47,34 @@ impl IPython {
                 let output = self.handle_output_event(hook);
                 Self::write::<irust_api::OutputEvent>(&output);
             }
+            irust_api::SetTitle::NAME => {
+                let _hook: irust_api::SetTitle = Self::read();
+                Self::write::<irust_api::SetTitle>(&Some("IPython".to_string()));
+            }
+            irust_api::SetWelcomeMsg::NAME => {
+                let _hook: irust_api::SetWelcomeMsg = Self::read();
+                Self::write::<irust_api::SetWelcomeMsg>(&Some("IPython".to_string()));
+            }
+            irust_api::Startup::NAME => {
+                let _hook: irust_api::Startup = Self::read();
+                self.clean_up();
+                *self = Self::new();
+                Self::write::<irust_api::Shutdown>(&None);
+            }
             irust_api::Shutdown::NAME => {
-                let hook: irust_api::Shutdown = Self::read();
-                let output = self.clean_up(hook);
-                Self::write::<irust_api::Shutdown>(&output);
+                let _hook: irust_api::Shutdown = Self::read();
+                self.clean_up();
+                Self::write::<irust_api::Shutdown>(&None);
             }
             _ => unreachable!(),
         }
     }
 
     pub(crate) fn handle_output_event(&mut self, hook: irust_api::OutputEvent) -> Option<String> {
+        if hook.1.starts_with(':') {
+            return None;
+        }
+
         let input = hook.1 + "\n";
         self.stdin.write_all(input.as_bytes()).unwrap();
         self.stdin.flush().unwrap();
@@ -65,10 +89,11 @@ impl IPython {
         Some("()".to_string())
     }
 
-    pub(crate) fn clean_up(&mut self, _hook: irust_api::Shutdown) -> Option<irust_api::Command> {
-        self.stdin.write_all(b"exit\n").unwrap();
-        self.stdin.flush().unwrap();
-        None
+    pub(crate) fn clean_up(&mut self) {
+        // IPython could have already exited
+        // So we ignore errors
+        let _ = self.stdin.write_all(b"exit\n");
+        let _ = self.stdin.flush();
     }
 
     fn new() -> IPython {

@@ -80,6 +80,21 @@ struct ScriptState(HashMap<String, bool>);
 */
 
 impl Script for ScriptManager4 {
+    fn input_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
+        self.0
+            .trigger(irust_api::SetInputPrompt(global_variables.clone()))
+            .next()?
+            .ok()
+    }
+    fn get_output_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
+        self.0
+            .trigger(irust_api::SetOutputPrompt(global_variables.clone()))
+            .next()?
+            .ok()
+    }
+    fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()> {
+        None
+    }
     fn input_event_hook(
         &mut self,
         global_variables: &GlobalVariables,
@@ -89,6 +104,9 @@ impl Script for ScriptManager4 {
             .trigger(irust_api::InputEvent(global_variables.clone(), event))
             .next()?
             .ok()?
+    }
+    fn after_compile(&mut self) -> Option<()> {
+        None
     }
     fn output_event_hook(
         &mut self,
@@ -109,18 +127,14 @@ impl Script for ScriptManager4 {
             .filter_map(Result::ok)
             .collect()
     }
-    fn get_output_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
-        self.0
-            .trigger(irust_api::SetOutputPrompt(global_variables.clone()))
-            .next()?
-            .ok()
+    fn trigger_set_title_hook(&mut self) -> Option<String> {
+        self.0.trigger(irust_api::SetTitle()).next()?.ok()?
     }
-    fn input_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
-        self.0
-            .trigger(irust_api::SetInputPrompt(global_variables.clone()))
-            .next()?
-            .ok()
+
+    fn trigger_set_msg_hook(&mut self) -> Option<String> {
+        self.0.trigger(irust_api::SetWelcomeMsg()).next()?.ok()?
     }
+
     fn list(&self) -> Option<String> {
         let mut scripts: Vec<String> = self
             .0
@@ -142,6 +156,7 @@ impl Script for ScriptManager4 {
 
         Some(scripts.join("\n"))
     }
+
     fn activate(
         &mut self,
         script_name: &str,
@@ -165,6 +180,7 @@ impl Script for ScriptManager4 {
             Err("Script not found")
         }
     }
+
     fn deactivate(
         &mut self,
         script_name: &str,
@@ -188,13 +204,5 @@ impl Script for ScriptManager4 {
         } else {
             Err("Script not found")
         }
-    }
-
-    fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()> {
-        None
-    }
-
-    fn after_compile(&mut self) -> Option<()> {
-        None
     }
 }
