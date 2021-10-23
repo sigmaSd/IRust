@@ -6,9 +6,10 @@ use std::{
 
 use rscript::{scripting::Scripter, Hook, ScriptType, VersionReq};
 
+#[derive(Default)]
 struct IPython {
-    stdin: ChildStdin,
-    stdout: mpsc::Receiver<String>,
+    stdin: Option<ChildStdin>,
+    stdout: Option<mpsc::Receiver<String>>,
 }
 
 impl Scripter for IPython {
@@ -35,7 +36,7 @@ impl Scripter for IPython {
 }
 
 fn main() {
-    let mut ipython = IPython::new();
+    let mut ipython = IPython::default();
     IPython::execute(&mut |hook_name| IPython::run(&mut ipython, hook_name));
 }
 
@@ -58,7 +59,7 @@ impl IPython {
             irust_api::Startup::NAME => {
                 let _hook: irust_api::Startup = Self::read();
                 self.clean_up();
-                *self = Self::new();
+                *self = Self::start();
                 Self::write::<irust_api::Shutdown>(&None);
             }
             irust_api::Shutdown::NAME => {
@@ -75,12 +76,19 @@ impl IPython {
             return None;
         }
 
+        if self.stdin.is_none() {
+            *self = Self::start();
+        }
+
+        let stdin = self.stdin.as_mut().unwrap();
+        let stdout = self.stdout.as_mut().unwrap();
+
         let input = hook.1 + "\n";
-        self.stdin.write_all(input.as_bytes()).unwrap();
-        self.stdin.flush().unwrap();
+        stdin.write_all(input.as_bytes()).unwrap();
+        stdin.flush().unwrap();
         let now = std::time::Instant::now();
         while now.elapsed() < std::time::Duration::from_millis(200) {
-            if let Ok(out) = self.stdout.try_recv() {
+            if let Ok(out) = stdout.try_recv() {
                 // Expression
                 return Some(out);
             }
@@ -92,11 +100,11 @@ impl IPython {
     pub(crate) fn clean_up(&mut self) {
         // IPython could have already exited
         // So we ignore errors
-        let _ = self.stdin.write_all(b"exit\n");
-        let _ = self.stdin.flush();
+        let _ = self.stdin.as_mut().map(|stdin| stdin.write_all(b"exit\n"));
+        let _ = self.stdin.as_mut().map(|stdin| stdin.flush());
     }
 
-    fn new() -> IPython {
+    fn start() -> IPython {
         let mut p = Command::new("ipython")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -139,6 +147,9 @@ impl IPython {
         // Wait for IPython to start
         rx.recv().unwrap();
 
-        IPython { stdin, stdout: rx }
+        IPython {
+            stdin: Some(stdin),
+            stdout: Some(rx),
+        }
     }
 }
