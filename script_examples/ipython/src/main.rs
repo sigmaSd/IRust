@@ -60,7 +60,7 @@ impl IPython {
                 let _hook: irust_api::Startup = Self::read();
                 self.clean_up();
                 *self = Self::start();
-                Self::write::<irust_api::Shutdown>(&None);
+                Self::write::<irust_api::Startup>(&None);
             }
             irust_api::Shutdown::NAME => {
                 let _hook: irust_api::Shutdown = Self::read();
@@ -122,26 +122,36 @@ impl IPython {
             let _ = stdout.read(&mut buf).unwrap();
             tx.send(String::new()).unwrap();
 
+            let mut out = String::new();
+
             loop {
                 let n = stdout.read(&mut buf).unwrap();
                 if n == 0 {
                     break;
                 }
-                let out = String::from_utf8(buf[..n].to_vec()).unwrap();
-                // Ignore In prompt
-                if out.starts_with("\nIn ") {
+
+                let o = String::from_utf8(buf[..n].to_vec()).unwrap();
+                out += &o;
+
+                // Use prompt as delimiter
+                if !out.contains("\nIn ") {
                     continue;
                 }
-                // Clean Error output
-                let out = {
-                    let mut out = out.lines().collect::<Vec<_>>();
-                    if matches!(out.last().map(|l| l.starts_with("In ")), Some(true)) {
-                        out.pop();
-                        out.pop();
+
+                // Post Process
+                let o = {
+                    let mut o: Vec<_> = out.lines().collect();
+                    o.pop();
+                    let mut o = o.join("\n");
+                    if o.contains("...:") {
+                        o = o.rsplit("...:").next().unwrap().to_owned();
                     }
-                    out.join("\n")
+                    o
                 };
-                tx.send(out).unwrap();
+
+                // Send output and clear it for the next read
+                tx.send(o.trim().to_owned()).unwrap();
+                out.clear();
             }
         });
         // Wait for IPython to start
