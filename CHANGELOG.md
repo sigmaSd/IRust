@@ -1,3 +1,7 @@
+**1.31.0**
+- Allow specifying the edition (default to 2021)
+- Update codebase to the 2021 edition
+
 **1.30.6**
 - Add `SetTitle` `SetWelcomeMsg` hooks
 
