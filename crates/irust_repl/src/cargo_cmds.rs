@@ -38,10 +38,12 @@ pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/i
 pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
     Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_host_repl"));
 
-pub fn cargo_new() -> std::result::Result<(), io::Error> {
+use super::Edition;
+
+pub fn cargo_new(edition: Edition) -> std::result::Result<(), io::Error> {
     // Ignore directory exists error
     let _ = std::fs::create_dir_all(&*IRUST_SRC_DIR);
-    clean_cargo_toml()?;
+    clean_cargo_toml(edition)?;
     clean_files()?;
 
     Ok(())
@@ -257,15 +259,19 @@ fn try_cargo_fmt_file(file: &Path) -> io::Result<()> {
     Ok(())
 }
 
-fn clean_cargo_toml() -> io::Result<()> {
+fn clean_cargo_toml(edition: Edition) -> io::Result<()> {
     // edition needs to be specified or racer will not be able to autocomplete dependencies
     // bug maybe?
-    const CARGO_TOML: &str = r#"[package]
-name = "irust_host_repl"
-version = "0.1.0"
-edition = "2018""#;
+    let cargo_toml = format!(
+        "\
+[package]
+name = \"irust_host_repl\"
+version = \"0.1.0\"
+edition = \"{}\"",
+        edition
+    );
     let mut cargo_toml_file = fs::File::create(&*CARGO_TOML_FILE)?;
-    write!(cargo_toml_file, "{}", CARGO_TOML)?;
+    write!(cargo_toml_file, "{}", cargo_toml)?;
     Ok(())
 }
 

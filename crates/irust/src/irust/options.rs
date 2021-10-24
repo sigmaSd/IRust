@@ -1,6 +1,6 @@
 use crate::irust::{IRust, Result};
 use crossterm::style::Color;
-use irust_repl::{Executor, MainResult, ToolChain, DEFAULT_EVALUATOR};
+use irust_repl::{Edition, Executor, MainResult, ToolChain, DEFAULT_EVALUATOR};
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 
@@ -38,6 +38,7 @@ pub struct Options {
     pub compile_time: bool,
     pub main_result: MainResult,
     pub show_warnings: bool,
+    pub edition: Edition,
 }
 
 impl Default for Options {
@@ -90,6 +91,7 @@ impl Default for Options {
             compile_time: false,
             main_result: MainResult::Unit,
             show_warnings: false,
+            edition: Edition::E2021,
         }
     }
 }

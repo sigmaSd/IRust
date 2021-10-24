@@ -147,6 +147,7 @@ IRust config file is located in:
   compile_time = false
   main_result = "Unit"
   show_warnings = false
+  edition = "E2021"
 ```
 
 ## Theme

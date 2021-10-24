@@ -6,6 +6,8 @@ mod toolchain;
 pub use toolchain::ToolChain;
 mod main_result;
 pub use main_result::MainResult;
+mod edition;
+pub use edition::Edition;
 
 use once_cell::sync::Lazy;
 mod utils;
@@ -49,6 +51,7 @@ pub struct Repl {
     toolchain: ToolChain,
     executor: Executor,
     main_result: MainResult,
+    edition: Edition,
 }
 impl Default for Repl {
     fn default() -> Self {
@@ -56,14 +59,20 @@ impl Default for Repl {
             ToolChain::default(),
             Executor::default(),
             MainResult::default(),
+            Edition::default(),
         )
         .expect("Paniced while trying to create repl")
     }
 }
 
 impl Repl {
-    pub fn new(toolchain: ToolChain, executor: Executor, main_result: MainResult) -> Result<Self> {
-        cargo_new()?;
+    pub fn new(
+        toolchain: ToolChain,
+        executor: Executor,
+        main_result: MainResult,
+        edition: Edition,
+    ) -> Result<Self> {
+        cargo_new(edition)?;
         // check for required dependencies (in case of async)
         if let Some(dependecy) = executor.dependecy() {
             // needs to be sync
@@ -80,6 +89,7 @@ impl Repl {
             toolchain,
             executor,
             main_result,
+            edition,
         })
     }
 
@@ -126,6 +136,7 @@ impl Repl {
             toolchain: self.toolchain,
             executor: self.executor,
             main_result: self.main_result,
+            edition: self.edition,
         };
         Ok(())
     }
@@ -155,7 +166,12 @@ impl Repl {
     }
 
     pub fn reset(&mut self) -> Result<()> {
-        *self = Self::new(self.toolchain, self.executor, self.main_result)?;
+        *self = Self::new(
+            self.toolchain,
+            self.executor,
+            self.main_result,
+            self.edition,
+        )?;
         Ok(())
     }
 
