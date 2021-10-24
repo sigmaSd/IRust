@@ -2,7 +2,7 @@
 name = "printer"
 version = "0.3.1"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
-edition = "2018"
+edition = "2021"
 readme = "README.md"
 description = "Abstraction over terminal manipulation"
 repository = "https://github.com/sigmaSd/IRust/tree/master/crates/printer"

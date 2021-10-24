@@ -2,7 +2,7 @@
 name = "irust_repl"
 version = "0.8.0"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
-edition = "2018"
+edition = "2021"
 readme = "README.md"
 description = "IRust Repl abstraction"
 repository = "https://github.com/sigmaSd/IRust/tree/master/crates/irust_repl"
