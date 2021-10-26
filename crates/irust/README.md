@@ -88,6 +88,8 @@ You can use arrow keys to cycle through commands history
 
 **ctrl-y** Redo
 
+**ctrl-x** Delete current line
+
 <img src="./irust.png" width="200%" height="60%">
 
 ## Cli commands

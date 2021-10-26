@@ -239,6 +239,13 @@ impl IRust {
                     modifiers: KeyModifiers::CONTROL,
                 } => self.execute(Command::Redo)?,
                 KeyEvent {
+                    code: KeyCode::Char('x'),
+                    modifiers: KeyModifiers::CONTROL,
+                } => self.execute(Command::Multiple(vec![
+                    Command::HandleHome,
+                    Command::DeleteUntilChar('\n', true),
+                ]))?,
+                KeyEvent {
                     code: KeyCode::Home,
                     ..
                 } => self.execute(Command::HandleHome)?,
