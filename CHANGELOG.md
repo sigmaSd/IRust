@@ -1,3 +1,6 @@
+**1.33.0**
+- Add `:fun` command to create custom macros (checkout the README for more info)
+
 **1.32.0**
 - Add irust macros (macros can be saved with `ctrl-o, (key) -> user_macro_input -> ctrl-o` and played with `ctrl-p, key`
 - Add irust undo/redo support (undo: `ctrl-u`, redo: `ctrl-y`)
