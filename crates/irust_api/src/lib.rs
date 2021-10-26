@@ -100,8 +100,10 @@ pub enum Command {
     HandleCtrlLeft,
     HandleHome,
     HandleEnd,
+    Redo,
     RemoveRacerSugesstion,
     ResetPrompt,
+    Undo,
     Exit,
 }
 

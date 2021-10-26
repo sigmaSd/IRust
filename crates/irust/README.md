@@ -84,6 +84,10 @@ You can use arrow keys to cycle through commands history
 
 **ctrl-p**->**key** Play a macro saved on the specified key
 
+**ctrl-u** Undo
+
+**ctrl-y** Redo
+
 <img src="./irust.png" width="200%" height="60%">
 
 ## Cli commands

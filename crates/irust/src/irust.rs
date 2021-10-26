@@ -231,6 +231,14 @@ impl IRust {
                     modifiers: KeyModifiers::CONTROL,
                 } => self.execute(Command::MacroPlay)?,
                 KeyEvent {
+                    code: KeyCode::Char('u'),
+                    modifiers: KeyModifiers::CONTROL,
+                } => self.execute(Command::Undo)?,
+                KeyEvent {
+                    code: KeyCode::Char('y'),
+                    modifiers: KeyModifiers::CONTROL,
+                } => self.execute(Command::Redo)?,
+                KeyEvent {
                     code: KeyCode::Home,
                     ..
                 } => self.execute(Command::HandleHome)?,

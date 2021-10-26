@@ -26,10 +26,26 @@ impl Default for Record {
 pub struct Engine {
     macro_record: Record,
     macros: HashMap<char, Vec<Command>>,
+    buffers: Vec<Buffer>,
+    buffers_idx: usize,
 }
 
 impl IRust {
+    // In my testing even with all the extra work done by this wrapper, its execution is still in the order of micro seconds
     pub fn execute(&mut self, command: Command) -> Result<()> {
+        self._execute(command.clone())?;
+
+        if !(matches!(command, Command::Undo) || matches!(command, Command::Redo)) {
+            self.engine.buffers.push(self.buffer.clone());
+            self.engine.buffers_idx = self.engine.buffers.len() - 1;
+            // Movement commands wont change the buffer but it will be still saved
+            // This is the easiest way to remove them
+            self.engine.buffers.dedup_by(|a, b| a.buffer == b.buffer);
+        }
+
+        Ok(())
+    }
+    fn _execute(&mut self, command: Command) -> Result<()> {
         if let Record::True(key) = self.engine.macro_record {
             if !(matches!(command, Command::MacroRecordToggle)
                 || matches!(command, Command::MacroPlay))
@@ -764,6 +780,34 @@ impl IRust {
                 for cmd in cmds {
                     self.execute(cmd)?;
                 }
+                Ok(())
+            }
+            Command::Redo => {
+                if self.engine.buffers_idx + 1 >= self.engine.buffers.len() {
+                    return Ok(());
+                }
+
+                self.engine.buffers_idx += 1;
+                self.buffer = self.engine.buffers[self.engine.buffers_idx].clone();
+
+                self.print_input()?;
+                let last_input_pos = self.printer.cursor.input_last_pos(&self.buffer);
+                self.buffer.goto_end();
+                self.printer.cursor.goto(last_input_pos.0, last_input_pos.1);
+                Ok(())
+            }
+            Command::Undo => {
+                if self.engine.buffers.is_empty() || self.engine.buffers_idx == 0 {
+                    return Ok(());
+                }
+
+                self.engine.buffers_idx -= 1;
+                self.buffer = self.engine.buffers[self.engine.buffers_idx].clone();
+
+                self.print_input()?;
+                let last_input_pos = self.printer.cursor.input_last_pos(&self.buffer);
+                self.buffer.goto_end();
+                self.printer.cursor.goto(last_input_pos.0, last_input_pos.1);
                 Ok(())
             }
         }
