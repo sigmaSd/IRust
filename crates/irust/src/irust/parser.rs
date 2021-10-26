@@ -54,6 +54,7 @@ impl IRust {
             ":sync" => self.sync(),
             ":exit" | ":quit" => self.exit(),
             cmd if cmd.starts_with("::") => self.run_cmd(),
+            cmd if cmd.starts_with(":f") | cmd.starts_with(":fun") => self.fun(),
             cmd if cmd.starts_with(":edit") => self.extern_edit(),
             cmd if cmd.starts_with(":add") => self.add_dep(),
             cmd if cmd.starts_with(":load") => self.load(),
@@ -748,5 +749,33 @@ impl IRust {
     fn exit(&mut self) -> Result<PrintQueue> {
         self.exit_flag = true;
         Ok(PrintQueue::default())
+    }
+    fn fun(&mut self) -> Result<PrintQueue> {
+        let buffer = self.buffer.to_string();
+        match buffer.splitn(4, ' ').collect::<Vec<_>>().as_slice() {
+            [_, "def" | "d", name, fun] => {
+                self.engine
+                    .functions
+                    .insert(name.to_string(), fun.to_string());
+                success!()
+            }
+            [_, name, invoke_arg @ ..] => {
+                let mut function = self
+                    .engine
+                    .functions
+                    .get(*name)
+                    .ok_or(format!("function: `{}` is not defined", name))?
+                    .to_owned();
+
+                for (idx, arg) in invoke_arg.iter().enumerate() {
+                    let arg_tag = "$arg".to_string() + &idx.to_string();
+                    function = function.replacen(&arg_tag, arg, 1);
+                }
+
+                self.buffer = printer::buffer::Buffer::from(function.as_str());
+                self.parse()
+            }
+            _ => Err("Incorrect usage of `fun`".into()),
+        }
     }
 }

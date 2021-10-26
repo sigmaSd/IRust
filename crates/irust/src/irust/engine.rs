@@ -28,6 +28,37 @@ pub struct Engine {
     macros: HashMap<char, Vec<Command>>,
     buffers: Vec<Buffer>,
     buffers_idx: usize,
+    pub functions: HashMap<String, String>,
+}
+impl Engine {
+    pub fn new() -> Self {
+        let functions = (|| {
+            let fns =
+                std::fs::read_to_string(dirs_next::config_dir()?.join("irust/functions.toml"))
+                    .ok()?;
+            toml::from_str(&fns).ok()
+        })()
+        .unwrap_or_default();
+
+        Self {
+            functions,
+            macro_record: Default::default(),
+            macros: Default::default(),
+            buffers: Default::default(),
+            buffers_idx: Default::default(),
+        }
+    }
+}
+impl Drop for Engine {
+    fn drop(&mut self) {
+        (|| -> Option<()> {
+            std::fs::write(
+                dirs_next::config_dir()?.join("irust/functions.toml"),
+                toml::to_string(&self.functions).ok()?,
+            )
+            .ok()
+        })();
+    }
 }
 
 impl IRust {
