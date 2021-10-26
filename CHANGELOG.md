@@ -1,3 +1,8 @@
+**1.32.0**
+- Add irust macros (macros can be saved with `ctrl-o, (key) -> user_macro_input -> ctrl-o` and played with `ctrl-p, key`
+- Add irust undo/redo support (undo: `ctrl-u`, redo: `ctrl-y`)
+- Add `ctrl-x` to delete current line
+
 **1.31.0**
 - Allow specifying the edition (default to 2021)
 - Update codebase to the 2021 edition
