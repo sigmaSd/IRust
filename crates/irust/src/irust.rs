@@ -26,7 +26,7 @@ pub struct IRust {
     options: Options,
     buffer: Buffer,
     printer: Printer<std::io::Stdout>,
-    _engine: Engine,
+    engine: Engine,
     exit_flag: bool,
     theme: Theme,
     repl: Repl,
@@ -81,7 +81,7 @@ impl IRust {
             options,
             buffer,
             printer,
-            _engine,
+            engine: _engine,
             exit_flag,
             theme,
             repl,
@@ -222,6 +222,14 @@ impl IRust {
                     code: KeyCode::Char('r'),
                     modifiers: KeyModifiers::CONTROL,
                 } => self.execute(Command::HandleCtrlR)?,
+                KeyEvent {
+                    code: KeyCode::Char('o'),
+                    modifiers: KeyModifiers::CONTROL,
+                } => self.execute(Command::MacroRecordToggle)?,
+                KeyEvent {
+                    code: KeyCode::Char('p'),
+                    modifiers: KeyModifiers::CONTROL,
+                } => self.execute(Command::MacroPlay)?,
                 KeyEvent {
                     code: KeyCode::Home,
                     ..

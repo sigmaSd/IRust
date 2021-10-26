@@ -73,6 +73,8 @@ pub enum Command {
     MoveForwardTillChar(char),
     MoveBackwardTillChar(char),
     PrintInput,
+    MacroRecordToggle,
+    MacroPlay,
     Multiple(Vec<Command>),
     SetThinCursor,
     SetWideCursor,

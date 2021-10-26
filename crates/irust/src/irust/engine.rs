@@ -1,3 +1,5 @@
+use std::{collections::HashMap, io::Write};
+
 use crossterm::{
     cursor::{CursorShape, SetCursorShape},
     event::{Event, KeyCode, KeyEvent, KeyModifiers},
@@ -11,11 +13,35 @@ use crate::irust::{racer::Cycle, Result};
 use crate::irust::{racer::Racer, IRust};
 use crate::{irust::Buffer, utils::StringTools};
 
+enum Record {
+    False,
+    True(char),
+}
+impl Default for Record {
+    fn default() -> Self {
+        Record::False
+    }
+}
 #[derive(Default)]
-pub struct Engine {}
+pub struct Engine {
+    macro_record: Record,
+    macros: HashMap<char, Vec<Command>>,
+}
 
 impl IRust {
     pub fn execute(&mut self, command: Command) -> Result<()> {
+        if let Record::True(key) = self.engine.macro_record {
+            if !(matches!(command, Command::MacroRecordToggle)
+                || matches!(command, Command::MacroPlay))
+            {
+                self.engine
+                    .macros
+                    .get_mut(&key)
+                    .expect("The key exists")
+                    .push(command.clone());
+            }
+        }
+
         match command {
             Command::AcceptSuggestion => {
                 if let Some(suggestion) = self
@@ -42,6 +68,7 @@ impl IRust {
                 if current_char.is_none() {
                     return Ok(());
                 }
+                // safe uwnrap
                 let current_char = current_char.unwrap();
 
                 let delete_predicate_function: &dyn Fn(&char) -> bool =
@@ -441,7 +468,6 @@ impl IRust {
                     }};
                 }
 
-                use std::io::Write;
                 loop {
                     self.printer.writer.raw.flush()?;
 
@@ -668,6 +694,76 @@ impl IRust {
                 self.global_variables.prompt_len = prompt.chars().count();
                 self.printer.set_prompt(prompt);
 
+                Ok(())
+            }
+            Command::MacroRecordToggle => {
+                // Stop Record
+                if matches!(self.engine.macro_record, Record::True(_)) {
+                    self.engine.macro_record = Record::False;
+                    self.execute(Command::ResetPrompt)?;
+                    self.execute(Command::HandleCtrlC)?;
+                    return Ok(());
+                }
+                // Start record
+                // 1 - wait for the macro key
+                let macro_key = loop {
+                    match crossterm::event::read()? {
+                        Event::Key(KeyEvent {
+                            code: KeyCode::Char(c),
+                            modifiers: KeyModifiers::NONE,
+                        }) => {
+                            break c;
+                        }
+                        Event::Key(KeyEvent {
+                            code: KeyCode::Esc, ..
+                        }) => {
+                            self.engine.macro_record = Record::False;
+                            return Ok(());
+                        }
+                        _ => (),
+                    }
+                };
+                // 2 - Activate macro recording with the detected key
+                self.engine.macro_record = Record::True(macro_key);
+                self.engine.macros.insert(macro_key, vec![]);
+                self.printer
+                    .set_prompt(format!("Rec[`{}`] In: ", macro_key));
+                self.execute(Command::HandleCtrlC)?;
+                std::io::stdout().flush()?;
+                Ok(())
+            }
+            Command::MacroPlay => {
+                let macro_key = loop {
+                    match crossterm::event::read()? {
+                        Event::Key(KeyEvent {
+                            code: KeyCode::Char(c),
+                            modifiers: KeyModifiers::NONE,
+                        }) => {
+                            break c;
+                        }
+                        Event::Key(KeyEvent {
+                            code: KeyCode::Esc, ..
+                        }) => {
+                            self.engine.macro_record = Record::False;
+                            return Ok(());
+                        }
+                        _ => (),
+                    }
+                };
+
+                // No macro to play
+                if !self.engine.macros.contains_key(&macro_key) {
+                    return Ok(());
+                }
+
+                // Play macro
+                let cmds: Vec<_> = self.engine.macros[&macro_key]
+                    .iter()
+                    .map(Clone::clone)
+                    .collect();
+                for cmd in cmds {
+                    self.execute(cmd)?;
+                }
                 Ok(())
             }
         }

@@ -80,6 +80,10 @@ You can use arrow keys to cycle through commands history
 
 **ctrl-e** force evaluation
 
+**ctrl-o**->**[+-]key** Start recording a macro and saved on the specified key, if **ctrl-o** is clicked again the recording is stopped
+
+**ctrl-p**->**key** Play a macro saved on the specified key
+
 <img src="./irust.png" width="200%" height="60%">
 
 ## Cli commands
