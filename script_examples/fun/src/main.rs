@@ -25,7 +25,7 @@ impl Scripter for Fun {
     }
 
     fn version_requirement() -> rscript::VersionReq {
-        VersionReq::parse(">=1.32.0").expect("correct version requirement")
+        VersionReq::parse(">=1.34.0").expect("correct version requirement")
     }
 }
 fn main() {

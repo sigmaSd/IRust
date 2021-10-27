@@ -32,7 +32,7 @@ impl Scripter for IPython {
         ]
     }
     fn version_requirement() -> VersionReq {
-        VersionReq::parse(">=1.32.0").expect("correct version requirement")
+        VersionReq::parse(">=1.34.0").expect("correct version requirement")
     }
 }
 

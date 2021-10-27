@@ -1,3 +1,9 @@
+**1.34.0**
+- Add Parse, PrintOutput commands
+- Modify OutputEvent to output Command instead of String
+- Extract `:fun` command to its own script instead
+- Refactor + switch back to dirs crate
+
 **1.33.0**
 - Add `:fun` command to create custom macros (checkout the README for more info)
 
