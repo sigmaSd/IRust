@@ -15,7 +15,7 @@ macro_rules! mtry {
 impl ScriptManager4 {
     pub fn new() -> Option<Self> {
         let mut sm = rscript::ScriptManager::default();
-        let script_path = dirs_next::config_dir()?.join("irust").join("script4");
+        let script_path = dirs::config_dir()?.join("irust").join("script4");
         sm.add_scripts_by_path(
             &script_path,
             rscript::Version::parse(crate::args::VERSION).expect("correct version"),
@@ -30,7 +30,7 @@ impl ScriptManager4 {
         }
 
         // read conf if available
-        let script_conf_path = dirs_next::config_dir()?.join("irust").join("script4.conf");
+        let script_conf_path = dirs::config_dir()?.join("irust").join("script4.conf");
 
         // ignore any error that happens while trying to read conf
         // If an error happens, a new configuration will be written anyway when ScriptManager is
@@ -65,7 +65,7 @@ impl Drop for ScriptManager4 {
         }
         // Ignore errors on drop
         let _ = mtry!({
-            let script_conf_path = dirs_next::config_dir()
+            let script_conf_path = dirs::config_dir()
                 .ok_or("could not find config directory")?
                 .join("irust")
                 .join("script4.conf");

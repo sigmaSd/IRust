@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::io::Write;
 
 pub fn theme() -> Result<Theme> {
-    let theme_file = dirs_next::config_dir()
+    let theme_file = dirs::config_dir()
         .ok_or("Error accessing config_dir")?
         .join("irust")
         .join("theme");
@@ -33,7 +33,7 @@ pub struct Theme {
 
 impl Theme {
     pub fn save(&self) -> Result<()> {
-        let theme_path = dirs_next::config_dir()
+        let theme_path = dirs::config_dir()
             .ok_or("Error accessing config_dir")?
             .join("irust")
             .join("theme");
