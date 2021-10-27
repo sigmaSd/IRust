@@ -112,6 +112,7 @@ dependencies = [
  "nix",
  "printer",
  "rscript",
+ "rustc-ap-rustc_lexer",
  "serde",
  "toml",
 ]
@@ -306,6 +307,15 @@ dependencies = [
  "libloading",
  "semver",
  "serde",
+]
+
+[[package]]
+name = "rustc-ap-rustc_lexer"
+version = "725.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f950742ef8a203aa7661aad3ab880438ddeb7f95d4b837c30d65db1a2c5df68e"
+dependencies = [
+ "unicode-xid",
 ]
 
 [[package]]

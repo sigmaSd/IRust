@@ -172,16 +172,13 @@ Default theme file:
   keyword2 = "dark_red"
   function = "blue"
   type = "cyan"
-  number = "dark_yellow"
   symbol = "red"
   macro = "dark_yellow"
-  string_literal = "yellow"
-  character = "green"
+  literal = "yellow"
   lifetime = "dark_magenta"
   comment = "dark_grey"
   const = "dark_green"
-  x = "white"
-
+  ident = "white"
 ```
 
 ## Scripts

@@ -4,382 +4,115 @@ use printer::printer::{PrintQueue, PrinterItem};
 use theme::Theme;
 pub mod theme;
 
-const PAREN_COLORS: [&str; 4] = ["green", "red", "yellow", "blue"];
+const PAREN_COLORS: [&str; 4] = ["red", "yellow", "green", "blue"];
+
 pub fn highlight(buffer: &Buffer, theme: &Theme) -> PrintQueue {
     let mut print_queue = PrintQueue::default();
 
+    let buffer = buffer.to_string();
+    let rc_buf = std::rc::Rc::new(buffer.clone());
+
+    let mut token_range = 0..0;
+    let tokens: Vec<_> = rustc_lexer::tokenize(&buffer).collect();
+    let mut paren_idx = 0_isize;
+
     macro_rules! push_to_printer {
-        ($item_type: ident, $item: expr, $color: expr) => {{
+        ($color: expr) => {{
             let color = theme::theme_color_to_term_color($color).unwrap_or(Color::White);
-            print_queue.push(PrinterItem::$item_type($item, color));
+            print_queue.push(PrinterItem::RcString(
+                rc_buf.clone(),
+                token_range.clone(),
+                color,
+            ));
         }};
     }
 
-    for token in parse(&buffer.buffer) {
-        use Token::*;
-        match token {
-            Keyword(s) => push_to_printer!(String, s, &theme.keyword[..]),
-            Keyword2(s) => push_to_printer!(String, s, &theme.keyword2[..]),
-            Function(s) => push_to_printer!(String, s, &theme.function[..]),
-            Type(s) => push_to_printer!(String, s, &theme.r#type[..]),
-            Number(s) => push_to_printer!(String, s, &theme.number[..]),
-            Symbol(c) => push_to_printer!(Char, c, &theme.symbol[..]),
-            Macro(s) => push_to_printer!(String, s, &theme.r#macro[..]),
-            StringLiteral(s) => push_to_printer!(String, s, &theme.string_literal[..]),
-            StringLiteralC(c) => push_to_printer!(Char, c, &theme.string_literal[..]),
-            Character(c) => push_to_printer!(Char, c, &theme.character[..]),
-            LifeTime(s) => push_to_printer!(String, s, &theme.lifetime[..]),
-            Comment(s) => push_to_printer!(String, s, &theme.comment[..]),
-            CommentS(s) => push_to_printer!(Str, s, &theme.comment[..]),
-            CommentC(c) => push_to_printer!(Char, c, &theme.comment[..]),
-            Const(s) => push_to_printer!(String, s, &theme.r#const[..]),
-            X(s) => push_to_printer!(String, s, &theme.x[..]),
-            Xc(c) => push_to_printer!(Char, c, &theme.x[..]),
-            Token::LeftParen(s, idx) => {
-                push_to_printer!(Char, s, PAREN_COLORS[idx.abs() as usize % 4])
+    for (idx, token) in tokens.iter().enumerate() {
+        token_range.start = token_range.end;
+        token_range.end += token.len;
+        let text = &buffer[token_range.clone()];
+
+        use rustc_lexer::TokenKind::*;
+        match token.kind {
+            Ident if KEYWORDS.contains(&text) => {
+                push_to_printer!(&theme.keyword[..]);
             }
-            Token::RightParen(s, idx) => {
-                push_to_printer!(Char, s, PAREN_COLORS[idx.abs() as usize % 4])
+            Ident if KEYWORDS2.contains(&text) => {
+                push_to_printer!(&theme.keyword2[..]);
             }
-            Token::NewLine => {
-                print_queue.push(PrinterItem::NewLine);
+            Ident if TYPES.contains(&text) => {
+                push_to_printer!(&theme.r#type[..]);
+            }
+            // const
+            Ident if text.chars().all(char::is_uppercase) => {
+                push_to_printer!(&theme.r#const[..]);
+            }
+            // macro
+            Ident
+                if matches!(
+                    peek_first_non_white_sapce(&tokens[idx + 1..]).map(|(_, k)| k),
+                    Some(Bang)
+                ) =>
+            {
+                push_to_printer!(&theme.r#macro[..]);
+            }
+            // function
+            Ident if is_function(&tokens[idx + 1..]) => {
+                push_to_printer!(&theme.function[..]);
+            }
+            Unknown | Ident | RawIdent | Whitespace => {
+                push_to_printer!(&theme.ident[..]);
+            }
+            LineComment { .. } | BlockComment { .. } => {
+                push_to_printer!(&theme.comment[..]);
+            }
+            Literal { .. } => {
+                push_to_printer!(&theme.literal[..])
+            }
+            Lifetime { .. } => {
+                push_to_printer!(&theme.lifetime[..])
+            }
+            Colon | At | Pound | Tilde | Question | Dollar | Semi | Comma | Dot | Eq | Bang
+            | Lt | Gt | Minus | And | Or | Plus | Star | Slash | Caret | Percent | OpenBrace
+            | OpenBracket | CloseBrace | CloseBracket => {
+                push_to_printer!(&theme.symbol[..]);
+            }
+            OpenParen => {
+                push_to_printer!(PAREN_COLORS[paren_idx.abs() as usize % 4]);
+                paren_idx += 1;
+            }
+            CloseParen => {
+                paren_idx -= 1;
+                push_to_printer!(PAREN_COLORS[paren_idx.abs() as usize % 4]);
             }
         };
     }
     print_queue
 }
 
-#[derive(Debug)]
-enum Token {
-    Keyword(String),
-    Keyword2(String),
-    Function(String),
-    Type(String),
-    Number(String),
-    Macro(String),
-    Symbol(char),
-    StringLiteral(String),
-    StringLiteralC(char),
-    Character(char),
-    LifeTime(String),
-    Comment(String),
-    CommentC(char),
-    CommentS(&'static str),
-    Const(String),
-    X(String),
-    Xc(char),
-    RightParen(char, isize),
-    LeftParen(char, isize),
-    NewLine,
-}
-
-impl Token {
-    fn _is_x(&self) -> bool {
-        matches!(self, Token::X(_))
-    }
-    fn unparsed_string(self) -> String {
-        match self {
-            Token::X(s) => s,
-            _ => unreachable!(),
+fn peek_first_non_white_sapce(
+    tokens: &[rustc_lexer::Token],
+) -> Option<(usize, rustc_lexer::TokenKind)> {
+    for (idx, token) in tokens.iter().enumerate() {
+        if token.kind != rustc_lexer::TokenKind::Whitespace {
+            return Some((idx, token.kind));
         }
     }
-    fn unparsed_str(&self) -> &str {
-        match self {
-            Token::X(s) => s,
-            _ => unreachable!(),
-        }
+    None
+}
+
+fn is_function(tokens: &[rustc_lexer::Token]) -> bool {
+    let (idx, kind) = match peek_first_non_white_sapce(tokens) {
+        Some((i, k)) => (i, k),
+        None => return false,
+    };
+    use rustc_lexer::TokenKind::*;
+    match kind {
+        OpenParen => true,
+        Lt => true,
+        Colon => is_function(&tokens[idx + 1..]),
+        _ => false,
     }
-}
-
-fn parse(s: &[char]) -> Vec<Token> {
-    let mut s = s.iter().peekable();
-    let mut alphanumeric = String::new();
-    let mut tokens = vec![];
-    let mut previous_char = None;
-    let mut paren_idx = 0;
-    while let Some(c) = s.next() {
-        let c = *c;
-        match c {
-            // _ is accepted as variable/function name
-            c if c.is_alphanumeric() || c == '_' => {
-                alphanumeric.push(c);
-            }
-            '(' => {
-                // maybe function
-                if !alphanumeric.is_empty() {
-                    tokens.push(Token::Function(alphanumeric.drain(..).collect()));
-                }
-                tokens.push(Token::LeftParen('(', paren_idx));
-                paren_idx += 1;
-            }
-            '<' | '>' => {
-                // maybe type <u8>
-                if !alphanumeric.is_empty() {
-                    tokens.push(Token::Type(alphanumeric.drain(..).collect()));
-                }
-                tokens.push(Token::Symbol(c));
-            }
-            '!' => {
-                //maybe macro hello!
-                if !alphanumeric.is_empty() {
-                    tokens.push(Token::Macro(alphanumeric.drain(..).collect()));
-                }
-                tokens.push(Token::Symbol(c));
-            }
-            '\'' => {
-                // maybe character || maybe lifetime
-                if !alphanumeric.is_empty() {
-                    tokens.push(Token::X(alphanumeric.drain(..).collect()));
-                }
-                // ' is considered Token::Character in both cases
-                tokens.push(Token::Character(c));
-                if s.peek().is_some() {
-                    tokens.extend(parse_character_lifetime(&mut s));
-                }
-            }
-            '"' => {
-                // maybe literal
-                if !alphanumeric.is_empty() {
-                    tokens.push(Token::X(alphanumeric.drain(..).collect()));
-                }
-                if let Some('\\') = previous_char {
-                    tokens.push(Token::StringLiteralC(c));
-                } else {
-                    tokens.push(Token::StringLiteralC('"'));
-                    if s.peek().is_some() {
-                        tokens.extend(parse_string_literal(&mut s));
-                    }
-                }
-            }
-            ':' => {
-                // maybe const || maybe function with type annotation
-                if s.peek() == Some(&&':') {
-                    // ::
-                    // example: collect::<Vec<_>>()
-                    s.next();
-                } else {
-                    // maybe const
-                    // let HELLO: usize =
-                    let token = parse_as(alphanumeric.drain(..).collect(), vec![TokenName::Const]);
-                    tokens.push(token);
-                    tokens.push(Token::Symbol(':'));
-                    continue;
-                }
-                // maybe function with type annotation
-                if s.peek() == Some(&&'<') {
-                    tokens.push(Token::Function(alphanumeric.drain(..).collect()));
-                } else {
-                    tokens.push(Token::X(alphanumeric.drain(..).collect()));
-                }
-                tokens.extend(vec![Token::Symbol(':'), Token::Symbol(':')]);
-            }
-            '/' => {
-                // maybe division || maybe comment
-                if !alphanumeric.is_empty() {
-                    let token = parse_as(alphanumeric.drain(..).collect(), vec![TokenName::Number]);
-                    tokens.push(token);
-                }
-                if s.peek() == Some(&&'/') || s.peek() == Some(&&'*') {
-                    let end = if matches!(s.peek(), Some(&'/')) {
-                        '\n'
-                    } else {
-                        '*'
-                    };
-
-                    tokens.push(Token::CommentC('/'));
-                    let mut comment = String::new();
-                    while let Some(c) = s.next() {
-                        if c == &end && end == '\n' {
-                            tokens.push(Token::Comment(comment.drain(..).collect()));
-                            tokens.push(Token::NewLine);
-                            break;
-                        } else if c == &end && s.peek() == Some(&&'/') {
-                            // consume /
-                            s.next();
-                            tokens.push(Token::Comment(comment.drain(..).collect()));
-                            tokens.push(Token::CommentS("*/"));
-                            break;
-                        } else {
-                            comment.push(*c);
-                        }
-                    }
-                    if !comment.is_empty() {
-                        tokens.push(Token::Comment(comment));
-                    }
-                } else {
-                    tokens.push(Token::Symbol('/'));
-                }
-            }
-            x => {
-                catch_all(&mut alphanumeric, &mut tokens);
-
-                if x == ')' {
-                    paren_idx -= 1;
-                    tokens.push(Token::RightParen(')', paren_idx));
-                } else if x == '\n' {
-                    tokens.push(Token::NewLine);
-                } else if SYMBOLS.contains(&x) {
-                    tokens.push(Token::Symbol(x));
-                } else {
-                    tokens.push(Token::Xc(x));
-                }
-            }
-        }
-        previous_char = Some(c);
-    }
-
-    // leftover
-    if !alphanumeric.is_empty() {
-        catch_all(&mut alphanumeric, &mut tokens);
-    }
-
-    tokens
-}
-
-fn catch_all(alphanumeric: &mut String, tokens: &mut Vec<Token>) {
-    // catch all: parse the alphanumeric buffer
-    if !alphanumeric.is_empty() {
-        let token = parse_as(
-            alphanumeric.drain(..).collect(),
-            vec![
-                TokenName::Const,
-                TokenName::Keyword,
-                TokenName::Keyword2,
-                TokenName::Number,
-                TokenName::Type,
-            ],
-        );
-        tokens.push(token);
-    }
-}
-
-fn parse_character_lifetime<'a>(
-    s: &mut std::iter::Peekable<impl Iterator<Item = &'a char>>,
-) -> Vec<Token> {
-    // a'  b' c' d' \r' \t'
-    // try as char
-
-    let mut previous_char = None;
-    let mut characters = String::new();
-
-    for (counter, c) in s.enumerate() {
-        if c == &'\'' && previous_char != Some('\\') {
-            // we reached the end
-            characters.push('\'');
-            return characters.chars().map(Token::Character).collect();
-        } else {
-            characters.push(*c);
-            if counter == 2 || (counter == 1 && !characters.starts_with('\\')) {
-                // this is not a character
-                break;
-            }
-        }
-        previous_char = Some(*c);
-    }
-
-    // try as lifetime
-
-    if let Some(c) = characters.chars().last() {
-        if !c.is_alphabetic() {
-            // safe unwrap
-            let end = characters.pop().unwrap();
-            return vec![Token::LifeTime(characters), Token::Symbol(end)];
-        }
-    }
-
-    while let Some(c) = s.peek() {
-        if !c.is_alphabetic() {
-            break;
-        }
-        // safe unwrap
-        let c = s.next().unwrap();
-        characters.push(*c);
-    }
-    vec![Token::LifeTime(characters)]
-}
-
-fn parse_string_literal<'a>(s: &mut impl Iterator<Item = &'a char>) -> Vec<Token> {
-    let mut previous_char = None;
-    let mut string_literal = String::new();
-    for c in s {
-        if c == &'"' && previous_char != Some('\\') {
-            // we reached the end
-            return vec![
-                Token::StringLiteral(string_literal),
-                Token::StringLiteralC('"'),
-            ];
-        } else {
-            string_literal.push(*c);
-        }
-
-        previous_char = Some(*c);
-    }
-
-    vec![Token::StringLiteral(string_literal)]
-}
-
-enum TokenName {
-    Keyword,
-    Keyword2,
-    Type,
-    Number,
-    Const,
-}
-
-fn parse_as(p: String, token_names: Vec<TokenName>) -> Token {
-    let p = Token::X(p);
-    for token_name in token_names {
-        match token_name {
-            TokenName::Keyword => {
-                if is_keyword(&p) {
-                    return Token::Keyword(p.unparsed_string());
-                }
-            }
-            TokenName::Keyword2 => {
-                if is_keyword2(&p) {
-                    return Token::Keyword2(p.unparsed_string());
-                }
-            }
-            TokenName::Type => {
-                if is_type(&p) {
-                    return Token::Type(p.unparsed_string());
-                }
-            }
-            TokenName::Number => {
-                if is_number(&p) {
-                    return Token::Number(p.unparsed_string());
-                }
-            }
-            TokenName::Const => {
-                if is_const(&p) {
-                    return Token::Const(p.unparsed_string());
-                }
-            }
-        }
-    }
-    p
-}
-
-fn is_number(p: &Token) -> bool {
-    p.unparsed_str().chars().all(char::is_numeric)
-}
-
-fn is_keyword(p: &Token) -> bool {
-    KEYWORDS.contains(&p.unparsed_str())
-}
-
-fn is_keyword2(p: &Token) -> bool {
-    KEYWORDS2.contains(&p.unparsed_str())
-}
-
-fn is_type(p: &Token) -> bool {
-    TYPES.contains(&p.unparsed_str())
-}
-
-fn is_const(p: &Token) -> bool {
-    p.unparsed_str()
-        .chars()
-        .all(|c| c.is_uppercase() || c == '_')
 }
 
 // Splitting keywords for a nicer coloring
@@ -392,7 +125,6 @@ const KEYWORDS: &[&str] = &[
 ];
 const KEYWORDS2: &[&str] = &["unsafe", "move", "fn", "let", "struct", "enum", "dyn"];
 
-const SYMBOLS: &[char] = &[':', '&', '?', '+', '-', '*', '/', '=', '!', ',', ';'];
 const TYPES: &[&str] = &[
     "bool", "char", "usize", "isize", "u8", "i8", "u32", "i32", "u64", "i64", "u128", "i128",
     "str", "String",

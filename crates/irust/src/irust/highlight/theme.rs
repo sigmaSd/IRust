@@ -20,15 +20,13 @@ pub struct Theme {
     pub keyword2: String,
     pub function: String,
     pub r#type: String,
-    pub number: String,
     pub symbol: String,
     pub r#macro: String,
-    pub string_literal: String,
-    pub character: String,
+    pub literal: String,
     pub lifetime: String,
     pub comment: String,
     pub r#const: String,
-    pub x: String,
+    pub ident: String,
 }
 
 impl Theme {
@@ -53,15 +51,13 @@ impl Default for Theme {
             keyword2: "dark_red".into(),
             function: "blue".into(),
             r#type: "cyan".into(),
-            number: "dark_yellow".into(),
             symbol: "red".into(),
             r#macro: "dark_yellow".into(),
-            string_literal: "yellow".into(),
-            character: "green".into(),
+            literal: "yellow".into(),
             lifetime: "dark_magenta".into(),
             comment: "dark_grey".into(),
             r#const: "dark_green".into(),
-            x: "white".into(),
+            ident: "white".into(),
         }
     }
 }

@@ -1,4 +1,5 @@
 use crossterm::{style::Color, terminal::ClearType};
+use std::ops::Range;
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::{buffer::Buffer, Result};
@@ -84,6 +85,7 @@ impl From<PrinterItem> for PrintQueue {
 
 #[derive(Debug, Clone)]
 pub enum PrinterItem {
+    RcString(Rc<String>, Range<usize>, Color),
     Char(char, Color),
     String(String, Color),
     Str(&'static str, Color),
@@ -156,6 +158,9 @@ impl<W: std::io::Write> Printer<W> {
                     self.cursor.goto_next_row_terminal_start();
                     self.print_extra_lines_indicator_if_needed(false)?;
                 }
+                PrinterItem::RcString(string, range, color) => {
+                    self.print_input_str(&string[range], color)?;
+                }
             }
         }
 
@@ -204,6 +209,9 @@ impl<W: std::io::Write> Printer<W> {
                 }
                 PrinterItem::NewLine => {
                     self.writer.raw.write("\r\n")?;
+                }
+                PrinterItem::RcString(string, range, color) => {
+                    self.print_out_str(&string[range], color)?;
                 }
             }
         }
@@ -291,6 +299,11 @@ impl<W: std::io::Write> Printer<W> {
                     self.cursor.goto_next_row_terminal_start();
                     for _ in 0..4 {
                         self.cursor.move_right_unbounded();
+                    }
+                }
+                PrinterItem::RcString(string, range, _) => {
+                    for _ in string[range].chars() {
+                        self.adjust();
                     }
                 }
             }
