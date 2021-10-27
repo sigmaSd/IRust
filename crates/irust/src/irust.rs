@@ -72,7 +72,7 @@ impl IRust {
         };
 
         let buffer = Buffer::new();
-        let engine = Engine::new();
+        let engine = Engine::default();
         let exit_flag = false;
         let theme = highlight::theme::theme().unwrap_or_default();
         let history = History::new().unwrap_or_default();

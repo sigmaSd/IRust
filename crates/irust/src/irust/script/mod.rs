@@ -21,7 +21,7 @@ pub trait Script {
         &mut self,
         _input: &str,
         _global_variables: &GlobalVariables,
-    ) -> Option<String>;
+    ) -> Option<Command>;
     fn shutdown_hook(&mut self, _global_variables: &GlobalVariables) -> Vec<Option<Command>>;
     fn list(&self) -> Option<String>;
     fn activate(
@@ -73,7 +73,7 @@ impl super::IRust {
         }
     }
 
-    pub fn output_event_hook(&mut self, input: &str) -> Option<String> {
+    pub fn output_event_hook(&mut self, input: &str) -> Option<Command> {
         if let Some(ref mut script_mg) = self.script_mg {
             return script_mg.output_event_hook(input, &self.global_variables);
         }

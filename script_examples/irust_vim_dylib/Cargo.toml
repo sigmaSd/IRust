@@ -8,7 +8,7 @@ edition = "2021"
 
 [dependencies]
 irust_api = { path = "../../crates/irust_api/" }
-rscript = "0.14.0"
+rscript = "0.15.0"
 
 [lib]
 crate-type = ["cdylib"]

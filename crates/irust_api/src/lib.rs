@@ -7,6 +7,9 @@ use serde::{Deserialize, Serialize};
 pub mod event {
     pub use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 }
+pub mod color {
+    pub use crossterm::style::Color;
+}
 
 macro_rules! hookit {
     (Hook => $hook: ident,
@@ -30,7 +33,7 @@ Output => Option<Command>
 hookit!(
 Hook => OutputEvent,
 Input => (GlobalVariables, String),
-Output => Option<String>
+Output => Option<Command>
 );
 hookit!(
 Hook => SetTitle,
@@ -72,7 +75,9 @@ pub enum Command {
     DeleteUntilChar(char, bool),
     MoveForwardTillChar(char),
     MoveBackwardTillChar(char),
+    Parse(String),
     PrintInput,
+    PrintOutput(String, color::Color),
     MacroRecordToggle,
     MacroPlay,
     Multiple(Vec<Command>),

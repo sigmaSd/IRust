@@ -1,4 +1,5 @@
 use std::env;
+use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 
@@ -36,13 +37,9 @@ macro_rules! print_queue {
 }
 
 impl IRust {
-    pub fn parse(&mut self) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
+    pub fn parse(&mut self, buffer: String) -> Result<PrintQueue> {
         // check if a script want to act upon the input
         // if so scripts have precedence over normal flow
-        if let Some(output) = self.output_event_hook(&buffer) {
-            return print_queue!(output, Color::Blue);
-        }
 
         // Order matters in this match
         match buffer.as_str() {
@@ -53,28 +50,27 @@ impl IRust {
             ":irust" => self.irust(),
             ":sync" => self.sync(),
             ":exit" | ":quit" => self.exit(),
-            cmd if cmd.starts_with("::") => self.run_cmd(),
-            cmd if cmd.starts_with(":f") | cmd.starts_with(":fun") => self.fun(),
-            cmd if cmd.starts_with(":edit") => self.extern_edit(),
-            cmd if cmd.starts_with(":add") => self.add_dep(),
-            cmd if cmd.starts_with(":load") => self.load(),
+            cmd if cmd.starts_with("::") => self.run_cmd(buffer),
+            cmd if cmd.starts_with(":edit") => self.extern_edit(buffer),
+            cmd if cmd.starts_with(":add") => self.add_dep(buffer),
+            cmd if cmd.starts_with(":load") => self.load(buffer),
             cmd if cmd.starts_with(":reload") => self.reload(),
             cmd if cmd.starts_with(":type") => self.show_type(),
-            cmd if cmd.starts_with(":del") => self.del(),
-            cmd if cmd.starts_with(":cd") => self.cd(),
-            cmd if cmd.starts_with(":color") => self.color(),
-            cmd if cmd.starts_with(":toolchain") => self.toolchain(),
-            cmd if cmd.starts_with(":main_result") => self.main_result(),
-            cmd if cmd.starts_with(":check_statements") => self.check_statements(),
-            cmd if cmd.starts_with(":time_release") => self.time_release(),
-            cmd if cmd.starts_with(":time") => self.time(),
+            cmd if cmd.starts_with(":del") => self.del(buffer),
+            cmd if cmd.starts_with(":cd") => self.cd(buffer),
+            cmd if cmd.starts_with(":color") => self.color(buffer),
+            cmd if cmd.starts_with(":toolchain") => self.toolchain(buffer),
+            cmd if cmd.starts_with(":main_result") => self.main_result(buffer),
+            cmd if cmd.starts_with(":check_statements") => self.check_statements(buffer),
+            cmd if cmd.starts_with(":time_release") => self.time_release(buffer),
+            cmd if cmd.starts_with(":time") => self.time(buffer),
             cmd if cmd.starts_with(":bench") => self.bench(),
-            cmd if cmd.starts_with(":asm") => self.asm(),
-            cmd if cmd.starts_with(":executor") => self.executor(),
-            cmd if cmd.starts_with(":evaluator") => self.evaluator(),
-            cmd if cmd.starts_with(":scripts") => self.scripts(),
-            cmd if cmd.starts_with(":compile_time") => self.compile_time(),
-            _ => self.parse_second_order(),
+            cmd if cmd.starts_with(":asm") => self.asm(buffer),
+            cmd if cmd.starts_with(":executor") => self.executor(buffer),
+            cmd if cmd.starts_with(":evaluator") => self.evaluator(buffer),
+            cmd if cmd.starts_with(":scripts") => self.scripts(buffer),
+            cmd if cmd.starts_with(":compile_time") => self.compile_time(buffer),
+            _ => self.parse_second_order(buffer),
         }
     }
 
@@ -88,16 +84,15 @@ impl IRust {
         success!()
     }
 
-    fn check_statements(&mut self) -> Result<PrintQueue> {
+    fn check_statements(&mut self, buffer: String) -> Result<PrintQueue> {
         const ERROR: &str = "Invalid argument, accepted values are `false` `true`";
-        let buffer = self.buffer.to_string();
         let buffer = buffer.split_whitespace().nth(1).ok_or(ERROR)?;
         self.options.check_statements = buffer.parse().map_err(|_| ERROR)?;
         success!()
     }
 
-    fn del(&mut self) -> Result<PrintQueue> {
-        if let Some(line_num) = self.buffer.to_string().split_whitespace().last() {
+    fn del(&mut self, buffer: String) -> Result<PrintQueue> {
+        if let Some(line_num) = buffer.split_whitespace().last() {
             self.repl.del(line_num)?;
         }
         success!()
@@ -108,8 +103,7 @@ impl IRust {
         highlight(&code.into(), &self.theme)
     }
 
-    fn toolchain(&mut self) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
+    fn toolchain(&mut self, buffer: String) -> Result<PrintQueue> {
         let toolchain = buffer.split_whitespace().nth(1);
 
         if let Some(toolchain) = toolchain {
@@ -122,8 +116,7 @@ impl IRust {
         }
     }
 
-    fn main_result(&mut self) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
+    fn main_result(&mut self, buffer: String) -> Result<PrintQueue> {
         let main_result = buffer.split_whitespace().nth(1);
 
         if let Some(main_result) = main_result {
@@ -136,8 +129,8 @@ impl IRust {
         }
     }
 
-    fn add_dep(&mut self) -> Result<PrintQueue> {
-        let mut dep: Vec<String> = crate::utils::split_args(self.buffer.to_string());
+    fn add_dep(&mut self, buffer: String) -> Result<PrintQueue> {
+        let mut dep: Vec<String> = crate::utils::split_args(buffer);
         dep.remove(0); //drop :add
 
         // Try to canonicalize all arguments that corresponds to an existing path
@@ -179,8 +172,7 @@ impl IRust {
         success!()
     }
 
-    fn color(&mut self) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
+    fn color(&mut self, buffer: String) -> Result<PrintQueue> {
         let mut buffer = buffer.split_whitespace().skip(1).peekable();
 
         // reset theme
@@ -213,8 +205,7 @@ impl IRust {
         success!()
     }
 
-    fn load(&mut self) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
+    fn load(&mut self, buffer: String) -> Result<PrintQueue> {
         let path = if let Some(path) = buffer.split_whitespace().nth(1) {
             std::path::Path::new(&path).to_path_buf()
         } else {
@@ -232,7 +223,7 @@ impl IRust {
         self.load_inner(path)
     }
 
-    pub fn load_inner(&mut self, path: std::path::PathBuf) -> Result<PrintQueue> {
+    pub fn load_inner(&mut self, path: PathBuf) -> Result<PrintQueue> {
         // save path
         self.global_variables
             .set_last_loaded_coded_path(path.clone());
@@ -301,9 +292,9 @@ impl IRust {
         print_queue!(var_type, self.options.ok_color)
     }
 
-    fn run_cmd(&mut self) -> Result<PrintQueue> {
+    fn run_cmd(&mut self, buffer: String) -> Result<PrintQueue> {
         // remove ::
-        let buffer = &self.buffer.to_string()[2..];
+        let buffer = &buffer[2..];
 
         let mut cmd = buffer.split_whitespace();
         let output = stdout_and_stderr(
@@ -317,7 +308,7 @@ impl IRust {
         print_queue!(output, self.options.shell_color)
     }
 
-    fn parse_second_order(&mut self) -> Result<PrintQueue> {
+    fn parse_second_order(&mut self, buffer: String) -> Result<PrintQueue> {
         // Time irust compiling (includes rustc compiling + irust code)
         let timer = if self.options.compile_time {
             Some(Instant::now())
@@ -326,7 +317,7 @@ impl IRust {
         };
 
         let buffer = {
-            let mut buffer = self.buffer.to_string();
+            let mut buffer = buffer;
             // check for replace marker option
             if self.options.replace_output_with_marker {
                 if let Some(output) = self.global_variables.get_last_output() {
@@ -445,9 +436,9 @@ impl IRust {
         }
     }
 
-    fn extern_edit(&mut self) -> Result<PrintQueue> {
+    fn extern_edit(&mut self, buffer: String) -> Result<PrintQueue> {
         // exp: :edit vi
-        let editor: String = match self.buffer.to_string().split_whitespace().nth(1) {
+        let editor: String = match buffer.split_whitespace().nth(1) {
             Some(ed) => ed.to_string(),
             None => {
                 if let Ok(ed) = env::var("EDITOR") {
@@ -491,9 +482,8 @@ impl IRust {
         print_queue!(self.ferris(), Color::Red)
     }
 
-    fn cd(&mut self) -> Result<PrintQueue> {
+    fn cd(&mut self, buffer: String) -> Result<PrintQueue> {
         use std::env::*;
-        let buffer = self.buffer.to_string();
         let buffer = buffer
             .split(":cd")
             .skip(1)
@@ -526,15 +516,19 @@ impl IRust {
         print_queue!(cwd.display().to_string(), self.options.ok_color)
     }
 
-    fn time(&mut self) -> Result<PrintQueue> {
-        self.inner_time(":time", false)
+    fn time(&mut self, buffer: String) -> Result<PrintQueue> {
+        self.inner_time(buffer, ":time", false)
     }
-    fn time_release(&mut self) -> Result<PrintQueue> {
-        self.inner_time(":time_release", true)
+    fn time_release(&mut self, buffer: String) -> Result<PrintQueue> {
+        self.inner_time(buffer, ":time_release", true)
     }
 
-    fn inner_time(&mut self, pattern: &str, release: bool) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
+    fn inner_time(
+        &mut self,
+        buffer: String,
+        pattern: &'static str,
+        release: bool,
+    ) -> Result<PrintQueue> {
         let fnn = buffer
             .splitn(2, pattern)
             .nth(1)
@@ -583,8 +577,7 @@ impl IRust {
         print_queue!(out, self.options.eval_color)
     }
 
-    fn asm(&mut self) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
+    fn asm(&mut self, buffer: String) -> Result<PrintQueue> {
         let fnn = buffer.strip_prefix(":asm").expect("already checked").trim();
         if fnn.is_empty() {
             return Err("No function specified".into());
@@ -596,8 +589,7 @@ impl IRust {
         print_queue!(asm, self.options.eval_color)
     }
 
-    fn executor(&mut self) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
+    fn executor(&mut self, buffer: String) -> Result<PrintQueue> {
         let executor = buffer.split_whitespace().nth(1);
         if let Some(executor) = executor {
             let executor = Executor::from_str(executor.trim())?;
@@ -610,8 +602,7 @@ impl IRust {
         }
     }
 
-    fn evaluator(&mut self) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
+    fn evaluator(&mut self, buffer: String) -> Result<PrintQueue> {
         let evaluator = buffer
             .strip_prefix(":evaluator")
             .expect("already checked")
@@ -648,14 +639,13 @@ impl IRust {
         success!()
     }
 
-    fn scripts(&mut self) -> Result<PrintQueue> {
+    fn scripts(&mut self, buffer: String) -> Result<PrintQueue> {
         let scripts_list = if let Some(scripts_list) = self.scripts_list() {
             scripts_list
         } else {
             return Err("No scripts found".into());
         };
 
-        let buffer = self.buffer.to_string();
         let buffer: Vec<&str> = buffer
             .strip_prefix(":scripts")
             .expect("already checked")
@@ -720,8 +710,7 @@ impl IRust {
             _ => Err("Incorrect number of arguments for `:scripts` command".into()),
         }
     }
-    fn compile_time(&mut self) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
+    fn compile_time(&mut self, buffer: String) -> Result<PrintQueue> {
         let buffer: Vec<&str> = buffer
             .strip_prefix(":compile_time")
             .expect("already checked")
@@ -749,33 +738,5 @@ impl IRust {
     fn exit(&mut self) -> Result<PrintQueue> {
         self.exit_flag = true;
         Ok(PrintQueue::default())
-    }
-    fn fun(&mut self) -> Result<PrintQueue> {
-        let buffer = self.buffer.to_string();
-        match buffer.splitn(4, ' ').collect::<Vec<_>>().as_slice() {
-            [_, "def" | "d", name, fun] => {
-                self.engine
-                    .functions
-                    .insert(name.to_string(), fun.to_string());
-                success!()
-            }
-            [_, name, invoke_arg @ ..] => {
-                let mut function = self
-                    .engine
-                    .functions
-                    .get(*name)
-                    .ok_or(format!("function: `{}` is not defined", name))?
-                    .to_owned();
-
-                for (idx, arg) in invoke_arg.iter().enumerate() {
-                    let arg_tag = "$arg".to_string() + &idx.to_string();
-                    function = function.replacen(&arg_tag, arg, 1);
-                }
-
-                self.buffer = printer::buffer::Buffer::from(function.as_str());
-                self.parse()
-            }
-            _ => Err("Incorrect usage of `fun`".into()),
-        }
     }
 }

@@ -52,8 +52,6 @@ Cross Platform Rust Repl
 
 **:main_result** *\<value\>* => Change main result type, available options are `Unit` and `Result` (which is Result\<(), Box<dyn std::error::Error\>\>), Using `Result` as type allows to use `?` in the repl without any boilerplate
 
-**:fun | :f** => Create a custom macro if invoked with **def**, example: `:f def hex format!("{:x}", $arg0)` `$argN` will be replaced with the supplied arguments, example: `:f hex 254`. These macros are automatically saved to disk (so they are available in the next IRust run).
-
 **:exit** | **:quit** => Exit IRust immediately
 
 **::** => run a shell command, example `::ls`

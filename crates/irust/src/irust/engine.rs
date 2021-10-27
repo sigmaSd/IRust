@@ -28,37 +28,6 @@ pub struct Engine {
     macros: HashMap<char, Vec<Command>>,
     buffers: Vec<Buffer>,
     buffers_idx: usize,
-    pub functions: HashMap<String, String>,
-}
-impl Engine {
-    pub fn new() -> Self {
-        let functions = (|| {
-            let fns =
-                std::fs::read_to_string(dirs_next::config_dir()?.join("irust/functions.toml"))
-                    .ok()?;
-            toml::from_str(&fns).ok()
-        })()
-        .unwrap_or_default();
-
-        Self {
-            functions,
-            macro_record: Default::default(),
-            macros: Default::default(),
-            buffers: Default::default(),
-            buffers_idx: Default::default(),
-        }
-    }
-}
-impl Drop for Engine {
-    fn drop(&mut self) {
-        (|| -> Option<()> {
-            std::fs::write(
-                dirs_next::config_dir()?.join("irust/functions.toml"),
-                toml::to_string(&self.functions).ok()?,
-            )
-            .ok()
-        })();
-    }
 }
 
 impl IRust {
@@ -235,35 +204,7 @@ impl IRust {
                 // This is also important to move the cursor after the all the input
                 self.printer.write_newline(&self.buffer);
 
-                // parse and handle errors
-                let output = match self.parse() {
-                    Ok(out) => out,
-                    Err(e) => {
-                        let mut printer = PrintQueue::default();
-                        printer.push(PrinterItem::String(e.to_string(), self.options.err_color));
-                        printer.add_new_line(1);
-                        printer
-                    }
-                };
-
-                // ensure buffer is cleaned
-                self.buffer.clear();
-
-                // print output
-                if !output.is_empty() {
-                    // clear racer suggestions is present
-                    self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
-                    self.printer.print_output(output)?;
-                    self.global_variables.operation_number += 1;
-                    self.update_input_prompt();
-                }
-                // Don't print a new input prompt if we're exiting
-                if !self.exit_flag {
-                    // print a new input prompt
-                    self.printer.print_prompt_if_set()?;
-                }
-
-                self.printer.cursor.show();
+                self.execute(Command::Parse(self.buffer.to_string()))?;
 
                 Ok(())
             }
@@ -841,7 +782,51 @@ impl IRust {
                 self.printer.cursor.goto(last_input_pos.0, last_input_pos.1);
                 Ok(())
             }
+            Command::Parse(buf) => {
+                if let Some(cmd) = self.output_event_hook(&buf) {
+                    return self.execute(cmd);
+                }
+
+                // parse and handle errors
+                let output = match self.parse(buf) {
+                    Ok(out) => out,
+                    Err(e) => {
+                        let mut printer = PrintQueue::default();
+                        printer.push(PrinterItem::String(e.to_string(), self.options.err_color));
+                        printer.add_new_line(1);
+                        printer
+                    }
+                };
+
+                self.print_output(output)
+            }
+            Command::PrintOutput(output, color) => {
+                let output = PrinterItem::String(output, color).into();
+                self.print_output(output)
+            }
         }
+    }
+
+    fn print_output(&mut self, output: PrintQueue) -> Result<()> {
+        // ensure buffer is cleaned
+        self.buffer.clear();
+
+        // print output
+        if !output.is_empty() {
+            // clear racer suggestions is present
+            self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
+            self.printer.print_output(output)?;
+            self.global_variables.operation_number += 1;
+            self.update_input_prompt();
+        }
+        // Don't print a new input prompt if we're exiting
+        if !self.exit_flag {
+            // print a new input prompt
+            self.printer.print_prompt_if_set()?;
+        }
+
+        self.printer.cursor.show();
+        Ok(())
     }
 
     //  history helper

@@ -4,6 +4,7 @@ use std::{
     sync::mpsc,
 };
 
+use irust_api::color;
 use rscript::{scripting::Scripter, Hook, ScriptType, VersionReq};
 
 #[derive(Default)]
@@ -71,7 +72,10 @@ impl IPython {
         }
     }
 
-    pub(crate) fn handle_output_event(&mut self, hook: irust_api::OutputEvent) -> Option<String> {
+    pub(crate) fn handle_output_event(
+        &mut self,
+        hook: irust_api::OutputEvent,
+    ) -> <irust_api::OutputEvent as Hook>::Output {
         if hook.1.starts_with(':') {
             return None;
         }
@@ -89,12 +93,25 @@ impl IPython {
         let now = std::time::Instant::now();
         while now.elapsed() < std::time::Duration::from_millis(200) {
             if let Ok(out) = stdout.try_recv() {
-                // Expression
-                return Some(out);
+                // Expression Or Statement
+                if out.is_empty() {
+                    return Some(irust_api::Command::PrintOutput(
+                        "()\n".to_string(),
+                        color::Color::Blue,
+                    ));
+                } else {
+                    return Some(irust_api::Command::PrintOutput(
+                        out + "\n",
+                        color::Color::Blue,
+                    ));
+                }
             }
         }
         // Statement
-        Some("()".to_string())
+        Some(irust_api::Command::PrintOutput(
+            "()\n".to_string(),
+            color::Color::Blue,
+        ))
     }
 
     pub(crate) fn clean_up(&mut self) {

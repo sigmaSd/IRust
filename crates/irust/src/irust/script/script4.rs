@@ -112,7 +112,7 @@ impl Script for ScriptManager4 {
         &mut self,
         input: &str,
         global_variables: &GlobalVariables,
-    ) -> Option<String> {
+    ) -> Option<Command> {
         self.0
             .trigger(irust_api::OutputEvent(
                 global_variables.clone(),
