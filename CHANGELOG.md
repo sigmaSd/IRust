@@ -1,3 +1,6 @@
+**1.35.0**
+- Use `rustc_lexer` instead of the current custom lexer to highlight the code
+
 **1.34.0**
 - Add Parse, PrintOutput commands
 - Modify OutputEvent to output Command instead of String
