@@ -28,22 +28,13 @@ impl Scripter for Fun {
         VersionReq::parse(">=1.34.0").expect("correct version requirement")
     }
 }
+
 fn main() {
     let mut fun = Fun::new();
     Fun::execute(&mut |hook_name| Fun::run(&mut fun, hook_name));
 }
 
 impl Fun {
-    fn new() -> Self {
-        let functions = (|| {
-            let fns =
-                std::fs::read_to_string(dirs::config_dir()?.join("irust/functions.toml")).ok()?;
-            toml::from_str(&fns).ok()
-        })()
-        .unwrap_or_default();
-
-        Self { functions }
-    }
     fn run(&mut self, hook_name: &str) {
         match hook_name {
             OutputEvent::NAME => {
@@ -65,11 +56,17 @@ impl Fun {
             _ => unreachable!(),
         }
     }
+    fn new() -> Self {
+        let functions = (|| {
+            let fns =
+                std::fs::read_to_string(dirs::config_dir()?.join("irust/functions.toml")).ok()?;
+            toml::from_str(&fns).ok()
+        })()
+        .unwrap_or_default();
 
-    pub(crate) fn handle_output_event(
-        &mut self,
-        hook: OutputEvent,
-    ) -> Result<<OutputEvent as Hook>::Output> {
+        Self { functions }
+    }
+    fn handle_output_event(&mut self, hook: OutputEvent) -> Result<<OutputEvent as Hook>::Output> {
         let input = hook.1;
         if !(input.starts_with(":fun") || input.starts_with(":f")) {
             return Ok(None);
@@ -98,8 +95,7 @@ impl Fun {
             _ => Err("Incorrect usage of `fun`".into()),
         }
     }
-
-    pub(crate) fn clean_up(&self, _hook: Shutdown) -> Option<Command> {
+    fn clean_up(&self, _hook: Shutdown) -> Option<Command> {
         (|| -> Option<()> {
             std::fs::write(
                 dirs::config_dir()?.join("irust/functions.toml"),
@@ -110,34 +106,3 @@ impl Fun {
         None
     }
 }
-
-/*
-fn fun(&mut self) -> Result<PrintQueue> {
-    let buffer = self.buffer.to_string();
-    match buffer.splitn(4, ' ').collect::<Vec<_>>().as_slice() {
-        [_, "def" | "d", name, fun] => {
-            self.engine
-                .functions
-                .insert(name.to_string(), fun.to_string());
-            success!()
-        }
-        [_, name, invoke_arg @ ..] => {
-            let mut function = self
-                .engine
-                .functions
-                .get(*name)
-                .ok_or(format!("function: `{}` is not defined", name))?
-                .to_owned();
-
-            for (idx, arg) in invoke_arg.iter().enumerate() {
-                let arg_tag = "$arg".to_string() + &idx.to_string();
-                function = function.replacen(&arg_tag, arg, 1);
-            }
-
-            self.parse(function)
-        }
-        _ => Err("Incorrect usage of `fun`".into()),
-    }
-}
-
-*/
