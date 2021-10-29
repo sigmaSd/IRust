@@ -1,3 +1,6 @@
+**1.36.0**
+- Add `:dbg {expression}` command => spawns lldb/gdb with the specified expression, example: `:dbg fact(4)`
+
 **1.35.0**
 - Use `rustc_lexer` instead of the current custom lexer to highlight the code
 
