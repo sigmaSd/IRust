@@ -1,4 +1,5 @@
 use std::env;
+use std::io::Write;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
@@ -57,6 +58,7 @@ impl IRust {
             cmd if cmd.starts_with(":reload") => self.reload(),
             cmd if cmd.starts_with(":type") => self.show_type(),
             cmd if cmd.starts_with(":del") => self.del(buffer),
+            cmd if cmd.starts_with(":dbg") => self.dbg(buffer),
             cmd if cmd.starts_with(":cd") => self.cd(buffer),
             cmd if cmd.starts_with(":color") => self.color(buffer),
             cmd if cmd.starts_with(":toolchain") => self.toolchain(buffer),
@@ -734,6 +736,70 @@ impl IRust {
             },
             _ => Err("Invalid number of arguments".into()),
         }
+    }
+    fn dbg(&mut self, buffer: String) -> Result<PrintQueue> {
+        let expression = buffer
+            .strip_prefix(":dbg")
+            .expect("already checked")
+            .trim()
+            .to_owned();
+        if expression.is_empty() {
+            return Err("Missing expression".into());
+        }
+        let expression = format!("print!(\"{{:?}}\", {}); // Print to make sure that the compiler doesn't remove the expression (blackbox requires nightly)", expression);
+
+        let (debugger, debugger_arg) = match self.options.debugger {
+            crate::irust::options::Debugger::LLDB => ("lldb", "-s"),
+            crate::irust::options::Debugger::GDB => ("gdb", "-x"),
+        };
+
+        self.printer
+            .writer
+            .raw
+            .write_with_color("Waiting for debugger...", crossterm::style::Color::Magenta)?;
+
+        let expr_line_num = self.repl.lines_count();
+
+        self.repl.eval_in_tmp_repl(expression, || -> Result<()> {
+            let (status, _out) = cargo_build_output(true, false, self.options.toolchain)?;
+            if !status.success() {
+                return Err("Failed to execute expression".into());
+            }
+
+            let dbg_cmds_path = env::temp_dir().join("irust_dbg_cmds");
+            {
+                let mut dbg_cmds = std::fs::File::create(&dbg_cmds_path)?;
+                writeln!(&mut dbg_cmds, "b {}", expr_line_num)?;
+                writeln!(&mut dbg_cmds, "r")?;
+            }
+
+            crossterm::terminal::disable_raw_mode()?;
+            println!();
+            crossterm::execute!(std::io::stdout(), crossterm::cursor::Show)?;
+
+            #[cfg(windows)]
+            std::process::Command::new("cmd")
+                .arg("/C")
+                .arg(debugger)
+                .args(&[debugger_arg, &dbg_cmds_path.display().to_string()])
+                .arg(&*EXE_PATH)
+                .spawn()?
+                .wait()?;
+
+            #[cfg(not(windows))]
+            {
+                std::process::Command::new(debugger)
+                    .args(&[debugger_arg, &dbg_cmds_path.display().to_string()])
+                    .arg(&*EXE_PATH)
+                    .spawn()?
+                    .wait()?;
+            }
+
+            crossterm::terminal::enable_raw_mode()?;
+            Ok(())
+        })?;
+
+        success!()
     }
     fn exit(&mut self) -> Result<PrintQueue> {
         self.exit_flag = true;

@@ -39,6 +39,7 @@ pub struct Options {
     pub main_result: MainResult,
     pub show_warnings: bool,
     pub edition: Edition,
+    pub debugger: Debugger,
 }
 
 impl Default for Options {
@@ -92,6 +93,7 @@ impl Default for Options {
             main_result: MainResult::Unit,
             show_warnings: false,
             edition: Edition::E2021,
+            debugger: Debugger::LLDB,
         }
     }
 }
@@ -168,4 +170,11 @@ impl IRust {
             || (shell_cmd && self.options.add_shell_cmd_to_history)
             || (!irust_cmd && !shell_cmd)
     }
+}
+
+#[allow(clippy::upper_case_acronyms)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub enum Debugger {
+    LLDB,
+    GDB,
 }

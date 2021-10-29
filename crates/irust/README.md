@@ -52,6 +52,8 @@ Cross Platform Rust Repl
 
 **:main_result** *\<value\>* => Change main result type, available options are `Unit` and `Result` (which is Result\<(), Box<dyn std::error::Error\>\>), Using `Result` as type allows to use `?` in the repl without any boilerplate
 
+**:dbg** *\<expression\>* => Spawn lldb/gdb with the specified expression, example: `:dbg fact(12)`, The debugger can be specified in the config file
+
 **:exit** | **:quit** => Exit IRust immediately
 
 **::** => run a shell command, example `::ls`
@@ -158,6 +160,7 @@ IRust config file is located in:
   main_result = "Unit"
   show_warnings = false
   edition = "E2021"
+  debugger = "LLDB"
 ```
 
 ## Theme
