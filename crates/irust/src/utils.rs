@@ -261,13 +261,31 @@ pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {
     use crossterm::event::{Event, KeyCode, KeyEvent};
     if let Ok(event) = crossterm::event::poll(std::time::Duration::from_millis(100)) {
         if event {
-            if let Ok(Event::Key(KeyEvent {
-                code: KeyCode::Char('c'),
-                modifiers: crossterm::event::KeyModifiers::CONTROL,
-            })) = crossterm::event::read()
-            {
-                process.kill()?;
-                return Err("Cancelled!".into());
+            if let Ok(event) = crossterm::event::read() {
+                match event {
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Char('c'),
+                        modifiers: crossterm::event::KeyModifiers::CONTROL,
+                    }) => {
+                        process.kill()?;
+                        return Err("Cancelled!".into());
+                    }
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Char(a),
+                        ..
+                    }) => {
+                        use std::io::Write;
+                        process.stdin.as_mut().unwrap().write_all(&[a as u8])?;
+                    }
+                    Event::Key(KeyEvent {
+                        code: KeyCode::Enter,
+                        ..
+                    }) => {
+                        use std::io::Write;
+                        process.stdin.as_mut().unwrap().write_all(&[b'\n'])?;
+                    }
+                    _ => (),
+                }
             }
         }
     }

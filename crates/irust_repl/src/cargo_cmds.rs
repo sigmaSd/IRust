@@ -68,6 +68,7 @@ pub fn cargo_run(
                 status,
                 stdout_and_stderr(
                     std::process::Command::new(&*EXE_PATH)
+                        .stdin(Stdio::piped())
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
                         .spawn()?
@@ -79,6 +80,7 @@ pub fn cargo_run(
                 status,
                 stdout_and_stderr(
                     std::process::Command::new(&*RELEASE_EXE_PATH)
+                        .stdin(Stdio::piped())
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped())
                         .spawn()?
