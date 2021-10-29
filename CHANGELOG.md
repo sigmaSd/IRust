@@ -1,3 +1,6 @@
+**1.37.0**
+- Pipe process stdin and write events to it by default, this allows code like `std::io::stdin().read*` to work
+
 **1.36.0**
 - Add `:dbg {expression}` command => spawns lldb/gdb with the specified expression, example: `:dbg fact(4)`
 
