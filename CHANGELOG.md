@@ -1,3 +1,6 @@
+**1.37.3**
+- Remove artificial delay when running an expression (99ms less)
+
 **1.37.2**
 - Don't error if the process has ended (when writing to its stdin)
 
