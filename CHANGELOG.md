@@ -1,3 +1,6 @@
+**1.37.2**
+- Don't error if the process has ended (when writing to its stdin)
+
 **1.37.1**
 - Bump repl, So the last update actually  works (aka: cargo workspace can be tricky)
 
