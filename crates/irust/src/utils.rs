@@ -275,14 +275,16 @@ pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {
                         ..
                     }) => {
                         use std::io::Write;
-                        process.stdin.as_mut().unwrap().write_all(&[a as u8])?;
+                        // Ignore write errors (process might have ended)
+                        let _ = process.stdin.as_mut().unwrap().write_all(&[a as u8]);
                     }
                     Event::Key(KeyEvent {
                         code: KeyCode::Enter,
                         ..
                     }) => {
                         use std::io::Write;
-                        process.stdin.as_mut().unwrap().write_all(&[b'\n'])?;
+                        // Ignore write errors (process might have ended)
+                        let _ = process.stdin.as_mut().unwrap().write_all(&[b'\n']);
                     }
                     _ => (),
                 }
