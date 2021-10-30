@@ -259,7 +259,9 @@ fn _balanced_quotes(s: &str) -> bool {
 
 pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {
     use crossterm::event::{Event, KeyCode, KeyEvent};
-    if let Ok(event) = crossterm::event::poll(std::time::Duration::from_millis(100)) {
+    // Running a command as Command::new().output takes at minimum 1ms
+    // So Polling should take a similar order of magnitude
+    if let Ok(event) = crossterm::event::poll(std::time::Duration::from_millis(1)) {
         if event {
             if let Ok(event) = crossterm::event::read() {
                 match event {
