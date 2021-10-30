@@ -1,3 +1,6 @@
+**1.37.1**
+- Bump repl, So the last update actually  works (aka: cargo workspace can be tricky)
+
 **1.37.0**
 - Pipe process stdin and write events to it by default, this allows code like `std::io::stdin().read*` to work
 
