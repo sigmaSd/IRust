@@ -8,7 +8,7 @@ import sys
 
 sys.tracebacklimit = 0
 
-child = pexpect.spawn("cargo run")
+child = pexpect.spawn("cargo run", timeout=240)
 
 
 def sink(n):
@@ -36,6 +36,7 @@ def assert_eq(op, val):
 # prelude
 sink(2)
 
+assert_eq(":compile_time off", "Ok!")
 assert_eq(":add regex", "Ok!")
 assert_eq('regex::Regex::new("a.*a").unwrap()', "a.*a")
 
