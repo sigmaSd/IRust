@@ -8,7 +8,7 @@ use super::cursor::Cursor;
 
 #[derive(Debug, Clone)]
 pub struct Writer<W: std::io::Write> {
-    last_color: Option<Color>,
+    pub last_color: Option<Color>,
     pub raw: Raw<W>,
 }
 
@@ -28,6 +28,7 @@ impl<W: std::io::Write> Writer<W> {
         cursor: &mut super::cursor::Cursor<W>,
     ) -> Result<()> {
         // Performance: set_fg only when needed
+
         if self.last_color != Some(color) {
             self.raw.set_fg(color)?;
         }

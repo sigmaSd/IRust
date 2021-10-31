@@ -318,6 +318,7 @@ impl<W: std::io::Write> Printer<W> {
 
     pub fn print_prompt_if_set(&mut self) -> Result<()> {
         let prompt = &self.prompt.clone();
+        self.writer.last_color = None; // force reset color
         self.write_from_terminal_start(prompt, Color::Yellow)?;
         Ok(())
     }
