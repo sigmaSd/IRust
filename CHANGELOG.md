@@ -1,3 +1,6 @@
+**1.37.4**
+- Fix color leak (in input prompt)
+
 **1.37.3**
 - Remove artificial delay when running an expression (99ms less)
 
