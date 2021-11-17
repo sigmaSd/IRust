@@ -1,0 +1,10 @@
+# List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
+tasks:
+  - init: |
+      cargo install irust
+    command: echo 'welcome to iRust. Just type "irust" to begin.'
+
+# List the ports to expose. Learn more https://www.gitpod.io/docs/config-ports/
+# ports:
+#   - port: 3000
+#     onOpen: open-preview
