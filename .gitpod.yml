@@ -1,8 +1,27 @@
 # List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
 tasks:
-  - init: |
+  - before: |
       cargo install irust
-    command: echo 'welcome to iRust. Just type "irust" to begin.'
+      rustup toolchain add nightly
+      cargo +nightly install racer
+      cargo install cargo-edit cargo-asm
+  # - init: echo "welcome to iRust"
+  - command: |
+      echo "Welcome to iRust. Just type 'irust' to begin."
+      echo "Once the REPL starts, type ':help' for a list of commands."
+      echo "Learn more at https://github.com/sigmaSd/IRust"
+github:
+  prebuilds:
+    master: true
+    branches: true
+    pullRequestsFromForks: true
+    addLabel: prebuilt-in-gitpod
+vscode:
+  extensions:
+    - belfz.search-crates-io
+    - rust-lang.rust
+    - serayuzgur.crates
+    - bungcip.better-toml
 
 # List the ports to expose. Learn more https://www.gitpod.io/docs/config-ports/
 # ports:
