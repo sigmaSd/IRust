@@ -1,15 +1,10 @@
 # List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
 tasks:
-  - before: |
-      cargo install irust
-      rustup toolchain add nightly
-      cargo +nightly install racer
-      cargo install cargo-edit cargo-asm
+  - name: Preload
+    before: ./before.sh
   # - init: echo "welcome to iRust"
-  - command: |
-      echo "Welcome to iRust. Just type 'irust' to begin."
-      echo "Once the REPL starts, type ':help' for a list of commands."
-      echo "Learn more at https://github.com/sigmaSd/IRust"
+  - name: iRust
+    command: ./welcome.sh
 github:
   prebuilds:
     master: true
