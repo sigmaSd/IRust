@@ -12,7 +12,6 @@ mod tests;
 
 #[derive(Debug, Clone)]
 pub struct Printer<W: std::io::Write> {
-    printer: PrintQueue,
     pub writer: writer::Writer<W>,
     pub cursor: cursor::Cursor<W>,
     pub prompt: String,
@@ -24,7 +23,6 @@ impl<W: std::io::Write> Printer<W> {
         let raw = Rc::new(RefCell::new(raw));
         let prompt_len = prompt.chars().count();
         Self {
-            printer: PrintQueue::default(),
             writer: writer::Writer::new(raw.clone()),
             cursor: cursor::Cursor::new(raw, prompt_len),
             prompt,

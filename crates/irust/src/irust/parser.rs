@@ -532,8 +532,8 @@ impl IRust {
         release: bool,
     ) -> Result<PrintQueue> {
         let fnn = buffer
-            .splitn(2, pattern)
-            .nth(1)
+            .split_once(pattern)
+            .map(|buf| buf.1)
             .ok_or("No function specified")?;
 
         if fnn.is_empty() {
