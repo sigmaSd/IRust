@@ -1,6 +1,8 @@
 # IRust
 Cross Platform Rust Repl
 
+You can try out IRust with no installation or setup (via Gitpod.io) by visiting https://gitpod.io/#https://github.com/sigmaSd/IRust
+
 ## Keywords / Tips & Tricks
 
 **:help** => print help
