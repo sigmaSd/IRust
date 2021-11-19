@@ -7,17 +7,19 @@ use printer::{
 };
 
 impl IRust {
-    pub fn help(&mut self) -> Result<PrintQueue> {
+    pub fn help(&mut self, buffer: String) -> Result<PrintQueue> {
         #[cfg(unix)]
         let readme = include_str!("../../README.md");
         #[cfg(windows)]
         let readme = include_str!("..\\..\\README.md");
 
-        Ok(parse_markdown(&readme.into(), &self.theme))
+        let compact = !buffer.contains("full");
+
+        Ok(parse_markdown(&readme.into(), &self.theme, compact))
     }
 }
 
-fn parse_markdown(buffer: &Buffer, theme: &Theme) -> PrintQueue {
+fn parse_markdown(buffer: &Buffer, theme: &Theme, compact: bool) -> PrintQueue {
     let mut queue = PrintQueue::default();
 
     let buffer = buffer.to_string();
@@ -26,6 +28,9 @@ fn parse_markdown(buffer: &Buffer, theme: &Theme) -> PrintQueue {
     (|| -> Option<()> {
         loop {
             let line = buffer.next()?;
+            if compact && line.starts_with("<img") {
+                break Some(());
+            }
 
             if line.trim_start().starts_with("##") {
                 queue.push(PrinterItem::String(line.to_string(), Color::Yellow));

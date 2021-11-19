@@ -5,7 +5,7 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 ## Keywords / Tips & Tricks
 
-**:help** => print help
+**:help** => print help, use `:help full` for the full version
 
 **:reset** => reset repl
 
