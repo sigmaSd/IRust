@@ -1,4 +1,3 @@
-# List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
 tasks:
   - name: Preload
     before: |
@@ -22,8 +21,3 @@ vscode:
     - belfz.search-crates-io
     - serayuzgur.crates
     - bungcip.better-toml
-
-# List the ports to expose. Learn more https://www.gitpod.io/docs/config-ports/
-# ports:
-#   - port: 3000
-#     onOpen: open-preview
