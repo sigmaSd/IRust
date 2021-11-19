@@ -1,3 +1,8 @@
+**1.37.5**
+- Some fixes to improve gitpod support in the repo
+- `:help` now shows a compact version by default, for the old behavior you can use `:help full`
+- Clippy + Update rustc lexer
+
 **1.37.4**
 - Fix color leak (in input prompt)
 
