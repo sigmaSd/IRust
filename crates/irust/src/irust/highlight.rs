@@ -60,7 +60,7 @@ pub fn highlight(buffer: &Buffer, theme: &Theme) -> PrintQueue {
             Ident if is_function(&tokens[idx + 1..]) => {
                 push_to_printer!(&theme.function[..]);
             }
-            Unknown | Ident | RawIdent | Whitespace => {
+            UnknownPrefix | Unknown | Ident | RawIdent | Whitespace => {
                 push_to_printer!(&theme.ident[..]);
             }
             LineComment { .. } | BlockComment { .. } => {
