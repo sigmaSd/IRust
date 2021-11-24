@@ -1,3 +1,6 @@
+**1.38.0**
+- Shell commands can now be interpolated with rust code via '$$', example: `let a = $$ls -l$$`;
+
 **1.37.5**
 - Some fixes to improve gitpod support in the repo
 - `:help` now shows a compact version by default, for the old behavior you can use `:help full`
