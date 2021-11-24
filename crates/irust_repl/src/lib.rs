@@ -14,6 +14,7 @@ mod utils;
 
 use std::{
     io::{self, Write},
+    path::PathBuf,
     process::{Child, ExitStatus},
 };
 
@@ -52,6 +53,7 @@ pub struct Repl {
     executor: Executor,
     main_result: MainResult,
     edition: Edition,
+    prelude: Option<PathBuf>,
 }
 impl Default for Repl {
     fn default() -> Self {
@@ -60,10 +62,13 @@ impl Default for Repl {
             Executor::default(),
             MainResult::default(),
             Edition::default(),
+            None,
         )
         .expect("Paniced while trying to create repl")
     }
 }
+
+const PRELUDE_NAME: &str = "irust_prelude";
 
 impl Repl {
     pub fn new(
@@ -71,8 +76,13 @@ impl Repl {
         executor: Executor,
         main_result: MainResult,
         edition: Edition,
+        prelude_parent_path: Option<PathBuf>,
     ) -> Result<Self> {
         cargo_new(edition)?;
+        if let Some(ref path) = prelude_parent_path {
+            cargo_new_lib_simple(path, PRELUDE_NAME)?;
+            cargo_add_sync(&[path.join(PRELUDE_NAME).display().to_string()])?;
+        }
         // check for required dependencies (in case of async)
         if let Some(dependecy) = executor.dependecy() {
             // needs to be sync
@@ -83,13 +93,27 @@ impl Repl {
         cargo_build(toolchain)?;
 
         let (header, footer) = Self::generate_body_delimiters(executor, main_result);
+        let (body, cursor) = if prelude_parent_path.is_some() {
+            (
+                vec![
+                    header,
+                    format!("use {}::*;", PRELUDE_NAME),
+                    footer,
+                    "}".to_string(),
+                ],
+                2,
+            )
+        } else {
+            (vec![header, footer, "}".to_string()], 1)
+        };
         Ok(Self {
-            body: vec![header, footer, "}".to_string()],
-            cursor: 1,
+            body,
+            cursor,
             toolchain,
             executor,
             main_result,
             edition,
+            prelude: prelude_parent_path,
         })
     }
 
@@ -137,6 +161,7 @@ impl Repl {
             executor: self.executor,
             main_result: self.main_result,
             edition: self.edition,
+            prelude: self.prelude.clone(),
         };
         Ok(())
     }
@@ -171,6 +196,7 @@ impl Repl {
             self.executor,
             self.main_result,
             self.edition,
+            self.prelude.clone(),
         )?;
         Ok(())
     }

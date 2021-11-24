@@ -165,6 +165,7 @@ IRust config file is located in:
   show_warnings = false
   edition = "E2021"
   debugger = "LLDB"
+  shell_interpolate = true
 ```
 
 ## Theme
@@ -187,6 +188,9 @@ Default theme file:
   const = "dark_green"
   ident = "white"
 ```
+
+## Prelude
+IRust automatically creates `irust_prelude` crate at `xdg_data_dir/irust/irust_prelude`, this crate is imported at startup, any changes to it (that are marked with `pub`) will be immediately reflected on the repl after saving.
 
 ## Scripts
 IRust supports scripting, all over the code base there are hooks that scripts can react to and usually answer back to IRust with a command.\

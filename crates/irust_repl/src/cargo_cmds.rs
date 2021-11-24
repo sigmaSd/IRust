@@ -49,6 +49,29 @@ pub fn cargo_new(edition: Edition) -> std::result::Result<(), io::Error> {
     Ok(())
 }
 
+pub fn cargo_new_lib_simple(path: &Path, name: &'static str) -> std::result::Result<(), io::Error> {
+    let lib_path = path.join(name);
+    let _ = std::fs::create_dir_all(lib_path.join("src"));
+    let create_if_not_exist = |path: PathBuf, contents| -> std::io::Result<()> {
+        if !path.exists() {
+            std::fs::write(path, contents)?;
+        }
+        Ok(())
+    };
+    let cargo_toml = format!(
+        "\
+[package]
+name = \"{}\"
+version = \"0.1.0\"
+edition = \"2021\"",
+        name
+    );
+    create_if_not_exist(lib_path.join("src/lib.rs"), "")?;
+    create_if_not_exist(lib_path.join("Cargo.toml"), &cargo_toml)?;
+
+    Ok(())
+}
+
 pub fn cargo_run(
     color: bool,
     release: bool,

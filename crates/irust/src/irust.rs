@@ -44,6 +44,8 @@ impl IRust {
             options.executor,
             options.main_result,
             options.edition,
+            // prelude dir
+            (|| Some(dirs::data_dir()?.join("irust")))(),
         )
         .expect("Could not create repl");
 
