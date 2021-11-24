@@ -1,3 +1,6 @@
+**1.39.0**
+- IRust now automatically creates `irust_prelude` crate at `xdg_data_dir/irust/irust_prelude`, this crate is imported at startup, any changes to it (that are marked with `pub`) will be immediately reflected on the repl after saving.
+
 **1.38.0**
 - Shell commands can now be interpolated with rust code via '$$', example: `let a = $$ls -l$$`;
 
