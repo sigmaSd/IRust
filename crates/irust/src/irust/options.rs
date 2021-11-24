@@ -40,6 +40,7 @@ pub struct Options {
     pub show_warnings: bool,
     pub edition: Edition,
     pub debugger: Debugger,
+    pub shell_interpolate: bool,
 }
 
 impl Default for Options {
@@ -94,6 +95,7 @@ impl Default for Options {
             show_warnings: false,
             edition: Edition::E2021,
             debugger: Debugger::LLDB,
+            shell_interpolate: true,
         }
     }
 }

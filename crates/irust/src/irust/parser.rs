@@ -1,8 +1,8 @@
-use std::env;
 use std::io::Write;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
+use std::{env, process};
 
 use crossterm::style::Color;
 
@@ -59,8 +59,8 @@ impl IRust {
             cmd if cmd.starts_with(":type") => self.show_type(),
             cmd if cmd.starts_with(":del") => self.del(buffer),
             cmd if cmd.starts_with(":dbg") => self.dbg(buffer),
-            cmd if cmd.starts_with(":cd") => self.cd(buffer),
             cmd if cmd.starts_with(":color") => self.color(buffer),
+            cmd if cmd.starts_with(":cd") => self.cd(buffer),
             cmd if cmd.starts_with(":toolchain") => self.toolchain(buffer),
             cmd if cmd.starts_with(":main_result") => self.main_result(buffer),
             cmd if cmd.starts_with(":check_statements") => self.check_statements(buffer),
@@ -72,6 +72,10 @@ impl IRust {
             cmd if cmd.starts_with(":evaluator") => self.evaluator(buffer),
             cmd if cmd.starts_with(":scripts") => self.scripts(buffer),
             cmd if cmd.starts_with(":compile_time") => self.compile_time(buffer),
+            cmd if self.options.shell_interpolate && cmd.contains("$$") => {
+                let buffer = self.shell_interpolate(buffer)?;
+                self.parse_second_order(buffer)
+            }
             _ => self.parse_second_order(buffer),
         }
     }
@@ -801,6 +805,54 @@ impl IRust {
 
         success!()
     }
+    fn shell_interpolate(&mut self, buffer: String) -> Result<String> {
+        // Replace shell expression with rust expression
+        // The shell expression is delimited by `$$` and `$$`
+        // There could be multiple shell expressions
+        let mut buffer = buffer.chars().peekable();
+        let mut res = String::new();
+
+        let mut maybe_error = None;
+        (|| -> Option<()> {
+            loop {
+                let c = buffer.next()?;
+
+                if c == '$' && buffer.peek() == Some(&'$') {
+                    buffer.next();
+                    let mut shell_expr = String::new();
+                    while let Some(s) = buffer.next() {
+                        if s == '$' && buffer.peek() == Some(&'$') {
+                            buffer.next();
+                            break;
+                        }
+                        shell_expr.push(s);
+                    }
+                    let mut shell_expr = shell_expr.split_whitespace();
+                    let shell_res = process::Command::new(shell_expr.next()?)
+                        .args(shell_expr.collect::<Vec<_>>())
+                        .output();
+                    let mut shell_res = match shell_res {
+                        Ok(res) => stdout_and_stderr(res),
+                        Err(e) => {
+                            maybe_error = Some(e);
+                            break None;
+                        }
+                    };
+                    shell_res.insert(0, '"');
+                    shell_res.push('"');
+                    res.push_str(&shell_res);
+                } else {
+                    res.push(c);
+                }
+            }
+        })();
+        if let Some(e) = maybe_error {
+            return Err(e.into());
+        }
+
+        Ok(res)
+    }
+
     fn exit(&mut self) -> Result<PrintQueue> {
         self.exit_flag = true;
         Ok(PrintQueue::default())

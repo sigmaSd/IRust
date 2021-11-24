@@ -58,6 +58,8 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:exit** | **:quit** => Exit IRust immediately
 
+**$$** => Shell commands can be interpolated with rust code with '$$', for example: `let a = $$ls -l$$;`, this feature can be [en/dis]abled via the config file
+
 **::** => run a shell command, example `::ls`
 
 You can use arrow keys to cycle through commands history
