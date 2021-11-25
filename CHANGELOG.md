@@ -1,3 +1,6 @@
+**1.41.0**
+- Actually fix the aforementioned regression (Forgot to bump the repl, aka rust + workspace)
+
 **1.40.0**
 - Fix cold boot timing regression
 
