@@ -78,16 +78,19 @@ impl Repl {
         edition: Edition,
         prelude_parent_path: Option<PathBuf>,
     ) -> Result<Self> {
+        // NOTE: All the code in new should always not block
         cargo_new(edition)?;
         if let Some(ref path) = prelude_parent_path {
             cargo_new_lib_simple(path, PRELUDE_NAME)?;
-            cargo_add_sync(&[path.join(PRELUDE_NAME).display().to_string()])?;
+            cargo_add_prelude(path.join(PRELUDE_NAME), PRELUDE_NAME)?;
         }
         // check for required dependencies (in case of async)
         if let Some(dependecy) = executor.dependecy() {
             // needs to be sync
             // repl::new(Tokio)
             // repl.eval(5); // cargo-edit may not have written to Cargo.toml yet
+            //
+            // NOTE: This code blocks
             cargo_add_sync(&dependecy)?;
         }
         cargo_build(toolchain)?;

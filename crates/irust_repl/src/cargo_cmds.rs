@@ -124,6 +124,22 @@ pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
         .spawn()
 }
 
+pub fn cargo_add_prelude(path: PathBuf, name: &'static str) -> io::Result<()> {
+    let mut f = std::fs::OpenOptions::new()
+        .append(true)
+        .open(&*CARGO_TOML_FILE)?;
+
+    writeln!(
+        f,
+        "
+[dependencies]
+{} = {{ path = \"{}\" }}
+",
+        name,
+        path.display()
+    )
+}
+
 pub fn cargo_add_sync(dep: &[String]) -> Result<()> {
     let process = Command::new("cargo-add")
         .current_dir(&*IRUST_DIR)
