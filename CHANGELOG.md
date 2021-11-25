@@ -1,3 +1,6 @@
+**1.40.0**
+- Fix cold boot timing regression
+
 **1.39.0**
 - IRust now automatically creates `irust_prelude` crate at `xdg_data_dir/irust/irust_prelude`, this crate is imported at startup, any changes to it (that are marked with `pub`) will be immediately reflected on the repl after saving.
 
