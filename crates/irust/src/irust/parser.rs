@@ -747,7 +747,11 @@ impl IRust {
             .expect("already checked")
             .trim()
             .to_owned();
-        let expression = if expression.is_empty() {"println!(); // Compiler black box".into()} else {format!("print!(\"{{:?}}\", {}); // Print to make sure that the compiler doesn't remove the expression (blackbox requires nightly)", expression)};
+        let expression = if expression.is_empty() {
+            "println!(); // Compiler black box".into()
+        } else {
+            format!("print!(\"{{:?}}\", {}); // Print to make sure that the compiler doesn't remove the expression (blackbox requires nightly)", expression)
+        };
 
         let (debugger, debugger_arg) = match self.options.debugger {
             crate::irust::options::Debugger::LLDB => ("lldb", "-s"),
