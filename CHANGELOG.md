@@ -1,3 +1,6 @@
+**1.42.0**
+- Remove unneeded empty expression restriction on debugger
+
 **1.41.0**
 - Actually fix the aforementioned regression (Forgot to bump the repl, aka rust + workspace)
 
