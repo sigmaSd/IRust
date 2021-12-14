@@ -129,14 +129,19 @@ pub fn cargo_add_prelude(path: PathBuf, name: &'static str) -> io::Result<()> {
         .append(true)
         .open(&*CARGO_TOML_FILE)?;
 
+    let path = if !cfg!(windows) {
+        path.display().to_string()
+    } else {
+        path.display().to_string().replace('\\', "\\\\")
+    };
+
     writeln!(
         f,
         "
 [dependencies]
 {} = {{ path = \"{}\" }}
 ",
-        name,
-        path.display()
+        name, path
     )
 }
 
