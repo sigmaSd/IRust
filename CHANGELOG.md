@@ -1,3 +1,6 @@
+**1.43.0**
+- Fix windows bug (Path needs to be escaped in prelude Cargo.toml)
+
 **1.42.0**
 - Remove unneeded empty expression restriction on debugger
 
