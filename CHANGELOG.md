@@ -1,3 +1,6 @@
+**1.44.0**
+- Evaluate input from Stdin if provided, example: `echo "hello".chars() | irust`
+
 **1.43.0**
 - Fix windows bug (Path needs to be escaped in prelude Cargo.toml)
 

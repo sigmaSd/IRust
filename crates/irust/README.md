@@ -104,6 +104,8 @@ You can use arrow keys to cycle through commands history
 
 **--reset-config** reset IRust configuration to default
 
+If input is piped to IRust then it will evaluate it and exit, example: `echo "hello".chars() | irust`
+
 ## Configuration
 
 IRust config file is located in:
