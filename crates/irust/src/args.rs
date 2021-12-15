@@ -14,7 +14,6 @@ pub enum ArgsResult {
 }
 
 pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
-
     match args[0].as_str() {
         "-h" | "--help" => {
             println!(
