@@ -100,7 +100,7 @@ impl Repl {
             (
                 vec![
                     header,
-                    format!("use {}::*;", PRELUDE_NAME),
+                    format!("#[allow(unused_imports)]use {}::*;", PRELUDE_NAME),
                     footer,
                     "}".to_string(),
                 ],
