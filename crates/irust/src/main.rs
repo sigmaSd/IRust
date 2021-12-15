@@ -1,26 +1,66 @@
 mod args;
-mod irust;
-// uncomment next line to enable logging
-// mod log;
 mod dependencies;
+mod irust;
 mod utils;
 use crate::irust::IRust;
-use crate::{args::ArgsResult, irust::options::Options};
+use crate::{
+    args::{handle_args, ArgsResult},
+    irust::options::Options,
+};
+use crossterm::{style::Stylize, tty::IsTty};
 use dependencies::{check_required_deps, warn_about_opt_deps};
-
-use crate::args::handle_args;
-use crossterm::style::Stylize;
 use std::process::exit;
 
 fn main() {
     let mut options = Options::new().unwrap_or_default();
 
     // Handle args
-    let args_result = handle_args(&mut options);
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let args_result = if args.is_empty() {
+        ArgsResult::Proceed
+    } else {
+        handle_args(&args, &mut options)
+    };
 
     // Exit if there is nothing more todo
     if matches!(args_result, ArgsResult::Exit) {
         exit(0)
+    }
+
+    // If no argument are provided, check stdin for some oneshot usage
+    if args.is_empty() {
+        let mut stdin = std::io::stdin();
+        if !stdin.is_tty() {
+            // Something was piped to stdin
+            // The users wants a oneshot evaluation
+            use irust_repl::{EvalConfig, EvalResult, Repl, DEFAULT_EVALUATOR};
+            use std::io::Read;
+            match (|| -> irust::Result<EvalResult> {
+                let mut repl = Repl::default();
+                let mut input = String::new();
+                stdin.read_to_string(&mut input)?;
+                let result = repl.eval_with_configuration(EvalConfig {
+                    input,
+                    interactive_function: None,
+                    color: true,
+                    evaluator: &*DEFAULT_EVALUATOR,
+                })?;
+                Ok(result)
+            })() {
+                Ok(result) => {
+                    if result.status.success() {
+                        println!("{}", result.output);
+                    } else {
+                        println!("{}", irust::format_err(&result.output, false));
+                    }
+                    exit(0)
+                }
+                Err(e) => {
+                    eprintln!("failed to evaluate input, error: {}", e);
+                    exit(1)
+                }
+            }
+        }
     }
 
     // Check required dependencies and exit if they're not present

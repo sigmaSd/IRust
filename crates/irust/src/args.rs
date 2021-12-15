@@ -13,12 +13,7 @@ pub enum ArgsResult {
     ProceedWithScriptPath(PathBuf),
 }
 
-pub fn handle_args(options: &mut Options) -> ArgsResult {
-    let args: Vec<String> = env::args().skip(1).collect();
-
-    if args.is_empty() {
-        return ArgsResult::Proceed;
-    }
+pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
 
     match args[0].as_str() {
         "-h" | "--help" => {

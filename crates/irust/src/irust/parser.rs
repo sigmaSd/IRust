@@ -6,11 +6,12 @@ use std::{env, process};
 
 use crossterm::style::Color;
 
+use super::format::format_err_printqueue;
 use super::highlight::highlight;
 use crate::irust::{IRust, Result};
 use crate::utils::stdout_and_stderr;
 use crate::{
-    irust::format::{format_check_output, format_err, format_eval_output},
+    irust::format::{format_check_output, format_eval_output},
     utils::ctrlc_cancel,
 };
 use irust_repl::{cargo_cmds::*, EvalConfig, EvalResult, Executor, MainResult, ToolChain};
@@ -244,7 +245,7 @@ impl IRust {
         let EvalResult { output, status } = self.repl.eval_build(code.clone())?;
 
         if !status.success() {
-            Ok(format_err(&output, self.options.show_warnings))
+            Ok(format_err_printqueue(&output, self.options.show_warnings))
         } else {
             self.repl.insert(code);
             success!()

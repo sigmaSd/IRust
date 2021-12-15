@@ -2,7 +2,7 @@ use crossterm::style::Color;
 
 use printer::printer::{PrintQueue, PrinterItem};
 
-pub fn format_err<'a>(output: &'a str, show_warnings: bool) -> PrintQueue {
+pub fn format_err<'a>(output: &'a str, show_warnings: bool) -> String {
     const BEFORE_2021_END_TAG: &str = ": aborting due to ";
     // Relies on --color=always
     const ERROR_TAG: &str = "\u{1b}[0m\u{1b}[1m\u{1b}[38;5;9merror";
@@ -52,7 +52,11 @@ pub fn format_err<'a>(output: &'a str, show_warnings: bool) -> PrintQueue {
     } else {
         Box::new(handle_error_2021(output))
     };
-    PrinterItem::String(go_to_end(output), Color::Red).into()
+    go_to_end(output)
+}
+
+pub fn format_err_printqueue(output: &str, show_warnings: bool) -> PrintQueue {
+    PrinterItem::String(format_err(output, show_warnings), Color::Red).into()
 }
 
 pub fn format_eval_output(
@@ -62,7 +66,7 @@ pub fn format_eval_output(
     show_warnings: bool,
 ) -> Option<PrintQueue> {
     if !status.success() {
-        return Some(format_err(&output, show_warnings));
+        return Some(format_err_printqueue(&output, show_warnings));
     }
     if output.trim() == "()" {
         return None;
@@ -81,7 +85,7 @@ fn check_is_err(s: &str) -> bool {
 
 pub fn format_check_output(output: String, show_warnings: bool) -> Option<PrintQueue> {
     if check_is_err(&output) {
-        Some(format_err(&output, show_warnings))
+        Some(format_err_printqueue(&output, show_warnings))
     } else {
         None
     }

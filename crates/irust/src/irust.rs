@@ -20,6 +20,7 @@ use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
 use script::Script;
 
+pub use format::format_err;
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub struct IRust {
