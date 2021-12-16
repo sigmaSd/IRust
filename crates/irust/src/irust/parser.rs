@@ -834,15 +834,15 @@ impl IRust {
                     let shell_res = process::Command::new(shell_expr.next()?)
                         .args(shell_expr.collect::<Vec<_>>())
                         .output();
-                    let mut shell_res = match shell_res {
+                    let shell_res = match shell_res {
                         Ok(res) => stdout_and_stderr(res),
                         Err(e) => {
                             maybe_error = Some(e);
                             break None;
                         }
                     };
-                    shell_res.insert(0, '"');
-                    shell_res.push('"');
+
+                    let shell_res = format!("r####\"{}\"####", shell_res);
                     res.push_str(&shell_res);
                 } else {
                     res.push(c);
