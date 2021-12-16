@@ -73,6 +73,7 @@ impl IRust {
             cmd if cmd.starts_with(":evaluator") => self.evaluator(buffer),
             cmd if cmd.starts_with(":scripts") => self.scripts(buffer),
             cmd if cmd.starts_with(":compile_time") => self.compile_time(buffer),
+            cmd if cmd.starts_with(":expand") => self.expand(),
             cmd if self.options.shell_interpolate && cmd.contains("$$") => {
                 let buffer = self.shell_interpolate(buffer)?;
                 self.parse_second_order(buffer)
@@ -853,6 +854,10 @@ impl IRust {
         }
 
         Ok(res)
+    }
+
+    fn expand(&mut self) -> Result<PrintQueue> {
+        print_queue!(cargo_expand(self.options.toolchain)?, Color::White)
     }
 
     fn exit(&mut self) -> Result<PrintQueue> {

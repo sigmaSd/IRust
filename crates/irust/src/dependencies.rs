@@ -41,7 +41,7 @@ pub fn check_required_deps() -> bool {
 }
 
 pub fn warn_about_opt_deps(options: &mut Options) {
-    let opt_deps: [Dep; 4] = [
+    let opt_deps: [Dep; 5] = [
         Dep::new("racer", "racer", "auto_completion", &|| {
             let mut exit_status = vec![];
             let mut run_cmd = |cmd: &[&str]| -> io::Result<()> {
@@ -105,6 +105,19 @@ pub fn warn_about_opt_deps(options: &mut Options) {
             "viewing functions assembly",
             &|| {
                 let cmd = ["cargo", "install", "cargo-asm"];
+                println!("{}", format!("Running: {:?}", cmd).magenta());
+
+                Ok(vec![process::Command::new(cmd[0])
+                    .args(&cmd[1..])
+                    .status()?])
+            },
+        ),
+        Dep::new(
+            "cargo-expand",
+            "cargo-expand",
+            "showing the result of macro expansion",
+            &|| {
+                let cmd = ["cargo", "install", "cargo-expand"];
                 println!("{}", format!("Running: {:?}", cmd).magenta());
 
                 Ok(vec![process::Command::new(cmd[0])

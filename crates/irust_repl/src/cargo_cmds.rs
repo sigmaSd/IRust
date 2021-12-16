@@ -283,6 +283,17 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
             .output()?,
     ))
 }
+pub fn cargo_expand(toolchain: ToolChain) -> Result<String> {
+    let mut cmd = Command::new("cargo");
+    let output = cargo_common(&mut cmd, "expand", toolchain)
+        // For cargo expand, color needs to be specified here
+        .args(&["--color", "always"])
+        .output()?;
+    if !output.status.success() {
+        return Err(stdout_and_stderr(output).trim().into());
+    }
+    Ok(stdout_and_stderr(output).trim().to_owned())
+}
 
 pub fn cargo_fmt_file(file: &Path) {
     // Cargo fmt is optional

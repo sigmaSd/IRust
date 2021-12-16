@@ -56,6 +56,8 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:dbg** *\<expression\>* => Spawn lldb/gdb with (an optional expression), example: `:dbg` or `:dbg fact(12)`, The debugger can be specified in the config file
 
+**:expand** => Shows the result of macro expansion, requires https://github.com/dtolnay/cargo-expand
+
 **:exit** | **:quit** => Exit IRust immediately
 
 **$$** => Shell commands can be interpolated with rust code with '$$', for example: `let a = $$ls -l$$;`, this feature can be [en/dis]abled via the config file

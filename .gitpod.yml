@@ -4,7 +4,7 @@ tasks:
       cargo install irust
       rustup toolchain add nightly-2021-06-07
       cargo +nightly-2021-06-07 install racer
-      cargo install cargo-edit cargo-asm
+      cargo install cargo-edit cargo-asm cargo-expand
   - name: IRust
     command: |
       echo "Welcome to IRust. Just type 'irust' to begin."
