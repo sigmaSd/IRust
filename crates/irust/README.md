@@ -212,12 +212,15 @@ Check out [SCRIPTS.md](https://github.com/sigmaSd/IRust/blob/master/SCRIPTS.md) 
 **1- Why is autocompletion not working**
 
     -> you need racer installed and configured correctly
-        cargo +nightly install racer
+        rustup toolchain add nightly-2021-06-07 # Nightly toolchain that is known to work
+        cargo +nightly-2021-06-07 install racer
         rustup component add rust-src
         
 **2- Racer fails to build**
 
 You can try `rustup update --force` https://github.com/racer-rust/racer/issues/1141
+
+Also some times the needed toolchain version changes. Usually there is an issue about it in racer repo (and the correct version to use)
 
 **3- I want to hack on irust but `dbg!` overlaps with the output!!**
 
