@@ -1,3 +1,6 @@
+**1.45.0**
+- Add cargo expand support via `:expand`
+
 **1.44.0**
 - Evaluate input from Stdin if provided, example: `echo "hello".chars() | irust`
 
