@@ -1,3 +1,6 @@
+**1.46.0**
+- Make shell interpolation more resilient, and fix its usage on windows
+
 **1.45.0**
 - Add cargo expand support via `:expand`
 
