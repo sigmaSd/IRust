@@ -45,7 +45,7 @@ pub fn stdout_and_stderr(out: std::process::Output) -> String {
         out.stderr
     };
 
-    String::from_utf8(out).unwrap_or_default()
+    String::from_utf8_lossy(&out).to_string()
 }
 
 fn _remove_main(script: &str) -> String {

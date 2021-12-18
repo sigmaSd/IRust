@@ -305,11 +305,17 @@ impl IRust {
         let buffer = &buffer[2..];
 
         let mut cmd = buffer.split_whitespace();
-        let output = stdout_and_stderr(
+        let output = stdout_and_stderr(if cfg!(windows) {
+            std::process::Command::new("cmd")
+                .arg("/C")
+                .arg(cmd.next().unwrap_or_default())
+                .args(&cmd.collect::<Vec<&str>>())
+                .output()?
+        } else {
             std::process::Command::new(cmd.next().unwrap_or_default())
                 .args(&cmd.collect::<Vec<&str>>())
-                .output()?,
-        )
+                .output()?
+        })
         .trim()
         .to_owned();
 
@@ -831,9 +837,17 @@ impl IRust {
                         shell_expr.push(s);
                     }
                     let mut shell_expr = shell_expr.split_whitespace();
-                    let shell_res = process::Command::new(shell_expr.next()?)
-                        .args(shell_expr.collect::<Vec<_>>())
-                        .output();
+                    let shell_res = if cfg!(windows) {
+                        process::Command::new("cmd")
+                            .arg("/C")
+                            .arg(shell_expr.next()?)
+                            .args(shell_expr.collect::<Vec<_>>())
+                            .output()
+                    } else {
+                        process::Command::new(shell_expr.next()?)
+                            .args(shell_expr.collect::<Vec<_>>())
+                            .output()
+                    };
                     let shell_res = match shell_res {
                         Ok(res) => stdout_and_stderr(res),
                         Err(e) => {
@@ -842,7 +856,17 @@ impl IRust {
                         }
                     };
 
-                    let shell_res = format!("r####\"{}\"####", shell_res);
+                    struct F<'a>(&'a [u8]);
+                    impl std::fmt::Display for F<'_> {
+                        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                            write!(f, "String::from_utf8_lossy(&[")?;
+                            for b in self.0.iter() {
+                                write!(f, "{},", b)?;
+                            }
+                            write!(f, "]).to_string()")
+                        }
+                    }
+                    let shell_res = format!("{}", F(shell_res.as_bytes()));
                     res.push_str(&shell_res);
                 } else {
                     res.push(c);
