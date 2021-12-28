@@ -378,7 +378,7 @@ impl IRust {
             let mut insert_flag = true;
 
             if self.options.check_statements {
-                self.while_compiling_hook();
+                self.before_compiling_hook();
                 let check_result = self.repl.eval_check(buffer.clone());
                 self.after_compiling_hook();
                 if let Some(mut e) =
@@ -399,7 +399,7 @@ impl IRust {
         } else {
             let mut outputs = PrintQueue::default();
 
-            self.while_compiling_hook();
+            self.before_compiling_hook();
             let result = self.repl.eval_with_configuration(EvalConfig {
                 input: buffer,
                 interactive_function: Some(ctrlc_cancel),
