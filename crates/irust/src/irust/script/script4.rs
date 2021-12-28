@@ -92,8 +92,17 @@ impl Script for ScriptManager4 {
             .next()?
             .ok()
     }
-    fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()> {
-        None
+    fn before_compiling(&mut self, global_variables: &GlobalVariables) -> Option<()> {
+        self.0
+            .trigger(irust_api::BeforeCompiling(global_variables.clone()))
+            .collect::<Result<_, _>>()
+            .ok()
+    }
+    fn after_compiling(&mut self, global_variables: &GlobalVariables) -> Option<()> {
+        self.0
+            .trigger(irust_api::AfterCompiling(global_variables.clone()))
+            .collect::<Result<_, _>>()
+            .ok()
     }
     fn input_event_hook(
         &mut self,
@@ -104,9 +113,6 @@ impl Script for ScriptManager4 {
             .trigger(irust_api::InputEvent(global_variables.clone(), event))
             .next()?
             .ok()?
-    }
-    fn after_compile(&mut self) -> Option<()> {
-        None
     }
     fn output_event_hook(
         &mut self,

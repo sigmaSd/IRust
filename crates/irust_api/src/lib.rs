@@ -65,6 +65,16 @@ Hook => SetOutputPrompt,
 Input => (GlobalVariables),
 Output => String
 );
+hookit!(
+Hook => BeforeCompiling,
+Input => (GlobalVariables),
+Output => ()
+);
+hookit!(
+Hook => AfterCompiling,
+Input => (GlobalVariables),
+Output => ()
+);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Command {

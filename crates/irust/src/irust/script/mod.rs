@@ -10,13 +10,13 @@ pub mod script4;
 pub trait Script {
     fn input_prompt(&mut self, _global_variables: &GlobalVariables) -> Option<String>;
     fn get_output_prompt(&mut self, _global_variables: &GlobalVariables) -> Option<String>;
-    fn while_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()>;
+    fn before_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()>;
     fn input_event_hook(
         &mut self,
         _global_variables: &GlobalVariables,
         _event: Event,
     ) -> Option<Command>;
-    fn after_compile(&mut self) -> Option<()>;
+    fn after_compiling(&mut self, _global_variables: &GlobalVariables) -> Option<()>;
     fn output_event_hook(
         &mut self,
         _input: &str,
@@ -56,9 +56,9 @@ impl super::IRust {
         //Default
         self.options.output_prompt.clone()
     }
-    pub fn while_compiling_hook(&mut self) {
+    pub fn before_compiling_hook(&mut self) {
         if let Some(ref mut script_mg) = self.script_mg {
-            script_mg.while_compiling(&self.global_variables);
+            script_mg.before_compiling(&self.global_variables);
         }
     }
     pub fn input_event_hook(&mut self, event: Event) -> Option<Command> {
@@ -69,7 +69,7 @@ impl super::IRust {
     }
     pub fn after_compiling_hook(&mut self) {
         if let Some(ref mut script_mg) = self.script_mg {
-            script_mg.after_compile();
+            script_mg.after_compiling(&self.global_variables);
         }
     }
 
