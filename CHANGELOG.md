@@ -1,3 +1,6 @@
+**1.47.0**
+- Activate Before/After compiling hooks and add prompt animation example
+
 **1.46.0**
 - Make shell interpolation more resilient, and fix its usage on windows
 
