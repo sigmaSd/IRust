@@ -671,8 +671,32 @@ impl IRust {
 
         match buffer.len() {
             0 => {
-                //Print script list
-                print_queue!(scripts_list, Color::Blue)
+                //NOTE: Hack formatting because its less code
+                //Assumes that script state is the last column
+
+                if scripts_list.is_empty() {
+                    return print_queue!("Script list is empty".to_string(), Color::Blue);
+                }
+
+                let mut queue = PrintQueue::default();
+                let mut scripts_list = scripts_list.lines();
+
+                let header = scripts_list.next().expect("exists");
+                queue.push(PrinterItem::String(header.to_string(), Color::Blue));
+                queue.add_new_line(2);
+
+                let mut list: Vec<_> = scripts_list.collect();
+                list.sort_by_key(|line| line.ends_with("false"));
+                list.iter().for_each(|line| {
+                    if line.ends_with("true") {
+                        queue.push(PrinterItem::String(line.to_string(), Color::Green))
+                    } else {
+                        queue.push(PrinterItem::String(line.to_string(), Color::Red))
+                    }
+                    queue.add_new_line(1);
+                });
+
+                Ok(queue)
             }
             1 => {
                 // Print script
