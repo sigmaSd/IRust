@@ -786,8 +786,8 @@ impl IRust {
         };
 
         let (debugger, debugger_arg) = match self.options.debugger {
-            crate::irust::options::Debugger::LLDB => ("lldb", "-s"),
-            crate::irust::options::Debugger::GDB => ("gdb", "-x"),
+            crate::irust::options::Debugger::LLDB => ("rust-lldb", "-s"),
+            crate::irust::options::Debugger::GDB => ("rust-gdb", "-x"),
         };
 
         self.printer
