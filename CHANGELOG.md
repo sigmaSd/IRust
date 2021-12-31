@@ -1,3 +1,7 @@
+**1.48.0**
+- `:dbg` command: use rust-gdb rust-lldb
+- `:scripts` command: Add more style
+
 **1.47.0**
 - Activate Before/After compiling hooks and add prompt animation example
 
