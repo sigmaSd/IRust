@@ -549,15 +549,12 @@ impl IRust {
             Command::HandleCtrlZ => {
                 #[cfg(unix)]
                 {
-                    use nix::{
-                        sys::signal::{kill, Signal},
-                        unistd::Pid,
-                    };
-                    self.printer.writer.raw.clear(ClearType::All)?;
-                    kill(Pid::this(), Some(Signal::SIGTSTP))
-                        .map_err(|e| format!("failed to sigstop irust. {}", e))?;
+                    const SIGTSTP: i32 = 20;
+                    let res = unsafe { libc::kill(libc::getpid(), SIGTSTP) };
+                    if res != 0 {
+                        return Err("Failed to sigstop irust.".into());
+                    }
 
-                    // display empty prompt after SIGCONT
                     self.execute(Command::HandleCtrlL)?;
                 }
                 Ok(())

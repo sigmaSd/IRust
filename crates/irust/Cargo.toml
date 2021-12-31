@@ -20,7 +20,7 @@ rscript = "0.15.0"
 rustc_lexer = { version = "727.0.0", package = "rustc-ap-rustc_lexer" }
 
 [target.'cfg(unix)'.dependencies]
-nix = "0.23.0"
+libc = "0.2.112"
 
 # flamegraph
 # [profile.release]
