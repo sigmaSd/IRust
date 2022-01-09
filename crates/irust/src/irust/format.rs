@@ -2,7 +2,7 @@ use crossterm::style::Color;
 
 use printer::printer::{PrintQueue, PrinterItem};
 
-pub fn format_err<'a>(output: &'a str, show_warnings: bool) -> String {
+pub fn format_err<'a>(original_output: &'a str, show_warnings: bool) -> String {
     const BEFORE_2021_END_TAG: &str = ": aborting due to ";
     // Relies on --color=always
     const ERROR_TAG: &str = "\u{1b}[0m\u{1b}[1m\u{1b}[38;5;9merror";
@@ -47,12 +47,22 @@ pub fn format_err<'a>(output: &'a str, show_warnings: bool) -> String {
             .rev()
     };
 
-    let output: Box<dyn Iterator<Item = &str>> = if output.contains(BEFORE_2021_END_TAG) {
-        Box::new(handle_error(output))
+    let output: Box<dyn Iterator<Item = &str>> = if original_output.contains(BEFORE_2021_END_TAG) {
+        Box::new(handle_error(original_output))
     } else {
-        Box::new(handle_error_2021(output))
+        Box::new(handle_error_2021(original_output))
     };
-    go_to_end(output)
+
+    let formatted_error = go_to_end(output);
+    // The formatting logic is ad-hoc, there will always be a chance of failure with a rust update
+    //
+    // So we do a sanity check here, if the formatted_error is empty (which means we failed to
+    // format the output), ask the user to open a bug report with the original_output
+    if !formatted_error.is_empty() {
+        formatted_error
+    } else {
+        format!("IRust: failed to format the error output.\nThis is a bug in IRust.\nFeel free to open a bug-report at https://github.com/sigmaSd/IRust/issues/new with the next text:\n\noriginal_output:\n{original_output}")
+    }
 }
 
 pub fn format_err_printqueue(output: &str, show_warnings: bool) -> PrintQueue {
