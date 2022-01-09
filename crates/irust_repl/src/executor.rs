@@ -31,7 +31,7 @@ impl Executor {
             Executor::Tokio => Some(vec![
                 "tokio".into(),
                 "--features".into(),
-                r#""macros" "rt-multi-thread""#.into(),
+                "macros rt-multi-thread".into(),
             ]),
             Executor::AsyncStd => Some(vec![
                 "async_std".into(),
