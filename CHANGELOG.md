@@ -1,3 +1,6 @@
+**1.49.0**
+- Fix a bug with tokio runtime making it unusable
+
 **1.48.0**
 - `:dbg` command: use rust-gdb rust-lldb
 - `:scripts` command: Add more style
