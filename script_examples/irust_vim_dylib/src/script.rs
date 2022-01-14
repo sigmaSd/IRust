@@ -1,5 +1,5 @@
-use irust_api::Command;
 use irust_api::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+use irust_api::Command;
 use rscript::Hook;
 
 use super::{Mode, State, Vim};
@@ -8,13 +8,13 @@ impl Vim {
     pub const fn new() -> Self {
         Self {
             state: State::Empty,
-            mode: Mode::Normal,
+            mode: Mode::Insert,
         }
     }
     pub fn start_up(&mut self, _: irust_api::Startup) -> <irust_api::Startup as Hook>::Output {
         self.state = State::Empty;
-        self.mode = Mode::Normal;
-        Some(Command::SetWideCursor)
+        self.mode = Mode::Insert;
+        Some(Command::SetThinCursor)
     }
     pub fn clean_up(&mut self, _: irust_api::Shutdown) -> <irust_api::Shutdown as Hook>::Output {
         self.state = State::Empty;

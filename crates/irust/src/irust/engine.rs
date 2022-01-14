@@ -655,10 +655,8 @@ impl IRust {
                 Ok(())
             }
             Command::Exit => {
-                for cmd in self.shutdown_hook().into_iter().flatten() {
-                    self.execute(cmd)?;
-                }
-
+                // Give scripts a chance to clean-up
+                self.run_scripts_shutdown_cmds()?;
                 self.history.save()?;
                 self.options.save()?;
                 self.theme.save()?;

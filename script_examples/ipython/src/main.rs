@@ -32,13 +32,13 @@ impl Scripter for IPython {
         ]
     }
     fn version_requirement() -> VersionReq {
-        VersionReq::parse(">=1.34.0").expect("correct version requirement")
+        VersionReq::parse(">=1.50.0").expect("correct version requirement")
     }
 }
 
 fn main() {
     let mut ipython = IPython::default();
-    IPython::execute(&mut |hook_name| IPython::run(&mut ipython, hook_name));
+    let _ = IPython::execute(&mut |hook_name| IPython::run(&mut ipython, hook_name));
 }
 
 impl IPython {

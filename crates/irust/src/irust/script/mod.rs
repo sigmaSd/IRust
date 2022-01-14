@@ -22,20 +22,13 @@ pub trait Script {
         _input: &str,
         _global_variables: &GlobalVariables,
     ) -> Option<Command>;
-    fn shutdown_hook(&mut self, _global_variables: &GlobalVariables) -> Vec<Option<Command>>;
     fn list(&self) -> Option<String>;
-    fn activate(
-        &mut self,
-        _script: &str,
-        _global_variables: &GlobalVariables,
-    ) -> Result<Option<Command>, &'static str>;
-    fn deactivate(
-        &mut self,
-        _script: &str,
-        _global_variables: &GlobalVariables,
-    ) -> Result<Option<Command>, &'static str>;
+    fn activate(&mut self, _script: &str) -> Result<Option<Command>, &'static str>;
+    fn deactivate(&mut self, _script: &str) -> Result<Option<Command>, &'static str>;
     fn trigger_set_title_hook(&mut self) -> Option<String>;
     fn trigger_set_msg_hook(&mut self) -> Option<String>;
+    fn startup_cmds(&mut self) -> Vec<Result<Option<Command>, rscript::Error>>;
+    fn shutdown_cmds(&mut self) -> Vec<Result<Option<Command>, rscript::Error>>;
 }
 
 // Scripts
@@ -80,13 +73,6 @@ impl super::IRust {
         None
     }
 
-    pub fn shutdown_hook(&mut self) -> Vec<Option<Command>> {
-        if let Some(ref mut script_mg) = self.script_mg {
-            return script_mg.shutdown_hook(&self.global_variables);
-        }
-        vec![]
-    }
-
     pub fn trigger_set_title_hook(&mut self) -> Option<String> {
         if let Some(ref mut script_mg) = self.script_mg {
             return script_mg.trigger_set_title_hook();
@@ -108,13 +94,13 @@ impl super::IRust {
     }
     pub fn activate_script(&mut self, script: &str) -> Result<Option<Command>, &'static str> {
         if let Some(ref mut script_mg) = self.script_mg {
-            return script_mg.activate(script, &self.global_variables);
+            return script_mg.activate(script);
         }
         Ok(None)
     }
     pub fn deactivate_script(&mut self, script: &str) -> Result<Option<Command>, &'static str> {
         if let Some(ref mut script_mg) = self.script_mg {
-            return script_mg.deactivate(script, &self.global_variables);
+            return script_mg.deactivate(script);
         }
         Ok(None)
     }
@@ -139,5 +125,26 @@ impl super::IRust {
             .map(|r| r.active_suggestion.as_ref())
             .flatten()
             .is_some();
+    }
+
+    pub fn run_scripts_startup_cmds(&mut self) -> super::Result<()> {
+        if let Some(ref mut script_mg) = self.script_mg {
+            for cmd in script_mg.startup_cmds() {
+                if let Some(cmd) = cmd? {
+                    self.execute(cmd)?;
+                }
+            }
+        }
+        Ok(())
+    }
+    pub fn run_scripts_shutdown_cmds(&mut self) -> super::Result<()> {
+        if let Some(ref mut script_mg) = self.script_mg {
+            for cmd in script_mg.shutdown_cmds() {
+                if let Some(cmd) = cmd? {
+                    self.execute(cmd)?;
+                }
+            }
+        }
+        Ok(())
     }
 }
