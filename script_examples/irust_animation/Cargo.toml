@@ -9,7 +9,7 @@ edition = "2021"
 [dependencies]
 crossterm = "0.22.1"
 irust_api = { path = "../../crates/irust_api/" }
-rscript = "0.15.0"
+rscript = "0.17.0"
 
 [lib]
 crate-type = ["cdylib"]

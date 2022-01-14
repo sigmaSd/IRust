@@ -135,14 +135,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "irust_vim"
-version = "0.1.0"
-dependencies = [
- "irust_api",
- "rscript",
-]
-
-[[package]]
 name = "irust_vim_dylib"
 version = "0.1.0"
 dependencies = [
@@ -279,9 +271,9 @@ dependencies = [
 
 [[package]]
 name = "rscript"
-version = "0.15.0"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd1624ecae3258d1564062793aa56b8af0c64a08699aeda72ad248c5cf4efa0c"
+checksum = "78a75e23463c51d7c5c0a09da18b898ac77e4f6156ad6ea2b31a7e04deb95b94"
 dependencies = [
  "bincode",
  "libloading",

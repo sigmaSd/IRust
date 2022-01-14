@@ -47,12 +47,12 @@ Output => Option<String>
 );
 hookit!(
 Hook => Shutdown,
-Input => (GlobalVariables),
+Input => (),
 Output => Option<Command>
 );
 hookit!(
 Hook => Startup,
-Input => (GlobalVariables),
+Input => (),
 Output => Option<Command>
 );
 hookit!(

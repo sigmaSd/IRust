@@ -20,7 +20,7 @@ impl Scripter for Prompt {
         ]
     }
     fn version_requirement() -> VersionReq {
-        VersionReq::parse(">=1.34.0").expect("correct version requirement")
+        VersionReq::parse(">=1.50.0").expect("correct version requirement")
     }
 }
 
@@ -67,5 +67,5 @@ impl Prompt {
 }
 
 fn main() {
-    Prompt::execute(&mut |hook_name| Prompt::run(hook_name));
+    let _ = Prompt::execute(&mut |hook_name| Prompt::run(hook_name));
 }

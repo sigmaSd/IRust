@@ -106,6 +106,9 @@ impl IRust {
         self.welcome()?;
         self.printer.print_prompt_if_set()?;
 
+        // Scripts might want run some startup commands, give them a chance here
+        self.run_scripts_startup_cmds()?;
+
         Ok(())
     }
 

@@ -5,7 +5,10 @@ use irust_api::{Command, GlobalVariables};
 
 use super::Script;
 
-pub struct ScriptManager4(rscript::ScriptManager);
+pub struct ScriptManager4 {
+    sm: rscript::ScriptManager,
+    startup_cmds: Vec<Result<Option<Command>, rscript::Error>>,
+}
 
 macro_rules! mtry {
     ($e: expr) => {
@@ -36,6 +39,7 @@ impl ScriptManager4 {
         // If an error happens, a new configuration will be written anyway when ScriptManager is
         // dropped
 
+        let mut startup_cmds = vec![];
         if let Ok(script_state) =
             mtry!(toml::from_str(&std::fs::read_to_string(script_conf_path)?)?)
         {
@@ -47,6 +51,10 @@ impl ScriptManager4 {
                 if let Some(state) = script_state.get(script_name) {
                     if *state {
                         script.activate();
+                        // Trigger startup hook, in case the script needs to be aware of it
+                        if script.is_listening_for::<irust_api::Startup>() {
+                            startup_cmds.push(script.trigger(&irust_api::Startup()));
+                        }
                     } else {
                         script.deactivate();
                     }
@@ -54,13 +62,13 @@ impl ScriptManager4 {
             })
         }
 
-        Some(ScriptManager4(sm))
+        Some(ScriptManager4 { sm, startup_cmds })
     }
 }
 impl Drop for ScriptManager4 {
     fn drop(&mut self) {
         let mut script_state = HashMap::new();
-        for script in self.0.scripts() {
+        for script in self.sm.scripts() {
             script_state.insert(script.metadata().name.clone(), script.is_active());
         }
         // Ignore errors on drop
@@ -81,25 +89,25 @@ struct ScriptState(HashMap<String, bool>);
 
 impl Script for ScriptManager4 {
     fn input_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
-        self.0
+        self.sm
             .trigger(irust_api::SetInputPrompt(global_variables.clone()))
             .next()?
             .ok()
     }
     fn get_output_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
-        self.0
+        self.sm
             .trigger(irust_api::SetOutputPrompt(global_variables.clone()))
             .next()?
             .ok()
     }
     fn before_compiling(&mut self, global_variables: &GlobalVariables) -> Option<()> {
-        self.0
+        self.sm
             .trigger(irust_api::BeforeCompiling(global_variables.clone()))
             .collect::<Result<_, _>>()
             .ok()
     }
     fn after_compiling(&mut self, global_variables: &GlobalVariables) -> Option<()> {
-        self.0
+        self.sm
             .trigger(irust_api::AfterCompiling(global_variables.clone()))
             .collect::<Result<_, _>>()
             .ok()
@@ -109,7 +117,7 @@ impl Script for ScriptManager4 {
         global_variables: &GlobalVariables,
         event: Event,
     ) -> Option<Command> {
-        self.0
+        self.sm
             .trigger(irust_api::InputEvent(global_variables.clone(), event))
             .next()?
             .ok()?
@@ -119,7 +127,7 @@ impl Script for ScriptManager4 {
         input: &str,
         global_variables: &GlobalVariables,
     ) -> Option<Command> {
-        self.0
+        self.sm
             .trigger(irust_api::OutputEvent(
                 global_variables.clone(),
                 input.to_string(),
@@ -127,23 +135,17 @@ impl Script for ScriptManager4 {
             .next()?
             .ok()?
     }
-    fn shutdown_hook(&mut self, global_variables: &GlobalVariables) -> Vec<Option<Command>> {
-        self.0
-            .trigger(irust_api::Shutdown(global_variables.clone()))
-            .filter_map(Result::ok)
-            .collect()
-    }
     fn trigger_set_title_hook(&mut self) -> Option<String> {
-        self.0.trigger(irust_api::SetTitle()).next()?.ok()?
+        self.sm.trigger(irust_api::SetTitle()).next()?.ok()?
     }
 
     fn trigger_set_msg_hook(&mut self) -> Option<String> {
-        self.0.trigger(irust_api::SetWelcomeMsg()).next()?.ok()?
+        self.sm.trigger(irust_api::SetWelcomeMsg()).next()?.ok()?
     }
 
     fn list(&self) -> Option<String> {
         let mut scripts: Vec<String> = self
-            .0
+            .sm
             .scripts()
             .iter()
             .map(|script| {
@@ -163,21 +165,16 @@ impl Script for ScriptManager4 {
         Some(scripts.join("\n"))
     }
 
-    fn activate(
-        &mut self,
-        script_name: &str,
-        global_variables: &GlobalVariables,
-    ) -> Result<Option<Command>, &'static str> {
+    fn activate(&mut self, script_name: &str) -> Result<Option<Command>, &'static str> {
         if let Some(script) = self
-            .0
+            .sm
             .scripts_mut()
             .iter_mut()
             .find(|script| script.metadata().name == script_name)
         {
             script.activate();
             // We send a startup message in case the script is listening for one
-            if let Ok(maybe_command) = script.trigger(&irust_api::Startup(global_variables.clone()))
-            {
+            if let Ok(maybe_command) = script.trigger(&irust_api::Startup()) {
                 Ok(maybe_command)
             } else {
                 Ok(None)
@@ -187,22 +184,16 @@ impl Script for ScriptManager4 {
         }
     }
 
-    fn deactivate(
-        &mut self,
-        script_name: &str,
-        global_variables: &GlobalVariables,
-    ) -> Result<Option<Command>, &'static str> {
+    fn deactivate(&mut self, script_name: &str) -> Result<Option<Command>, &'static str> {
         if let Some(script) = self
-            .0
+            .sm
             .scripts_mut()
             .iter_mut()
             .find(|script| script.metadata().name == script_name)
         {
             script.deactivate();
             // We send a shutdown message in case the script is listening for one
-            if let Ok(maybe_command) =
-                script.trigger(&irust_api::Shutdown(global_variables.clone()))
-            {
+            if let Ok(maybe_command) = script.trigger(&irust_api::Shutdown()) {
                 Ok(maybe_command)
             } else {
                 Ok(None)
@@ -210,5 +201,18 @@ impl Script for ScriptManager4 {
         } else {
             Err("Script not found")
         }
+    }
+
+    fn startup_cmds(&mut self) -> Vec<Result<Option<Command>, rscript::Error>> {
+        self.startup_cmds.drain(..).collect()
+    }
+
+    fn shutdown_cmds(&mut self) -> Vec<Result<Option<Command>, rscript::Error>> {
+        self.sm
+            .scripts_mut()
+            .iter_mut()
+            .filter(|script| script.is_listening_for::<irust_api::Shutdown>())
+            .map(|script| script.trigger(&irust_api::Shutdown()))
+            .collect()
     }
 }

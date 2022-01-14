@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 dirs = "4.0.0"
 irust_api = { path = "../../crates/irust_api" }
-rscript = "0.15.0"
+rscript = "0.17.0"
 serde = { version = "1.0.130", features = ["derive"] }
 toml = "0.5.8"
