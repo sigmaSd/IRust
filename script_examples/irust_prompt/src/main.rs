@@ -67,5 +67,5 @@ impl Prompt {
 }
 
 fn main() {
-    let _ = Prompt::execute(&mut |hook_name| Prompt::run(hook_name));
+    let _ = Prompt::execute(&mut Prompt::run);
 }
