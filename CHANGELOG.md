@@ -1,3 +1,6 @@
+**1.50.0**
+- Rework Startup/Shutdown hooks
+
 **1.49.0**
 - Fix a bug with tokio runtime making it unusable
 
