@@ -2,8 +2,9 @@ tasks:
   - name: Preload
     before: |
       cargo install irust
-      rustup toolchain add nightly-2021-06-07
-      cargo +nightly-2021-06-07 install racer
+      rustup toolchain add nightly
+      rustup component add rustc-dev --toolchain=nightly
+      cargo +nightly install racer
       cargo install cargo-edit cargo-asm cargo-expand
   - name: IRust
     command: |

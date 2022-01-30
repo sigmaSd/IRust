@@ -220,8 +220,9 @@ This allows it to be controlled programmatically, which in turns allows writing 
 **1- Why is autocompletion not working**
 
     -> you need racer installed and configured correctly
-        rustup toolchain add nightly-2021-06-07 # Nightly toolchain that is known to work
-        cargo +nightly-2021-06-07 install racer
+        rustup toolchain install nightly
+        rustup component add rustc-dev --toolchain=nightly
+        cargo +nightly install racer
         rustup component add rust-src
         
 **2- Racer fails to build**

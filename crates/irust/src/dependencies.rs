@@ -65,6 +65,15 @@ pub fn warn_about_opt_deps(options: &mut Options) {
             let cmd = ["rustup", "install", "nightly"];
             run_cmd(&cmd)?;
 
+            let cmd = [
+                "rustup",
+                "component",
+                "add",
+                "rustc-dev",
+                "--toolchain=nightly",
+            ];
+            run_cmd(&cmd)?;
+
             let cmd = ["cargo", "+nightly", "install", "racer"];
             run_cmd(&cmd)?;
 
