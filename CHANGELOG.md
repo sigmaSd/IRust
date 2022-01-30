@@ -1,3 +1,6 @@
+**1.61.1**
+- Update racer install method
+
 **1.61.0**
 - Add `hard_load` command, it manually sets the repl internal buffer and cursor (useful for vim plugin)
 
