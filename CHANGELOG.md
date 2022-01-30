@@ -1,3 +1,6 @@
+**1.60.0**
+- Add the ability to spawn a local server, this allows irust to be controlled programmatically, checkout https://github.com/sigmaSd/irust-vim-plugin that uses this
+
 **1.50.0**
 - Rework Startup/Shutdown hooks
 

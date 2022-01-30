@@ -170,6 +170,8 @@ IRust config file is located in:
   edition = "E2021"
   debugger = "LLDB"
   shell_interpolate = true
+  local_server = false
+  local_server_adress = "127.0.0.1:9000"
 ```
 
 ## Theme
@@ -199,6 +201,10 @@ IRust automatically creates `irust_prelude` crate at `xdg_data_dir/irust/irust_p
 ## Scripts
 IRust supports scripting, all over the code base there are hooks that scripts can react to and usually answer back to IRust with a command.\
 Check out [SCRIPTS.md](https://github.com/sigmaSd/IRust/blob/master/SCRIPTS.md) for more info.
+
+## Vim Plugin
+Since version `1.60.0` IRust supports spawning a local server, by changing `local_server` to `true` in the configuration file.\
+This allows it to be controlled programmatically, which in turns allows writing vim plugins that uses this, see https://github.com/sigmaSd/irust-vim-plugin
 
 ## Book
 `The IRust Book` is intended to document a couple of tips and tricks https://sigmasd.github.io/irust_book
