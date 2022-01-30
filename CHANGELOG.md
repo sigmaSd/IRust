@@ -1,3 +1,6 @@
+**1.61.0**
+- Add `hard_load` command, it manually sets the repl internal buffer and cursor (useful for vim plugin)
+
 **1.60.0**
 - Add the ability to spawn a local server, this allows irust to be controlled programmatically, checkout https://github.com/sigmaSd/irust-vim-plugin that uses this
 
