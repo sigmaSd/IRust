@@ -1,6 +1,7 @@
 tasks:
   - name: Preload
     before: |
+      rustup update stable
       cargo install irust
       rustup toolchain add nightly
       rustup component add rustc-dev --toolchain=nightly
