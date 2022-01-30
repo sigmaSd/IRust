@@ -169,6 +169,11 @@ impl Repl {
         Ok(())
     }
 
+    pub fn hard_load(&mut self, code: impl ToString, cursor: usize) {
+        self.body = code.to_string().lines().map(ToOwned::to_owned).collect();
+        self.cursor = cursor;
+    }
+
     // Note: Insert must be followed by write_to_extern if persistance is needed
     // Or else it will be overwritten by the main_extern thread
     // Fix this

@@ -55,6 +55,7 @@ impl IRust {
             cmd if cmd.starts_with("::") => self.run_cmd(buffer),
             cmd if cmd.starts_with(":edit") => self.extern_edit(buffer),
             cmd if cmd.starts_with(":add") => self.add_dep(buffer),
+            cmd if cmd.starts_with(":hard_load") => self.hard_load(buffer),
             cmd if cmd.starts_with(":load") => self.load(buffer),
             cmd if cmd.starts_with(":reload") => self.reload(),
             cmd if cmd.starts_with(":type") => self.show_type(),
@@ -229,6 +230,17 @@ impl IRust {
             return Err("No saved path").map_err(|e| e.into());
         };
         self.load_inner(path)
+    }
+
+    pub fn hard_load(&mut self, buffer: String) -> Result<PrintQueue> {
+        let buffer = buffer.split_whitespace().collect::<Vec<_>>();
+        if buffer.len() != 3 {
+            return Err("Incorrect unsage".into());
+        }
+        let code = std::fs::read_to_string(&buffer[1])?;
+        let cursor: usize = buffer[2].parse()?;
+        self.repl.hard_load(code, cursor);
+        success!()
     }
 
     pub fn load_inner(&mut self, path: PathBuf) -> Result<PrintQueue> {
