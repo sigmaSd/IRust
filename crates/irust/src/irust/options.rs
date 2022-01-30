@@ -41,6 +41,8 @@ pub struct Options {
     pub edition: Edition,
     pub debugger: Debugger,
     pub shell_interpolate: bool,
+    pub local_server: bool,
+    pub local_server_adress: std::net::SocketAddrV4,
 }
 
 impl Default for Options {
@@ -96,6 +98,8 @@ impl Default for Options {
             edition: Edition::E2021,
             debugger: Debugger::LLDB,
             shell_interpolate: true,
+            local_server: false,
+            local_server_adress: "127.0.0.1:9000".parse().expect("correct"),
         }
     }
 }

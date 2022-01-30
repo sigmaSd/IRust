@@ -1,4 +1,9 @@
 mod engine;
+use std::io::Read;
+use std::net::{SocketAddrV4, TcpListener};
+use std::sync::mpsc;
+use std::time::Duration;
+
 use engine::Engine;
 mod art;
 mod format;
@@ -9,8 +14,7 @@ pub mod options;
 mod parser;
 mod racer;
 mod script;
-use crossterm::event::KeyModifiers;
-use crossterm::event::{Event, KeyCode, KeyEvent};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use highlight::theme::Theme;
 use history::History;
 use irust_api::{Command, GlobalVariables};
@@ -123,24 +127,38 @@ impl IRust {
     pub fn run(&mut self) -> Result<()> {
         self.prepare()?;
 
+        let mut server = if self.options.local_server {
+            Some(start_server(self.options.local_server_adress)?)
+        } else {
+            None
+        };
+
         loop {
             // flush queued output after each key
             // some events that have an inner input loop like ctrl-r/ ctrl-d require flushing inside their respective handler function
             std::io::Write::flush(&mut self.printer.writer.raw)?;
 
-            match crossterm::event::read() {
-                Ok(ev) => {
-                    self.handle_input_event(ev)?;
-                    if self.exit_flag {
-                        break Ok(());
+            let evs = if self.options.local_server {
+                read_from_net_and_stdin(server.as_mut().expect("exists"))
+            } else {
+                vec![crossterm::event::read()]
+            };
+
+            for ev in evs {
+                match ev {
+                    Ok(ev) => {
+                        self.handle_input_event(ev)?;
+                        if self.exit_flag {
+                            return Ok(());
+                        }
                     }
+                    Err(e) => return Err(format!("failed to read input. error: {}", e).into()),
                 }
-                Err(e) => break Err(format!("failed to read input. error: {}", e).into()),
             }
         }
     }
 
-    fn handle_input_event(&mut self, ev: crossterm::event::Event) -> Result<()> {
+    fn handle_input_event(&mut self, ev: Event) -> Result<()> {
         // update_script_state before anything else
         self.update_script_state();
 
@@ -287,6 +305,43 @@ impl IRust {
             },
         }
         Ok(())
+    }
+}
+
+fn start_server(adress: SocketAddrV4) -> Result<mpsc::Receiver<String>> {
+    let server = TcpListener::bind(adress)?;
+    let (tx, rx) = mpsc::channel();
+    std::thread::spawn(move || {
+        let mut buf = String::new();
+        loop {
+            let mut c = server.accept().unwrap().0;
+            c.read_to_string(&mut buf).unwrap();
+            tx.send(buf.clone()).unwrap();
+            buf.clear();
+        }
+    });
+    Ok(rx)
+}
+fn read_from_net_and_stdin(server: &mut mpsc::Receiver<String>) -> Vec<std::io::Result<Event>> {
+    loop {
+        if let Ok(e) = server.try_recv() {
+            return e
+                .chars()
+                .map(|c| {
+                    Ok(Event::Key(KeyEvent {
+                        code: KeyCode::Char(c),
+                        modifiers: KeyModifiers::NONE,
+                    }))
+                })
+                .chain(std::iter::once(Ok(Event::Key(KeyEvent {
+                    code: KeyCode::Enter,
+                    modifiers: KeyModifiers::NONE,
+                }))))
+                .collect();
+        }
+        if let Ok(true) = crossterm::event::poll(Duration::from_millis(100)) {
+            return vec![crossterm::event::read()];
+        }
     }
 }
 
