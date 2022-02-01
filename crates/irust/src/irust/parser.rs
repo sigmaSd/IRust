@@ -9,7 +9,8 @@ use crossterm::style::Color;
 use super::format::format_err_printqueue;
 use super::highlight::highlight;
 use crate::irust::{IRust, Result};
-use crate::utils::stdout_and_stderr;
+use crate::utils::{copy_dir, stdout_and_stderr};
+use crate::utils::{find_workpace_root, patch_name};
 use crate::{
     irust::format::{format_check_output, format_eval_output},
     utils::ctrlc_cancel,
@@ -55,6 +56,7 @@ impl IRust {
             cmd if cmd.starts_with("::") => self.run_cmd(buffer),
             cmd if cmd.starts_with(":edit") => self.extern_edit(buffer),
             cmd if cmd.starts_with(":add") => self.add_dep(buffer),
+            cmd if cmd.starts_with(":hard_load_crate") => self.hard_load_crate(buffer),
             cmd if cmd.starts_with(":hard_load") => self.hard_load(buffer),
             cmd if cmd.starts_with(":load") => self.load(buffer),
             cmd if cmd.starts_with(":reload") => self.reload(),
@@ -230,6 +232,42 @@ impl IRust {
             return Err("No saved path").map_err(|e| e.into());
         };
         self.load_inner(path)
+    }
+
+    pub fn hard_load_crate(&mut self, buffer: String) -> Result<PrintQueue> {
+        // 0- Load to repl
+        let _ = self.hard_load(buffer.clone())?;
+        // Copy crate workspace
+        // 1- find file path
+        let file_path = buffer.split_whitespace().nth(1).expect("already checked");
+        // 2- find crate root
+        let crate_root = {
+            let metadata = String::from_utf8(
+                std::process::Command::new("cargo")
+                    .arg("metadata")
+                    .current_dir(
+                        std::path::Path::new(file_path)
+                            .parent()
+                            .ok_or("file must have a parent directory")?,
+                    )
+                    .output()?
+                    .stdout,
+            )?;
+            std::path::PathBuf::from(
+                find_workpace_root(metadata).ok_or("Could not find workspace root")?,
+            )
+        };
+        // 3- Copy Cargo.toml
+        std::fs::copy(crate_root.join("Cargo.toml"), &*CARGO_TOML_FILE)?;
+        // 4- Patch crate to name to `irust_host_repl`
+        patch_name(&*CARGO_TOML_FILE)?;
+        // 5- Copy src directory
+        // 5-1 Remove original src
+        std::fs::remove_dir_all(&*IRUST_SRC_DIR)?;
+        // 5-2 The actual copy
+        copy_dir(&crate_root.join("src"), &*IRUST_SRC_DIR)?;
+
+        success!()
     }
 
     pub fn hard_load(&mut self, buffer: String) -> Result<PrintQueue> {

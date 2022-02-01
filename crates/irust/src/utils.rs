@@ -1,3 +1,8 @@
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
+
 use crate::irust::Result;
 
 pub fn split_args(s: String) -> Vec<String> {
@@ -290,6 +295,59 @@ pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {
                     }
                     _ => (),
                 }
+            }
+        }
+    }
+    Ok(())
+}
+
+pub fn find_workpace_root(metadata: String) -> Option<String> {
+    let start = metadata.find("workspace_root")? + 17;
+    let end = metadata[start..].find('"')?;
+    Some(metadata[start..start + end].to_string())
+}
+
+pub fn patch_name(path: &Path) -> Result<()> {
+    let toml = std::fs::read_to_string(path)?;
+    let mut patched: String = String::new();
+    for line in toml.lines() {
+        if line.starts_with("name =") {
+            patched.push_str("name = \"irust_host_repl\"");
+            patched.push('\n');
+        } else {
+            patched.push_str(line);
+            patched.push('\n');
+        }
+    }
+    std::fs::write(path, patched)?;
+    Ok(())
+}
+
+pub fn copy_dir(src_path: &Path, out_path: &Path) -> Result<()> {
+    if src_path.is_file() {
+        panic!("Incorrect usage")
+    }
+    let convert_path =
+        |path: &Path| -> Result<PathBuf> { Ok(out_path.join(path.strip_prefix(src_path)?)) };
+    let dcb = |dp: PathBuf| Ok(std::fs::create_dir(convert_path(&dp)?)?);
+    let fcb = |fp: PathBuf| Ok(std::fs::copy(fp.clone(), convert_path(&fp)?)?);
+    visit_dirs(src_path, &dcb, &fcb)
+}
+
+fn visit_dirs(
+    dir: &Path,
+    dcb: &dyn Fn(PathBuf) -> Result<()>,
+    fcb: &dyn Fn(PathBuf) -> Result<u64>,
+) -> Result<()> {
+    if dir.is_dir() {
+        dcb(dir.to_path_buf())?;
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                visit_dirs(&path, dcb, fcb)?;
+            } else {
+                fcb(entry.path())?;
             }
         }
     }
