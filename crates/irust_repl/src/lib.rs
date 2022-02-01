@@ -244,7 +244,10 @@ impl Repl {
     ) -> Result<EvalResult> {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
-        let eval_statement = format!("{}{}{}", evaluator[0], input, evaluator[1]);
+        let eval_statement = format!(
+            "{}{}{};std::process::exit(0);", // exit(0) allows :hard_load functions to inspect variables that are used after this line
+            evaluator[0], input, evaluator[1]
+        );
         let toolchain = self.toolchain;
 
         let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, || {
