@@ -128,7 +128,8 @@ impl IRust {
         self.prepare()?;
 
         let mut server = if self.options.local_server {
-            Some(start_server(self.options.local_server_adress)?)
+            // Only one rust instance gets to act as a server
+            start_server(self.options.local_server_adress).ok()
         } else {
             None
         };
@@ -138,8 +139,8 @@ impl IRust {
             // some events that have an inner input loop like ctrl-r/ ctrl-d require flushing inside their respective handler function
             std::io::Write::flush(&mut self.printer.writer.raw)?;
 
-            let evs = if self.options.local_server {
-                read_from_net_and_stdin(server.as_mut().expect("exists"))
+            let evs = if let Some(ref mut server) = server {
+                read_from_net_and_stdin(server)
             } else {
                 vec![crossterm::event::read()]
             };
