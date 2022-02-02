@@ -1,3 +1,6 @@
+**1.62.1**
+- Allow multiple irust instances again
+
 **1.62.0**
 - Add `:hard_load_crate` command, its a more powerful version of `hard_load` that copies the whole crate src dir to irust directory, which allows using internal and external imports, see https://github.com/sigmaSd/irust-vim-plugin for an example
 
