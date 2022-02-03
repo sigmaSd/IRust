@@ -315,10 +315,13 @@ fn start_server(adress: SocketAddrV4) -> Result<mpsc::Receiver<String>> {
     std::thread::spawn(move || {
         let mut buf = String::new();
         loop {
-            let mut c = server.accept().unwrap().0;
-            c.read_to_string(&mut buf).unwrap();
-            tx.send(buf.clone()).unwrap();
-            buf.clear();
+            (|| {
+                let mut c = server.accept().ok()?.0;
+                c.read_to_string(&mut buf).ok()?;
+                tx.send(buf.clone()).ok()?;
+                buf.clear();
+                Some(())
+            })();
         }
     });
     Ok(rx)
