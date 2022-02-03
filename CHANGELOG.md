@@ -1,3 +1,7 @@
+**1.63.0**
+- Ignore server's client errors
+- Hide some warnings when evaluating
+
 **1.62.1**
 - Allow multiple irust instances again
 
