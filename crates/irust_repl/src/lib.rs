@@ -123,7 +123,8 @@ impl Repl {
     fn generate_body_delimiters(executor: Executor, main_result: MainResult) -> (String, String) {
         (
             executor.main() + " -> " + main_result.ttype() + "{",
-            main_result.instance().to_string()
+            "#[allow(unreachable_code)]".to_string()
+                + main_result.instance()
                 + " // Do not write past this line (it will corrupt the repl)",
         )
     }
@@ -245,7 +246,7 @@ impl Repl {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!(
-            "{}{}{};std::process::exit(0);", // exit(0) allows :hard_load functions to inspect variables that are used after this line
+            "{}{}{}std::process::exit(0);", // exit(0) allows :hard_load functions to inspect variables that are used after this line
             evaluator[0], input, evaluator[1]
         );
         let toolchain = self.toolchain;
