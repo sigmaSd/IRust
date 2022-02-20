@@ -1,6 +1,6 @@
 [package]
 name = "irust"
-version = "1.63.0"
+version = "1.63.1"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2021"
 readme = "README.md"
@@ -9,12 +9,12 @@ repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
 [dependencies]
-crossterm = { version = "0.22.1", features = ["serde"] }
+crossterm = { version = "0.23.0", features = ["serde"] }
 dirs = "4.0.0"
 toml = "0.5.8"
 serde = { version = "1.0.126", features = ["derive"] }
-printer = { path = "../printer/", version = "0.4.1" }
-irust_api = { path = "../irust_api/", version = "0.30.0" }
+printer = { path = "../printer/", version = "1.63.1" }
+irust_api = { path = "../irust_api/", version = "1.63.1" }
 irust_repl = { path = "../irust_repl", version = "0.19.0", features = ["serde"] }
 rscript = "0.17.0"
 rustc_lexer = { version = "727.0.0", package = "rustc-ap-rustc_lexer" }
