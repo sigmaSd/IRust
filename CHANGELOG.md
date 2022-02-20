@@ -1,3 +1,7 @@
+**1.63.1**
+- Update crossterm
+- Use https://github.com/pksunkara/cargo-workspaces to improve dev experience
+
 **1.63.0**
 - Ignore server's client errors
 - Hide some warnings when evaluating
