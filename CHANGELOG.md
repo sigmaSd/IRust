@@ -1,3 +1,6 @@
+**1.63.2**
+- Fix clippy warnings
+
 **1.63.1**
 - Update crossterm
 - Use https://github.com/pksunkara/cargo-workspaces to improve dev experience
