@@ -60,10 +60,8 @@ impl IRust {
 
         match command {
             Command::AcceptSuggestion => {
-                if let Some(suggestion) = self
-                    .racer
-                    .as_mut()
-                    .and_then(|r| r.active_suggestion.take())
+                if let Some(suggestion) =
+                    self.racer.as_mut().and_then(|r| r.active_suggestion.take())
                 {
                     for c in suggestion.chars() {
                         self.execute(Command::HandleCharacter(c))?;
@@ -287,10 +285,8 @@ impl IRust {
                 Ok(())
             }
             Command::HandleRight => {
-                if let Some(suggestion) = self
-                    .racer
-                    .as_mut()
-                    .and_then(|r| r.active_suggestion.take())
+                if let Some(suggestion) =
+                    self.racer.as_mut().and_then(|r| r.active_suggestion.take())
                 {
                     for c in suggestion.chars() {
                         self.execute(Command::HandleCharacter(c))?;
