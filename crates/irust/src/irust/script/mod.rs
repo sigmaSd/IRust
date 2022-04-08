@@ -122,8 +122,7 @@ impl super::IRust {
         self.global_variables.is_racer_suggestion_active = self
             .racer
             .as_ref()
-            .map(|r| r.active_suggestion.as_ref())
-            .flatten()
+            .and_then(|r| r.active_suggestion.as_ref())
             .is_some();
     }
 

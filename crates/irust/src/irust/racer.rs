@@ -164,7 +164,7 @@ impl Racer {
         self.suggestion_idx = self
             .suggestion_idx
             .checked_sub(1)
-            .unwrap_or_else(|| self.suggestions.len());
+            .unwrap_or(self.suggestions.len());
         if self.suggestion_idx == 0 {
             self.suggestion_idx = self.suggestions.len();
         }

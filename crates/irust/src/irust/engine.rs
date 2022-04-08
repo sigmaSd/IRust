@@ -63,8 +63,7 @@ impl IRust {
                 if let Some(suggestion) = self
                     .racer
                     .as_mut()
-                    .map(|r| r.active_suggestion.take())
-                    .flatten()
+                    .and_then(|r| r.active_suggestion.take())
                 {
                     for c in suggestion.chars() {
                         self.execute(Command::HandleCharacter(c))?;
@@ -291,8 +290,7 @@ impl IRust {
                 if let Some(suggestion) = self
                     .racer
                     .as_mut()
-                    .map(|r| r.active_suggestion.take())
-                    .flatten()
+                    .and_then(|r| r.active_suggestion.take())
                 {
                     for c in suggestion.chars() {
                         self.execute(Command::HandleCharacter(c))?;
