@@ -1,3 +1,6 @@
+**1.63.3**
+- Fix `:expand` command
+
 **1.63.2**
 - Fix clippy warnings
 
