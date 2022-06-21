@@ -286,6 +286,7 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
 pub fn cargo_expand(toolchain: ToolChain) -> Result<String> {
     let mut cmd = Command::new("cargo");
     let output = cargo_common(&mut cmd, "expand", toolchain)
+        .args(&["--bin", "irust_host_repl"])
         // For cargo expand, color needs to be specified here
         .args(&["--color", "always"])
         .output()?;
