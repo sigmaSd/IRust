@@ -713,7 +713,6 @@ impl IRust {
         let buffer: Vec<&str> = buffer
             .strip_prefix(":scripts")
             .expect("already checked")
-            .trim()
             .split_whitespace()
             .collect();
 
@@ -802,7 +801,6 @@ impl IRust {
         let buffer: Vec<&str> = buffer
             .strip_prefix(":compile_time")
             .expect("already checked")
-            .trim()
             .split_whitespace()
             .collect();
         match buffer.len() {

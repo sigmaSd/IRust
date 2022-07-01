@@ -78,12 +78,12 @@ pub fn highlight(buffer: &Buffer, theme: &Theme) -> PrintQueue {
                 push_to_printer!(&theme.symbol[..]);
             }
             OpenParen => {
-                push_to_printer!(PAREN_COLORS[paren_idx.abs() as usize % 4]);
+                push_to_printer!(PAREN_COLORS[paren_idx.unsigned_abs() % 4]);
                 paren_idx += 1;
             }
             CloseParen => {
                 paren_idx -= 1;
-                push_to_printer!(PAREN_COLORS[paren_idx.abs() as usize % 4]);
+                push_to_printer!(PAREN_COLORS[paren_idx.unsigned_abs() % 4]);
             }
         };
     }
