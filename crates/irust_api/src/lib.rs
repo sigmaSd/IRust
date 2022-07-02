@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use rscript::Hook;
-use serde::{Deserialize, Serialize};
+//use rscript::Hook;
+//use serde::{Deserialize, Serialize};
 
 // Reexport crossterm event types
 pub mod event {
@@ -11,72 +11,73 @@ pub mod color {
     pub use crossterm::style::Color;
 }
 
-macro_rules! hookit {
-    (Hook => $hook: ident,
-     Input => ($($input: ty $(,)?)*),
-     Output => $output: ty) => (
+//macro_rules! hookit {
+//    (Hook => $hook: ident,
+//     Input => ($($input: ty $(,)?)*),
+//     Output => $output: ty) => (
+//
+//    #[derive(Serialize, Deserialize)]
+//    pub struct $hook($(pub $input,)*);
+//
+//    impl Hook for $hook {
+//        const NAME: &'static str = stringify!($hook);
+//        type Output = $output;
+//    }
+//)}
+//
+//hookit!(
+//Hook => InputEvent,
+//Input => (GlobalVariables, event::Event),
+//Output => Option<Command>
+//);
+//hookit!(
+//Hook => OutputEvent,
+//Input => (GlobalVariables, String),
+//Output => Option<Command>
+//);
+//hookit!(
+//Hook => SetTitle,
+//Input => (),
+//Output => Option<String>
+//);
+//hookit!(
+//Hook => SetWelcomeMsg,
+//Input => (),
+//Output => Option<String>
+//);
+//hookit!(
+//Hook => Shutdown,
+//Input => (),
+//Output => Option<Command>
+//);
+//hookit!(
+//Hook => Startup,
+//Input => (),
+//Output => Option<Command>
+//);
+//hookit!(
+//Hook => SetInputPrompt,
+//Input => (GlobalVariables),
+//Output => String
+//);
+//hookit!(
+//Hook => SetOutputPrompt,
+//Input => (GlobalVariables),
+//Output => String
+//);
+//hookit!(
+//Hook => BeforeCompiling,
+//Input => (GlobalVariables),
+//Output => ()
+//);
+//hookit!(
+//Hook => AfterCompiling,
+//Input => (GlobalVariables),
+//Output => ()
+//);
 
-    #[derive(Serialize, Deserialize)]
-    pub struct $hook($(pub $input,)*);
-
-    impl Hook for $hook {
-        const NAME: &'static str = stringify!($hook);
-        type Output = $output;
-    }
-)}
-
-hookit!(
-Hook => InputEvent,
-Input => (GlobalVariables, event::Event),
-Output => Option<Command>
-);
-hookit!(
-Hook => OutputEvent,
-Input => (GlobalVariables, String),
-Output => Option<Command>
-);
-hookit!(
-Hook => SetTitle,
-Input => (),
-Output => Option<String>
-);
-hookit!(
-Hook => SetWelcomeMsg,
-Input => (),
-Output => Option<String>
-);
-hookit!(
-Hook => Shutdown,
-Input => (),
-Output => Option<Command>
-);
-hookit!(
-Hook => Startup,
-Input => (),
-Output => Option<Command>
-);
-hookit!(
-Hook => SetInputPrompt,
-Input => (GlobalVariables),
-Output => String
-);
-hookit!(
-Hook => SetOutputPrompt,
-Input => (GlobalVariables),
-Output => String
-);
-hookit!(
-Hook => BeforeCompiling,
-Input => (GlobalVariables),
-Output => ()
-);
-hookit!(
-Hook => AfterCompiling,
-Input => (GlobalVariables),
-Output => ()
-);
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
+//#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub enum Command {
     AcceptSuggestion,
     Continue,
@@ -122,7 +123,8 @@ pub enum Command {
     Exit,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+//#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GlobalVariables {
     current_working_dir: PathBuf,
     previous_working_dir: PathBuf,

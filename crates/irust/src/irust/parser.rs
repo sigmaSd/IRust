@@ -196,16 +196,16 @@ impl IRust {
             let key = buffer.next().ok_or("Key not specified")?;
             let value = buffer.next().ok_or("Value not specified")?;
 
-            let mut theme = toml::Value::try_from(&self.theme)?;
-            // test key
-            *theme.get_mut(key).ok_or("key doesn't exist")? = value.into();
+            //   let mut theme = toml::Value::try_from(&self.theme)?;
+            //   // test key
+            //   *theme.get_mut(key).ok_or("key doesn't exist")? = value.into();
 
-            // test Value
-            if super::highlight::theme::theme_color_to_term_color(value).is_none() {
-                return Err("Value is incorrect".into());
-            }
+            //   // test Value
+            //   if super::highlight::theme::theme_color_to_term_color(value).is_none() {
+            //       return Err("Value is incorrect".into());
+            //   }
 
-            self.theme = theme.try_into()?;
+            // self.theme = theme.try_into()?;
             Ok(())
         };
 

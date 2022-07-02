@@ -1,10 +1,11 @@
 use crate::irust::{IRust, Result};
 use crossterm::style::Color;
 use irust_repl::{Edition, Executor, MainResult, ToolChain, DEFAULT_EVALUATOR};
-use serde::{Deserialize, Serialize};
+//use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+//#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct Options {
     add_irust_cmd_to_history: bool,
     add_shell_cmd_to_history: bool,
@@ -118,7 +119,8 @@ impl Options {
             let mut config_data = String::new();
             config_file.read_to_string(&mut config_data)?;
 
-            toml::from_str(&config_data).map_err(|e| e.into())
+            //toml::from_str(&config_data).map_err(|e| e.into())
+            Ok(Self::default())
         } else {
             Ok(Options::default())
         }
@@ -149,11 +151,11 @@ impl Options {
     }
 
     fn write_config_file(config_path: std::path::PathBuf, options: &Options) -> Result<()> {
-        let config = toml::to_string(options)?;
+        //  let config = toml::to_string(options)?;
 
-        let mut config_file = std::fs::File::create(&config_path)?;
+        //  let mut config_file = std::fs::File::create(&config_path)?;
 
-        write!(config_file, "{}", config)?;
+        //  write!(config_file, "{}", config)?;
         Ok(())
     }
 }
@@ -179,7 +181,8 @@ impl IRust {
 }
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Deserialize, Serialize, Clone, Debug)]
+//#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum Debugger {
     LLDB,
     GDB,

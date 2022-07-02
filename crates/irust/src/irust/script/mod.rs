@@ -1,11 +1,14 @@
 use crossterm::event::Event;
 use irust_api::{Command, GlobalVariables};
 
-use self::script4::ScriptManager4;
+//use self::script4::ScriptManager4;
 
 use super::options::Options;
 
-pub mod script4;
+//pub mod script4;
+mod rscript {
+    pub struct Error;
+}
 
 pub trait Script {
     fn input_prompt(&mut self, _global_variables: &GlobalVariables) -> Option<String>;
@@ -110,7 +113,8 @@ impl super::IRust {
     ///
     pub fn choose_script_mg(options: &Options) -> Option<Box<dyn Script>> {
         if options.activate_scripting {
-            ScriptManager4::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
+            //     ScriptManager4::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
+            None
         } else {
             None
         }
@@ -129,9 +133,9 @@ impl super::IRust {
     pub fn run_scripts_startup_cmds(&mut self) -> super::Result<()> {
         if let Some(ref mut script_mg) = self.script_mg {
             for cmd in script_mg.startup_cmds() {
-                if let Some(cmd) = cmd? {
-                    self.execute(cmd)?;
-                }
+                //  if let Some(cmd) = cmd? {
+                //      self.execute(cmd)?;
+                //  }
             }
         }
         Ok(())
@@ -139,9 +143,9 @@ impl super::IRust {
     pub fn run_scripts_shutdown_cmds(&mut self) -> super::Result<()> {
         if let Some(ref mut script_mg) = self.script_mg {
             for cmd in script_mg.shutdown_cmds() {
-                if let Some(cmd) = cmd? {
-                    self.execute(cmd)?;
-                }
+                //   if let Some(cmd) = cmd? {
+                //       self.execute(cmd)?;
+                //   }
             }
         }
         Ok(())

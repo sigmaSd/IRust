@@ -1,6 +1,6 @@
 use crate::irust::Result;
 use crossterm::style::Color;
-use serde::{Deserialize, Serialize};
+//use serde::{Deserialize, Serialize};
 use std::io::Write;
 
 pub fn theme() -> Result<Theme> {
@@ -11,10 +11,12 @@ pub fn theme() -> Result<Theme> {
 
     let data = std::fs::read_to_string(theme_file)?;
 
-    Ok(toml::from_str(&data)?)
+    //Ok(toml::from_str(&data)?)
+    Ok(Theme::default())
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+//#[derive(Deserialize, Serialize, Debug)]
+#[derive(Debug)]
 pub struct Theme {
     pub keyword: String,
     pub keyword2: String,
@@ -36,7 +38,7 @@ impl Theme {
             .join("irust")
             .join("theme");
         let mut theme = std::fs::File::create(&theme_path)?;
-        write!(theme, "{}", toml::to_string(&self)?)?;
+        //write!(theme, "{}", toml::to_string(&self)?)?;
         Ok(())
     }
     pub fn reset(&mut self) {

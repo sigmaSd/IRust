@@ -40,27 +40,27 @@ impl ScriptManager4 {
         // dropped
 
         let mut startup_cmds = vec![];
-        if let Ok(script_state) =
-            mtry!(toml::from_str(&std::fs::read_to_string(script_conf_path)?)?)
-        {
-            // type inference
-            let script_state: HashMap<String, bool> = script_state;
+        //   if let Ok(script_state) =
+        //       mtry!(toml::from_str(&std::fs::read_to_string(script_conf_path)?)?)
+        //   {
+        //       // type inference
+        //       let script_state: HashMap<String, bool> = script_state;
 
-            sm.scripts_mut().iter_mut().for_each(|script| {
-                let script_name = &script.metadata().name;
-                if let Some(state) = script_state.get(script_name) {
-                    if *state {
-                        script.activate();
-                        // Trigger startup hook, in case the script needs to be aware of it
-                        if script.is_listening_for::<irust_api::Startup>() {
-                            startup_cmds.push(script.trigger(&irust_api::Startup()));
-                        }
-                    } else {
-                        script.deactivate();
-                    }
-                }
-            })
-        }
+        //       sm.scripts_mut().iter_mut().for_each(|script| {
+        //           let script_name = &script.metadata().name;
+        //           if let Some(state) = script_state.get(script_name) {
+        //               if *state {
+        //                   script.activate();
+        //                   // Trigger startup hook, in case the script needs to be aware of it
+        //                   if script.is_listening_for::<irust_api::Startup>() {
+        //                       startup_cmds.push(script.trigger(&irust_api::Startup()));
+        //                   }
+        //               } else {
+        //                   script.deactivate();
+        //               }
+        //           }
+        //       })
+        //   }
 
         Some(ScriptManager4 { sm, startup_cmds })
     }
@@ -77,7 +77,7 @@ impl Drop for ScriptManager4 {
                 .ok_or("could not find config directory")?
                 .join("irust")
                 .join("script4.conf");
-            std::fs::write(script_conf_path, toml::to_string(&script_state)?)
+            //std::fs::write(script_conf_path, toml::to_string(&script_state)?)
         });
     }
 }
