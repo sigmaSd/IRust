@@ -115,7 +115,7 @@ pub fn cargo_run(
 }
 
 pub fn cargo_add(dep: &[String]) -> io::Result<std::process::Child> {
-    Command::new("cargo-add")
+    Command::new("cargo")
         .current_dir(&*IRUST_DIR)
         .arg("add")
         .args(dep)
@@ -146,7 +146,7 @@ pub fn cargo_add_prelude(path: PathBuf, name: &'static str) -> io::Result<()> {
 }
 
 pub fn cargo_add_sync(dep: &[String]) -> Result<()> {
-    let process = Command::new("cargo-add")
+    let process = Command::new("cargo")
         .current_dir(&*IRUST_DIR)
         .arg("add")
         .args(dep)

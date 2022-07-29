@@ -41,7 +41,7 @@ pub fn check_required_deps() -> bool {
 }
 
 pub fn warn_about_opt_deps(options: &mut Options) {
-    let opt_deps: [Dep; 5] = [
+    let opt_deps: [Dep; 4] = [
         Dep::new("racer", "racer", "auto_completion", &|| {
             let mut exit_status = vec![];
             let mut run_cmd = |cmd: &[&str]| -> io::Result<()> {
@@ -94,14 +94,6 @@ pub fn warn_about_opt_deps(options: &mut Options) {
                 ));
             }
             let cmd = ["rustup", "component", "add", "rustfmt"];
-            println!("{}", format!("Running: {:?}", cmd).magenta());
-
-            Ok(vec![process::Command::new(cmd[0])
-                .args(&cmd[1..])
-                .status()?])
-        }),
-        Dep::new("cargo-edit", "cargo-add", "adding depedencies", &|| {
-            let cmd = ["cargo", "install", "cargo-edit"];
             println!("{}", format!("Running: {:?}", cmd).magenta());
 
             Ok(vec![process::Command::new(cmd[0])
