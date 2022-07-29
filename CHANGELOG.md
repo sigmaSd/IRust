@@ -1,3 +1,6 @@
+**1.63.4**
+- Use `cargo` instead of `cargo-add` now that it's builtin
+
 **1.63.3**
 - Fix `:expand` command
 
