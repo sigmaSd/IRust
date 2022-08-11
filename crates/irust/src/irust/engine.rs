@@ -368,6 +368,7 @@ impl IRust {
                             Event::Key(KeyEvent {
                                 code: KeyCode::Char(c),
                                 modifiers: KeyModifiers::NONE,
+                                ..
                             }) => match &c {
                                 'y' | 'Y' => {
                                     set_exit_flag_and_return!()
@@ -382,6 +383,7 @@ impl IRust {
                             Event::Key(KeyEvent {
                                 code: KeyCode::Char('d'),
                                 modifiers: KeyModifiers::CONTROL,
+                                ..
                             })
                             | Event::Key(KeyEvent {
                                 code: KeyCode::Enter,
@@ -458,6 +460,7 @@ impl IRust {
                             Event::Key(KeyEvent {
                                 code: KeyCode::Char(c),
                                 modifiers: KeyModifiers::NONE,
+                                ..
                             }) => {
                                 // reset index
                                 index = 0;
@@ -473,6 +476,7 @@ impl IRust {
                             Event::Key(KeyEvent {
                                 code: KeyCode::Char('s'),
                                 modifiers: KeyModifiers::CONTROL,
+                                ..
                             }) => {
                                 // forward search
                                 index = index.saturating_sub(1);
@@ -481,6 +485,7 @@ impl IRust {
                             Event::Key(KeyEvent {
                                 code: KeyCode::Char('r'),
                                 modifiers: KeyModifiers::CONTROL,
+                                ..
                             }) => {
                                 // backward search
                                 index += 1;
@@ -502,6 +507,7 @@ impl IRust {
                             Event::Key(KeyEvent {
                                 code: KeyCode::Char('c'),
                                 modifiers: KeyModifiers::CONTROL,
+                                ..
                             }) => {
                                 self.buffer.clear();
                                 self.print_input()?;
@@ -524,6 +530,7 @@ impl IRust {
                             Event::Key(KeyEvent {
                                 code: KeyCode::Char('d'),
                                 modifiers: KeyModifiers::CONTROL,
+                                ..
                             }) => {
                                 if needle.is_empty() {
                                     break;
@@ -688,6 +695,7 @@ impl IRust {
                         Event::Key(KeyEvent {
                             code: KeyCode::Char(c),
                             modifiers: KeyModifiers::NONE,
+                            ..
                         }) => {
                             break c;
                         }
@@ -715,6 +723,7 @@ impl IRust {
                         Event::Key(KeyEvent {
                             code: KeyCode::Char(c),
                             modifiers: KeyModifiers::NONE,
+                            ..
                         }) => {
                             break c;
                         }

@@ -14,7 +14,7 @@ pub mod options;
 mod parser;
 mod racer;
 mod script;
-use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
 use highlight::theme::Theme;
 use history::History;
 use irust_api::{Command, GlobalVariables};
@@ -165,7 +165,7 @@ impl IRust {
 
         // check if a script want to act upon this event
         // if so scripts have precedence over normal flow
-        if let Some(command) = self.input_event_hook(ev) {
+        if let Some(command) = self.input_event_hook(ev.clone()) {
             self.execute(command)?;
             return Ok(());
         }
@@ -182,18 +182,22 @@ impl IRust {
                 KeyEvent {
                     code: KeyCode::Char(c),
                     modifiers: KeyModifiers::NONE,
+                    ..
                 }
                 | KeyEvent {
                     code: KeyCode::Char(c),
                     modifiers: KeyModifiers::SHIFT,
+                    ..
                 } => self.execute(Command::HandleCharacter(c))?,
                 KeyEvent {
                     code: KeyCode::Char('e'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::HandleCtrlE)?,
                 KeyEvent {
                     code: KeyCode::Enter,
                     modifiers: KeyModifiers::ALT,
+                    ..
                 } => self.execute(Command::HandleAltEnter)?,
                 KeyEvent {
                     code: KeyCode::Enter,
@@ -209,10 +213,12 @@ impl IRust {
                 KeyEvent {
                     code: KeyCode::Left,
                     modifiers: KeyModifiers::NONE,
+                    ..
                 } => self.execute(Command::HandleLeft)?,
                 KeyEvent {
                     code: KeyCode::Right,
                     modifiers: KeyModifiers::NONE,
+                    ..
                 } => self.execute(Command::HandleRight)?,
                 KeyEvent {
                     code: KeyCode::Up, ..
@@ -228,44 +234,54 @@ impl IRust {
                 KeyEvent {
                     code: KeyCode::Char('c'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::HandleCtrlC)?,
                 KeyEvent {
                     code: KeyCode::Char('d'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => {
                     self.execute(Command::HandleCtrlD)?;
                 }
                 KeyEvent {
                     code: KeyCode::Char('z'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::HandleCtrlZ)?,
                 KeyEvent {
                     code: KeyCode::Char('l'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::HandleCtrlL)?,
                 KeyEvent {
                     code: KeyCode::Char('r'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::HandleCtrlR)?,
                 KeyEvent {
                     code: KeyCode::Char('o'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::MacroRecordToggle)?,
                 KeyEvent {
                     code: KeyCode::Char('p'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::MacroPlay)?,
                 KeyEvent {
                     code: KeyCode::Char('u'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::Undo)?,
                 KeyEvent {
                     code: KeyCode::Char('y'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::Redo)?,
                 KeyEvent {
                     code: KeyCode::Char('x'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::Multiple(vec![
                     Command::HandleHome,
                     Command::DeleteUntilChar('\n', true),
@@ -280,10 +296,12 @@ impl IRust {
                 KeyEvent {
                     code: KeyCode::Left,
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::HandleCtrlLeft)?,
                 KeyEvent {
                     code: KeyCode::Right,
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::HandleCtrlRight)?,
                 KeyEvent {
                     code: KeyCode::Delete,
@@ -304,6 +322,9 @@ impl IRust {
                     }
                 }
             },
+            Event::FocusGained => (),
+            Event::FocusLost => (),
+            Event::Paste(_data) => (),
         }
         Ok(())
     }
@@ -335,11 +356,15 @@ fn read_from_net_and_stdin(server: &mut mpsc::Receiver<String>) -> Vec<std::io::
                     Ok(Event::Key(KeyEvent {
                         code: KeyCode::Char(c),
                         modifiers: KeyModifiers::NONE,
+                        kind: KeyEventKind::Press,
+                        state: KeyEventState::NONE,
                     }))
                 })
                 .chain(std::iter::once(Ok(Event::Key(KeyEvent {
                     code: KeyCode::Enter,
                     modifiers: KeyModifiers::NONE,
+                    kind: KeyEventKind::Press,
+                    state: KeyEventState::NONE,
                 }))))
                 .collect();
         }

@@ -273,6 +273,7 @@ pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {
                     Event::Key(KeyEvent {
                         code: KeyCode::Char('c'),
                         modifiers: crossterm::event::KeyModifiers::CONTROL,
+                        ..
                     }) => {
                         process.kill()?;
                         return Err("Cancelled!".into());

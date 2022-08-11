@@ -37,6 +37,7 @@ impl Vim {
                 KeyEvent {
                     code: KeyCode::Char(c),
                     modifiers,
+                    ..
                 } => {
                     if modifiers != KeyModifiers::NONE && modifiers != KeyModifiers::SHIFT {
                         return None;
@@ -256,6 +257,9 @@ impl Vim {
             },
             Event::Mouse(_) => None,
             Event::Resize(_, _) => None,
+            Event::FocusGained => None,
+            Event::FocusLost => None,
+            Event::Paste(_) => None,
         })();
 
         // Second match to update the state

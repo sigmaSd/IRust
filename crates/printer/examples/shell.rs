@@ -20,6 +20,7 @@ fn main() -> Result<()> {
                 KeyEvent {
                     code: KeyCode::Char(c),
                     modifiers: KeyModifiers::NONE,
+                    ..
                 } => {
                     buffer.insert(c);
                     printer.print_input(&default_process_fn, &buffer)?;
@@ -51,6 +52,7 @@ fn main() -> Result<()> {
                 KeyEvent {
                     code: KeyCode::Char('c'),
                     modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => break,
                 _ => (),
             },
