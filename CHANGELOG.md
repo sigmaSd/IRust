@@ -1,3 +1,6 @@
+**1.64.0**
+- Update crossterm
+
 **1.63.4**
 - Use `cargo` instead of `cargo-add` now that it's builtin
 
