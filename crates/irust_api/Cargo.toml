@@ -1,6 +1,6 @@
 [package]
 name = "irust_api"
-version = "0.30.2"
+version = "0.31.0"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2021"
 description = "IRust API"
