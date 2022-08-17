@@ -1,11 +1,11 @@
 use crossterm::event::Event;
 use irust_api::{Command, GlobalVariables};
 
-use self::script4::ScriptManager4;
+use self::script_manager::ScriptManager;
 
 use super::options::Options;
 
-pub mod script4;
+pub mod script_manager;
 
 pub trait Script {
     fn input_prompt(&mut self, _global_variables: &GlobalVariables) -> Option<String>;
@@ -110,7 +110,7 @@ impl super::IRust {
     ///
     pub fn choose_script_mg(options: &Options) -> Option<Box<dyn Script>> {
         if options.activate_scripting {
-            ScriptManager4::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
+            ScriptManager::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)
         } else {
             None
         }

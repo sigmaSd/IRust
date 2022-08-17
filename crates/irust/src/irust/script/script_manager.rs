@@ -5,7 +5,9 @@ use irust_api::{Command, GlobalVariables};
 
 use super::Script;
 
-pub struct ScriptManager4 {
+const SCRIPT_CONFIG_NAME: &str = "script.toml";
+
+pub struct ScriptManager {
     sm: rscript::ScriptManager,
     startup_cmds: Vec<Result<Option<Command>, rscript::Error>>,
 }
@@ -15,10 +17,10 @@ macro_rules! mtry {
         (|| -> Result<_, Box<dyn std::error::Error>> { Ok($e) })()
     };
 }
-impl ScriptManager4 {
+impl ScriptManager {
     pub fn new() -> Option<Self> {
         let mut sm = rscript::ScriptManager::default();
-        let script_path = dirs::config_dir()?.join("irust").join("script4");
+        let script_path = dirs::config_dir()?.join("irust").join("script");
         sm.add_scripts_by_path(
             &script_path,
             rscript::Version::parse(crate::args::VERSION).expect("correct version"),
@@ -33,7 +35,7 @@ impl ScriptManager4 {
         }
 
         // read conf if available
-        let script_conf_path = dirs::config_dir()?.join("irust").join("script4.conf");
+        let script_conf_path = dirs::config_dir()?.join("irust").join(SCRIPT_CONFIG_NAME);
 
         // ignore any error that happens while trying to read conf
         // If an error happens, a new configuration will be written anyway when ScriptManager is
@@ -62,10 +64,10 @@ impl ScriptManager4 {
             })
         }
 
-        Some(ScriptManager4 { sm, startup_cmds })
+        Some(ScriptManager { sm, startup_cmds })
     }
 }
-impl Drop for ScriptManager4 {
+impl Drop for ScriptManager {
     fn drop(&mut self) {
         let mut script_state = HashMap::new();
         for script in self.sm.scripts() {
@@ -76,7 +78,7 @@ impl Drop for ScriptManager4 {
             let script_conf_path = dirs::config_dir()
                 .ok_or("could not find config directory")?
                 .join("irust")
-                .join("script4.conf");
+                .join(SCRIPT_CONFIG_NAME);
             std::fs::write(script_conf_path, toml::to_string(&script_state)?)
         });
     }
@@ -87,7 +89,7 @@ impl Drop for ScriptManager4 {
 struct ScriptState(HashMap<String, bool>);
 */
 
-impl Script for ScriptManager4 {
+impl Script for ScriptManager {
     fn input_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         self.sm
             .trigger(irust_api::SetInputPrompt(global_variables.clone()))
