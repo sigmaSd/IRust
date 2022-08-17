@@ -3,11 +3,13 @@ use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
 use std::io::Write;
 
+const THEME_NAME: &str = "theme.toml";
+
 pub fn theme() -> Result<Theme> {
     let theme_file = dirs::config_dir()
         .ok_or("Error accessing config_dir")?
         .join("irust")
-        .join("theme");
+        .join(THEME_NAME);
 
     let data = std::fs::read_to_string(theme_file)?;
 
@@ -34,7 +36,7 @@ impl Theme {
         let theme_path = dirs::config_dir()
             .ok_or("Error accessing config_dir")?
             .join("irust")
-            .join("theme");
+            .join(THEME_NAME);
         let mut theme = std::fs::File::create(&theme_path)?;
         write!(theme, "{}", toml::to_string(&self)?)?;
         Ok(())

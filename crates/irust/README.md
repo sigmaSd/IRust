@@ -112,11 +112,11 @@ If input is piped to IRust then it will evaluate it and exit, example: `echo '"h
 
 IRust config file is located in:
 
-**Linux**: */home/$USER/.config/irust/config*
+**Linux**: */home/$USER/.config/irust/config.toml*
 
-**Win**: *C:\Users\\$USER\AppData\Roaming/irust/config*
+**Win**: *C:\Users\\$USER\AppData\Roaming/irust/config.toml*
 
-**Mac**: */Users/$USER/Library/Preferences/irust/config*
+**Mac**: */Users/$USER/Library/Preferences/irust/config.toml*
 
 *default config:*
 ```
@@ -175,7 +175,7 @@ IRust config file is located in:
 ```
 
 ## Theme
-Since release `0.8.9` `IRust` can now parse a theme file located on `$config_dir/irust/theme` and use it for the highlighting colors.
+Since release `0.8.9` `IRust` can now parse a theme file located on `$config_dir/irust/theme.toml` and use it for the highlighting colors.
 
 Colors can be specified as names ("red") or as hex representation ("#ff12ab").
 
