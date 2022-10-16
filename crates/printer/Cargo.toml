@@ -10,7 +10,7 @@ license = "MIT"
 
 [dependencies]
 crossterm = "0.25.0"
-unicode-width = "0.1.8"
+unicode-width = "0.1.10"
 
 [package.metadata.workspaces]
 independent = true
