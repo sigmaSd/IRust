@@ -1,3 +1,7 @@
+**1.65.0**
+- Change script4 to script, theme to theme.toml and config to config.toml
+- Update deps, fix clippy
+
 **1.64.0**
 - Update crossterm
 
