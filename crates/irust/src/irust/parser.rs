@@ -209,9 +209,7 @@ impl IRust {
             Ok(())
         };
 
-        if let Err(e) = parse() {
-            return Err(e);
-        }
+        parse()?;
 
         success!()
     }

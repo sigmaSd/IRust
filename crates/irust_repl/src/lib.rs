@@ -374,7 +374,7 @@ impl Repl {
         Err("Incorrect line number".into())
     }
 
-    pub fn lines<'a>(&'a self) -> impl Iterator<Item = &String> + 'a {
+    pub fn lines(&self) -> impl Iterator<Item = &String> {
         self.body.iter()
     }
     pub fn lines_count(&self) -> usize {
