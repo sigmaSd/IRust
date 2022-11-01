@@ -101,11 +101,11 @@ pub fn warn_about_opt_deps(options: &mut Options) {
                 .status()?])
         }),
         Dep::new(
-            "cargo-asm",
-            "cargo-asm",
+            "cargo-show-asm",
+            "cargo-show-asm",
             "viewing functions assembly",
             &|| {
-                let cmd = ["cargo", "install", "cargo-asm"];
+                let cmd = ["cargo", "install", "cargo-show-asm"];
                 println!("{}", format!("Running: {:?}", cmd).magenta());
 
                 Ok(vec![process::Command::new(cmd[0])
