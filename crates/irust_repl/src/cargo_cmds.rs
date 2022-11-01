@@ -289,13 +289,22 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
     Ok(stdout_and_stderr(output))
 }
 
-pub fn cargo_expand(toolchain: ToolChain) -> Result<String> {
+pub fn cargo_expand(fnn: &str, toolchain: ToolChain) -> Result<String> {
     let mut cmd = Command::new("cargo");
-    let output = cargo_common(&mut cmd, "expand", toolchain)
-        .args(["--bin", "irust_host_repl"])
-        // For cargo expand, color needs to be specified here
-        .args(["--color", "always"])
-        .output()?;
+    let output = if fnn.is_empty() {
+        cargo_common(&mut cmd, "expand", toolchain)
+            // For cargo expand, color needs to be specified here
+            .args(["--color", "always"])
+            .args(["--bin", "irust_host_repl"])
+            .output()?
+    } else {
+        cargo_common(&mut cmd, "expand", toolchain)
+            // For cargo expand, color needs to be specified here
+            .args(["--color", "always"])
+            .arg("--lib")
+            .arg(fnn)
+            .output()?
+    };
     if !output.status.success() {
         return Err(stdout_and_stderr(output).trim().into());
     }
