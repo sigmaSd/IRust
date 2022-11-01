@@ -275,14 +275,19 @@ pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
 
 pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
     let mut cmd = Command::new("cargo");
-    Ok(stdout_and_stderr(
-        cargo_common(&mut cmd, "asm", toolchain)
-            .arg("--lib")
-            .arg(format!("irust_host_repl::{}", fnn))
-            .arg("--rust")
-            .output()?,
-    ))
+    let output = cargo_common(&mut cmd, "asm", toolchain)
+        .arg("--lib")
+        .arg(format!("irust_host_repl::{}", fnn))
+        .arg("--rust")
+        .output()?;
+    if !output.status.success() {
+        return Err(
+            (stdout_and_stderr(output)
+            + "\nMaybe you should make the function `pub`, see https://github.com/pacak/cargo-show-asm#my-function-isnt-there").into());
+    }
+    Ok(stdout_and_stderr(output))
 }
+
 pub fn cargo_expand(toolchain: ToolChain) -> Result<String> {
     let mut cmd = Command::new("cargo");
     let output = cargo_common(&mut cmd, "expand", toolchain)
