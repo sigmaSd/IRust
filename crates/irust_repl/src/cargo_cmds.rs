@@ -279,6 +279,7 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
         .arg("--lib")
         .arg(format!("irust_host_repl::{}", fnn))
         .arg("--rust")
+        .env("FORCE_COLOR", "1")
         .output()?;
     if !output.status.success() {
         return Err(
