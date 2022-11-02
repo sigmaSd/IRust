@@ -67,3 +67,39 @@ impl ProcessUtils for Child {
         })
     }
 }
+
+pub fn is_allowed_in_lib(s: &str) -> bool {
+    match s.split_whitespace().collect::<Vec<_>>().as_slice() {
+        // async fn|const fn|unsafe fn
+        [_, "fn", ..]
+        | ["fn", ..]
+        | [_, "use", ..]
+        | ["use", ..]
+        | ["enum", ..]
+        | ["struct", ..]
+        | ["trait", ..]
+        | ["impl", ..]
+        | ["pub", ..]
+        | ["extern", ..]
+        | ["macro", ..] => true,
+        ["macro_rules!", ..] => true,
+        // attribute exp:
+        // #[derive(Debug)]
+        // struct B{}
+        [tag, ..] if tag.starts_with('#') => true,
+        _ => false,
+    }
+}
+
+pub fn remove_semi_col_if_exists(mut s: String) -> String {
+    if !s.ends_with(';') {
+        return s;
+    }
+    s.pop();
+    s
+}
+
+pub fn is_use_stmt(l: &str) -> bool {
+    let l = l.trim_start();
+    l.starts_with("use") || l.starts_with("#[allow(unused_imports)]use")
+}

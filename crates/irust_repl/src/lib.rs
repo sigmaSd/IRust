@@ -10,6 +10,7 @@ mod edition;
 pub use edition::Edition;
 
 use once_cell::sync::Lazy;
+use utils::{is_allowed_in_lib, is_use_stmt, remove_semi_col_if_exists};
 mod utils;
 
 use std::{
@@ -350,7 +351,19 @@ impl Repl {
         body.pop(); // remove result type [() | Ok(())]
         body.pop(); // remove last }
 
-        write!(lib_file, "{}", body.join("\n"))?;
+        write!(
+            lib_file,
+            "{}",
+            body.into_iter()
+                .filter(|s| is_allowed_in_lib(s))
+                .map(|l| if is_use_stmt(&l) {
+                    l
+                } else {
+                    remove_semi_col_if_exists(l)
+                })
+                .collect::<Vec<_>>()
+                .join("\n")
+        )?;
 
         Ok(())
     }
