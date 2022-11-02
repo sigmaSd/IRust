@@ -5,6 +5,6 @@ members = [
     "./irust_vim_dylib",
     "./ipython",
     "./fun",
-    "./irust_animation"
+    "./irust_animation",
+    "./mixed_cmds"
 ]
-

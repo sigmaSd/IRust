@@ -201,7 +201,7 @@ impl IRust {
                 // This is also important to move the cursor after the all the input
                 self.printer.write_newline(&self.buffer);
 
-                self.execute(Command::Parse(self.buffer.to_string()))?;
+                self.execute(Command::Parse(self.buffer.to_string(), true))?;
 
                 Ok(())
             }
@@ -780,9 +780,11 @@ impl IRust {
                 self.printer.cursor.goto(last_input_pos.0, last_input_pos.1);
                 Ok(())
             }
-            Command::Parse(buf) => {
-                if let Some(cmd) = self.output_event_hook(&buf) {
-                    return self.execute(cmd);
+            Command::Parse(buf, enable_hook) => {
+                if enable_hook {
+                    if let Some(cmd) = self.output_event_hook(&buf) {
+                        return self.execute(cmd);
+                    }
                 }
 
                 // parse and handle errors
