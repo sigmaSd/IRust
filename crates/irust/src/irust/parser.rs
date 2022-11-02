@@ -258,12 +258,12 @@ impl IRust {
         // 3- Copy Cargo.toml
         std::fs::copy(crate_root.join("Cargo.toml"), &*CARGO_TOML_FILE)?;
         // 4- Patch crate to name to `irust_host_repl`
-        patch_name(&*CARGO_TOML_FILE)?;
+        patch_name(&CARGO_TOML_FILE)?;
         // 5- Copy src directory
         // 5-1 Remove original src
         std::fs::remove_dir_all(&*IRUST_SRC_DIR)?;
         // 5-2 The actual copy
-        copy_dir(&crate_root.join("src"), &*IRUST_SRC_DIR)?;
+        copy_dir(&crate_root.join("src"), &IRUST_SRC_DIR)?;
 
         success!()
     }
@@ -273,7 +273,7 @@ impl IRust {
         if buffer.len() != 3 {
             return Err("Incorrect unsage".into());
         }
-        let code = std::fs::read_to_string(&buffer[1])?;
+        let code = std::fs::read_to_string(buffer[1])?;
         let cursor: usize = buffer[2].parse()?;
         self.repl.hard_load(code, cursor);
         success!()
@@ -520,7 +520,7 @@ impl IRust {
         self.repl.write_to_extern()?;
 
         // beautify code
-        cargo_fmt_file(&*MAIN_FILE_EXTERN);
+        cargo_fmt_file(&MAIN_FILE_EXTERN);
 
         // some commands are not detected from path but still works  with cmd /C
         #[cfg(windows)]
@@ -563,7 +563,7 @@ impl IRust {
             }
             path => {
                 let mut dir = current_dir()?;
-                dir.push(&path);
+                dir.push(path);
                 set_current_dir(dir)?;
             }
         }
@@ -750,7 +750,7 @@ impl IRust {
                 if let Some(script) = scripts_list
                     .lines()
                     .skip(1)
-                    .find(|line| line.contains(&buffer[0]))
+                    .find(|line| line.contains(buffer[0]))
                 {
                     let header = scripts_list
                         .lines()
@@ -765,7 +765,7 @@ impl IRust {
             2 => {
                 // Set script state {0:script_name} {1:[activate|deactivate]}
                 if let Some(script) = scripts_list.lines().skip(1).find_map(|line| {
-                    if line.contains(&buffer[0]) {
+                    if line.contains(buffer[0]) {
                         Some(line.split_whitespace().next()?)
                     } else {
                         None
@@ -864,7 +864,7 @@ impl IRust {
             std::process::Command::new("cmd")
                 .arg("/C")
                 .arg(debugger)
-                .args(&[debugger_arg, &dbg_cmds_path.display().to_string()])
+                .args([debugger_arg, &dbg_cmds_path.display().to_string()])
                 .arg(&*EXE_PATH)
                 .spawn()?
                 .wait()?;
@@ -872,7 +872,7 @@ impl IRust {
             #[cfg(not(windows))]
             {
                 std::process::Command::new(debugger)
-                    .args(&[debugger_arg, &dbg_cmds_path.display().to_string()])
+                    .args([debugger_arg, &dbg_cmds_path.display().to_string()])
                     .arg(&*EXE_PATH)
                     .spawn()?
                     .wait()?;

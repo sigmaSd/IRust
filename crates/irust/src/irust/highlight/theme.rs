@@ -37,7 +37,7 @@ impl Theme {
             .ok_or("Error accessing config_dir")?
             .join("irust")
             .join(THEME_NAME);
-        let mut theme = std::fs::File::create(&theme_path)?;
+        let mut theme = std::fs::File::create(theme_path)?;
         write!(theme, "{}", toml::to_string(&self)?)?;
         Ok(())
     }

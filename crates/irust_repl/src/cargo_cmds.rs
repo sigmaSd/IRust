@@ -204,7 +204,7 @@ pub fn cargo_check_output(
 ) -> std::result::Result<(ExitStatus, String), io::Error> {
     let mut cmd = Command::new("cargo");
     let output = cargo_common(&mut cmd, "check", toolchain)
-        .args(&["--color", "always"])
+        .args(["--color", "always"])
         .output()?;
 
     let status = output.status;
@@ -229,12 +229,12 @@ pub fn cargo_build_output(
 
     let output = if !release {
         cargo_common(&mut cmd, "build", toolchain)
-            .args(&["--color", color])
+            .args(["--color", color])
             .output()?
     } else {
         cargo_common(&mut cmd, "build", toolchain)
             .arg("--release")
-            .args(&["--color", color])
+            .args(["--color", color])
             .output()?
     };
     let status = output.status;
@@ -246,7 +246,7 @@ pub fn cargo_bench(toolchain: ToolChain) -> std::result::Result<String, io::Erro
     let mut cmd = Command::new("cargo");
     Ok(stdout_and_stderr(
         cargo_common(&mut cmd, "bench", toolchain)
-            .args(&["--color", "always"])
+            .args(["--color", "always"])
             .output()?,
     ))
 }
@@ -292,9 +292,9 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
 pub fn cargo_expand(toolchain: ToolChain) -> Result<String> {
     let mut cmd = Command::new("cargo");
     let output = cargo_common(&mut cmd, "expand", toolchain)
-        .args(&["--bin", "irust_host_repl"])
+        .args(["--bin", "irust_host_repl"])
         // For cargo expand, color needs to be specified here
-        .args(&["--color", "always"])
+        .args(["--color", "always"])
         .output()?;
     if !output.status.success() {
         return Err(stdout_and_stderr(output).trim().into());

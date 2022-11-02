@@ -239,9 +239,9 @@ impl<W: std::io::Write> Printer<W> {
     fn readjust_cursor_pos(&mut self) -> Result<()> {
         let pos = self.cursor.raw.get_current_pos().unwrap_or((0, 0));
         self.cursor
-            .set_current_pos(self.cursor.current_pos().0, pos.1 as usize + 1);
+            .set_current_pos(self.cursor.current_pos().0, pos.1 + 1);
         self.cursor
-            .set_starting_pos(self.cursor.starting_pos().0, pos.1 as usize + 1);
+            .set_starting_pos(self.cursor.starting_pos().0, pos.1 + 1);
 
         if self.cursor.current_pos().1 == self.cursor.height() {
             self.scroll_up(1);

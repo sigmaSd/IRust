@@ -48,7 +48,7 @@ impl<W: std::io::Write> Cursor<W> {
         Self {
             pos,
             copy: pos,
-            bound: Bound::new(width as usize, height as usize),
+            bound: Bound::new(width, height),
             raw,
             prompt_len,
         }

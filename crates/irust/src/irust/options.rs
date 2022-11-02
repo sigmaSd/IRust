@@ -114,7 +114,7 @@ impl Options {
 
     pub fn new() -> Result<Self> {
         if let Some(config_path) = Options::config_path() {
-            let mut config_file = std::fs::File::open(&config_path)?;
+            let mut config_file = std::fs::File::open(config_path)?;
             let mut config_data = String::new();
             config_file.read_to_string(&mut config_data)?;
 
@@ -151,7 +151,7 @@ impl Options {
     fn write_config_file(config_path: std::path::PathBuf, options: &Options) -> Result<()> {
         let config = toml::to_string(options)?;
 
-        let mut config_file = std::fs::File::create(&config_path)?;
+        let mut config_file = std::fs::File::create(config_path)?;
 
         write!(config_file, "{}", config)?;
         Ok(())
