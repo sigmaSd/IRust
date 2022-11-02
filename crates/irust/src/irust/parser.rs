@@ -19,6 +19,40 @@ use irust_repl::{cargo_cmds::*, EvalConfig, EvalResult, Executor, MainResult, To
 use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
+const COMMANDS: [&str; 32] = [
+    ":reset",
+    ":show",
+    ":pop",
+    ":irust",
+    ":sync",
+    ":exit",
+    ":quit",
+    ":help",
+    "::",
+    ":edit",
+    ":add",
+    ":hard_load_crate",
+    ":hard_load",
+    ":load",
+    ":reload",
+    ":type",
+    ":del",
+    ":dbg",
+    ":color",
+    ":cd",
+    ":toolchain",
+    ":main_result",
+    ":check_statements",
+    ":time_release",
+    ":time",
+    ":bench",
+    ":asm",
+    ":executor",
+    ":evaluator",
+    ":scripts",
+    ":compile_time",
+    ":expand",
+];
 
 macro_rules! success {
     () => {{
@@ -37,6 +71,24 @@ macro_rules! print_queue {
 
         Ok(print_queue)
     }};
+}
+
+pub fn split_cmds(buffer: String) -> Vec<String> {
+    let mut new_buf = vec![];
+    let mut tmp_vec = vec![];
+    for line in buffer.lines() {
+        if line.is_empty() {
+            continue;
+        }
+        if COMMANDS.iter().any(|c| line.trim().starts_with(c)) {
+            new_buf.push(tmp_vec.join(""));
+            new_buf.push(line.trim().to_owned());
+            tmp_vec.clear();
+        } else {
+            tmp_vec.push(line);
+        }
+    }
+    new_buf
 }
 
 impl IRust {

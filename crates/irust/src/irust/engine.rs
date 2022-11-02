@@ -13,6 +13,8 @@ use crate::irust::{racer::Cycle, Result};
 use crate::irust::{racer::Racer, IRust};
 use crate::{irust::Buffer, utils::StringTools};
 
+use super::parser::split_cmds;
+
 enum Record {
     False,
     True(char),
@@ -786,17 +788,22 @@ impl IRust {
                 }
 
                 // parse and handle errors
-                let output = match self.parse(buf) {
-                    Ok(out) => out,
-                    Err(e) => {
-                        let mut printer = PrintQueue::default();
-                        printer.push(PrinterItem::String(e.to_string(), self.options.err_color));
-                        printer.add_new_line(1);
-                        printer
-                    }
-                };
+                let buffers = split_cmds(buf);
+                for b in buffers {
+                    let output = match self.parse(b) {
+                        Ok(out) => out,
+                        Err(e) => {
+                            let mut printer = PrintQueue::default();
+                            printer
+                                .push(PrinterItem::String(e.to_string(), self.options.err_color));
+                            printer.add_new_line(1);
+                            printer
+                        }
+                    };
 
-                self.print_output(output)
+                    self.print_output(output)?
+                }
+                Ok(())
             }
             Command::PrintOutput(output, color) => {
                 let output = PrinterItem::String(output, color).into();
