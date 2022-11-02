@@ -198,6 +198,11 @@ impl IRust {
                     code: KeyCode::Enter,
                     modifiers: KeyModifiers::ALT,
                     ..
+                }
+                | KeyEvent {
+                    code: KeyCode::Char('s'),
+                    modifiers: KeyModifiers::CONTROL,
+                    ..
                 } => self.execute(Command::HandleAltEnter)?,
                 KeyEvent {
                     code: KeyCode::Enter,

@@ -84,7 +84,7 @@ You can use arrow keys to cycle through commands history
 
 **Tab/ShiftTab** cycle through auto-completion suggestions (requires [racer](https://github.com/racer-rust/racer))
 
-**Alt-Enter** add line break
+**Alt-Enter | ctrl-s** add line break
 
 **ctrl-e** force evaluation
 
