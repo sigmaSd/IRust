@@ -90,7 +90,7 @@ impl Fun {
                     function = function.replacen(&arg_tag, arg, 1);
                 }
 
-                Ok(Some(Command::Parse(function, true)))
+                Ok(Some(Command::Parse(function)))
             }
             _ => Err("Incorrect usage of `fun`".into()),
         }

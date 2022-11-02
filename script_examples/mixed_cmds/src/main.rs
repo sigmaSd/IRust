@@ -1,4 +1,4 @@
-use irust_api::{color, Command, OutputEvent, Shutdown};
+use irust_api::{Command, OutputEvent, Shutdown};
 use rscript::scripting::Scripter;
 use rscript::{Hook, VersionReq};
 
@@ -46,20 +46,20 @@ fn split_cmds(buffer: String) -> Vec<String> {
             continue;
         }
         if COMMANDS.iter().any(|c| line.trim().starts_with(c)) {
-            new_buf.push(tmp_vec.join(""));
+            new_buf.push(tmp_vec.drain(..).collect::<Vec<_>>().join(""));
             new_buf.push(line.trim().to_owned());
-            tmp_vec.clear();
         } else {
             tmp_vec.push(line);
         }
+    }
+    if !tmp_vec.is_empty() {
+        new_buf.push(tmp_vec.drain(..).collect::<Vec<_>>().join(""));
     }
     new_buf
 }
 
 #[derive(Debug, Default)]
-struct MixedCmds {
-    on: bool,
-}
+struct MixedCmds {}
 
 impl Scripter for MixedCmds {
     fn name() -> &'static str {
@@ -80,8 +80,7 @@ impl Scripter for MixedCmds {
 }
 
 fn main() {
-    let mut m = MixedCmds { on: true };
-    let _ = MixedCmds::execute(&mut |hook_name| MixedCmds::run(&mut m, hook_name));
+    let _ = MixedCmds::execute(&mut |hook_name| MixedCmds::run(&mut MixedCmds {}, hook_name));
 }
 
 impl MixedCmds {
@@ -90,28 +89,10 @@ impl MixedCmds {
             OutputEvent::NAME => {
                 let hook: OutputEvent = Self::read();
                 let input = hook.1;
-                if input.starts_with(":mixed_cmds") {
-                    self.on = !self.on;
-                    let output = Some(Command::PrintOutput(
-                        format!("mixed_cmds is {}\n", if self.on { "on" } else { "off" }),
-                        color::Color::Blue,
-                    ));
-                    Self::write::<OutputEvent>(&output);
-                    return;
-                }
-
-                if self.on {
-                    let buffers = split_cmds(input);
-                    let cmds = buffers
-                        .into_iter()
-                        .map(|c| Command::Parse(c, false))
-                        .collect();
-                    let output = Some(Command::Multiple(cmds));
-                    Self::write::<OutputEvent>(&output);
-                } else {
-                    let output = Some(Command::Parse(input, false));
-                    Self::write::<OutputEvent>(&output);
-                }
+                let buffers = split_cmds(input);
+                let cmds: Vec<_> = buffers.into_iter().map(Command::Parse).collect();
+                let output = Some(Command::Multiple(cmds));
+                Self::write::<OutputEvent>(&output);
             }
             Shutdown::NAME => {
                 let hook: Shutdown = Self::read();

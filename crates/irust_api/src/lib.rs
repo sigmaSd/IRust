@@ -85,7 +85,7 @@ pub enum Command {
     DeleteUntilChar(char, bool),
     MoveForwardTillChar(char),
     MoveBackwardTillChar(char),
-    Parse(String, bool),
+    Parse(String),
     PrintInput,
     PrintOutput(String, color::Color),
     MacroRecordToggle,
