@@ -201,7 +201,11 @@ impl IRust {
                 // This is also important to move the cursor after the all the input
                 self.printer.write_newline(&self.buffer);
 
-                self.execute(Command::Parse(self.buffer.to_string()))?;
+                let buffer = self.buffer.to_string();
+                if let Some(cmd) = self.output_event_hook(&buffer) {
+                    return self.execute(cmd);
+                }
+                self.execute(Command::Parse(buffer))?;
 
                 Ok(())
             }
@@ -781,10 +785,6 @@ impl IRust {
                 Ok(())
             }
             Command::Parse(buf) => {
-                if let Some(cmd) = self.output_event_hook(&buf) {
-                    return self.execute(cmd);
-                }
-
                 // parse and handle errors
                 let output = match self.parse(buf) {
                     Ok(out) => out,
