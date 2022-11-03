@@ -8,3 +8,7 @@ members = [
     "./irust_animation",
     "./mixed_cmds"
 ]
+
+[workspace.dependencies]
+irust_api = { path = "../crates/irust_api/" }
+rscript = "0.17.0"
