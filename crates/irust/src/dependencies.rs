@@ -102,7 +102,7 @@ pub fn warn_about_opt_deps(options: &mut Options) {
         }),
         Dep::new(
             "cargo-show-asm",
-            "cargo-show-asm",
+            "cargo-asm",
             "viewing functions assembly",
             &|| {
                 let cmd = ["cargo", "install", "cargo-show-asm"];
