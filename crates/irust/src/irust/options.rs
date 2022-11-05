@@ -43,6 +43,7 @@ pub struct Options {
     pub shell_interpolate: bool,
     pub local_server: bool,
     pub local_server_adress: std::net::SocketAddrV4,
+    pub highlight_engine: String,
 }
 
 impl Default for Options {
@@ -100,6 +101,8 @@ impl Default for Options {
             shell_interpolate: true,
             local_server: false,
             local_server_adress: "127.0.0.1:9000".parse().expect("correct"),
+
+            highlight_engine: "default".into(),
         }
     }
 }

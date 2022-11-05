@@ -119,6 +119,32 @@ impl IRust {
         Ok(())
     }
 
+    pub fn warn_highlight_engine(&mut self) -> Result<()> {
+        #[cfg(feature = "rustc_lexer")]
+        #[cfg(not(feature = "change_highlight"))]
+        let supported = ["rustc_lexer"];
+        #[cfg(feature = "syntect")]
+        #[cfg(not(feature = "change_highlight"))]
+        let supported = ["syntect"];
+        #[cfg(feature = "change_highlight")]
+        let supported = ["default", "syntect", "rustc_lexer"];
+
+        if !supported.contains(&self.options.highlight_engine.as_str()) {
+            let msg = format!(
+                "highlight engine {} is not supported, use {} instead",
+                &self.options.highlight_engine, supported[0]
+            );
+            self.printer.writer.raw.set_fg(self.options.err_color)?;
+            self.printer.writer.raw.write(&msg)?;
+            self.printer.writer.raw.reset_color()?;
+
+            self.printer.write_newline(&self.buffer);
+            self.printer.write_newline(&self.buffer);
+        }
+
+        Ok(())
+    }
+
     pub fn ferris(&mut self) -> String {
         r#"
      _~^~^~_

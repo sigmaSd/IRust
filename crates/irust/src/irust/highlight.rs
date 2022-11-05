@@ -1,45 +1,49 @@
-use once_cell::sync::Lazy;
-use printer::{
-    buffer::Buffer,
-    printer::{PrintQueue, PrinterItem},
-};
-use syntect::{
-    easy::HighlightLines,
-    highlighting::{Style, ThemeSet},
-    parsing::{SyntaxReference, SyntaxSet},
-    util::LinesWithEndings,
-};
-use theme::Theme;
-
 pub mod theme;
 
-// Load these once at the start of your program
-static PS: Lazy<SyntaxSet> = Lazy::new(SyntaxSet::load_defaults_newlines);
-static TS: Lazy<ThemeSet> = Lazy::new(ThemeSet::load_defaults);
-static SYNTAX: Lazy<&SyntaxReference> = Lazy::new(|| PS.find_syntax_by_extension("rs").unwrap());
+use printer::{buffer::Buffer, printer::PrintQueue};
+use theme::Theme;
 
-fn syntect_color_to_crossterm(color: syntect::highlighting::Color) -> crossterm::style::Color {
-    crossterm::style::Color::Rgb {
-        r: color.r,
-        g: color.g,
-        b: color.b,
+#[derive(Debug)]
+pub struct Highlight {
+    pub engine: String,
+}
+
+impl Highlight {
+    pub fn new(engine: &str) -> Self {
+        Self {
+            engine: engine.into(),
+        }
     }
 }
 
-pub fn highlight(buffer: &Buffer, theme: &Theme) -> PrintQueue {
-    let mut h = HighlightLines::new(&SYNTAX, &TS.themes["base16-ocean.dark"]);
-    let mut print_queue = PrintQueue::default();
+#[cfg(feature = "rustc_lexer")]
+mod rustc_lexer_imp;
 
-    let buf = buffer.to_string();
-    for line in LinesWithEndings::from(&buf) {
-        let ranges: Vec<(Style, &str)> = h.highlight_line(line, &PS).unwrap();
-        for (style, text) in ranges {
-            print_queue.push(PrinterItem::String(
-                text.to_string(),
-                syntect_color_to_crossterm(style.foreground),
-            ));
+#[cfg(feature = "rustc_lexer")]
+#[cfg(not(feature = "change_highlight"))]
+impl Highlight {
+    pub fn highlight(&self, buffer: &Buffer, theme: &Theme) -> PrintQueue {
+        rustc_lexer_imp::highlight(buffer, theme)
+    }
+}
+
+#[cfg(feature = "syntect")]
+mod syntect_imp;
+
+#[cfg(feature = "syntect")]
+#[cfg(not(feature = "change_highlight"))]
+impl Highlight {
+    pub fn highlight(&self, buffer: &Buffer, theme: &Theme) -> PrintQueue {
+        syntect_imp::highlight(buffer, theme)
+    }
+}
+
+#[cfg(feature = "change_highlight")]
+impl Highlight {
+    pub fn highlight(&self, buffer: &Buffer, theme: &Theme) -> PrintQueue {
+        match self.engine.as_str() {
+            "syntect" => syntect_imp::highlight(buffer, theme),
+            _ => rustc_lexer_imp::highlight(buffer, theme),
         }
     }
-
-    print_queue
 }

@@ -1,4 +1,4 @@
-use super::highlight::{highlight, theme::Theme};
+use super::highlight::theme::Theme;
 use crate::irust::{IRust, Result};
 use crossterm::style::Color;
 use printer::{
@@ -15,106 +15,107 @@ impl IRust {
 
         let compact = !buffer.contains("full");
 
-        Ok(parse_markdown(&readme.into(), &self.theme, compact))
+        Ok(self.parse_markdown(&readme.into(), &self.theme, compact))
     }
-}
 
-fn parse_markdown(buffer: &Buffer, theme: &Theme, compact: bool) -> PrintQueue {
-    let mut queue = PrintQueue::default();
+    fn parse_markdown(&self, buffer: &Buffer, theme: &Theme, compact: bool) -> PrintQueue {
+        let mut queue = PrintQueue::default();
 
-    let buffer = buffer.to_string();
-    let mut buffer = buffer.lines();
+        let buffer = buffer.to_string();
+        let mut buffer = buffer.lines();
 
-    (|| -> Option<()> {
-        loop {
-            let line = buffer.next()?;
-            if compact && line.starts_with("<img") {
-                break Some(());
-            }
-
-            if line.trim_start().starts_with("##") {
-                queue.push(PrinterItem::String(line.to_string(), Color::Yellow));
-            } else if line.trim_start().starts_with('#') {
-                queue.push(PrinterItem::String(line.to_string(), Color::Red));
-            } else if line.trim_start().starts_with("```rust") {
-                queue.push(PrinterItem::String(line.to_string(), Color::Cyan));
-                // highlight rust code
-                queue.add_new_line(1);
-
-                // take_while takes ownership of the iterator
-                let mut skipped_lines = 0;
-
-                let code = buffer
-                    .clone()
-                    .take_while(|line| {
-                        skipped_lines += 1;
-                        !line.starts_with("```")
-                    })
-                    .collect::<Vec<&str>>()
-                    .join("\n");
-
-                for _ in 0..skipped_lines {
-                    let _ = buffer.next();
+        (|| -> Option<()> {
+            loop {
+                let line = buffer.next()?;
+                if compact && line.starts_with("<img") {
+                    break Some(());
                 }
 
-                queue.append(&mut highlight(&code.into(), theme));
-            } else {
-                let mut line = line.chars().peekable();
+                if line.trim_start().starts_with("##") {
+                    queue.push(PrinterItem::String(line.to_string(), Color::Yellow));
+                } else if line.trim_start().starts_with('#') {
+                    queue.push(PrinterItem::String(line.to_string(), Color::Red));
+                } else if line.trim_start().starts_with("```rust") {
+                    queue.push(PrinterItem::String(line.to_string(), Color::Cyan));
+                    // highlight rust code
+                    queue.add_new_line(1);
 
-                (|| -> Option<()> {
-                    loop {
-                        let c = line.next()?;
-                        match c {
-                            '*' => {
-                                let mut star = String::new();
-                                star.push('*');
+                    // take_while takes ownership of the iterator
+                    let mut skipped_lines = 0;
 
-                                let mut pending = None;
-                                let mut post_start_count = 0;
+                    let code = buffer
+                        .clone()
+                        .take_while(|line| {
+                            skipped_lines += 1;
+                            !line.starts_with("```")
+                        })
+                        .collect::<Vec<&str>>()
+                        .join("\n");
 
-                                while line.peek().is_some() {
-                                    let c = line.next().unwrap();
-                                    if pending.is_none() && c != '*' {
-                                        pending = Some(star.len());
-                                    }
-                                    star.push(c);
+                    for _ in 0..skipped_lines {
+                        let _ = buffer.next();
+                    }
 
-                                    if let Some(pending) = pending {
-                                        if c == '*' {
-                                            post_start_count += 1;
-                                            if pending == post_start_count {
-                                                break;
+                    queue.append(&mut self.highlight.highlight(&code.into(), theme));
+                } else {
+                    let mut line = line.chars().peekable();
+
+                    (|| -> Option<()> {
+                        loop {
+                            let c = line.next()?;
+                            match c {
+                                '*' => {
+                                    let mut star = String::new();
+                                    star.push('*');
+
+                                    let mut pending = None;
+                                    let mut post_start_count = 0;
+
+                                    while line.peek().is_some() {
+                                        let c = line.next().unwrap();
+                                        if pending.is_none() && c != '*' {
+                                            pending = Some(star.len());
+                                        }
+                                        star.push(c);
+
+                                        if let Some(pending) = pending {
+                                            if c == '*' {
+                                                post_start_count += 1;
+                                                if pending == post_start_count {
+                                                    break;
+                                                }
+                                            } else {
+                                                post_start_count =
+                                                    post_start_count.saturating_sub(1);
                                             }
-                                        } else {
-                                            post_start_count = post_start_count.saturating_sub(1);
                                         }
                                     }
+                                    queue.push(PrinterItem::String(star, Color::Magenta));
                                 }
-                                queue.push(PrinterItem::String(star, Color::Magenta));
-                            }
-                            '`' => {
-                                let mut quoted = String::new();
-                                quoted.push('`');
+                                '`' => {
+                                    let mut quoted = String::new();
+                                    quoted.push('`');
 
-                                while line.peek().is_some() && line.peek() != Some(&'`') {
-                                    quoted.push(line.next().unwrap());
+                                    while line.peek().is_some() && line.peek() != Some(&'`') {
+                                        quoted.push(line.next().unwrap());
+                                    }
+                                    //push the closing quote
+                                    if line.peek().is_some() {
+                                        quoted.push(line.next().unwrap());
+                                    }
+                                    queue.push(PrinterItem::String(quoted, Color::DarkGreen));
                                 }
-                                //push the closing quote
-                                if line.peek().is_some() {
-                                    quoted.push(line.next().unwrap());
+                                '=' | '>' | '(' | ')' | '-' | '|' => {
+                                    queue.push(PrinterItem::Char(c, Color::DarkRed))
                                 }
-                                queue.push(PrinterItem::String(quoted, Color::DarkGreen));
+                                c => queue.push(PrinterItem::Char(c, Color::White)),
                             }
-                            '=' | '>' | '(' | ')' | '-' | '|' => {
-                                queue.push(PrinterItem::Char(c, Color::DarkRed))
-                            }
-                            c => queue.push(PrinterItem::Char(c, Color::White)),
                         }
-                    }
-                })();
+                    })();
+                }
+                queue.add_new_line(1);
             }
-            queue.add_new_line(1);
-        }
-    })();
-    queue
+        })();
+        queue
+    }
 }
