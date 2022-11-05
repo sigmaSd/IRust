@@ -1,7 +1,9 @@
-use crate::irust::Result;
+use std::io::Write;
+
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
-use std::io::Write;
+
+use crate::irust::Result;
 
 const THEME_NAME: &str = "theme.toml";
 
@@ -41,6 +43,7 @@ impl Theme {
         write!(theme, "{}", toml::to_string(&self)?)?;
         Ok(())
     }
+
     pub fn reset(&mut self) {
         *self = Self::default();
     }

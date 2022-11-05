@@ -1,8 +1,7 @@
 #![feature(test)]
 extern crate test;
-use test::Bencher;
-
 use printer::printer::{default_process_fn, Printer};
+use test::Bencher;
 
 // last run 45ns/iter
 #[bench]

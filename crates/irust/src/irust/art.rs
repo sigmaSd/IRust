@@ -1,6 +1,8 @@
-use crate::irust::{IRust, Result};
-use crossterm::style::Color;
 use std::io::Read;
+
+use crossterm::style::Color;
+
+use crate::irust::{IRust, Result};
 
 impl IRust {
     pub fn wait_add(&mut self, mut add_cmd: std::process::Child, msg: &str) -> Result<()> {

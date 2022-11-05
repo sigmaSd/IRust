@@ -1,10 +1,11 @@
-use super::highlight::{highlight, theme::Theme};
-use crate::irust::{IRust, Result};
 use crossterm::style::Color;
 use printer::{
     buffer::Buffer,
     printer::{PrintQueue, PrinterItem},
 };
+
+use super::highlight::{highlight, theme::Theme};
+use crate::irust::{IRust, Result};
 
 impl IRust {
     pub fn help(&mut self, buffer: String) -> Result<PrintQueue> {
@@ -99,7 +100,7 @@ fn parse_markdown(buffer: &Buffer, theme: &Theme, compact: bool) -> PrintQueue {
                                 while line.peek().is_some() && line.peek() != Some(&'`') {
                                     quoted.push(line.next().unwrap());
                                 }
-                                //push the closing quote
+                                // push the closing quote
                                 if line.peek().is_some() {
                                     quoted.push(line.next().unwrap());
                                 }

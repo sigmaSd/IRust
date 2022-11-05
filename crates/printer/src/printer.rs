@@ -1,6 +1,6 @@
+use std::{cell::RefCell, collections::VecDeque, ops::Range, rc::Rc};
+
 use crossterm::{style::Color, terminal::ClearType};
-use std::ops::Range;
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::{buffer::Buffer, Result};
 
@@ -110,7 +110,7 @@ impl<W: std::io::Write> Printer<W> {
         self.print_prompt_if_set()?;
 
         self.print_input_inner(process_function(buffer))?;
-        //bound last row to last position
+        // bound last row to last position
         self.cursor.bound_current_row_at_current_col();
 
         self.cursor.restore_position();
@@ -118,6 +118,7 @@ impl<W: std::io::Write> Printer<W> {
 
         Ok(())
     }
+
     /// FIXME: This function takes the buffer just to calculate if it needs scrolling
     pub fn print_input_from_queue(&mut self, queue: PrintQueue, buffer: &Buffer) -> Result<()> {
         self.cursor.hide();
@@ -130,7 +131,7 @@ impl<W: std::io::Write> Printer<W> {
         self.print_prompt_if_set()?;
 
         self.print_input_inner(queue)?;
-        //bound last row to last position
+        // bound last row to last position
         self.cursor.bound_current_row_at_current_col();
 
         self.cursor.restore_position();
@@ -234,8 +235,8 @@ impl<W: std::io::Write> Printer<W> {
     }
 
     /// Calculate where to draw the next input prompt
-    /// Simply use `crossterm::cusror::position` to figure out where we are after printing the output and add one to that
-    /// This is not a hot path so using `position` here is okay
+    /// Simply use `crossterm::cusror::position` to figure out where we are after printing the
+    /// output and add one to that This is not a hot path so using `position` here is okay
     fn readjust_cursor_pos(&mut self) -> Result<()> {
         let pos = self.cursor.raw.get_current_pos().unwrap_or((0, 0));
         self.cursor
@@ -270,6 +271,7 @@ impl<W: std::io::Write> Printer<W> {
             }
         }
     }
+
     pub fn recalculate_bounds(&mut self, printer: PrintQueue) -> Result<()> {
         self.cursor.hide();
         self.cursor.save_position();
@@ -306,7 +308,7 @@ impl<W: std::io::Write> Printer<W> {
                 }
             }
         }
-        //bound last row to last position
+        // bound last row to last position
         self.cursor.bound_current_row_at_current_col();
         self.cursor.restore_position();
         self.cursor.show();
@@ -337,9 +339,11 @@ impl<W: std::io::Write> Printer<W> {
         self.writer
             .write_from_terminal_start(out, color, &mut self.cursor)
     }
+
     pub fn clear(&mut self) -> Result<()> {
         self.writer.clear(&mut self.cursor)
     }
+
     pub fn clear_last_line(&mut self) -> Result<()> {
         self.writer.clear_last_line(&mut self.cursor)
     }
@@ -355,13 +359,16 @@ impl<W: std::io::Write> Printer<W> {
     pub fn write_at(&mut self, s: &str, x: usize, y: usize) -> Result<()> {
         self.writer.write_at(s, x, y, &mut self.cursor)
     }
+
     pub fn write_at_no_cursor(&mut self, s: &str, color: Color, x: usize, y: usize) -> Result<()> {
         self.writer
             .write_at_no_cursor(s, color, x, y, &mut self.cursor)
     }
+
     pub fn scroll_up(&mut self, n: usize) {
         self.writer.scroll_up(n, &mut self.cursor)
     }
+
     pub fn print_extra_lines_indicator_if_needed(&mut self, from_start: bool) -> Result<()> {
         let prompt_len = self.prompt_len();
 

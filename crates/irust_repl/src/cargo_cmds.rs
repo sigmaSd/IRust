@@ -1,15 +1,18 @@
-use crate::Result;
+use std::{
+    env::temp_dir,
+    fs, io,
+    io::prelude::*,
+    path::{Path, PathBuf},
+    process,
+    process::{Command, ExitStatus, Stdio},
+};
+
+use once_cell::sync::Lazy;
+
 use crate::{
     utils::{stdout_and_stderr, ProcessUtils},
-    ToolChain,
+    Result, ToolChain,
 };
-use once_cell::sync::Lazy;
-use std::io;
-use std::io::prelude::*;
-use std::path::{Path, PathBuf};
-use std::process::{Command, ExitStatus};
-use std::{env::temp_dir, process::Stdio};
-use std::{fs, process};
 
 pub static TMP_DIR: Lazy<PathBuf> = Lazy::new(temp_dir);
 pub static IRUST_DIR: Lazy<PathBuf> = Lazy::new(|| TMP_DIR.join("irust_host_repl"));
@@ -85,7 +88,8 @@ pub fn cargo_run(
     } else {
         // Run the exexcutable directly instead of cargo run
         // This allows to run it without modifying the current working directory
-        // example: std::process::Commmand::new("pwd") will output the expected path instead of `/tmp/irust_host_repl`
+        // example: std::process::Commmand::new("pwd") will output the expected path instead of
+        // `/tmp/irust_host_repl`
         if !release {
             Ok((
                 status,

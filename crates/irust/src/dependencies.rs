@@ -1,6 +1,6 @@
+use std::{io, process};
+
 use crossterm::style::Stylize;
-use std::io;
-use std::process;
 
 use crate::irust::options::Options;
 
@@ -96,9 +96,9 @@ pub fn warn_about_opt_deps(options: &mut Options) {
             let cmd = ["rustup", "component", "add", "rustfmt"];
             println!("{}", format!("Running: {:?}", cmd).magenta());
 
-            Ok(vec![process::Command::new(cmd[0])
-                .args(&cmd[1..])
-                .status()?])
+            Ok(vec![
+                process::Command::new(cmd[0]).args(&cmd[1..]).status()?,
+            ])
         }),
         Dep::new(
             "cargo-show-asm",
@@ -108,9 +108,9 @@ pub fn warn_about_opt_deps(options: &mut Options) {
                 let cmd = ["cargo", "install", "cargo-show-asm"];
                 println!("{}", format!("Running: {:?}", cmd).magenta());
 
-                Ok(vec![process::Command::new(cmd[0])
-                    .args(&cmd[1..])
-                    .status()?])
+                Ok(vec![
+                    process::Command::new(cmd[0]).args(&cmd[1..]).status()?,
+                ])
             },
         ),
         Dep::new(
@@ -121,9 +121,9 @@ pub fn warn_about_opt_deps(options: &mut Options) {
                 let cmd = ["cargo", "install", "cargo-expand"];
                 println!("{}", format!("Running: {:?}", cmd).magenta());
 
-                Ok(vec![process::Command::new(cmd[0])
-                    .args(&cmd[1..])
-                    .status()?])
+                Ok(vec![
+                    process::Command::new(cmd[0]).args(&cmd[1..]).status()?,
+                ])
             },
         ),
     ];

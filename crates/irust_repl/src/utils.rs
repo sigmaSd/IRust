@@ -1,9 +1,10 @@
-use crate::Result;
 use std::{
     io::Read,
     process::{Child, Output},
     sync::mpsc,
 };
+
+use crate::Result;
 
 pub fn stdout_and_stderr(out: Output) -> String {
     let out = if !out.stdout.is_empty() {

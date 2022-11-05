@@ -1,0 +1,14 @@
+# error_on_line_overflow = true
+# error_on_unformatted = true
+edition = "2021"
+version = "Two"
+newline_style = "Unix"
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+
+# They are kept here since they are useful to run from time to time.
+format_code_in_doc_comments = true
+reorder_impl_items = true
+comment_width = 100
+wrap_comments = true
+normalize_comments = true

@@ -84,10 +84,9 @@ impl Drop for ScriptManager {
     }
 }
 
-/* NOTE: Toml: serilizing tuple struct is not working?
-#[derive(Serialize, Deserialize, Debug)]
-struct ScriptState(HashMap<String, bool>);
-*/
+// NOTE: Toml: serilizing tuple struct is not working?
+// #[derive(Serialize, Deserialize, Debug)]
+// struct ScriptState(HashMap<String, bool>);
 
 impl Script for ScriptManager {
     fn input_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
@@ -96,24 +95,28 @@ impl Script for ScriptManager {
             .next()?
             .ok()
     }
+
     fn get_output_prompt(&mut self, global_variables: &GlobalVariables) -> Option<String> {
         self.sm
             .trigger(irust_api::SetOutputPrompt(global_variables.clone()))
             .next()?
             .ok()
     }
+
     fn before_compiling(&mut self, global_variables: &GlobalVariables) -> Option<()> {
         self.sm
             .trigger(irust_api::BeforeCompiling(global_variables.clone()))
             .collect::<Result<_, _>>()
             .ok()
     }
+
     fn after_compiling(&mut self, global_variables: &GlobalVariables) -> Option<()> {
         self.sm
             .trigger(irust_api::AfterCompiling(global_variables.clone()))
             .collect::<Result<_, _>>()
             .ok()
     }
+
     fn input_event_hook(
         &mut self,
         global_variables: &GlobalVariables,
@@ -124,6 +127,7 @@ impl Script for ScriptManager {
             .next()?
             .ok()?
     }
+
     fn output_event_hook(
         &mut self,
         input: &str,
@@ -137,6 +141,7 @@ impl Script for ScriptManager {
             .next()?
             .ok()?
     }
+
     fn trigger_set_title_hook(&mut self) -> Option<String> {
         self.sm.trigger(irust_api::SetTitle()).next()?.ok()?
     }
@@ -161,7 +166,7 @@ impl Script for ScriptManager {
                 )
             })
             .collect();
-        //header
+        // header
         scripts.insert(0, "Name\tScriptType\tHooks\tState".into());
 
         Some(scripts.join("\n"))

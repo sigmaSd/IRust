@@ -1,5 +1,7 @@
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use crossterm::style::Color;
+use crossterm::{
+    event::{KeyCode, KeyEvent, KeyModifiers},
+    style::Color,
+};
 use printer::{
     buffer::Buffer,
     printer::{default_process_fn, PrintQueue, Printer, PrinterItem},

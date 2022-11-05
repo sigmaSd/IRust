@@ -8,7 +8,6 @@ mod main_result;
 pub use main_result::MainResult;
 mod edition;
 pub use edition::Edition;
-
 use once_cell::sync::Lazy;
 use utils::{is_allowed_in_lib, is_use_stmt, remove_semi_col_if_exists};
 mod utils;
@@ -181,8 +180,8 @@ impl Repl {
     // Fix this
     pub fn insert(&mut self, input: impl ToString) {
         let input = input.to_string();
-        // CRATE_ATTRIBUTE are special in the sense that they should be inserted outside of the main function
-        // #![feature(unboxed_closures)]
+        // CRATE_ATTRIBUTE are special in the sense that they should be inserted outside of the main
+        // function #![feature(unboxed_closures)]
         // fn main() {}
         const CRATE_ATTRIBUTE: &str = "#!";
 
@@ -223,7 +222,8 @@ impl Repl {
     pub fn eval(&mut self, input: impl ToString) -> Result<EvalResult> {
         self.eval_inner(input, None, false, &*DEFAULT_EVALUATOR)
     }
-    //Note: These inputs should become a Config struct
+
+    // Note: These inputs should become a Config struct
     pub fn eval_with_configuration(
         &mut self,
         eval_config: EvalConfig<impl ToString>,
@@ -247,7 +247,8 @@ impl Repl {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
         let eval_statement = format!(
-            "{}{}{}std::process::exit(0);", // exit(0) allows :hard_load functions to inspect variables that are used after this line
+            "{}{}{}std::process::exit(0);", /* exit(0) allows :hard_load functions to inspect
+                                             * variables that are used after this line */
             evaluator[0], input, evaluator[1]
         );
         let toolchain = self.toolchain;
@@ -390,6 +391,7 @@ impl Repl {
     pub fn lines(&self) -> impl Iterator<Item = &String> {
         self.body.iter()
     }
+
     pub fn lines_count(&self) -> usize {
         self.body.len() - 1
     }

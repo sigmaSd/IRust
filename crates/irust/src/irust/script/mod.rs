@@ -2,7 +2,6 @@ use crossterm::event::Event;
 use irust_api::{Command, GlobalVariables};
 
 use self::script_manager::ScriptManager;
-
 use super::options::Options;
 
 pub mod script_manager;
@@ -40,26 +39,30 @@ impl super::IRust {
             }
         }
     }
+
     pub fn get_output_prompt(&mut self) -> String {
         if let Some(ref mut script_mg) = self.script_mg {
             if let Some(prompt) = script_mg.get_output_prompt(&self.global_variables) {
                 return prompt;
             }
         }
-        //Default
+        // Default
         self.options.output_prompt.clone()
     }
+
     pub fn before_compiling_hook(&mut self) {
         if let Some(ref mut script_mg) = self.script_mg {
             script_mg.before_compiling(&self.global_variables);
         }
     }
+
     pub fn input_event_hook(&mut self, event: Event) -> Option<Command> {
         if let Some(ref mut script_mg) = self.script_mg {
             return script_mg.input_event_hook(&self.global_variables, event);
         }
         None
     }
+
     pub fn after_compiling_hook(&mut self) {
         if let Some(ref mut script_mg) = self.script_mg {
             script_mg.after_compiling(&self.global_variables);
@@ -79,6 +82,7 @@ impl super::IRust {
         }
         None
     }
+
     pub fn trigger_set_msg_hook(&mut self) -> Option<String> {
         if let Some(ref mut script_mg) = self.script_mg {
             return script_mg.trigger_set_msg_hook();
@@ -92,12 +96,14 @@ impl super::IRust {
         }
         None
     }
+
     pub fn activate_script(&mut self, script: &str) -> Result<Option<Command>, &'static str> {
         if let Some(ref mut script_mg) = self.script_mg {
             return script_mg.activate(script);
         }
         Ok(None)
     }
+
     pub fn deactivate_script(&mut self, script: &str) -> Result<Option<Command>, &'static str> {
         if let Some(ref mut script_mg) = self.script_mg {
             return script_mg.deactivate(script);
@@ -136,6 +142,7 @@ impl super::IRust {
         }
         Ok(())
     }
+
     pub fn run_scripts_shutdown_cmds(&mut self) -> super::Result<()> {
         if let Some(ref mut script_mg) = self.script_mg {
             for cmd in script_mg.shutdown_cmds() {

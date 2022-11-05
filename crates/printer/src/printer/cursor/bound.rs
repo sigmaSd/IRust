@@ -21,6 +21,7 @@ impl Bound {
     pub fn get_bound(&self, row: usize) -> usize {
         self.bound.get(row).copied().unwrap_or(self.width - 1)
     }
+
     pub fn _get_mut_bound(&mut self, row: usize) -> &mut usize {
         self.bound.get_mut(row).unwrap()
     }

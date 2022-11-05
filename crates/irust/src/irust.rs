@@ -1,8 +1,10 @@
 mod engine;
-use std::io::Read;
-use std::net::{SocketAddrV4, TcpListener};
-use std::sync::mpsc;
-use std::time::Duration;
+use std::{
+    io::Read,
+    net::{SocketAddrV4, TcpListener},
+    sync::mpsc,
+    time::Duration,
+};
 
 use engine::Engine;
 mod art;
@@ -15,6 +17,7 @@ mod parser;
 mod racer;
 mod script;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
+pub use format::format_err;
 use highlight::theme::Theme;
 use history::History;
 use irust_api::{Command, GlobalVariables};
@@ -23,8 +26,6 @@ use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
 use racer::Racer;
 use script::Script;
-
-pub use format::format_err;
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub struct IRust {
@@ -43,7 +44,8 @@ pub struct IRust {
 
 impl IRust {
     pub fn new(options: Options) -> Self {
-        // Make sure to call Repl::new at the start so it can set `irust-repl` dir, which might be used by others (ScriptManager)
+        // Make sure to call Repl::new at the start so it can set `irust-repl` dir, which might be
+        // used by others (ScriptManager)
         let repl = Repl::new(
             options.toolchain,
             options.executor,
@@ -136,7 +138,8 @@ impl IRust {
 
         loop {
             // flush queued output after each key
-            // some events that have an inner input loop like ctrl-r/ ctrl-d require flushing inside their respective handler function
+            // some events that have an inner input loop like ctrl-r/ ctrl-d require flushing inside
+            // their respective handler function
             std::io::Write::flush(&mut self.printer.writer.raw)?;
 
             let evs = if let Some(ref mut server) = server {
@@ -175,7 +178,7 @@ impl IRust {
             Event::Mouse(_) => (),
             Event::Resize(width, height) => {
                 self.printer.cursor.update_dimensions(width, height);
-                //Hack
+                // Hack
                 self.execute(Command::HandleCtrlC)?;
             }
             Event::Key(key_event) => match key_event {

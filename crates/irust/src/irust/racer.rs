@@ -1,14 +1,17 @@
+use std::{
+    io::Write,
+    process::{Child, Command, Stdio},
+};
+
+use crossterm::{style::Color, terminal::ClearType};
+use irust_repl::{cargo_cmds::MAIN_FILE, Repl};
+use printer::printer::{PrintQueue, Printer, PrinterItem};
+
 use super::{
     highlight::{highlight, theme::Theme},
     Result,
 };
 use crate::utils::{read_until_bytes, StringTools};
-use crossterm::{style::Color, terminal::ClearType};
-use irust_repl::cargo_cmds::MAIN_FILE;
-use irust_repl::Repl;
-use printer::printer::{PrintQueue, Printer, PrinterItem};
-use std::io::Write;
-use std::process::{Child, Command, Stdio};
 
 pub enum Cycle {
     Up,

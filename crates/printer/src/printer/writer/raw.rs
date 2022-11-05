@@ -1,6 +1,8 @@
-use crate::Result;
-use crossterm::{queue, style::*, terminal::*};
 use std::{cell::RefCell, fmt::Display, rc::Rc};
+
+use crossterm::{queue, style::*, terminal::*};
+
+use crate::Result;
 #[derive(Debug, Clone)]
 pub struct Raw<W> {
     pub raw: Rc<RefCell<W>>,
@@ -9,6 +11,7 @@ impl<W: std::io::Write> std::io::Write for Raw<W> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         self.raw.borrow_mut().write(buf)
     }
+
     fn flush(&mut self) -> std::io::Result<()> {
         self.raw.borrow_mut().flush()
     }

@@ -1,6 +1,7 @@
+use std::str::FromStr;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy)]
@@ -17,6 +18,7 @@ impl Default for Edition {
 
 impl FromStr for Edition {
     type Err = Box<dyn std::error::Error>;
+
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "2015" => Ok(Edition::E2015),

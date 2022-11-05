@@ -1,6 +1,8 @@
 use crossterm::style::Color;
-use printer::buffer::Buffer;
-use printer::printer::{PrintQueue, PrinterItem};
+use printer::{
+    buffer::Buffer,
+    printer::{PrintQueue, PrinterItem},
+};
 use theme::Theme;
 pub mod theme;
 

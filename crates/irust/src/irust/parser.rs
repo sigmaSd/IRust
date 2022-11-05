@@ -1,22 +1,17 @@
-use std::io::Write;
-use std::path::PathBuf;
-use std::str::FromStr;
-use std::time::Instant;
-use std::{env, process};
+use std::{env, io::Write, path::PathBuf, process, str::FromStr, time::Instant};
 
 use crossterm::style::Color;
-
-use super::format::format_err_printqueue;
-use super::highlight::highlight;
-use crate::irust::{IRust, Result};
-use crate::utils::{copy_dir, stdout_and_stderr};
-use crate::utils::{find_workpace_root, patch_name};
-use crate::{
-    irust::format::{format_check_output, format_eval_output},
-    utils::ctrlc_cancel,
-};
 use irust_repl::{cargo_cmds::*, EvalConfig, EvalResult, Executor, MainResult, ToolChain};
 use printer::printer::{PrintQueue, PrinterItem};
+
+use super::{format::format_err_printqueue, highlight::highlight};
+use crate::{
+    irust::{
+        format::{format_check_output, format_eval_output},
+        IRust, Result,
+    },
+    utils::{copy_dir, ctrlc_cancel, find_workpace_root, patch_name, stdout_and_stderr},
+};
 
 const SUCCESS: &str = "Ok!";
 
@@ -146,9 +141,10 @@ impl IRust {
 
         // Try to canonicalize all arguments that corresponds to an existing path
         // This is necessary because `:add relative_path` doesn't work without it
-        // Note this might be a bit too aggressive (an argument might be canonicalized, that the user didn't not intend for it to be considered as a path)
-        // But the usefulness of this trick, outways this possible edge case
-        // canonicalize is problamatic on windows -> need to handle extended path
+        // Note this might be a bit too aggressive (an argument might be canonicalized, that the
+        // user didn't not intend for it to be considered as a path) But the usefulness of
+        // this trick, outways this possible edge case canonicalize is problamatic on
+        // windows -> need to handle extended path
         #[cfg(unix)]
         for p in dep.iter_mut() {
             let path = std::path::Path::new(p);
@@ -581,6 +577,7 @@ impl IRust {
     fn time(&mut self, buffer: String) -> Result<PrintQueue> {
         self.inner_time(buffer, ":time", false)
     }
+
     fn time_release(&mut self, buffer: String) -> Result<PrintQueue> {
         self.inner_time(buffer, ":time_release", true)
     }
@@ -632,7 +629,7 @@ impl IRust {
     }
 
     fn bench(&mut self) -> Result<PrintQueue> {
-        //make sure we have the latest changes in main.rs
+        // make sure we have the latest changes in main.rs
         self.repl.write()?;
         let out = cargo_bench(self.options.toolchain)?.trim().to_owned();
 
@@ -714,12 +711,13 @@ impl IRust {
             .split_whitespace()
             .collect();
 
-        //TODO: This code can be improved *a lot* by doing formatting here, instead of letting each script manager do its own thing
+        // TODO: This code can be improved *a lot* by doing formatting here, instead of letting each
+        // script manager do its own thing
 
         match buffer.len() {
             0 => {
-                //NOTE: Hack formatting because its less code
-                //Assumes that script state is the last column
+                // NOTE: Hack formatting because its less code
+                // Assumes that script state is the last column
 
                 if scripts_list.is_empty() {
                     return print_queue!("Script list is empty".to_string(), Color::Blue);
@@ -795,6 +793,7 @@ impl IRust {
             _ => Err("Incorrect number of arguments for `:scripts` command".into()),
         }
     }
+
     fn compile_time(&mut self, buffer: String) -> Result<PrintQueue> {
         let buffer: Vec<&str> = buffer
             .strip_prefix(":compile_time")
@@ -819,6 +818,7 @@ impl IRust {
             _ => Err("Invalid number of arguments".into()),
         }
     }
+
     fn dbg(&mut self, buffer: String) -> Result<PrintQueue> {
         let expression = buffer
             .strip_prefix(":dbg")
@@ -828,7 +828,10 @@ impl IRust {
         let expression = if expression.is_empty() {
             "println!(); // Compiler black box".into()
         } else {
-            format!("print!(\"{{:?}}\", {}); // Print to make sure that the compiler doesn't remove the expression (blackbox requires nightly)", expression)
+            format!(
+                "print!(\"{{:?}}\", {}); // Print to make sure that the compiler doesn't remove the expression (blackbox requires nightly)",
+                expression
+            )
         };
 
         let (debugger, debugger_arg) = match self.options.debugger {
@@ -884,6 +887,7 @@ impl IRust {
 
         success!()
     }
+
     fn shell_interpolate(&mut self, buffer: String) -> Result<String> {
         // Replace shell expression with rust expression
         // The shell expression is delimited by `$$` and `$$`

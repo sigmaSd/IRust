@@ -1,7 +1,8 @@
-use super::default_process_fn;
-use super::Printer;
-use crossterm::style::Color;
 use std::io::Write;
+
+use crossterm::style::Color;
+
+use super::{default_process_fn, Printer};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[test]

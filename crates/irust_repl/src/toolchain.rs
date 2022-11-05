@@ -1,6 +1,7 @@
+use std::{fmt::Display, str::FromStr};
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, str::FromStr};
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy)]
@@ -19,6 +20,7 @@ impl Default for ToolChain {
 
 impl FromStr for ToolChain {
     type Err = Box<dyn std::error::Error>;
+
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "stable" => Ok(ToolChain::Stable),

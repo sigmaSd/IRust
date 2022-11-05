@@ -2,14 +2,15 @@ mod args;
 mod dependencies;
 mod irust;
 mod utils;
-use crate::irust::IRust;
-use crate::{
-    args::{handle_args, ArgsResult},
-    irust::options::Options,
-};
+use std::process::exit;
+
 use crossterm::{style::Stylize, tty::IsTty};
 use dependencies::{check_required_deps, warn_about_opt_deps};
-use std::process::exit;
+
+use crate::{
+    args::{handle_args, ArgsResult},
+    irust::{options::Options, IRust},
+};
 
 fn main() {
     let mut options = Options::new().unwrap_or_default();
@@ -33,8 +34,9 @@ fn main() {
         if !stdin.is_tty() {
             // Something was piped to stdin
             // The users wants a oneshot evaluation
-            use irust_repl::{EvalConfig, EvalResult, Repl, DEFAULT_EVALUATOR};
             use std::io::Read;
+
+            use irust_repl::{EvalConfig, EvalResult, Repl, DEFAULT_EVALUATOR};
             match (|| -> irust::Result<EvalResult> {
                 let mut repl = Repl::default();
                 let mut input = String::new();

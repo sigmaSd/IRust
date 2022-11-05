@@ -1,7 +1,8 @@
-use super::Result;
+use std::{fs, path};
+
 use irust_repl::cargo_cmds::IRUST_DIR;
-use std::fs;
-use std::path;
+
+use super::Result;
 
 /// Mark to keep backward-compatibility with the old way of saving history
 const NEW_HISTORY_MARK: &str = "##NewHistoryMark##\n//\n";
@@ -22,7 +23,8 @@ impl History {
             let _ = std::fs::create_dir_all(&irust_cache);
             irust_cache.join("history")
         } else {
-            // If we can't acess the cache, we use irust_repl::IRUST_DIR which is located in tmp and is already created
+            // If we can't acess the cache, we use irust_repl::IRUST_DIR which is located in tmp and
+            // is already created
             IRUST_DIR.join("history")
         };
 
@@ -52,6 +54,7 @@ impl History {
             last_buffer: Vec::new(),
         })
     }
+
     pub fn down(&mut self, buffer: &[char]) -> Option<String> {
         if !self.lock {
             self.last_buffer = buffer.to_owned();

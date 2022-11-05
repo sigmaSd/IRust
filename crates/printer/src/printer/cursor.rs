@@ -18,7 +18,7 @@ pub struct CursorPosition {
 
 #[derive(Debug, Clone)]
 pub struct Cursor<W: std::io::Write> {
-    //pub for tests only
+    // pub for tests only
     #[cfg(test)]
     pub(super) pos: CursorPosition,
     #[cfg(test)]
@@ -94,7 +94,8 @@ impl<W: std::io::Write> Cursor<W> {
     }
 
     pub fn move_right_inner_optimized(&mut self) {
-        // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because it moves automatically
+        // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because
+        // it moves automatically
         if self.pos.current_pos.0 == self.bound.width - 1 {
             self.pos.current_pos.0 = self.prompt_len;
             self.pos.current_pos.1 += 1;
@@ -103,6 +104,7 @@ impl<W: std::io::Write> Cursor<W> {
             self.pos.current_pos.0 += 1;
         }
     }
+
     fn move_right_inner(&mut self, bound: usize) {
         if self.pos.current_pos.0 == bound {
             self.pos.current_pos.0 = self.prompt_len;
@@ -268,7 +270,7 @@ impl<W: std::io::Write> Cursor<W> {
 
     pub fn input_last_pos(&self, buffer: &Buffer) -> (usize, usize) {
         let relative_pos = self.buffer_pos_to_cursor_pos(buffer);
-        //let relative_pos = buffer.last_buffer_pos_to_relative_cursor_pos(self.bound.width);
+        // let relative_pos = buffer.last_buffer_pos_to_relative_cursor_pos(self.bound.width);
         let x = relative_pos.0 + self.prompt_len;
         let y = relative_pos.1 + self.pos.starting_pos.1;
 
@@ -279,6 +281,7 @@ impl<W: std::io::Write> Cursor<W> {
         let input_last_row = self.input_last_pos(buffer).1;
         self.goto(0, input_last_row);
     }
+
     pub fn goto_last_row(&mut self, buffer: &Buffer) {
         self.pos.current_pos.1 = self.input_last_pos(buffer).1;
         self.pos.current_pos.0 = std::cmp::min(self.pos.current_pos.0, self.current_row_bound());

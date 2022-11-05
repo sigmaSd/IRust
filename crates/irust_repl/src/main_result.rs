@@ -20,6 +20,7 @@ impl MainResult {
             Self::Result => "Result<(), Box<dyn std::error::Error>>",
         }
     }
+
     pub(crate) fn instance(&self) -> &'static str {
         match self {
             Self::Unit => "()",
@@ -35,6 +36,7 @@ impl Default for MainResult {
 
 impl FromStr for MainResult {
     type Err = Box<dyn std::error::Error>;
+
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "unit" => Ok(MainResult::Unit),

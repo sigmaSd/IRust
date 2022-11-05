@@ -9,9 +9,13 @@ use crossterm::{
 use irust_api::Command;
 use printer::printer::{PrintQueue, PrinterItem};
 
-use crate::irust::{racer::Cycle, Result};
-use crate::irust::{racer::Racer, IRust};
-use crate::{irust::Buffer, utils::StringTools};
+use crate::{
+    irust::{
+        racer::{Cycle, Racer},
+        Buffer, IRust, Result,
+    },
+    utils::StringTools,
+};
 
 enum Record {
     False,
@@ -31,7 +35,8 @@ pub struct Engine {
 }
 
 impl IRust {
-    // In my testing even with all the extra work done by this wrapper, its execution is still in the order of micro seconds
+    // In my testing even with all the extra work done by this wrapper, its execution is still in
+    // the order of micro seconds
     pub fn execute(&mut self, command: Command) -> Result<()> {
         self._execute(command.clone())?;
 
@@ -45,6 +50,7 @@ impl IRust {
 
         Ok(())
     }
+
     fn _execute(&mut self, command: Command) -> Result<()> {
         if let Record::True(key) = self.engine.macro_record {
             if !(matches!(command, Command::MacroRecordToggle)
@@ -91,7 +97,8 @@ impl IRust {
                         &|c| !c.is_alphabetic()
                     };
 
-                // safe unwrap because the first char is checked and the next ones will be caught inside the loop
+                // safe unwrap because the first char is checked and the next ones will be caught
+                // inside the loop
                 while delete_predicate_function(self.buffer.current_char().unwrap()) {
                     self.execute(Command::HandleDelete)?;
                     if self.buffer.current_char().is_none() {

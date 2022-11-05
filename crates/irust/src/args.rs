@@ -1,9 +1,9 @@
-use crate::irust::options::Options;
-
 use std::{
     env,
     path::{Path, PathBuf},
 };
+
+use crate::irust::options::Options;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 

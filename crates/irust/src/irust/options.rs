@@ -1,8 +1,10 @@
-use crate::irust::{IRust, Result};
+use std::io::{Read, Write};
+
 use crossterm::style::Color;
 use irust_repl::{Edition, Executor, MainResult, ToolChain, DEFAULT_EVALUATOR};
 use serde::{Deserialize, Serialize};
-use std::io::{Read, Write};
+
+use crate::irust::{IRust, Result};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Options {
@@ -74,7 +76,7 @@ impl Default for Options {
             racer_selected_suggestion_color: Color::DarkRed,
             racer_max_suggestions: 5,
 
-            //other
+            // other
             first_irust_run: true,
             toolchain: ToolChain::Default,
             check_statements: true,

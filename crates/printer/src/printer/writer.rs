@@ -1,8 +1,10 @@
-use crate::{buffer::Buffer, Result};
 use crossterm::{style::Color, terminal::ClearType};
+
+use crate::{buffer::Buffer, Result};
 mod raw;
-use raw::Raw;
 use std::{cell::RefCell, rc::Rc};
+
+use raw::Raw;
 
 use super::cursor::Cursor;
 
@@ -67,7 +69,8 @@ impl<W: std::io::Write> Writer<W> {
             return Ok(());
         }
         self.raw.write(c)?;
-        // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because it moves automatically
+        // Performance: Make sure to not move the cursor if cursor_pos = last_cursor_pos+1 because
+        // it moves automatically
         cursor.move_right_inner_optimized();
         Ok(())
     }
@@ -76,15 +79,11 @@ impl<W: std::io::Write> Writer<W> {
         // HACK: only accept chars with witdh == 1
         // if c_w == witdh=0 or if c_w > witdh=1 replace c with '�'
         let width = unicode_width::UnicodeWidthChar::width(c).unwrap_or(1);
-        if width == 0 || width > 1 {
-            '�'
-        } else {
-            c
-        }
+        if width == 0 || width > 1 { '�' } else { c }
     }
 
     fn handle_tab(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {
-        //Tab hack
+        // Tab hack
         for _ in 0..4 {
             self.raw.write(' ')?;
             cursor.move_right_inner_optimized();
