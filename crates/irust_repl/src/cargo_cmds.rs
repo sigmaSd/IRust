@@ -38,6 +38,12 @@ pub static EXE_PATH: Lazy<PathBuf> = Lazy::new(|| IRUST_TARGET_DIR.join("debug/i
 pub static RELEASE_EXE_PATH: Lazy<PathBuf> =
     Lazy::new(|| IRUST_TARGET_DIR.join("release/irust_host_repl"));
 
+const WRITE_LIB_LIMIT: &str = concat!(
+    "\nAlso your code in this repl session needs to only consist of top level statements",
+    "\nSo if you have a `let a = 4;` it will not work",
+    "\nUse :reset to reset the repl in that case"
+);
+
 use super::Edition;
 
 pub fn cargo_new(edition: Edition) -> std::result::Result<(), io::Error> {
@@ -284,7 +290,8 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
     if !output.status.success() {
         return Err(
             (stdout_and_stderr(output)
-            + "\nMaybe you should make the function `pub`, see https://github.com/pacak/cargo-show-asm#my-function-isnt-there").into());
+            + "\nMaybe you should make the function `pub`, see https://github.com/pacak/cargo-show-asm#my-function-isnt-there" +
+                      WRITE_LIB_LIMIT).into());
     }
     Ok(stdout_and_stderr(output))
 }
@@ -306,7 +313,7 @@ pub fn cargo_expand(fnn: &str, toolchain: ToolChain) -> Result<String> {
             .output()?
     };
     if !output.status.success() {
-        return Err(stdout_and_stderr(output).trim().into());
+        return Err((stdout_and_stderr(output) + WRITE_LIB_LIMIT).into());
     }
     Ok(stdout_and_stderr(output).trim().to_owned())
 }

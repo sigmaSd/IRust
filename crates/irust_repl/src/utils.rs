@@ -68,7 +68,7 @@ impl ProcessUtils for Child {
     }
 }
 
-pub fn is_allowed_in_lib(s: &str) -> bool {
+pub fn _is_allowed_in_lib(s: &str) -> bool {
     match s.split_whitespace().collect::<Vec<_>>().as_slice() {
         // async fn|const fn|unsafe fn
         [_, "fn", ..]
@@ -91,7 +91,7 @@ pub fn is_allowed_in_lib(s: &str) -> bool {
     }
 }
 
-pub fn remove_semi_col_if_exists(mut s: String) -> String {
+pub fn _remove_semi_col_if_exists(mut s: String) -> String {
     if !s.ends_with(';') {
         return s;
     }
@@ -99,7 +99,7 @@ pub fn remove_semi_col_if_exists(mut s: String) -> String {
     s
 }
 
-pub fn is_use_stmt(l: &str) -> bool {
+pub fn _is_use_stmt(l: &str) -> bool {
     let l = l.trim_start();
     l.starts_with("use") || l.starts_with("#[allow(unused_imports)]use")
 }
