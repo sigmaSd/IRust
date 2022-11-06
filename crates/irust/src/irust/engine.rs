@@ -180,7 +180,8 @@ impl IRust {
             Command::HandleString(s) => {
                 self.buffer.insert_str(&s);
                 self.print_input()?;
-                self.printer.cursor.move_right_unbounded();
+                let last_pos = self.printer.cursor.input_last_pos(&self.buffer);
+                self.printer.cursor.goto(last_pos.0, last_pos.1);
                 self.history.unlock();
                 Ok(())
             }
