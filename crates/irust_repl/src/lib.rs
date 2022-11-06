@@ -335,7 +335,7 @@ impl Repl {
         Ok(())
     }
 
-    pub fn write_lib(&self) -> io::Result<()> {
+    fn write_lib(&self) -> io::Result<()> {
         let mut lib_file = std::fs::File::create(&*LIB_FILE)?;
         let mut body = self.body.clone();
 
@@ -353,6 +353,17 @@ impl Repl {
         write!(lib_file, "{}", body.join("\n"))?;
 
         Ok(())
+    }
+
+    fn remove_lib(&self) -> io::Result<()> {
+        std::fs::remove_file(&*LIB_FILE)
+    }
+
+    pub fn with_lib<T>(&self, f: impl Fn() -> T) -> io::Result<T> {
+        self.write_lib()?;
+        let r = f();
+        self.remove_lib()?;
+        Ok(r)
     }
 
     pub fn pop(&mut self) {

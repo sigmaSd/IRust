@@ -645,8 +645,9 @@ impl IRust {
             return Err("No function specified".into());
         }
 
-        self.repl.write_lib()?;
-        let asm = cargo_asm(fnn, self.options.toolchain)?;
+        let asm = self
+            .repl
+            .with_lib(|| cargo_asm(fnn, self.options.toolchain))??;
 
         print_queue!(asm, self.options.eval_color)
     }
@@ -956,9 +957,13 @@ impl IRust {
             .expect("already checked")
             .trim();
         if !fnn.is_empty() {
-            self.repl.write_lib()?;
+            let r = self
+                .repl
+                .with_lib(|| cargo_expand(Some(fnn), self.options.toolchain))??;
+            print_queue!(r, Color::White)
+        } else {
+            print_queue!(cargo_expand(None, self.options.toolchain)?, Color::White)
         }
-        print_queue!(cargo_expand(fnn, self.options.toolchain)?, Color::White)
     }
 
     fn exit(&mut self) -> Result<PrintQueue> {
