@@ -18,8 +18,9 @@ pub struct Printer<W: std::io::Write> {
 }
 
 impl<W: std::io::Write> Printer<W> {
-    pub fn new(raw: W, prompt: String) -> Printer<W> {
+    pub fn new(mut raw: W, prompt: String) -> Printer<W> {
         crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
+        let _ = crossterm::queue!(raw, crossterm::event::EnableBracketedPaste);
         let raw = Rc::new(RefCell::new(raw));
         let prompt_len = prompt.chars().count();
         Self {
@@ -33,6 +34,7 @@ impl<W: std::io::Write> Printer<W> {
 impl<W: std::io::Write> Drop for Printer<W> {
     fn drop(&mut self) {
         let _ = crossterm::terminal::disable_raw_mode();
+        let _ = crossterm::queue!(self.writer.raw, crossterm::event::DisableBracketedPaste);
     }
 }
 
