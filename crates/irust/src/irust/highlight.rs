@@ -53,3 +53,51 @@ impl Highlight {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[cfg(feature = "nightly")]
+    extern crate test;
+
+    use super::*;
+
+    #[cfg(feature = "nightly")]
+    #[cfg(feature = "syntect")]
+    #[bench]
+    fn bench_syntect_highlight(b: &mut test::Bencher) {
+        let h = Highlight::new("syntect", "default");
+        let buffer = r#"\
+        fn default() -> Self {
+        crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
+        let raw = Rc::new(RefCell::new(std::io::stdout()));
+        Self {
+            printer: Default::default(),
+            writer: writer::Writer::new(raw.clone()),
+            cursor: cursor::Cursor::new(raw),
+        }
+        "#
+        .into();
+
+        b.iter(|| h.highlight(&buffer, &Theme::default()));
+    }
+
+    #[cfg(feature = "nightly")]
+    #[cfg(feature = "syntect")]
+    #[bench]
+    fn bench_rustc_lexer_highlight(b: &mut test::Bencher) {
+        let h = Highlight::new("default", "default");
+        let buffer = r#"\
+        fn default() -> Self {
+        crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
+        let raw = Rc::new(RefCell::new(std::io::stdout()));
+        Self {
+            printer: Default::default(),
+            writer: writer::Writer::new(raw.clone()),
+            cursor: cursor::Cursor::new(raw),
+        }
+        "#
+        .into();
+
+        b.iter(|| h.highlight(&buffer, &Theme::default()));
+    }
+}

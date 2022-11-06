@@ -29,6 +29,8 @@ libc = "0.2.135"
 default = ["rustc_lexer"]
 syntect = ["dep:once_cell", "dep:syntect"]
 change_highlight = ["rustc_lexer", "syntect"]
+nightly = []
+
 
 # [profile.release]
 # debug = true

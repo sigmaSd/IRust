@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "nightly", feature(test))]
+
 mod args;
 mod dependencies;
 mod irust;
