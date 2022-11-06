@@ -17,7 +17,9 @@ impl Buffer {
     }
 
     pub fn insert_str(&mut self, s: &str) {
-        s.chars().for_each(|c| self.insert(c));
+        let chars: Vec<char> = s.chars().collect();
+        self.buffer.extend(&chars);
+        self.buffer_pos += chars.len();
     }
 
     pub fn set_buffer_pos(&mut self, pos: usize) {

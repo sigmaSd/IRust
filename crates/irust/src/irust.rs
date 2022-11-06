@@ -8,14 +8,14 @@ use engine::Engine;
 mod art;
 mod format;
 mod help;
-pub mod highlight;
+mod highlight;
 mod history;
 pub mod options;
 mod parser;
 mod racer;
 mod script;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
-use highlight::theme::Theme;
+use highlight::{theme::Theme, Highlight};
 use history::History;
 use irust_api::{Command, GlobalVariables};
 use irust_repl::Repl;
@@ -25,6 +25,7 @@ use racer::Racer;
 use script::Script;
 
 pub use format::format_err;
+
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub struct IRust {
@@ -39,6 +40,7 @@ pub struct IRust {
     history: History,
     racer: Option<Racer>,
     script_mg: Option<Box<dyn Script>>,
+    highlight: Highlight,
 }
 
 impl IRust {
@@ -83,6 +85,7 @@ impl IRust {
         let exit_flag = false;
         let theme = highlight::theme::theme().unwrap_or_default();
         let history = History::new().unwrap_or_default();
+        let highlight = Highlight::new(&options.highlight_engine, &options.theme);
 
         IRust {
             options,
@@ -96,6 +99,7 @@ impl IRust {
             history,
             racer,
             script_mg,
+            highlight,
         }
     }
 
@@ -108,6 +112,7 @@ impl IRust {
         };
         self.printer.writer.raw.set_title(&title)?;
         self.welcome()?;
+        self.warn_highlight_engine()?;
         self.printer.print_prompt_if_set()?;
 
         // Scripts might want run some startup commands, give them a chance here
@@ -119,8 +124,10 @@ impl IRust {
     /// Wrapper over printer.print_input that highlights rust code using current theme
     pub fn print_input(&mut self) -> Result<()> {
         let theme = &self.theme;
-        self.printer
-            .print_input(&|buffer| highlight::highlight(buffer, theme), &self.buffer)?;
+        self.printer.print_input(
+            &|buffer| self.highlight.highlight(buffer, theme),
+            &self.buffer,
+        )?;
         Ok(())
     }
 
@@ -178,6 +185,7 @@ impl IRust {
                 //Hack
                 self.execute(Command::HandleCtrlC)?;
             }
+            Event::Paste(data) => self.execute(Command::HandleString(data))?,
             Event::Key(key_event) => match key_event {
                 KeyEvent {
                     code: KeyCode::Char(c),
@@ -329,7 +337,6 @@ impl IRust {
             },
             Event::FocusGained => (),
             Event::FocusLost => (),
-            Event::Paste(_data) => (),
         }
         Ok(())
     }

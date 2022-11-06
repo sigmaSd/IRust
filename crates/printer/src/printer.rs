@@ -18,8 +18,9 @@ pub struct Printer<W: std::io::Write> {
 }
 
 impl<W: std::io::Write> Printer<W> {
-    pub fn new(raw: W, prompt: String) -> Printer<W> {
+    pub fn new(mut raw: W, prompt: String) -> Printer<W> {
         crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
+        let _ = crossterm::queue!(raw, crossterm::event::EnableBracketedPaste);
         let raw = Rc::new(RefCell::new(raw));
         let prompt_len = prompt.chars().count();
         Self {
@@ -33,6 +34,7 @@ impl<W: std::io::Write> Printer<W> {
 impl<W: std::io::Write> Drop for Printer<W> {
     fn drop(&mut self) {
         let _ = crossterm::terminal::disable_raw_mode();
+        let _ = crossterm::queue!(self.writer.raw, crossterm::event::DisableBracketedPaste);
     }
 }
 
@@ -252,7 +254,7 @@ impl<W: std::io::Write> Printer<W> {
     fn check_for_offscreen_render_hack(&mut self, buffer: &Buffer) -> Result<bool> {
         // Hack
         if self.cursor.buffer_pos_to_cursor_pos(buffer).1 >= self.cursor.height() {
-            self.print_input(&default_process_fn, &"It looks like the input is larger then the termnial, this is not currently supported, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue".into() )?;
+            self.print_input(&default_process_fn, &"It looks like the input is larger than the termnial, this is not currently supported, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue".into() )?;
             Ok(true)
         } else {
             Ok(false)

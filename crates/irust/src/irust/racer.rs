@@ -1,5 +1,5 @@
 use super::{
-    highlight::{highlight, theme::Theme},
+    highlight::{theme::Theme, Highlight},
     Result,
 };
 use crate::utils::{read_until_bytes, StringTools};
@@ -24,6 +24,7 @@ pub struct Racer {
     cmds: [String; 28],
     update_lock: bool,
     pub active_suggestion: Option<String>,
+    highlight: Highlight,
 }
 
 impl Racer {
@@ -69,6 +70,7 @@ impl Racer {
             "compile_time".to_string(),
         ];
 
+        let highlight = Highlight::new("default", "default");
         Some(Racer {
             process,
             cursor,
@@ -77,6 +79,7 @@ impl Racer {
             cmds,
             update_lock: false,
             active_suggestion: None,
+            highlight,
         })
     }
 
@@ -283,7 +286,7 @@ impl Racer {
             );
             buffer.insert_str(&suggestion);
 
-            let mut pre = highlight(
+            let mut pre = self.highlight.highlight(
                 &buffer
                     .iter()
                     .take(buffer.buffer_pos - StringTools::chars_count(&suggestion))
@@ -295,7 +298,7 @@ impl Racer {
             let mut sug = PrintQueue::default();
             sug.push(PrinterItem::String(suggestion.clone(), color));
 
-            let mut post = highlight(
+            let mut post = self.highlight.highlight(
                 &buffer.iter().skip(buffer.buffer_pos).copied().collect(),
                 theme,
             );
@@ -413,7 +416,7 @@ impl Racer {
         printer.writer.raw.reset_color()?;
         printer.cursor.restore_position();
         printer.cursor.goto_internal_pos();
-        printer.recalculate_bounds(highlight(buffer, theme))?;
+        printer.recalculate_bounds(self.highlight.highlight(buffer, theme))?;
 
         Ok(())
     }

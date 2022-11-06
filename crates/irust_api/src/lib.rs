@@ -94,6 +94,7 @@ pub enum Command {
     SetThinCursor,
     SetWideCursor,
     HandleCharacter(char),
+    HandleString(String),
     HandleEnter(bool),
     HandleAltEnter,
     HandleTab,

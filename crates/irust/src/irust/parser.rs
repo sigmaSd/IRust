@@ -7,7 +7,6 @@ use std::{env, process};
 use crossterm::style::Color;
 
 use super::format::format_err_printqueue;
-use super::highlight::highlight;
 use crate::irust::{IRust, Result};
 use crate::utils::{copy_dir, stdout_and_stderr};
 use crate::utils::{find_workpace_root, patch_name};
@@ -111,7 +110,7 @@ impl IRust {
 
     fn show(&mut self) -> PrintQueue {
         let code: Vec<char> = self.repl.show().chars().collect();
-        highlight(&code.into(), &self.theme)
+        self.highlight.highlight(&code.into(), &self.theme)
     }
 
     fn toolchain(&mut self, buffer: String) -> Result<PrintQueue> {
