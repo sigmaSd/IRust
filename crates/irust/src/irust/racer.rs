@@ -70,7 +70,7 @@ impl Racer {
             "compile_time".to_string(),
         ];
 
-        let highlight = Highlight::new("default");
+        let highlight = Highlight::new("default", "default");
         Some(Racer {
             process,
             cursor,

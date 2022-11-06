@@ -44,6 +44,7 @@ pub struct Options {
     pub local_server: bool,
     pub local_server_adress: std::net::SocketAddrV4,
     pub highlight_engine: String,
+    pub theme: String,
 }
 
 impl Default for Options {
@@ -103,6 +104,7 @@ impl Default for Options {
             local_server_adress: "127.0.0.1:9000".parse().expect("correct"),
 
             highlight_engine: "default".into(),
+            theme: "default".into(),
         }
     }
 }

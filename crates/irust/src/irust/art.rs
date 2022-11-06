@@ -122,10 +122,10 @@ impl IRust {
     pub fn warn_highlight_engine(&mut self) -> Result<()> {
         #[cfg(feature = "rustc_lexer")]
         #[cfg(not(feature = "change_highlight"))]
-        let supported = ["rustc_lexer"];
+        let supported = ["default", "rustc_lexer"];
         #[cfg(feature = "syntect")]
         #[cfg(not(feature = "change_highlight"))]
-        let supported = ["syntect"];
+        let supported = ["default", "syntect"];
         #[cfg(feature = "change_highlight")]
         let supported = ["default", "syntect", "rustc_lexer"];
 

@@ -63,9 +63,7 @@ impl IRust {
                 if let Some(suggestion) =
                     self.racer.as_mut().and_then(|r| r.active_suggestion.take())
                 {
-                    for c in suggestion.chars() {
-                        self.execute(Command::HandleCharacter(c))?;
-                    }
+                    self.execute(Command::HandleString(suggestion))?;
                 }
                 Ok(())
             }
@@ -177,6 +175,13 @@ impl IRust {
                 // Ignore RacerDisabled error
                 let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
 
+                Ok(())
+            }
+            Command::HandleString(s) => {
+                self.buffer.insert_str(&s);
+                self.print_input()?;
+                self.printer.cursor.move_right_unbounded();
+                self.history.unlock();
                 Ok(())
             }
             Command::HandleEnter(force_eval) => {
@@ -292,9 +297,7 @@ impl IRust {
                 if let Some(suggestion) =
                     self.racer.as_mut().and_then(|r| r.active_suggestion.take())
                 {
-                    for c in suggestion.chars() {
-                        self.execute(Command::HandleCharacter(c))?;
-                    }
+                    self.execute(Command::HandleString(suggestion))?;
                 } else if !self.buffer.is_at_end() {
                     self.printer.cursor.move_right();
                     self.buffer.move_forward();

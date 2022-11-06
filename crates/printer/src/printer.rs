@@ -252,7 +252,7 @@ impl<W: std::io::Write> Printer<W> {
     fn check_for_offscreen_render_hack(&mut self, buffer: &Buffer) -> Result<bool> {
         // Hack
         if self.cursor.buffer_pos_to_cursor_pos(buffer).1 >= self.cursor.height() {
-            self.print_input(&default_process_fn, &"It looks like the input is larger then the termnial, this is not currently supported, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue".into() )?;
+            self.print_input(&default_process_fn, &"It looks like the input is larger than the termnial, this is not currently supported, either use the `:edit` command or enlarge the terminal. hit ctrl-c to continue".into() )?;
             Ok(true)
         } else {
             Ok(false)

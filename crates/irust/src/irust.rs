@@ -85,7 +85,7 @@ impl IRust {
         let exit_flag = false;
         let theme = highlight::theme::theme().unwrap_or_default();
         let history = History::new().unwrap_or_default();
-        let highlight = Highlight::new(&options.highlight_engine);
+        let highlight = Highlight::new(&options.highlight_engine, &options.theme);
 
         IRust {
             options,
@@ -185,6 +185,7 @@ impl IRust {
                 //Hack
                 self.execute(Command::HandleCtrlC)?;
             }
+            Event::Paste(data) => self.execute(Command::HandleString(data))?,
             Event::Key(key_event) => match key_event {
                 KeyEvent {
                     code: KeyCode::Char(c),
@@ -336,7 +337,6 @@ impl IRust {
             },
             Event::FocusGained => (),
             Event::FocusLost => (),
-            Event::Paste(_data) => (),
         }
         Ok(())
     }

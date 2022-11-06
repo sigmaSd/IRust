@@ -6,12 +6,14 @@ use theme::Theme;
 #[derive(Debug)]
 pub struct Highlight {
     pub engine: String,
+    pub theme: String,
 }
 
 impl Highlight {
-    pub fn new(engine: &str) -> Self {
+    pub fn new(engine: &str, theme: &str) -> Self {
         Self {
             engine: engine.into(),
+            theme: theme.into(),
         }
     }
 }
@@ -33,8 +35,9 @@ mod syntect_imp;
 #[cfg(feature = "syntect")]
 #[cfg(not(feature = "change_highlight"))]
 impl Highlight {
-    pub fn highlight(&self, buffer: &Buffer, theme: &Theme) -> PrintQueue {
-        syntect_imp::highlight(buffer, theme)
+    pub fn highlight(&self, buffer: &Buffer, _theme: &Theme) -> PrintQueue {
+        let h = syntect_imp::get_highlighter(&self.theme);
+        syntect_imp::highlight(&h, buffer)
     }
 }
 
@@ -42,7 +45,10 @@ impl Highlight {
 impl Highlight {
     pub fn highlight(&self, buffer: &Buffer, theme: &Theme) -> PrintQueue {
         match self.engine.as_str() {
-            "syntect" => syntect_imp::highlight(buffer, theme),
+            "syntect" => {
+                let h = syntect_imp::get_highlighter(&self.theme);
+                syntect_imp::highlight(h, buffer)
+            }
             _ => rustc_lexer_imp::highlight(buffer, theme),
         }
     }
