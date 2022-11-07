@@ -1,3 +1,10 @@
+**1.65.1**
+- Use cargo-show-asm instead of cargo-asm
+- Allow cargo-expand a specifc function `:expand myfn`
+- Add another key to force new lines (ctrl-s)
+- Add a new rust script that allows supporting mixed rust code with irust commands
+- Update deps, fix clippy, internal fixes
+
 **1.65.0**
 - Change script4 to script, theme to theme.toml and config to config.toml
 - Update deps, fix clippy
