@@ -6,7 +6,7 @@ tasks:
       rustup toolchain add nightly-2022-04-06
       rustup component add rustc-dev --toolchain=nightly-2022-04-06
       cargo +nightly-2022-04-06 install racer
-      cargo install cargo-edit cargo-asm cargo-expand
+      cargo install cargo-edit cargo-show-asm cargo-expand
   - name: IRust
     command: |
       echo "Welcome to IRust. Just type 'irust' to begin."
