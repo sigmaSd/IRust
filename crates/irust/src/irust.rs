@@ -81,7 +81,7 @@ impl IRust {
         let buffer = Buffer::new();
         let engine = Engine::default();
         let exit_flag = false;
-        let theme = highlight::theme::theme(options.theme.clone()).unwrap_or_default();
+        let theme = highlight::theme::theme_or_create_default(options.theme.clone());
         let history = History::new().unwrap_or_default();
 
         IRust {

@@ -4,16 +4,36 @@ use crate::irust::Result;
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
 
-pub fn theme(name: String) -> Result<Theme> {
-    let selected_theme_path = dirs::config_dir()
+fn themes_path() -> Result<std::path::PathBuf> {
+    Ok(dirs::config_dir()
         .ok_or("Error accessing config_dir")?
         .join("irust")
-        .join("themes")
-        .join(name + ".toml");
+        .join("themes"))
+}
+
+pub fn theme(name: String) -> Result<Theme> {
+    let selected_theme_path = themes_path()?.join(name + ".toml");
 
     let data = std::fs::read_to_string(selected_theme_path)?;
 
     Ok(toml::from_str(&data)?)
+}
+
+pub fn theme_or_create_default(name: String) -> Theme {
+    let maybe_theme = theme(name);
+    if let Ok(theme) = maybe_theme {
+        return theme;
+    }
+
+    let _ = (|| -> Result<()> {
+        std::fs::create_dir_all(themes_path()?)?;
+        std::fs::write(
+            themes_path()?.join("default.toml"),
+            toml::to_string(&Theme::default())?,
+        )?;
+        Ok(())
+    })();
+    Theme::default()
 }
 
 pub fn installed_themes() -> Result<Vec<DirEntry>> {
