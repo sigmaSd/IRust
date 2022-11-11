@@ -1,3 +1,6 @@
+**1.66.0**
+- Allow multiple themes, see themes section in README
+
 **1.65.1**
 - Use cargo-show-asm instead of cargo-asm
 - Allow cargo-expand a specifc function `:expand myfn`
