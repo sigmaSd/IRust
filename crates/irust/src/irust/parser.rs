@@ -66,6 +66,7 @@ impl IRust {
             cmd if cmd.starts_with(":color") => self.color(buffer),
             cmd if cmd.starts_with(":cd") => self.cd(buffer),
             cmd if cmd.starts_with(":toolchain") => self.toolchain(buffer),
+            cmd if cmd.starts_with(":theme") => self.theme(buffer),
             cmd if cmd.starts_with(":main_result") => self.main_result(buffer),
             cmd if cmd.starts_with(":check_statements") => self.check_statements(buffer),
             cmd if cmd.starts_with(":time_release") => self.time_release(buffer),
@@ -124,6 +125,38 @@ impl IRust {
             success!()
         } else {
             print_queue!(self.options.toolchain.to_string(), Color::Blue)
+        }
+    }
+
+    fn theme(&mut self, buffer: String) -> Result<PrintQueue> {
+        let name = buffer.split_whitespace().nth(1);
+
+        if let Some(name) = name {
+            if let Ok(theme) = super::highlight::theme::theme(name.to_string()) {
+                self.theme = theme;
+                self.options.theme = name.to_string();
+                success!()
+            } else {
+                Err("Failed to set theme".into())
+            }
+        } else {
+            let installed_themes: Vec<_> = super::highlight::theme::installed_themes()
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(|d| d.file_name().to_str().map(|s| s.to_string()))
+                .collect();
+            let mut msg = format!("Current theme is: {}\n", self.options.theme);
+            if !installed_themes.is_empty() {
+                msg.push_str(&format!(
+                    "Installed themes:\n{}",
+                    installed_themes
+                        .into_iter()
+                        .map(|t| format!("- {}", t.replace(".toml", "")))
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                ))
+            }
+            print_queue!(msg, Color::Blue)
         }
     }
 

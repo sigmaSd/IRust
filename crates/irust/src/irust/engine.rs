@@ -664,7 +664,6 @@ impl IRust {
                 self.run_scripts_shutdown_cmds()?;
                 self.history.save()?;
                 self.options.save()?;
-                self.theme.save()?;
                 self.printer.write_newline(&self.buffer);
                 self.printer.cursor.show();
                 Ok(())

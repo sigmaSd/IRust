@@ -1,19 +1,29 @@
+use std::fs::DirEntry;
+
 use crate::irust::Result;
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
-use std::io::Write;
 
-const THEME_NAME: &str = "theme.toml";
-
-pub fn theme() -> Result<Theme> {
-    let theme_file = dirs::config_dir()
+pub fn theme(name: String) -> Result<Theme> {
+    let selected_theme_path = dirs::config_dir()
         .ok_or("Error accessing config_dir")?
         .join("irust")
-        .join(THEME_NAME);
+        .join("themes")
+        .join(name + ".toml");
 
-    let data = std::fs::read_to_string(theme_file)?;
+    let data = std::fs::read_to_string(selected_theme_path)?;
 
     Ok(toml::from_str(&data)?)
+}
+
+pub fn installed_themes() -> Result<Vec<DirEntry>> {
+    Ok(std::fs::read_dir(
+        dirs::config_dir()
+            .ok_or("Error accessing config_dir")?
+            .join("irust")
+            .join("themes"),
+    )?
+    .collect::<std::io::Result<Vec<_>>>()?)
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -32,15 +42,6 @@ pub struct Theme {
 }
 
 impl Theme {
-    pub fn save(&self) -> Result<()> {
-        let theme_path = dirs::config_dir()
-            .ok_or("Error accessing config_dir")?
-            .join("irust")
-            .join(THEME_NAME);
-        let mut theme = std::fs::File::create(theme_path)?;
-        write!(theme, "{}", toml::to_string(&self)?)?;
-        Ok(())
-    }
     pub fn reset(&mut self) {
         *self = Self::default();
     }

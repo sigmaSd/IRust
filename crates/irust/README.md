@@ -36,6 +36,8 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 **:color** *\<key\>* *\<value\>* => change token highlight color at runtime, for the token list and value representation check the Theme section, exp: `:color function red` `:color macro #ff12ab` `:color reset`
 
 **:toolchain** *\<value\>* => switch between toolchains, supported value are: `stable`, `beta`, `nighty`, `default`
+
+**:theme** *\<value\>* => if used without arguments list currently installed themes, otherwise set irust to the given theme, see Themes section for more info
   
 **:check_statements** *true*/*false* => If its set to true, irust will check each statemnt (input that ends with ;) with cargo_check before inserting it to the repl
 
@@ -172,14 +174,17 @@ IRust config file is located in:
   shell_interpolate = true
   local_server = false
   local_server_adress = "127.0.0.1:9000"
+  theme = "default"
 ```
 
 ## Theme
-Since release `0.8.9` `IRust` can now parse a theme file located on `$config_dir/irust/theme.toml` and use it for the highlighting colors.
+Since release `1.66.0` `IRust` can now parse any theme file located under `$config_dir/irust/themes` and use it for the highlighting colors.
+
+To select a theme, set its name in the irust config. for example to set `themes/mytheme.toml` set `theme = "mytheme"`
 
 Colors can be specified as names ("red") or as hex representation ("#ff12ab").
 
-Default theme file:
+Default theme file (default.toml):
 
 ```
   keyword = "magenta"
