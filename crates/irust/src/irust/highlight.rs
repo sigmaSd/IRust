@@ -78,12 +78,20 @@ pub fn highlight(buffer: &Buffer, theme: &Theme) -> PrintQueue {
                 push_to_printer!(&theme.symbol[..]);
             }
             OpenParen => {
-                push_to_printer!(PAREN_COLORS[paren_idx.unsigned_abs() % 4]);
+                if theme.paren_rainbow {
+                    push_to_printer!(PAREN_COLORS[paren_idx.unsigned_abs() % 4]);
+                } else {
+                    print_queue.push(PrinterItem::Char('(', Color::White));
+                }
                 paren_idx += 1;
             }
             CloseParen => {
                 paren_idx -= 1;
-                push_to_printer!(PAREN_COLORS[paren_idx.unsigned_abs() % 4]);
+                if theme.paren_rainbow {
+                    push_to_printer!(PAREN_COLORS[paren_idx.unsigned_abs() % 4]);
+                } else {
+                    print_queue.push(PrinterItem::Char(')', Color::White));
+                }
             }
         };
     }

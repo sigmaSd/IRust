@@ -59,6 +59,7 @@ pub struct Theme {
     pub comment: String,
     pub r#const: String,
     pub ident: String,
+    pub paren_rainbow: bool,
 }
 
 impl Theme {
@@ -81,6 +82,7 @@ impl Default for Theme {
             comment: "dark_grey".into(),
             r#const: "dark_green".into(),
             ident: "white".into(),
+            paren_rainbow: true,
         }
     }
 }
