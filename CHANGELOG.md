@@ -1,3 +1,7 @@
+**1.67.0**
+- Update rust+deps
+- Use crossterm use-dev-tty feature
+
 **1.66.0**
 - Allow multiple themes, see themes section in README
 
