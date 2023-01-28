@@ -30,7 +30,7 @@ impl IRust {
 
     fn wait_add_inner(&mut self, add_cmd: &mut std::process::Child, msg: &str) -> Result<()> {
         self.printer.write_at(
-            &format!(" {}ing dep [\\]", msg),
+            &format!(" {msg}ing dep [\\]"),
             0,
             self.printer.cursor.current_pos().1,
         )?;
@@ -136,6 +136,6 @@ impl IRust {
         let slash_num = self.printer.cursor.width() - msg.len();
         let slash = "-".repeat(slash_num / 2);
 
-        format!("{0}{1}{0}", slash, msg)
+        format!("{slash}{msg}{slash}")
     }
 }

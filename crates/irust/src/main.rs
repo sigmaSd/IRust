@@ -56,7 +56,7 @@ fn main() {
                     exit(0)
                 }
                 Err(e) => {
-                    eprintln!("failed to evaluate input, error: {}", e);
+                    eprintln!("failed to evaluate input, error: {e}");
                     exit(1)
                 }
             }
@@ -89,6 +89,6 @@ fn main() {
 
     // Now IRust has been dropped we can safely print to stderr
     if let Some(err) = err {
-        eprintln!("{}", format!("\r\nIRust exited with error: {}", err).red());
+        eprintln!("{}", format!("\r\nIRust exited with error: {err}").red());
     }
 }

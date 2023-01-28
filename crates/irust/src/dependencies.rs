@@ -30,10 +30,7 @@ pub fn check_required_deps() -> bool {
     const REQUIRED_DEPS: &[&str] = &["cargo"];
     for dep in REQUIRED_DEPS {
         if !dep_installed(dep) {
-            eprintln!(
-                "{0} is not insalled!\n{0} is required for IRust to work.",
-                dep
-            );
+            eprintln!("{dep} is not insalled!\n{dep} is required for IRust to work.");
             return false;
         }
     }
@@ -45,7 +42,7 @@ pub fn warn_about_opt_deps(options: &mut Options) {
         Dep::new("racer", "racer", "auto_completion", &|| {
             let mut exit_status = vec![];
             let mut run_cmd = |cmd: &[&str]| -> io::Result<()> {
-                println!("{}", format!("Running: {:?}", cmd).magenta());
+                println!("{}", format!("Running: {cmd:?}").magenta());
                 exit_status.push(process::Command::new(cmd[0]).args(&cmd[1..]).status()?);
                 Ok(())
             };
@@ -94,7 +91,7 @@ pub fn warn_about_opt_deps(options: &mut Options) {
                 ));
             }
             let cmd = ["rustup", "component", "add", "rustfmt"];
-            println!("{}", format!("Running: {:?}", cmd).magenta());
+            println!("{}", format!("Running: {cmd:?}").magenta());
 
             Ok(vec![process::Command::new(cmd[0])
                 .args(&cmd[1..])
@@ -106,7 +103,7 @@ pub fn warn_about_opt_deps(options: &mut Options) {
             "viewing functions assembly",
             &|| {
                 let cmd = ["cargo", "install", "cargo-show-asm"];
-                println!("{}", format!("Running: {:?}", cmd).magenta());
+                println!("{}", format!("Running: {cmd:?}").magenta());
 
                 Ok(vec![process::Command::new(cmd[0])
                     .args(&cmd[1..])
@@ -119,7 +116,7 @@ pub fn warn_about_opt_deps(options: &mut Options) {
             "showing the result of macro expansion",
             &|| {
                 let cmd = ["cargo", "install", "cargo-expand"];
-                println!("{}", format!("Running: {:?}", cmd).magenta());
+                println!("{}", format!("Running: {cmd:?}").magenta());
 
                 Ok(vec![process::Command::new(cmd[0])
                     .args(&cmd[1..])

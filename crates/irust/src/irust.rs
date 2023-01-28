@@ -153,7 +153,7 @@ impl IRust {
                             return Ok(());
                         }
                     }
-                    Err(e) => return Err(format!("failed to read input. error: {}", e).into()),
+                    Err(e) => return Err(format!("failed to read input. error: {e}").into()),
                 }
             }
         }

@@ -9,7 +9,7 @@ repository = "https://github.com/sigmaSd/IRust/tree/master/crates/printer"
 license = "MIT"
 
 [dependencies]
-crossterm = "0.25.0"
+crossterm = "0.26.0"
 unicode-width = "0.1.10"
 
 [package.metadata.workspaces]

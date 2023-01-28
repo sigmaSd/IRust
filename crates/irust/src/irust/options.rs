@@ -155,7 +155,7 @@ impl Options {
 
         let mut config_file = std::fs::File::create(config_path)?;
 
-        write!(config_file, "{}", config)?;
+        write!(config_file, "{config}")?;
         Ok(())
     }
 }

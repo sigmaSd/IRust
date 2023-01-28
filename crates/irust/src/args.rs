@@ -32,7 +32,7 @@ pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
         }
 
         "-v" | "--version" => {
-            println!("{}", VERSION);
+            println!("{VERSION}");
             ArgsResult::Exit
         }
 
@@ -45,7 +45,7 @@ pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
             if path.exists() {
                 ArgsResult::ProceedWithScriptPath(path.to_path_buf())
             } else {
-                eprintln!("Unknown argument: {}", maybe_path);
+                eprintln!("Unknown argument: {maybe_path}");
                 ArgsResult::Proceed
             }
         }

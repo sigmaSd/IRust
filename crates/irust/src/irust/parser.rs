@@ -351,7 +351,7 @@ impl IRust {
         let mut raw_out = String::new();
 
         let toolchain = self.options.toolchain;
-        let get_type = format!("let _:() = {};", variable);
+        let get_type = format!("let _:() = {variable};");
         self.repl.eval_in_tmp_repl(get_type, || -> Result<()> {
             let (_status, out) = cargo_build_output(false, false, toolchain)?;
             raw_out = out;
@@ -545,7 +545,7 @@ impl IRust {
         };
 
         self.printer.writer.raw.write_with_color(
-            format!("waiting for {}...", editor),
+            format!("waiting for {editor}..."),
             crossterm::style::Color::Magenta,
         )?;
 
@@ -637,10 +637,9 @@ impl IRust {
             "\
         use std::time::Instant;
         let now = Instant::now();
-        {};
+        {fnn};
         println!(\"{{:?}}\", now.elapsed());
         ",
-            fnn,
         );
 
         let toolchain = self.options.toolchain;
@@ -862,7 +861,7 @@ impl IRust {
         let expression = if expression.is_empty() {
             "println!(); // Compiler black box".into()
         } else {
-            format!("print!(\"{{:?}}\", {}); // Print to make sure that the compiler doesn't remove the expression (blackbox requires nightly)", expression)
+            format!("print!(\"{{:?}}\", {expression}); // Print to make sure that the compiler doesn't remove the expression (blackbox requires nightly)")
         };
 
         let (debugger, debugger_arg) = match self.options.debugger {
@@ -886,7 +885,7 @@ impl IRust {
             let dbg_cmds_path = env::temp_dir().join("irust_dbg_cmds");
             {
                 let mut dbg_cmds = std::fs::File::create(&dbg_cmds_path)?;
-                writeln!(&mut dbg_cmds, "b {}", expr_line_num)?;
+                writeln!(&mut dbg_cmds, "b {expr_line_num}")?;
                 writeln!(&mut dbg_cmds, "r")?;
             }
 
@@ -965,7 +964,7 @@ impl IRust {
                         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                             write!(f, "String::from_utf8_lossy(&[")?;
                             for b in self.0.iter() {
-                                write!(f, "{},", b)?;
+                                write!(f, "{b},")?;
                             }
                             write!(f, "]).to_string()")
                         }

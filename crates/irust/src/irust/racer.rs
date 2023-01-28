@@ -114,8 +114,7 @@ impl Racer {
                     "\n\rError writing to racer, make sure it's properly configured\
                      \n\rCheckout https://github.com/racer-rust/racer/#configuration\
                      \n\rOr disable it in the configuration file.\
-                     \n\rError: {}",
-                    e
+                     \n\rError: {e}"
                 )
                 .into());
             }

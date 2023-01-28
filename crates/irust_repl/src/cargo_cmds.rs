@@ -67,10 +67,9 @@ pub fn cargo_new_lib_simple(path: &Path, name: &'static str) -> std::result::Res
     let cargo_toml = format!(
         "\
 [package]
-name = \"{}\"
+name = \"{name}\"
 version = \"0.1.0\"
-edition = \"2021\"",
-        name
+edition = \"2021\""
     );
     create_if_not_exist(lib_path.join("src/lib.rs"), "")?;
     create_if_not_exist(lib_path.join("Cargo.toml"), &cargo_toml)?;
@@ -145,9 +144,8 @@ pub fn cargo_add_prelude(path: PathBuf, name: &'static str) -> io::Result<()> {
         f,
         "
 [dependencies]
-{} = {{ path = \"{}\" }}
-",
-        name, path
+{name} = {{ path = \"{path}\" }}
+"
     )
 }
 
@@ -268,12 +266,12 @@ pub fn cargo_fmt(c: &str) -> std::io::Result<String> {
         .write(true)
         .open(&fmt_path)?;
 
-    write!(fmt_file, "{}", c)?;
+    write!(fmt_file, "{c}")?;
 
     cargo_fmt_file(&fmt_path);
 
     let mut fmt_c = String::new();
-    fmt_file.seek(std::io::SeekFrom::Start(0))?;
+    fmt_file.rewind()?;
     fmt_file.read_to_string(&mut fmt_c)?;
 
     Ok(fmt_c)
@@ -283,7 +281,7 @@ pub fn cargo_asm(fnn: &str, toolchain: ToolChain) -> Result<String> {
     let mut cmd = Command::new("cargo");
     let output = cargo_common(&mut cmd, "asm", toolchain)
         .arg("--lib")
-        .arg(format!("irust_host_repl::{}", fnn))
+        .arg(format!("irust_host_repl::{fnn}"))
         .arg("--rust")
         .env("FORCE_COLOR", "1")
         .output()?;
@@ -347,18 +345,17 @@ fn clean_cargo_toml(edition: Edition) -> io::Result<()> {
 [package]
 name = \"irust_host_repl\"
 version = \"0.1.0\"
-edition = \"{}\"",
-        edition
+edition = \"{edition}\""
     );
     let mut cargo_toml_file = fs::File::create(&*CARGO_TOML_FILE)?;
-    write!(cargo_toml_file, "{}", cargo_toml)?;
+    write!(cargo_toml_file, "{cargo_toml}")?;
     Ok(())
 }
 
 fn clean_files() -> io::Result<()> {
     const MAIN_SRC: &str = "fn main() {\n\n}";
     let mut main = fs::File::create(&*MAIN_FILE)?;
-    write!(main, "{}", MAIN_SRC)?;
+    write!(main, "{MAIN_SRC}")?;
     std::fs::copy(&*MAIN_FILE, &*MAIN_FILE_EXTERN)?;
     let _ = std::fs::remove_file(&*LIB_FILE);
     Ok(())

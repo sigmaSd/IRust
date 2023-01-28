@@ -100,7 +100,7 @@ impl Repl {
             (
                 vec![
                     header,
-                    format!("#[allow(unused_imports)]use {}::*;", PRELUDE_NAME),
+                    format!("#[allow(unused_imports)]use {PRELUDE_NAME}::*;"),
                     footer,
                     "}".to_string(),
                 ],
@@ -216,7 +216,7 @@ impl Repl {
         if let Ok(fmt_code) = cargo_fmt(&current_code) {
             current_code = fmt_code;
         }
-        format!("Current Repl Code:\n{}", current_code)
+        format!("Current Repl Code:\n{current_code}")
     }
 
     pub fn eval(&mut self, input: impl ToString) -> Result<EvalResult> {

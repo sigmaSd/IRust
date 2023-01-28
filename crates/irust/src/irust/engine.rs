@@ -1,7 +1,7 @@
 use std::{collections::HashMap, io::Write};
 
 use crossterm::{
-    cursor::{CursorShape, SetCursorShape},
+    cursor::SetCursorStyle,
     event::{Event, KeyCode, KeyEvent, KeyModifiers},
     style::Color,
     terminal::ClearType,
@@ -670,11 +670,11 @@ impl IRust {
             }
             Command::SetThinCursor => Ok(crossterm::queue!(
                 std::io::stdout(),
-                SetCursorShape(CursorShape::Line)
+                SetCursorStyle::SteadyBar
             )?),
             Command::SetWideCursor => Ok(crossterm::queue!(
                 std::io::stdout(),
-                SetCursorShape(CursorShape::Block)
+                SetCursorStyle::SteadyBlock
             )?),
             Command::ResetPrompt => {
                 let prompt = self.options.input_prompt.clone();
@@ -714,8 +714,7 @@ impl IRust {
                 // 2 - Activate macro recording with the detected key
                 self.engine.macro_record = Record::True(macro_key);
                 self.engine.macros.insert(macro_key, vec![]);
-                self.printer
-                    .set_prompt(format!("Rec[`{}`] In: ", macro_key));
+                self.printer.set_prompt(format!("Rec[`{macro_key}`] In: "));
                 self.execute(Command::HandleCtrlC)?;
                 std::io::stdout().flush()?;
                 Ok(())
