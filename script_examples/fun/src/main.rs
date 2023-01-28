@@ -82,7 +82,7 @@ impl Fun {
                 let mut function = self
                     .functions
                     .get(*name)
-                    .ok_or(format!("function: `{}` is not defined", name))?
+                    .ok_or(format!("function: `{name}` is not defined"))?
                     .to_owned();
 
                 for (idx, arg) in invoke_arg.iter().enumerate() {
