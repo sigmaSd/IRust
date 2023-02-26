@@ -1,3 +1,6 @@
+**1.67.2**
+- Update crossterm to fix a panic
+
 **1.67.0**
 - Update rust+deps
 - Use crossterm use-dev-tty feature
