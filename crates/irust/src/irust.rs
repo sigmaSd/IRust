@@ -180,6 +180,10 @@ impl IRust {
             }
             Event::Key(key_event) => match key_event {
                 KeyEvent {
+                    kind: KeyEventKind::Release,
+                    ..
+                } => (),
+                KeyEvent {
                     code: KeyCode::Char(c),
                     modifiers: KeyModifiers::NONE,
                     ..

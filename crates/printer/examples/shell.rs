@@ -1,4 +1,4 @@
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Color;
 use printer::{
     buffer::Buffer,
@@ -17,6 +17,10 @@ fn main() -> Result<()> {
         let inp = crossterm::event::read()?;
         match inp {
             crossterm::event::Event::Key(key) => match key {
+                KeyEvent {
+                    kind: KeyEventKind::Release,
+                    ..
+                } => (),
                 KeyEvent {
                     code: KeyCode::Char(c),
                     modifiers: KeyModifiers::NONE,

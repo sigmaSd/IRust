@@ -35,6 +35,10 @@ impl Vim {
         let cmd = (|| match event {
             Event::Key(key) => match key {
                 KeyEvent {
+                    kind: KeyEventKind::Release,
+                    ..
+                } => None,
+                KeyEvent {
                     code: KeyCode::Char(c),
                     modifiers,
                     ..
