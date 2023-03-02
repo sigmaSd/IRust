@@ -2,7 +2,7 @@ use std::{collections::HashMap, io::Write};
 
 use crossterm::{
     cursor::SetCursorStyle,
-    event::{Event, KeyCode, KeyEvent, KeyModifiers},
+    event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers},
     style::Color,
     terminal::ClearType,
 };
@@ -370,6 +370,10 @@ impl IRust {
                     if let Ok(key_event) = crossterm::event::read() {
                         match key_event {
                             Event::Key(KeyEvent {
+                                kind: KeyEventKind::Release,
+                                ..
+                            }) => continue,
+                            Event::Key(KeyEvent {
                                 code: KeyCode::Char(c),
                                 modifiers: KeyModifiers::NONE,
                                 ..
@@ -461,6 +465,10 @@ impl IRust {
 
                     if let Ok(key_event) = crossterm::event::read() {
                         match key_event {
+                            Event::Key(KeyEvent {
+                                kind: KeyEventKind::Release,
+                                ..
+                            }) => (),
                             Event::Key(KeyEvent {
                                 code: KeyCode::Char(c),
                                 modifiers: KeyModifiers::NONE,
@@ -695,6 +703,10 @@ impl IRust {
                 // 1 - wait for the macro key
                 let macro_key = loop {
                     match crossterm::event::read()? {
+                        Event::Key(KeyEvent {
+                            kind: KeyEventKind::Release,
+                            ..
+                        }) => (),
                         Event::Key(KeyEvent {
                             code: KeyCode::Char(c),
                             modifiers: KeyModifiers::NONE,
