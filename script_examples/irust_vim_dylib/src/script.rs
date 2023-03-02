@@ -1,4 +1,4 @@
-use irust_api::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+use irust_api::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use irust_api::Command;
 use rscript::Hook;
 

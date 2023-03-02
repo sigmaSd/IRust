@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 // Reexport crossterm event types
 pub mod event {
-    pub use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+    pub use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers, KeyEventKind};
 }
 pub mod color {
     pub use crossterm::style::Color;
