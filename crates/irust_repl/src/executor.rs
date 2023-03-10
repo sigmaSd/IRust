@@ -4,16 +4,14 @@ use std::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub enum Executor {
+    #[default]
     Sync,
     Tokio,
     AsyncStd,
 }
-impl Default for Executor {
-    fn default() -> Self {
-        Executor::Sync
-    }
-}
+
 
 impl Executor {
     pub(crate) fn main(&self) -> String {

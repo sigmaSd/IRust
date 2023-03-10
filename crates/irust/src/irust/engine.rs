@@ -13,15 +13,13 @@ use crate::irust::{racer::Cycle, Result};
 use crate::irust::{racer::Racer, IRust};
 use crate::{irust::Buffer, utils::StringTools};
 
+#[derive(Default)]
 enum Record {
+    #[default]
     False,
     True(char),
 }
-impl Default for Record {
-    fn default() -> Self {
-        Record::False
-    }
-}
+
 #[derive(Default)]
 pub struct Engine {
     macro_record: Record,

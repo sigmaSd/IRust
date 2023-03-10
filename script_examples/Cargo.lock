@@ -144,7 +144,7 @@ dependencies = [
 
 [[package]]
 name = "irust_api"
-version = "0.31.4"
+version = "0.31.5"
 dependencies = [
  "crossterm 0.26.1",
  "rscript",

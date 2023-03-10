@@ -4,18 +4,16 @@ use std::{fmt::Display, str::FromStr};
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub enum ToolChain {
     Stable,
     Beta,
     Nightly,
     // cargo with no +argument, it can be different from the above
+    #[default]
     Default,
 }
-impl Default for ToolChain {
-    fn default() -> Self {
-        ToolChain::Default
-    }
-}
+
 
 impl FromStr for ToolChain {
     type Err = Box<dyn std::error::Error>;

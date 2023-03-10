@@ -5,8 +5,10 @@ use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub enum MainResult {
     /// fn main() -> () {()}
+    #[default]
     Unit,
     /// fn main() -> Result<(), Box<dyn std::error::Error>> {Ok(())}
     /// allows using `?` with no boilerplate
@@ -27,11 +29,7 @@ impl MainResult {
         }
     }
 }
-impl Default for MainResult {
-    fn default() -> Self {
-        MainResult::Unit
-    }
-}
+
 
 impl FromStr for MainResult {
     type Err = Box<dyn std::error::Error>;

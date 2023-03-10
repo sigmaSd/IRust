@@ -112,7 +112,7 @@ fn calculate_bounds_correctly() -> Result<()> {
 
     // 1
     move_to_and_modify_start(&mut p, 0, 0);
-    p.recalculate_bounds(queue.clone())?;
+    p.recalculate_bounds(queue)?;
 
     let expected_bound = {
         let mut v = vec![width - 1; height];

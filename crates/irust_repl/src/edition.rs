@@ -4,16 +4,14 @@ use std::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub enum Edition {
     E2015,
     E2018,
+    #[default]
     E2021,
 }
-impl Default for Edition {
-    fn default() -> Self {
-        Edition::E2021
-    }
-}
+
 
 impl FromStr for Edition {
     type Err = Box<dyn std::error::Error>;
