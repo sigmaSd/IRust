@@ -3,8 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Copy)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum ToolChain {
     Stable,
     Beta,
@@ -13,7 +12,6 @@ pub enum ToolChain {
     #[default]
     Default,
 }
-
 
 impl FromStr for ToolChain {
     type Err = Box<dyn std::error::Error>;

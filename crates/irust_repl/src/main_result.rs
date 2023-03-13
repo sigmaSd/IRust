@@ -4,8 +4,7 @@ use std::{fmt::Display, str::FromStr};
 use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Copy)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum MainResult {
     /// fn main() -> () {()}
     #[default]
@@ -29,7 +28,6 @@ impl MainResult {
         }
     }
 }
-
 
 impl FromStr for MainResult {
     type Err = Box<dyn std::error::Error>;

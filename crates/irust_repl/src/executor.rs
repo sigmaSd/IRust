@@ -3,15 +3,13 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Copy)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, Default)]
 pub enum Executor {
     #[default]
     Sync,
     Tokio,
     AsyncStd,
 }
-
 
 impl Executor {
     pub(crate) fn main(&self) -> String {
