@@ -208,6 +208,10 @@ IRust supports scripting, all over the code base there are hooks that scripts ca
 Check out [SCRIPTS.md](https://github.com/sigmaSd/IRust/blob/master/SCRIPTS.md) for more info.
 
 ## Vim Plugin
+For nvim you can use https://github.com/hkupty/iron.nvim (needs irust 1.67.4)
+
+**Old method:**
+
 Since version `1.60.0` IRust supports spawning a local server, by changing `local_server` to `true` in the configuration file.\
 This allows it to be controlled programmatically, which in turns allows writing vim plugins that uses this, see https://github.com/sigmaSd/irust-vim-plugin
 
