@@ -116,7 +116,7 @@ dependencies = [
 
 [[package]]
 name = "irust"
-version = "1.67.3"
+version = "1.67.4"
 dependencies = [
  "crossterm",
  "dirs",
@@ -141,7 +141,7 @@ dependencies = [
 
 [[package]]
 name = "irust_repl"
-version = "0.20.2"
+version = "0.20.3"
 dependencies = [
  "once_cell",
  "serde",
@@ -231,7 +231,7 @@ dependencies = [
 
 [[package]]
 name = "printer"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "crossterm",
  "unicode-width",
