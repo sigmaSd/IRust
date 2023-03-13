@@ -1,3 +1,7 @@
+**1.67.4**
+- allow bracketed paste
+- clippy + fmt
+
 **1.67.3**
 - fix #109 typing twice in windows with crossterm-0.26+
 
