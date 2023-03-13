@@ -331,9 +331,16 @@ impl IRust {
                     }
                 }
             },
+            Event::Paste(data) => data.chars().try_for_each(|c| {
+                self.handle_input_event(Event::Key(KeyEvent {
+                    code: KeyCode::Char(c),
+                    modifiers: KeyModifiers::NONE,
+                    kind: KeyEventKind::Press,
+                    state: KeyEventState::NONE,
+                }))
+            })?,
             Event::FocusGained => (),
             Event::FocusLost => (),
-            Event::Paste(_data) => (),
         }
         Ok(())
     }
