@@ -1,6 +1,6 @@
 use crate::irust::{IRust, Result};
 use crossterm::style::Color;
-use irust_repl::{Edition, Executor, MainResult, ToolChain, DEFAULT_EVALUATOR};
+use irust_repl::{CompileMode, Edition, Executor, MainResult, ToolChain, DEFAULT_EVALUATOR};
 use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 
@@ -44,6 +44,7 @@ pub struct Options {
     pub local_server: bool,
     pub local_server_adress: std::net::SocketAddrV4,
     pub theme: String,
+    pub compile_mode: CompileMode,
 }
 
 impl Default for Options {
@@ -102,6 +103,7 @@ impl Default for Options {
             local_server: false,
             local_server_adress: "127.0.0.1:9000".parse().expect("correct"),
             theme: "default".into(),
+            compile_mode: CompileMode::Debug,
         }
     }
 }

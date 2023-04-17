@@ -8,6 +8,8 @@ mod main_result;
 pub use main_result::MainResult;
 mod edition;
 pub use edition::Edition;
+mod compile_mode;
+pub use compile_mode::CompileMode;
 
 use once_cell::sync::Lazy;
 mod utils;
@@ -28,6 +30,7 @@ pub struct EvalConfig<'a, S: ToString> {
     pub interactive_function: Option<fn(&mut Child) -> Result<()>>,
     pub color: bool,
     pub evaluator: &'a [String],
+    pub compile_mode: CompileMode,
 }
 
 #[derive(Debug)]
@@ -220,7 +223,7 @@ impl Repl {
     }
 
     pub fn eval(&mut self, input: impl ToString) -> Result<EvalResult> {
-        self.eval_inner(input, None, false, &*DEFAULT_EVALUATOR)
+        self.eval_inner(input, None, false, &*DEFAULT_EVALUATOR, CompileMode::Debug)
     }
     //Note: These inputs should become a Config struct
     pub fn eval_with_configuration(
@@ -232,8 +235,9 @@ impl Repl {
             interactive_function,
             color,
             evaluator,
+            compile_mode,
         } = eval_config;
-        self.eval_inner(input, interactive_function, color, evaluator)
+        self.eval_inner(input, interactive_function, color, evaluator, compile_mode)
     }
 
     fn eval_inner(
@@ -242,6 +246,7 @@ impl Repl {
         interactive_function: Option<fn(&mut Child) -> Result<()>>,
         color: bool,
         evaluator: &[String],
+        compile_mode: CompileMode,
     ) -> Result<EvalResult> {
         let input = input.to_string();
         // `\n{}\n` to avoid print appearing in error messages
@@ -252,7 +257,12 @@ impl Repl {
         let toolchain = self.toolchain;
 
         let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, || {
-            cargo_run(color, false, toolchain, interactive_function)
+            cargo_run(
+                color,
+                compile_mode.is_release(),
+                toolchain,
+                interactive_function,
+            )
         })?;
 
         // remove trailing new line

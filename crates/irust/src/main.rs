@@ -9,6 +9,7 @@ use crate::{
 };
 use crossterm::{style::Stylize, tty::IsTty};
 use dependencies::{check_required_deps, warn_about_opt_deps};
+use irust_repl::CompileMode;
 use std::process::exit;
 
 fn main() {
@@ -44,6 +45,7 @@ fn main() {
                     interactive_function: None,
                     color: true,
                     evaluator: &*DEFAULT_EVALUATOR,
+                    compile_mode: CompileMode::Debug,
                 })?;
                 Ok(result)
             })() {

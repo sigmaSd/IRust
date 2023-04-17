@@ -54,6 +54,8 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:compile_time** *\<on/off\>* => if set to on, IRust will print compiling time on each input, compile time includes rustc compiling + some IRust code (should be marginal)
 
+**:compile_mode** *\<debug/release\>* => Sets how cargo will compile the code in release or debug mode
+
 **:main_result** *\<value\>* => Change main result type, available options are `Unit` and `Result` (which is Result\<(), Box<dyn std::error::Error\>\>), Using `Result` as type allows to use `?` in the repl without any boilerplate
 
 **:dbg** *\<expression\>* => Spawn rust-lldb/rust-gdb with (an optional expression), example: `:dbg` or `:dbg fact(12)`, The debugger can be specified in the config file

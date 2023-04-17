@@ -15,7 +15,9 @@ use crate::{
     irust::format::{format_check_output, format_eval_output},
     utils::ctrlc_cancel,
 };
-use irust_repl::{cargo_cmds::*, EvalConfig, EvalResult, Executor, MainResult, ToolChain};
+use irust_repl::{
+    cargo_cmds::*, CompileMode, EvalConfig, EvalResult, Executor, MainResult, ToolChain,
+};
 use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
@@ -77,6 +79,7 @@ impl IRust {
             cmd if cmd.starts_with(":evaluator") => self.evaluator(buffer),
             cmd if cmd.starts_with(":scripts") => self.scripts(buffer),
             cmd if cmd.starts_with(":compile_time") => self.compile_time(buffer),
+            cmd if cmd.starts_with(":compile_mode") => self.compile_mode(buffer),
             cmd if cmd.starts_with(":expand") => self.expand(buffer),
             cmd if self.options.shell_interpolate && cmd.contains("$$") => {
                 let buffer = self.shell_interpolate(buffer)?;
@@ -486,6 +489,7 @@ impl IRust {
                 interactive_function: Some(ctrlc_cancel),
                 color: true,
                 evaluator: &self.options.evaluator,
+                compile_mode: self.options.compile_mode,
             });
             self.after_compiling_hook();
             let EvalResult { output, status } = result?;
@@ -852,6 +856,21 @@ impl IRust {
             _ => Err("Invalid number of arguments".into()),
         }
     }
+
+    fn compile_mode(&mut self, buffer: String) -> Result<PrintQueue> {
+        let mode = buffer
+            .strip_prefix(":compile_mode")
+            .expect("already checked")
+            .trim();
+
+        if mode.is_empty() {
+            return print_queue!(self.options.compile_mode.to_string(), Color::Blue);
+        }
+
+        self.options.compile_mode = CompileMode::from_str(mode)?;
+        success!()
+    }
+
     fn dbg(&mut self, buffer: String) -> Result<PrintQueue> {
         let expression = buffer
             .strip_prefix(":dbg")

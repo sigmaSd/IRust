@@ -29,6 +29,7 @@ fn eval(deps: Option<&str>, code: &str) {
             interactive_function: None,
             color: true,
             evaluator: &*DEFAULT_EVALUATOR,
+            compile_mode: irust_repl::CompileMode::Debug,
         })
         .unwrap();
     println!("{}", result.output);
