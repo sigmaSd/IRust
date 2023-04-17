@@ -1,3 +1,7 @@
+**1.68.0**
+- Add CompileMode (Debug/Release) to EvalConfig in irust_repl
+- Expose CompileMode in irust, with compile_mode command
+
 **1.67.4**
 - allow bracketed paste
 - clippy + fmt
