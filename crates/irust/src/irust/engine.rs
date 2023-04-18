@@ -672,6 +672,7 @@ impl IRust {
                 self.options.save()?;
                 self.printer.write_newline(&self.buffer);
                 self.printer.cursor.show();
+                self.repl.cargo.delete_project()?;
                 Ok(())
             }
             Command::SetThinCursor => Ok(crossterm::queue!(

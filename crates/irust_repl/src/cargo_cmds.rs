@@ -49,15 +49,7 @@ impl CargoPaths {
     fn new(name: &str) -> Self {
         let tmp_dir = temp_dir();
         let common_root = tmp_dir.join("irust_repls");
-        let irust_dir = (|| {
-            for _ in 0..10 {
-                let path = common_root.join(name);
-                if !path.exists() {
-                    return path;
-                }
-            }
-            panic!("could not generate a unique path -> file a bug report");
-        })();
+        let irust_dir = common_root.join(name);
         let irust_target_dir = (|| {
             if let Ok(p) = std::env::var("CARGO_TARGET_DIR") {
                 if !p.is_empty() {
@@ -429,5 +421,11 @@ edition = \"{edition}\"",
         std::fs::copy(&self.paths.main_file, &self.paths.main_file_extern)?;
         let _ = std::fs::remove_file(&self.paths.lib_file);
         Ok(())
+    }
+
+    /// Delete this repl specific folder, so for example `/tmp/irust_repls/irust_host_repl_$id` will
+    /// be deleted
+    pub fn delete_project(&self) -> io::Result<()> {
+        std::fs::remove_dir_all(&self.paths.irust_dir)
     }
 }
