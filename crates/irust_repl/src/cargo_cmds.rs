@@ -58,20 +58,20 @@ impl Default for CargoPaths {
             }
             irust_dir.join("target")
         })();
-        let cargo_toml_file = (|| irust_dir.join("Cargo.toml"))();
-        let irust_src_dir = (|| irust_dir.join("src"))();
-        let main_file = (|| irust_src_dir.join("main.rs"))();
-        let main_file_extern = (|| irust_src_dir.join("main_extern.rs"))();
-        let lib_file = (|| irust_src_dir.join("lib.rs"))();
+        let cargo_toml_file = irust_dir.join("Cargo.toml");
+        let irust_src_dir = irust_dir.join("src");
+        let main_file = irust_src_dir.join("main.rs");
+        let main_file_extern = irust_src_dir.join("main_extern.rs");
+        let lib_file = irust_src_dir.join("lib.rs");
         let exe_path = if cfg!(windows) {
-            (|| irust_target_dir.join(format!("debug/{}.exe", &name)))()
+            irust_target_dir.join(format!("debug/{}.exe", &name))
         } else {
-            (|| irust_target_dir.join(format!("debug/{}", &name)))()
+            irust_target_dir.join(format!("debug/{}", &name))
         };
         let release_exe_path = if cfg!(windows) {
-            (|| irust_target_dir.join(format!("release/{}.exe", &name)))()
+            irust_target_dir.join(format!("release/{}.exe", &name))
         } else {
-            (|| irust_target_dir.join(format!("release/{}", &name)))()
+            irust_target_dir.join(format!("release/{}", &name))
         };
 
         Self {
