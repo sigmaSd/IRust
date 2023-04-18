@@ -56,7 +56,7 @@ fn main() {
                     } else {
                         println!(
                             "{}",
-                            irust::format_err(&result.output, false, &repl.cargo.paths.name)
+                            irust::format_err(&result.output, false, &repl.cargo.name)
                         );
                     }
                     exit(0)

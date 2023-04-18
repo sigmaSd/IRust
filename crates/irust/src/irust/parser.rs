@@ -300,7 +300,7 @@ impl IRust {
         // 4- Patch crate to name to `irust_host_repl`
         patch_name_to(
             &self.repl.cargo.paths.cargo_toml_file,
-            &self.repl.cargo.paths.name,
+            &self.repl.cargo.name,
         )?;
         // 5- Copy src directory
         // 5-1 Remove original src
@@ -343,7 +343,7 @@ impl IRust {
             Ok(format_err_printqueue(
                 &output,
                 self.options.show_warnings,
-                &self.repl.cargo.paths.name,
+                &self.repl.cargo.name,
             ))
         } else {
             self.repl.insert(code);
@@ -484,7 +484,7 @@ impl IRust {
                 if let Some(mut e) = format_check_output(
                     check_result?.output,
                     self.options.show_warnings,
-                    &self.repl.cargo.paths.name,
+                    &self.repl.cargo.name,
                 ) {
                     print_queue.append(&mut e);
                     insert_flag = false;
@@ -523,7 +523,7 @@ impl IRust {
                 output,
                 output_prompt,
                 self.options.show_warnings,
-                &self.repl.cargo.paths.name,
+                &self.repl.cargo.name,
             ) {
                 outputs.append(&mut eval_output);
             }
@@ -689,7 +689,7 @@ impl IRust {
             raw_out,
             output_prompt,
             self.options.show_warnings,
-            &self.repl.cargo.paths.name,
+            &self.repl.cargo.name,
         )
         .ok_or("failed to bench function")?)
     }

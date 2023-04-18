@@ -17,14 +17,21 @@ const WRITE_LIB_LIMIT: &str = concat!(
     "\nUse :reset to reset the repl in that case"
 );
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Cargo {
+    pub name: String,
     pub paths: CargoPaths,
+}
+impl Default for Cargo {
+    fn default() -> Self {
+        let name = "irust_host_repl_".to_string() + &uuid::Uuid::new_v4().simple().to_string();
+        let paths = CargoPaths::new(&name);
+        Self { name, paths }
+    }
 }
 
 #[derive(Debug, Clone)]
 pub struct CargoPaths {
-    pub name: String,
     pub tmp_dir: PathBuf,
     pub common_root: PathBuf,
     pub irust_dir: PathBuf,
@@ -38,14 +45,13 @@ pub struct CargoPaths {
     pub release_exe_path: PathBuf,
 }
 
-impl Default for CargoPaths {
-    fn default() -> Self {
-        let name = "irust_host_repl_".to_string() + &uuid::Uuid::new_v4().simple().to_string();
+impl CargoPaths {
+    fn new(name: &str) -> Self {
         let tmp_dir = temp_dir();
         let common_root = tmp_dir.join("irust_repls");
         let irust_dir = (|| {
             for _ in 0..10 {
-                let path = common_root.join(&name);
+                let path = common_root.join(name);
                 if !path.exists() {
                     return path;
                 }
@@ -78,7 +84,6 @@ impl Default for CargoPaths {
         };
 
         Self {
-            name,
             tmp_dir,
             irust_dir,
             irust_target_dir,
@@ -345,7 +350,7 @@ edition = \"2021\""
         let output = self
             .cargo_common(&mut cmd, "asm", toolchain)
             .arg("--lib")
-            .arg(format!("{}::{fnn}", &self.paths.name))
+            .arg(format!("{}::{fnn}", &self.name))
             .arg("--rust")
             .env("FORCE_COLOR", "1")
             .output()?;
@@ -371,7 +376,7 @@ edition = \"2021\""
             self.cargo_common(&mut cmd, "expand", toolchain)
                 // For cargo expand, color needs to be specified here
                 .args(["--color", "always"])
-                .args(["--bin", &self.paths.name])
+                .args(["--bin", &self.name])
                 .output()?
         };
         if !output.status.success() {
@@ -410,7 +415,7 @@ edition = \"2021\""
 name = \"{}\"
 version = \"0.1.0\"
 edition = \"{edition}\"",
-            self.paths.name
+            self.name
         );
         let mut cargo_toml_file = fs::File::create(&self.paths.cargo_toml_file)?;
         write!(cargo_toml_file, "{cargo_toml}")?;
