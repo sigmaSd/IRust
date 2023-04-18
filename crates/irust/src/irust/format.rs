@@ -2,7 +2,7 @@ use crossterm::style::Color;
 
 use printer::printer::{PrintQueue, PrinterItem};
 
-pub fn format_err<'a>(original_output: &'a str, show_warnings: bool) -> String {
+pub fn format_err<'a>(original_output: &'a str, show_warnings: bool, repl_name: &str) -> String {
     const BEFORE_2021_END_TAG: &str = ": aborting due to ";
     // Relies on --color=always
     const ERROR_TAG: &str = "\u{1b}[0m\u{1b}[1m\u{1b}[38;5;9merror";
@@ -12,7 +12,7 @@ pub fn format_err<'a>(original_output: &'a str, show_warnings: bool) -> String {
         if show_warnings {
             output
                 .lines()
-                .skip_while(|line| !line.contains("irust_host_repl v0.1.0"))
+                .skip_while(|line| !line.contains(&format!("{repl_name} v0.1.0")))
                 .skip(1)
                 .collect()
         } else {
@@ -65,8 +65,8 @@ pub fn format_err<'a>(original_output: &'a str, show_warnings: bool) -> String {
     }
 }
 
-pub fn format_err_printqueue(output: &str, show_warnings: bool) -> PrintQueue {
-    PrinterItem::String(format_err(output, show_warnings), Color::Red).into()
+pub fn format_err_printqueue(output: &str, show_warnings: bool, repl_name: &str) -> PrintQueue {
+    PrinterItem::String(format_err(output, show_warnings, repl_name), Color::Red).into()
 }
 
 pub fn format_eval_output(
@@ -74,9 +74,10 @@ pub fn format_eval_output(
     output: String,
     prompt: String,
     show_warnings: bool,
+    repl_name: &str,
 ) -> Option<PrintQueue> {
     if !status.success() {
-        return Some(format_err_printqueue(&output, show_warnings));
+        return Some(format_err_printqueue(&output, show_warnings, repl_name));
     }
     if output.trim() == "()" {
         return None;
@@ -93,9 +94,13 @@ fn check_is_err(s: &str) -> bool {
     !s.contains("dev [unoptimized + debuginfo]")
 }
 
-pub fn format_check_output(output: String, show_warnings: bool) -> Option<PrintQueue> {
+pub fn format_check_output(
+    output: String,
+    show_warnings: bool,
+    repl_name: &str,
+) -> Option<PrintQueue> {
     if check_is_err(&output) {
-        Some(format_err_printqueue(&output, show_warnings))
+        Some(format_err_printqueue(&output, show_warnings, repl_name))
     } else {
         None
     }
