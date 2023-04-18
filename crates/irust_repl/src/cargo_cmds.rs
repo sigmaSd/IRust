@@ -26,6 +26,7 @@ pub struct Cargo {
 pub struct CargoPaths {
     pub name: String,
     pub tmp_dir: PathBuf,
+    pub common_root: PathBuf,
     pub irust_dir: PathBuf,
     pub irust_target_dir: PathBuf,
     pub cargo_toml_file: PathBuf,
@@ -41,9 +42,10 @@ impl Default for CargoPaths {
     fn default() -> Self {
         let name = "irust_host_repl_".to_string() + &uuid::Uuid::new_v4().simple().to_string();
         let tmp_dir = temp_dir();
+        let common_root = tmp_dir.join("irust_repls");
         let irust_dir = (|| {
             for _ in 0..10 {
-                let path = tmp_dir.join(&name);
+                let path = common_root.join(&name);
                 if !path.exists() {
                     return path;
                 }
@@ -56,7 +58,8 @@ impl Default for CargoPaths {
                     return Path::new(&p).to_path_buf();
                 }
             }
-            irust_dir.join("target")
+            // CARGO_TARGET_DIR is not set, default to one common target location for all repls
+            common_root.join("target")
         })();
         let cargo_toml_file = irust_dir.join("Cargo.toml");
         let irust_src_dir = irust_dir.join("src");
@@ -86,6 +89,7 @@ impl Default for CargoPaths {
             lib_file,
             exe_path,
             release_exe_path,
+            common_root,
         }
     }
 }
