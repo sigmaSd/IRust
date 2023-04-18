@@ -588,7 +588,7 @@ impl IRust {
         std::process::Command::new("cmd")
             .arg("/C")
             .arg(editor)
-            .arg(&self.repl.cargo.main_file_extern)
+            .arg(&self.repl.cargo.paths.main_file_extern)
             .spawn()?
             .wait()?;
 
