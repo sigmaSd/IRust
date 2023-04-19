@@ -82,7 +82,7 @@ impl IRust {
         let engine = Engine::default();
         let exit_flag = false;
         let theme = highlight::theme::theme_or_create_default(options.theme.clone());
-        let history = History::new().unwrap_or_default();
+        let history = History::new(repl.cargo.paths.irust_dir.clone()).unwrap_or_default();
 
         IRust {
             options,

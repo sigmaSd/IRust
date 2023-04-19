@@ -36,8 +36,9 @@ fn main() {
             // The users wants a oneshot evaluation
             use irust_repl::{EvalConfig, EvalResult, Repl, DEFAULT_EVALUATOR};
             use std::io::Read;
+
+            let mut repl = Repl::default();
             match (|| -> irust::Result<EvalResult> {
-                let mut repl = Repl::default();
                 let mut input = String::new();
                 stdin.read_to_string(&mut input)?;
                 let result = repl.eval_with_configuration(EvalConfig {
@@ -53,7 +54,10 @@ fn main() {
                     if result.status.success() {
                         println!("{}", result.output);
                     } else {
-                        println!("{}", irust::format_err(&result.output, false));
+                        println!(
+                            "{}",
+                            irust::format_err(&result.output, false, &repl.cargo.name)
+                        );
                     }
                     exit(0)
                 }

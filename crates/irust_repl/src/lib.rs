@@ -57,6 +57,7 @@ pub struct Repl {
     main_result: MainResult,
     edition: Edition,
     prelude: Option<PathBuf>,
+    pub cargo: Cargo,
 }
 impl Default for Repl {
     fn default() -> Self {
@@ -70,6 +71,11 @@ impl Default for Repl {
         .expect("Paniced while trying to create repl")
     }
 }
+impl Drop for Repl {
+    fn drop(&mut self) {
+        let _ = self.cargo.delete_project();
+    }
+}
 
 const PRELUDE_NAME: &str = "irust_prelude";
 
@@ -81,11 +87,12 @@ impl Repl {
         edition: Edition,
         prelude_parent_path: Option<PathBuf>,
     ) -> Result<Self> {
+        let cargo = Cargo::default();
         // NOTE: All the code in new should always not block
-        cargo_new(edition)?;
+        cargo.cargo_new(edition)?;
         if let Some(ref path) = prelude_parent_path {
-            cargo_new_lib_simple(path, PRELUDE_NAME)?;
-            cargo_add_prelude(path.join(PRELUDE_NAME), PRELUDE_NAME)?;
+            cargo.cargo_new_lib_simple(path, PRELUDE_NAME)?;
+            cargo.cargo_add_prelude(path.join(PRELUDE_NAME), PRELUDE_NAME)?;
         }
         // check for required dependencies (in case of async)
         if let Some(dependecy) = executor.dependecy() {
@@ -94,9 +101,9 @@ impl Repl {
             // repl.eval(5); // cargo-edit may not have written to Cargo.toml yet
             //
             // NOTE: This code blocks
-            cargo_add_sync(&dependecy)?;
+            cargo.cargo_add_sync(&dependecy)?;
         }
-        cargo_build(toolchain)?;
+        cargo.cargo_build(toolchain)?;
 
         let (header, footer) = Self::generate_body_delimiters(executor, main_result);
         let (body, cursor) = if prelude_parent_path.is_some() {
@@ -120,6 +127,7 @@ impl Repl {
             main_result,
             edition,
             prelude: prelude_parent_path,
+            cargo,
         })
     }
 
@@ -136,14 +144,14 @@ impl Repl {
         // remove old dependecy if it exists
         if let Some(dependecy) = self.executor.dependecy() {
             // cargo rm needs only the crate name
-            cargo_rm_sync(&dependecy[0])?;
+            self.cargo.cargo_rm_sync(&dependecy[0])?;
         }
 
         // use the new executor
         self.executor = executor;
         // check for required dependencies (in case of async)
         if let Some(dependecy) = executor.dependecy() {
-            cargo_add_sync(&dependecy)?;
+            self.cargo.cargo_add_sync(&dependecy)?;
         }
         // finally set the correct main function
         let (header, footer) = Self::generate_body_delimiters(self.executor, self.main_result);
@@ -154,7 +162,7 @@ impl Repl {
     }
 
     pub fn update_from_extern_main_file(&mut self) -> Result<()> {
-        let main_file = std::fs::read_to_string(&*MAIN_FILE_EXTERN)?;
+        let main_file = std::fs::read_to_string(&self.cargo.paths.main_file_extern)?;
         let lines_num = main_file.lines().count();
         if lines_num < 2 {
             return Err("main.rs file corrupted, resetting irust..".into());
@@ -169,6 +177,7 @@ impl Repl {
             main_result: self.main_result,
             edition: self.edition,
             prelude: self.prelude.clone(),
+            cargo: self.cargo.clone(),
         };
         Ok(())
     }
@@ -216,7 +225,7 @@ impl Repl {
     pub fn show(&self) -> String {
         let mut current_code = self.body.join("\n");
         // If cargo fmt is present format output else ignore
-        if let Ok(fmt_code) = cargo_fmt(&current_code) {
+        if let Ok(fmt_code) = self.cargo.cargo_fmt(&current_code) {
             current_code = fmt_code;
         }
         format!("Current Repl Code:\n{current_code}")
@@ -256,8 +265,9 @@ impl Repl {
         );
         let toolchain = self.toolchain;
 
+        let cargo = self.cargo.clone();
         let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, || {
-            cargo_run(
+            cargo.cargo_run(
                 color,
                 compile_mode.is_release(),
                 toolchain,
@@ -273,17 +283,19 @@ impl Repl {
     pub fn eval_build(&mut self, input: impl ToString) -> Result<EvalResult> {
         let input = input.to_string();
         let toolchain = self.toolchain;
+        let cargo = self.cargo.clone();
         Ok(self
             .eval_in_tmp_repl(input, || -> Result<(ExitStatus, String)> {
-                Ok(cargo_build_output(true, false, toolchain)?)
+                Ok(cargo.cargo_build_output(true, false, toolchain)?)
             })?
             .into())
     }
 
     pub fn eval_check(&mut self, buffer: String) -> Result<EvalResult> {
         let toolchain = self.toolchain;
+        let cargo = self.cargo.clone();
         Ok(self
-            .eval_in_tmp_repl(buffer, || Ok(cargo_check_output(toolchain)?))?
+            .eval_in_tmp_repl(buffer, || Ok(cargo.cargo_check_output(toolchain)?))?
             .into())
     }
 
@@ -323,15 +335,15 @@ impl Repl {
     }
 
     pub fn add_dep(&self, dep: &[String]) -> std::io::Result<std::process::Child> {
-        cargo_add(dep)
+        self.cargo.cargo_add(dep)
     }
 
     pub fn build(&self) -> std::io::Result<std::process::Child> {
-        cargo_build(self.toolchain)
+        self.cargo.cargo_build(self.toolchain)
     }
 
     pub fn write(&self) -> io::Result<()> {
-        let mut main_file = std::fs::File::create(&*MAIN_FILE)?;
+        let mut main_file = std::fs::File::create(&self.cargo.paths.main_file)?;
         write!(main_file, "{}", self.body.join("\n"))?;
 
         Ok(())
@@ -339,14 +351,14 @@ impl Repl {
 
     // Used for external editors
     pub fn write_to_extern(&self) -> io::Result<()> {
-        let mut main_file = std::fs::File::create(&*MAIN_FILE_EXTERN)?;
+        let mut main_file = std::fs::File::create(&self.cargo.paths.main_file_extern)?;
         write!(main_file, "{}", self.body.join("\n"))?;
 
         Ok(())
     }
 
     fn write_lib(&self) -> io::Result<()> {
-        let mut lib_file = std::fs::File::create(&*LIB_FILE)?;
+        let mut lib_file = std::fs::File::create(&self.cargo.paths.lib_file)?;
         let mut body = self.body.clone();
 
         // safe unwrap
@@ -366,7 +378,7 @@ impl Repl {
     }
 
     fn remove_lib(&self) -> io::Result<()> {
-        std::fs::remove_file(&*LIB_FILE)
+        std::fs::remove_file(&self.cargo.paths.lib_file)
     }
 
     pub fn with_lib<T>(&self, f: impl Fn() -> T) -> io::Result<T> {

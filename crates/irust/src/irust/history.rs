@@ -1,7 +1,7 @@
 use super::Result;
-use irust_repl::cargo_cmds::IRUST_DIR;
 use std::fs;
 use std::path;
+use std::path::PathBuf;
 
 /// Mark to keep backward-compatibility with the old way of saving history
 const NEW_HISTORY_MARK: &str = "##NewHistoryMark##\n//\n";
@@ -16,14 +16,14 @@ pub struct History {
 }
 
 impl History {
-    pub fn new() -> Result<Self> {
+    pub fn new(irust_dir: PathBuf) -> Result<Self> {
         let history_file_path = if let Some(cache_dir) = dirs::cache_dir() {
             let irust_cache = cache_dir.join("irust");
             let _ = std::fs::create_dir_all(&irust_cache);
             irust_cache.join("history")
         } else {
             // If we can't acess the cache, we use irust_repl::IRUST_DIR which is located in tmp and is already created
-            IRUST_DIR.join("history")
+            irust_dir.join("history")
         };
 
         if !history_file_path.exists() {

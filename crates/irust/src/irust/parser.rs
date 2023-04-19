@@ -10,14 +10,12 @@ use super::format::format_err_printqueue;
 use super::highlight::highlight;
 use crate::irust::{IRust, Result};
 use crate::utils::{copy_dir, stdout_and_stderr};
-use crate::utils::{find_workpace_root, patch_name};
+use crate::utils::{find_workpace_root, patch_name_to};
 use crate::{
     irust::format::{format_check_output, format_eval_output},
     utils::ctrlc_cancel,
 };
-use irust_repl::{
-    cargo_cmds::*, CompileMode, EvalConfig, EvalResult, Executor, MainResult, ToolChain,
-};
+use irust_repl::{CompileMode, EvalConfig, EvalResult, Executor, MainResult, ToolChain};
 use printer::printer::{PrintQueue, PrinterItem};
 
 const SUCCESS: &str = "Ok!";
@@ -213,7 +211,10 @@ impl IRust {
         self.wait_add(self.repl.build()?, "Build")?;
 
         if self.options.check_statements {
-            self.wait_add(cargo_check(self.options.toolchain)?, "Check")?;
+            self.wait_add(
+                self.repl.cargo.cargo_check(self.options.toolchain)?,
+                "Check",
+            )?;
         }
 
         success!()
@@ -292,14 +293,23 @@ impl IRust {
             )
         };
         // 3- Copy Cargo.toml
-        std::fs::copy(crate_root.join("Cargo.toml"), &*CARGO_TOML_FILE)?;
+        std::fs::copy(
+            crate_root.join("Cargo.toml"),
+            &self.repl.cargo.paths.cargo_toml_file,
+        )?;
         // 4- Patch crate to name to `irust_host_repl`
-        patch_name(&CARGO_TOML_FILE)?;
+        patch_name_to(
+            &self.repl.cargo.paths.cargo_toml_file,
+            &self.repl.cargo.name,
+        )?;
         // 5- Copy src directory
         // 5-1 Remove original src
-        std::fs::remove_dir_all(&*IRUST_SRC_DIR)?;
+        std::fs::remove_dir_all(&self.repl.cargo.paths.irust_src_dir)?;
         // 5-2 The actual copy
-        copy_dir(&crate_root.join("src"), &IRUST_SRC_DIR)?;
+        copy_dir(
+            &crate_root.join("src"),
+            &self.repl.cargo.paths.irust_src_dir,
+        )?;
 
         success!()
     }
@@ -330,7 +340,11 @@ impl IRust {
         let EvalResult { output, status } = self.repl.eval_build(code.clone())?;
 
         if !status.success() {
-            Ok(format_err_printqueue(&output, self.options.show_warnings))
+            Ok(format_err_printqueue(
+                &output,
+                self.options.show_warnings,
+                &self.repl.cargo.name,
+            ))
         } else {
             self.repl.insert(code);
             success!()
@@ -355,8 +369,10 @@ impl IRust {
 
         let toolchain = self.options.toolchain;
         let get_type = format!("let _:() = {variable};");
+
+        let cargo = self.repl.cargo.clone();
         self.repl.eval_in_tmp_repl(get_type, || -> Result<()> {
-            let (_status, out) = cargo_build_output(false, false, toolchain)?;
+            let (_status, out) = cargo.cargo_build_output(false, false, toolchain)?;
             raw_out = out;
             Ok(())
         })?;
@@ -465,9 +481,11 @@ impl IRust {
                 self.before_compiling_hook();
                 let check_result = self.repl.eval_check(buffer.clone());
                 self.after_compiling_hook();
-                if let Some(mut e) =
-                    format_check_output(check_result?.output, self.options.show_warnings)
-                {
+                if let Some(mut e) = format_check_output(
+                    check_result?.output,
+                    self.options.show_warnings,
+                    &self.repl.cargo.name,
+                ) {
                     print_queue.append(&mut e);
                     insert_flag = false;
                 }
@@ -500,9 +518,13 @@ impl IRust {
             }
 
             let output_prompt = self.get_output_prompt();
-            if let Some(mut eval_output) =
-                format_eval_output(status, output, output_prompt, self.options.show_warnings)
-            {
+            if let Some(mut eval_output) = format_eval_output(
+                status,
+                output,
+                output_prompt,
+                self.options.show_warnings,
+                &self.repl.cargo.name,
+            ) {
                 outputs.append(&mut eval_output);
             }
 
@@ -557,20 +579,22 @@ impl IRust {
         self.repl.write_to_extern()?;
 
         // beautify code
-        cargo_fmt_file(&MAIN_FILE_EXTERN);
+        self.repl
+            .cargo
+            .cargo_fmt_file(&self.repl.cargo.paths.main_file_extern);
 
         // some commands are not detected from path but still works  with cmd /C
         #[cfg(windows)]
         std::process::Command::new("cmd")
             .arg("/C")
             .arg(editor)
-            .arg(&*MAIN_FILE_EXTERN)
+            .arg(&self.repl.cargo.paths.main_file_extern)
             .spawn()?
             .wait()?;
 
         #[cfg(not(windows))]
         std::process::Command::new(editor)
-            .arg(&*MAIN_FILE_EXTERN)
+            .arg(&self.repl.cargo.paths.main_file_extern)
             .spawn()?
             .wait()?;
 
@@ -649,8 +673,10 @@ impl IRust {
         let toolchain = self.options.toolchain;
         let mut raw_out = String::new();
         let mut status = None;
+
+        let cargo = self.repl.cargo.clone();
         self.repl.eval_in_tmp_repl(time, || -> Result<()> {
-            let (s, out) = cargo_run(true, release, toolchain, Some(ctrlc_cancel))?;
+            let (s, out) = cargo.cargo_run(true, release, toolchain, Some(ctrlc_cancel))?;
             raw_out = out;
             status = Some(s);
             Ok(())
@@ -663,6 +689,7 @@ impl IRust {
             raw_out,
             output_prompt,
             self.options.show_warnings,
+            &self.repl.cargo.name,
         )
         .ok_or("failed to bench function")?)
     }
@@ -670,7 +697,12 @@ impl IRust {
     fn bench(&mut self) -> Result<PrintQueue> {
         //make sure we have the latest changes in main.rs
         self.repl.write()?;
-        let out = cargo_bench(self.options.toolchain)?.trim().to_owned();
+        let out = self
+            .repl
+            .cargo
+            .cargo_bench(self.options.toolchain)?
+            .trim()
+            .to_owned();
 
         print_queue!(out, self.options.eval_color)
     }
@@ -683,7 +715,7 @@ impl IRust {
 
         let asm = self
             .repl
-            .with_lib(|| cargo_asm(fnn, self.options.toolchain))??;
+            .with_lib(|| self.repl.cargo.cargo_asm(fnn, self.options.toolchain))??;
 
         print_queue!(asm, self.options.eval_color)
     }
@@ -895,8 +927,9 @@ impl IRust {
 
         let expr_line_num = self.repl.lines_count();
 
+        let cargo = self.repl.cargo.clone();
         self.repl.eval_in_tmp_repl(expression, || -> Result<()> {
-            let (status, _out) = cargo_build_output(true, false, self.options.toolchain)?;
+            let (status, _out) = cargo.cargo_build_output(true, false, self.options.toolchain)?;
             if !status.success() {
                 return Err("Failed to execute expression".into());
             }
@@ -917,7 +950,7 @@ impl IRust {
                 .arg("/C")
                 .arg(debugger)
                 .args([debugger_arg, &dbg_cmds_path.display().to_string()])
-                .arg(&*EXE_PATH)
+                .arg(&cargo.paths.exe_path)
                 .spawn()?
                 .wait()?;
 
@@ -925,7 +958,7 @@ impl IRust {
             {
                 std::process::Command::new(debugger)
                     .args([debugger_arg, &dbg_cmds_path.display().to_string()])
-                    .arg(&*EXE_PATH)
+                    .arg(&cargo.paths.exe_path)
                     .spawn()?
                     .wait()?;
             }
@@ -1008,12 +1041,17 @@ impl IRust {
             .expect("already checked")
             .trim();
         if !fnn.is_empty() {
-            let r = self
-                .repl
-                .with_lib(|| cargo_expand(Some(fnn), self.options.toolchain))??;
+            let r = self.repl.with_lib(|| {
+                self.repl
+                    .cargo
+                    .cargo_expand(Some(fnn), self.options.toolchain)
+            })??;
             print_queue!(r, Color::White)
         } else {
-            print_queue!(cargo_expand(None, self.options.toolchain)?, Color::White)
+            print_queue!(
+                self.repl.cargo.cargo_expand(None, self.options.toolchain)?,
+                Color::White
+            )
         }
     }
 

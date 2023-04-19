@@ -312,12 +312,12 @@ pub fn find_workpace_root(metadata: String) -> Option<String> {
     Some(metadata[start..start + end].to_string())
 }
 
-pub fn patch_name(path: &Path) -> Result<()> {
+pub fn patch_name_to(path: &Path, name: &str) -> Result<()> {
     let toml = std::fs::read_to_string(path)?;
     let mut patched: String = String::new();
     for line in toml.lines() {
         if line.starts_with("name =") {
-            patched.push_str("name = \"irust_host_repl\"");
+            patched.push_str(&format!("name = \"{name}\""));
             patched.push('\n');
         } else {
             patched.push_str(line);

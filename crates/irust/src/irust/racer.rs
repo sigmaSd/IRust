@@ -4,11 +4,13 @@ use super::{
 };
 use crate::utils::{read_until_bytes, StringTools};
 use crossterm::{style::Color, terminal::ClearType};
-use irust_repl::cargo_cmds::MAIN_FILE;
 use irust_repl::Repl;
 use printer::printer::{PrintQueue, Printer, PrinterItem};
 use std::io::Write;
-use std::process::{Child, Command, Stdio};
+use std::{
+    path::Path,
+    process::{Child, Command, Stdio},
+};
 
 pub enum Cycle {
     Up,
@@ -82,7 +84,7 @@ impl Racer {
         })
     }
 
-    fn complete_code(&mut self) -> Result<()> {
+    fn complete_code(&mut self, main_file: &Path) -> Result<()> {
         // check for lock
         if self.update_lock {
             return Ok(());
@@ -107,7 +109,7 @@ impl Racer {
             "complete {} {} {}",
             self.cursor.0,
             self.cursor.1,
-            MAIN_FILE.display()
+            main_file.display()
         ) {
             Ok(_) => (),
             Err(e) => {
@@ -234,8 +236,10 @@ impl Racer {
                 }
             }
 
+            let main_file = repl.cargo.paths.main_file.clone();
+            let main_file = main_file.as_path();
             repl.eval_in_tmp_repl(buffer, move || -> Result<()> {
-                racer.complete_code().map_err(From::from)
+                racer.complete_code(main_file).map_err(From::from)
             })?;
         }
 
