@@ -116,7 +116,7 @@ dependencies = [
 
 [[package]]
 name = "irust"
-version = "1.68.0"
+version = "1.69.0"
 dependencies = [
  "crossterm",
  "dirs",
@@ -141,7 +141,7 @@ dependencies = [
 
 [[package]]
 name = "irust_repl"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "once_cell",
  "serde",

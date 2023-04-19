@@ -1,3 +1,9 @@
+**1.69.0**
+- feat: make each repl unique : 
+    - Give each repl struct in irust_repl a unique cargo project
+    - This allows repls to coexist, each in its own project
+    - Also update irust to make use of this, so now multiple irust instances can't corrupt each other
+
 **1.68.0**
 - Add CompileMode (Debug/Release) to EvalConfig in irust_repl
 - Expose CompileMode in irust, with compile_mode command
