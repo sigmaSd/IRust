@@ -71,6 +71,11 @@ impl Default for Repl {
         .expect("Paniced while trying to create repl")
     }
 }
+impl Drop for Repl {
+    fn drop(&mut self) {
+        let _ = self.cargo.delete_project();
+    }
+}
 
 const PRELUDE_NAME: &str = "irust_prelude";
 
