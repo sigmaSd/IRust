@@ -44,8 +44,10 @@ class IRustKernel(Kernel):
 
     def eval(self, code, deps):
         import subprocess
+        import os
 
-        output = subprocess.run(["re", deps, code], stdout=subprocess.PIPE)
+        cmd = ["cmd","/c","re",deps,code] if os.name == 'nt' else ["re",deps,code]
+        output = subprocess.run(cmd, stdout=subprocess.PIPE)
 
         return output.stdout.decode("utf-8")
 
