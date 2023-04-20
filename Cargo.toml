@@ -7,11 +7,6 @@ members = [
     "crates/irust_repl",
 ]
 
-
-exclude = [
-    "scripts_examples"
-]
-
 # flamegraph
 [profile.release]
 debug = true
