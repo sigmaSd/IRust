@@ -24,14 +24,10 @@ Installation
 
 This requires IPython 3.
 
-.. code:: shell
-
     pip install irust_kernel
     python -m irust_kernel.install
 
 To use it, run one of:
-
-.. code:: shell
 
     jupyter notebook
     # In the notebook interface, select IRust from the 'New' menu

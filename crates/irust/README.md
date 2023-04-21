@@ -217,6 +217,9 @@ For nvim you can use https://github.com/hkupty/iron.nvim (needs irust 1.67.4)
 Since version `1.60.0` IRust supports spawning a local server, by changing `local_server` to `true` in the configuration file.\
 This allows it to be controlled programmatically, which in turns allows writing vim plugins that uses this, see https://github.com/sigmaSd/irust-vim-plugin
 
+## Jupyter Notebook
+Currently there is a barebone kernel that is easily installable see https://github.com/sigmaSd/IRust/blob/master/crates/irust_repl/README.md#jupyter-kernel for instructions
+
 ## Book
 `The IRust Book` is intended to document a couple of tips and tricks https://sigmasd.github.io/irust_book
 
