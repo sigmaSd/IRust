@@ -41,3 +41,8 @@ Developement
 This requires https://github.com/pypa/flit
 
 To start developping locally use `flint install --symlink` optionally followed by `python -m irust_kernel.install --local-build` if there are changes to `Re` executable
+
+Examples
+----------
+
+irust.ipynb (simple showcase) and evcxr.ipynb (showcase of evcxr protocol) are provided as an example
