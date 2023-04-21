@@ -35,11 +35,16 @@ class IRustKernel(Kernel):
 
         # Read the first JSON object from the process's standard output
         json_result = self.re.stdout.readline().decode("utf-8")
-        result_object = json.loads(json_result)
+        action_type = json.loads(json_result)
 
-        if not result_object["inserted"]:
-            stream_content = {'name': 'stdout', 'text': result_object["result"]}
-            self.send_response(self.iopub_socket, 'stream', stream_content)
+        if "Eval" in action_type:
+            action = action_type["Eval"]
+            self.send_response(self.iopub_socket, 'display_data', {
+                'metadata': {},
+                'data': {
+                    action["mime_type"]: action["value"]
+                }
+            })
 
         return {'status': 'ok',
                 'execution_count': self.execution_count,
