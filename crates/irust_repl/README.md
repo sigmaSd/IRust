@@ -44,4 +44,4 @@ Developement
 
 This requires https://github.com/pypa/flit
 
-To start developping locally use `flint install --symlink` followed by `python -m irust_kernel.install` after each change
+To start developping locally use `flint install --symlink` optionally followed by `python -m irust_kernel.install` if there are changes to `Re` executable
