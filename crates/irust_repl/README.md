@@ -17,11 +17,31 @@ Checkout the examples and tests folders for more info.
 
 
 ## Jupyter Kernel
-A basic jupyer kernel is provided for demo https://github.com/sigmaSd/IRust/tree/master/crates/irust_repl/irustkernel, to use it:
+A basic jupyer kernel is provided for demo https://github.com/sigmaSd/IRust/tree/master/crates/irust_repl/irust_kernel, to use it:
 
-- Compile `re` example with `cargo build --examples --release`
-- Cp `re` to a folder in your `$PATH` so it can be used by the kernel, `cp target/release/examples/re $folder_in_path`
-- Install the kernel with `jupyter kernelspec install --user irustkernel`, it should be listed now in `jupyter kernelspec list`
-- Cd to irustkernel, and run jupyter, `jupyter lab .`, note: cding into irustkernel is important so python can find the module `irust` (irust.py), the path is hardcoded in `kernel.json`
+Installation
+------------
 
-That's it! `irust.ipynb` is provided as an example
+This requires IPython 3.
+
+.. code:: shell
+
+    pip install irust_kernel
+    python -m irust_kernel.install
+
+To use it, run one of:
+
+.. code:: shell
+
+    jupyter notebook
+    # In the notebook interface, select IRust from the 'New' menu
+    jupyter qtconsole --kernel irust
+    jupyter console --kernel irust
+
+
+Developement
+------------
+
+This requires https://github.com/pypa/flit
+
+To start developping locally use `flint install` followed by `python -m irust_kernel.install` after each change
