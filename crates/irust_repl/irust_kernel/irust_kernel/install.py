@@ -16,22 +16,46 @@ kernel_json = {
   "language":"bash",
 }
 
-def install_my_kernel_spec(user=True, prefix=None):
+def install_my_kernel_spec(user=True, prefix=None, local_build=False):
+    def get_cargo_target_dir():
+        target = "target"
+        if 'CARGO_TARGET_DIR' in os.environ:
+            target = os.environ['CARGO_TARGET_DIR']
+        return target
+
+
     with TemporaryDirectory() as td:
+        cargo_target_dir = get_cargo_target_dir()
         os.chmod(td, 0o755) # Starts off as 700, not user readable
         with open(os.path.join(td, 'kernel.json'), 'w') as f:
             json.dump(kernel_json, f, sort_keys=True)
 
-        print('Fetching `irust` repo and compiling `Re` executable')
-        subprocess.run(["git", "clone","--depth","1", "https://github.com/sigmasd/irust"],cwd=td)
-        irust_repl_dir = os.path.join(td,"irust", "crates", "irust_repl")
-        subprocess.run(["cargo", "b", "--release", "--example", "re", "--target-dir", "target"], cwd=irust_repl_dir)
-        re_executable_path = os.path.join(irust_repl_dir, "target", "release", "examples", "re")
-        shutil.copy2(re_executable_path, td)
-        shutil.rmtree(os.path.join(td,"irust"))
+        if local_build:
+            print('Building `Re` executable')
+            try:
+                subprocess.run(["cargo", "b", "--example", "re", "--target-dir", cargo_target_dir],check=True)
+            except:
+                print('--local-build needs to be used inside irust repo')
+                exit(1)
+
+            src = os.path.join(cargo_target_dir, "debug", "examples", "re")
+            dst = os.path.join(td, "re")
+            os.symlink(src, dst)
+
+        else:
+            print('Fetching `irust` repo and compiling `Re` executable')
+            subprocess.run(["git", "clone","--depth","1", "https://github.com/sigmasd/irust"],cwd=td)
+            irust_repl_dir = os.path.join(td,"irust", "crates", "irust_repl")
+            subprocess.run(["cargo", "b", "--release", "--example", "re", "--target-dir",cargo_target_dir], cwd=irust_repl_dir)
+
+            src = os.path.join(cargo_target_dir, "release", "examples", "re")
+            dst = os.path.join(td, "re")
+            shutil.copy2(src, dst)
+            shutil.rmtree(os.path.join(td,"irust"))
 
         print('Installing IRust kernel spec')
         KernelSpecManager().install_kernel_spec(td, 'irust', user=user, prefix=prefix)
+        print('done')
 
 def _is_root():
     try:
@@ -62,6 +86,12 @@ def main(argv=None):
         default=None
     )
 
+    parser.add_argument('--local-build',
+        help = "Build `Re` locally and copy it to the kernel location",
+        default = False,
+        action='store_true'
+    )
+
     args = parser.parse_args(argv)
 
     user = False
@@ -73,7 +103,7 @@ def main(argv=None):
     elif args.user or not _is_root():
         user = True
 
-    install_my_kernel_spec(user=user, prefix=prefix)
+    install_my_kernel_spec(user=user, prefix=prefix, local_build=args.local_build)
 
 if __name__ == '__main__':
     main()
