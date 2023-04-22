@@ -1,6 +1,5 @@
 use crate::irust::{IRust, Result};
 use crossterm::style::Color;
-use std::io::Read;
 
 impl IRust {
     pub fn wait_add(&mut self, mut add_cmd: std::process::Child, msg: &str) -> Result<()> {
@@ -12,13 +11,14 @@ impl IRust {
             Ok(()) => {
                 self.clean_art()?;
 
-                if let Some(stderr) = add_cmd.stderr.as_mut() {
-                    let mut error = String::new();
-                    stderr.read_to_string(&mut error)?;
-                    if !error.is_empty() {
-                        // return Err(error.into());
-                    }
-                }
+                // use std::io::Read;
+                // if let Some(stderr) = add_cmd.stderr.as_mut() {
+                //     let mut error = String::new();
+                //     stderr.read_to_string(&mut error)?;
+                //     if !error.is_empty() {
+                //          return Err(error.into());
+                //     }
+                // }
                 Ok(())
             }
             Err(e) => {

@@ -25,6 +25,7 @@ impl RustAnalyzer {
         let mut process = Command::new("rust-analyzer")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
+            .stderr(Stdio::null()) // comment out to debug lsp
             .spawn()?;
         let mut stdin = process.stdin.take().expect("piped");
         let mut stdout = BufReader::new(process.stdout.take().expect("piped"));
@@ -153,14 +154,15 @@ impl RustAnalyzer {
                     .as_array()
                     .ok_or("ra items is not an array")?
                     .iter()
-                    .map(|item| item.get("filterText").unwrap().to_string())
+                    .filter_map(|item| item.get("filterText"))
+                    .map(|item| item.to_string())
                     // remove quotes
                     .map(|item| item[1..item.len() - 1].to_owned())
                     .collect());
             }
         }
 
-        Err("failed to get completions".into())
+        Ok(vec![])
     }
 }
 

@@ -109,20 +109,18 @@ impl Racer {
             .rust_analyzer
             .document_completion(main_file, (self.cursor.0 - 1, self.cursor.1 - 1))?;
 
-        for completion in completions {
-            let Some(buffer) = buffer
-                            .split('.')
-                            .last()
-                            .unwrap()
-                            .split(':')
-                            .last()
-                            .unwrap()
-                            .split_whitespace()
-                            .last() else {
-                            return Ok(())
-                        };
+        // 1. walk buffer in reverse till first non alpha character
+        let alpha_buffer = buffer
+            .chars()
+            .rev()
+            .take_while(|c| c.is_alphabetic())
+            .collect::<String>()
+            .chars()
+            .rev()
+            .collect::<String>();
 
-            if completion.starts_with(buffer) {
+        for completion in completions {
+            if completion.starts_with(&alpha_buffer) {
                 self.suggestions.push((completion, "".into()));
             }
         }
