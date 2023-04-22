@@ -36,6 +36,12 @@ impl RustAnalyzer {
             "id":  ID.fetch_add(1, Ordering::SeqCst),
             "method": "initialize",
             "params": {
+              "initializationOptions": {
+                  "checkOnSave": false,
+                  "diagnostics": {
+                    "enable": false
+                  }
+                },
                 "processId": std::process::id(),
                 "rootUri": format!("file://{}",root_uri.display()),
                 "capabilities": {
