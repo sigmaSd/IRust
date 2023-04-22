@@ -207,7 +207,7 @@ impl StringTools {
     }
 }
 
-pub fn read_until_bytes<R: std::io::BufRead + ?Sized>(
+pub fn _read_until_bytes<R: std::io::BufRead + ?Sized>(
     r: &mut R,
     delim: &[u8],
     buffer: &mut Vec<u8>,

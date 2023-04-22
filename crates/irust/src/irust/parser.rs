@@ -217,7 +217,9 @@ impl IRust {
             )?;
         }
 
-        self.racer.as_mut().unwrap().config_update();
+        if let Some(racer) = self.racer.as_mut() {
+            racer.rust_analyzer.reload_workspace()?;
+        }
 
         success!()
     }
