@@ -169,6 +169,14 @@ impl IRust {
             }
             Command::HandleCharacter(c) => {
                 self.buffer.insert(c);
+                self.repl
+                    .eval_in_tmp_repl_without_io(self.buffer.to_string(), |repl| {
+                        self.racer
+                            .as_mut()
+                            .unwrap()
+                            .did_change(repl.body(), &repl.cargo.paths.main_file);
+                        Ok(())
+                    })?;
                 self.print_input()?;
                 self.printer.cursor.move_right_unbounded();
                 self.history.unlock();

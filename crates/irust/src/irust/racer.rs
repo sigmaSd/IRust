@@ -6,11 +6,16 @@ use crate::utils::{read_until_bytes, StringTools};
 use crossterm::{style::Color, terminal::ClearType};
 use irust_repl::Repl;
 use printer::printer::{PrintQueue, Printer, PrinterItem};
-use std::io::Write;
+use serde_json::{json, Value};
+use std::io::{BufRead, BufReader, Read, Write};
+use std::process::ChildStdout;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::{
     path::Path,
     process::{Child, Command, Stdio},
 };
+
+static ID: AtomicUsize = AtomicUsize::new(2);
 
 pub enum Cycle {
     Up,
@@ -25,10 +30,116 @@ pub struct Racer {
     suggestion_idx: usize,
     cmds: [String; 30],
     update_lock: bool,
+    stdout: Option<BufReader<ChildStdout>>,
     pub active_suggestion: Option<String>,
 }
 
 impl Racer {
+    pub fn start_ra(irust_dir: &Path, main_file: &Path, text: String) -> Option<Racer> {
+        let mut process = Command::new("rust-analyzer")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("Failed to start rust-analyzer");
+        let mut stdin = process.stdin.as_mut().unwrap();
+        let mut stdout = BufReader::new(process.stdout.take().unwrap());
+
+        // Send a "initialize" request to the language server
+        let initialize_request = json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "processId": std::process::id(),
+                "rootUri": format!("file://{}",irust_dir.display()),
+                "capabilities": {
+                    "textDocument": {
+                        "completion": {
+                            "completionItem": {
+                                "documentationFormat": ["plaintext"]
+                            },
+                            "completionItemKind": {
+                                "valueSet": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]
+                            }
+                        }
+                    }
+                }
+            },
+        });
+
+        send_request(&mut stdin, &initialize_request);
+
+        // Send an "initialized" notification to the language server
+        let initialized_notification = json!({
+            "jsonrpc": "2.0",
+            "method": "initialized",
+            "params": {},
+        });
+        send_request(&mut stdin, &initialized_notification);
+
+        // Wait for "initialize" response
+        let _initialize_response: Value = read_message(&mut stdout).unwrap();
+
+        // Send a "textDocument/didOpen" notification to the language server
+        let did_open_notification = json!({
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {
+                "textDocument": {
+                    "uri": format!("file://{}",main_file.display()),
+                    "languageId": "rust",
+                    "version": 1,
+                    "text": text,
+                },
+            },
+        });
+        send_request(&mut stdin, &did_open_notification);
+
+        let cursor = (2, 0);
+        let cmds = [
+            "help".to_string(),
+            "reset".to_string(),
+            "show".to_string(),
+            "pop".to_string(),
+            "sync".to_string(),
+            "exit".to_string(),
+            "quit".to_string(),
+            "edit".to_string(),
+            "add".to_string(),
+            "load".to_string(),
+            "reload".to_string(),
+            "type".to_string(),
+            "del".to_string(),
+            "dbg".to_string(),
+            "cd".to_string(),
+            "color".to_string(),
+            "toolchain".to_string(),
+            "theme".to_string(),
+            "main_result".to_string(),
+            "check_statements".to_string(),
+            "time_release".to_string(),
+            "time".to_string(),
+            "bench".to_string(),
+            "asm".to_string(),
+            "expand".to_string(),
+            "executor".to_string(),
+            "evaluator".to_string(),
+            "scripts".to_string(),
+            "compile_time".to_string(),
+            "compile_mode".to_string(),
+        ];
+        Some(Racer {
+            process,
+            cursor,
+            suggestions: vec![],
+            suggestion_idx: 0,
+            cmds,
+            update_lock: false,
+            active_suggestion: None,
+            stdout: Some(stdout),
+        })
+    }
     pub fn start() -> Option<Racer> {
         let process = Command::new("racer")
             .arg("daemon")
@@ -81,7 +192,133 @@ impl Racer {
             cmds,
             update_lock: false,
             active_suggestion: None,
+            stdout: todo!(),
         })
+    }
+
+    pub fn did_change(&mut self, text: String, main_file: &Path) {
+        let did_change_notification = json!({
+            "jsonrpc": "2.0",
+            "method": "textDocument/didChange",
+            "params": {
+                "textDocument": {
+                    "uri": format!("file://{}",main_file.display()),
+                    "version": 2,
+                },
+                "contentChanges": [
+                    {
+                        "text":text,
+                    }
+                ]
+            },
+        });
+        let mut stdin = self
+            .process
+            .stdin
+            .as_mut()
+            .ok_or("failed to acess ra stdin")
+            .unwrap();
+        send_request(&mut stdin, &did_change_notification);
+    }
+    pub fn config_update(&mut self) {
+        let reload_msg = json!({
+            "jsonrpc": "2.0",
+            "id":  ID.fetch_add(1, Ordering::SeqCst),
+            "method": "rust-analyzer/reloadWorkspace",
+        });
+        let mut stdin = self
+            .process
+            .stdin
+            .as_mut()
+            .ok_or("failed to acess ra stdin")
+            .unwrap();
+        send_request(&mut stdin, &reload_msg);
+        read_message(self.stdout.as_mut().unwrap()).unwrap();
+    }
+    fn complete_code_ra(&mut self, main_file: &Path, text: String, buffer: &String) -> Result<()> {
+        // check for lock
+        if self.update_lock {
+            return Ok(());
+        }
+        // reset suggestions
+        self.suggestions.clear();
+        self.goto_first_suggestion();
+
+        let mut stdin = self
+            .process
+            .stdin
+            .as_mut()
+            .ok_or("failed to acess ra stdin")?;
+
+        // Send a "textDocument/completion" request to the language server
+
+        let completion_request = json!({
+            "jsonrpc": "2.0",
+            "id":  ID.fetch_add(1, Ordering::SeqCst),
+            "method": "textDocument/completion",
+            "params": {
+                "textDocument": {
+                    "uri": format!("file://{}",main_file.display()),
+                },
+                "position": {
+                    "line": self.cursor.0 -1,
+                    "character": self.cursor.1-1,
+                },
+            },
+        });
+
+        send_request(&mut stdin, &completion_request);
+        let completion_response = loop {
+        let completion_response = read_message(self.stdout.as_mut().unwrap()).unwrap();
+            if completion_response.get("result").is_some() {
+            break completion_response
+            }
+            std::thread::sleep_ms(100);
+        };
+
+        if let Some(result) = completion_response.get("result") {
+            if let Some(items) = result.get("items") {
+                for label in items
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|item| item.get("filterText").unwrap().to_string())
+                    // remove quotes
+                    .map(|item| item[1..item.len() - 1].to_owned())
+                {
+                    let Some(buffer) = buffer
+                            .split(".")
+                            .last()
+                            .unwrap()
+                            .split(":")
+                            .last()
+                            .unwrap()
+                            .split_whitespace()
+                            .last() else {
+                            return Ok(())
+                        };
+                    // dbg!(&label, &buffer);
+                    if label.starts_with(buffer) {
+                        self.suggestions.push((label, "".into()));
+                    }
+                }
+            }
+            // sort suggestions by the ones starting by byffer
+            // self.suggestions.sort_by(|a, b| {
+            //     let a = &a.0;
+            //     let b = &b.0;
+            //     let buffer = buffer.to_string();
+            //     if a.starts_with(&buffer) && !b.starts_with(&buffer) {
+            //         std::cmp::Ordering::Less
+            //     } else if !a.starts_with(&buffer) && b.starts_with(&buffer) {
+            //         std::cmp::Ordering::Greater
+            //     } else {
+            //         a.cmp(&b)
+            //     }
+            // });
+        }
+
+        Ok(())
     }
 
     fn complete_code(&mut self, main_file: &Path) -> Result<()> {
@@ -238,8 +475,12 @@ impl Racer {
 
             let main_file = repl.cargo.paths.main_file.clone();
             let main_file = main_file.as_path();
-            repl.eval_in_tmp_repl(buffer, move || -> Result<()> {
-                racer.complete_code(main_file).map_err(From::from)
+            let buf2 = buffer.clone();
+            let buf2 = &buf2;
+            repl.eval_in_tmp_repl(buffer, move |repl| -> Result<()> {
+                racer
+                    .complete_code_ra(main_file, repl.body(), &buf2)
+                    .map_err(From::from)
             })?;
         }
 
@@ -379,6 +620,7 @@ impl Racer {
             .writer
             .raw
             .set_fg(options.racer_suggestions_table_color)?;
+
         let current_suggestion = self.current_suggestion();
 
         for (idx, suggestion) in self
@@ -431,5 +673,71 @@ impl Racer {
     pub fn unlock_racer_update(&mut self) -> Result<()> {
         self.update_lock = false;
         Ok(())
+    }
+}
+
+fn send_request(stdin: &mut std::process::ChildStdin, request: &Value) {
+    let request_str = serde_json::to_string(request).unwrap();
+    let content_length = request_str.len();
+    writeln!(stdin, "Content-Length: {}\r", content_length).unwrap();
+    writeln!(stdin, "\r").unwrap();
+    write!(stdin, "{}", request_str).unwrap();
+    stdin.flush().unwrap();
+}
+
+fn read_response(stdout: &mut BufReader<&mut std::process::ChildStdout>) -> Value {
+    let mut content_length = None;
+    let mut buf = vec![];
+    loop {
+        buf.clear();
+        stdout.read_until(b'\n', &mut buf).unwrap();
+        let line = String::from_utf8_lossy(&buf);
+        if line == "\r\n" {
+            break;
+        }
+        if line.starts_with("Content-Length: ") {
+            let content_length_str = line
+                .trim_start_matches("Content-Length: ")
+                .trim()
+                .to_string();
+            content_length = Some(content_length_str.parse::<usize>().unwrap());
+        }
+    }
+
+    let content_length = content_length.unwrap();
+    let mut response_buf = vec![0; content_length];
+    stdout.read_exact(&mut response_buf).unwrap();
+
+    let response_str = String::from_utf8_lossy(&response_buf).to_string();
+    serde_json::from_str(&response_str).unwrap()
+}
+
+// fn read_response(stdout: &mut BufReader<&mut std::process::ChildStdout>) -> Value {
+fn read_message(reader: &mut BufReader<std::process::ChildStdout>) -> Result<Value> {
+    let content_length = get_content_length(reader)?;
+    let mut content = vec![0; content_length];
+
+    reader.read_exact(&mut content)?;
+    let json_string = String::from_utf8(content)?;
+    let message = serde_json::from_str(&json_string)?;
+    Ok(message)
+}
+
+fn get_content_length(reader: &mut BufReader<std::process::ChildStdout>) -> Result<usize> {
+    let mut line = String::new();
+    let mut blank_line = String::new();
+
+    let mut _bytes_read = reader.read_line(&mut line)?;
+    let idx = line.find("Content-Length").unwrap();
+    let mut split = line[idx..].trim().split(": ");
+
+    if split.next() == Some("Content-Length") {
+        _bytes_read = reader.read_line(&mut blank_line)?;
+        Ok(split
+            .next()
+            .and_then(|value_string| value_string.parse().ok())
+            .ok_or("TODO")?)
+    } else {
+        return Err("malformed rpc message".into());
     }
 }

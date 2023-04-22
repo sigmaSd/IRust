@@ -16,7 +16,7 @@ impl IRust {
                     let mut error = String::new();
                     stderr.read_to_string(&mut error)?;
                     if !error.is_empty() {
-                        return Err(error.into());
+                        // return Err(error.into());
                     }
                 }
                 Ok(())

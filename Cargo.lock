@@ -127,6 +127,7 @@ dependencies = [
  "rscript",
  "rustc-ap-rustc_lexer",
  "serde",
+ "serde_json",
  "toml",
 ]
 
