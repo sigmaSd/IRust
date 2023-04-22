@@ -113,7 +113,7 @@ impl Racer {
         let alpha_buffer = buffer
             .chars()
             .rev()
-            .take_while(|c| c.is_alphabetic())
+            .take_while(|c| c.is_alphabetic() || *c == '_')
             .collect::<String>()
             .chars()
             .rev()
