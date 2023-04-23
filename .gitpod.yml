@@ -5,7 +5,7 @@ tasks:
       cargo install --path crates/irust
       cargo install cargo-edit cargo-show-asm cargo-expand
       rustup component add rust-analyzer
-      export PATH="$PATH:$(rustc --print sysroot)/bin"
+      echo 'export PATH="$PATH:$(rustc --print sysroot)/bin"' >> ~/.bashrc
   - name: IRust
     command: |
       echo "Welcome to IRust. Just type 'irust' to begin."
