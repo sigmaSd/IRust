@@ -107,7 +107,7 @@ impl Racer {
 
         let completions = self
             .rust_analyzer
-            .document_completion(main_file, (self.cursor.0 - 1, self.cursor.1 - 1))?;
+            .document_completion(main_file, (self.cursor.0 - 1, self.cursor.1))?;
 
         // 1. walk buffer in reverse till first non alpha character
         let alpha_buffer = buffer
