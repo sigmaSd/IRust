@@ -1,3 +1,6 @@
+**1.70.0**
+- Use rust-analyzer instead of racer for completions
+
 **1.69.0**
 - feat: make each repl unique : 
     - Give each repl struct in irust_repl a unique cargo project
