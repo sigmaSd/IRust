@@ -38,6 +38,7 @@ pub fn check_required_deps() -> bool {
 }
 
 pub fn warn_about_opt_deps(options: &mut Options) {
+    //TODO: add rust-analyzer
     let opt_deps: [Dep; 3] = [
         Dep::new("rustfmt", "rustfmt", "beautifying repl code", &|| {
             if !dep_installed("rustup") {

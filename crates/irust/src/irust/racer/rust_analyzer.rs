@@ -124,6 +124,7 @@ impl RustAnalyzer {
         Ok(())
     }
 
+    //TODO: use insertText ; it has the exact text position
     pub fn document_completion(
         &mut self,
         uri: &Path,
