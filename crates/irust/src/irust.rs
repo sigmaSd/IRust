@@ -73,7 +73,11 @@ impl IRust {
         let printer = Printer::new(std::io::stdout(), prompt);
 
         let racer = if options.enable_racer {
-            Racer::start()
+            Racer::start_ra(
+                &repl.cargo.paths.irust_dir,
+                &repl.cargo.paths.main_file,
+                repl.body(),
+            )
         } else {
             None
         };

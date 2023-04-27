@@ -266,7 +266,7 @@ impl Repl {
         let toolchain = self.toolchain;
 
         let cargo = self.cargo.clone();
-        let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, || {
+        let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, |_| {
             cargo.cargo_run(
                 color,
                 compile_mode.is_release(),
@@ -285,7 +285,7 @@ impl Repl {
         let toolchain = self.toolchain;
         let cargo = self.cargo.clone();
         Ok(self
-            .eval_in_tmp_repl(input, || -> Result<(ExitStatus, String)> {
+            .eval_in_tmp_repl(input, |_| -> Result<(ExitStatus, String)> {
                 Ok(cargo.cargo_build_output(true, false, toolchain)?)
             })?
             .into())
@@ -295,21 +295,38 @@ impl Repl {
         let toolchain = self.toolchain;
         let cargo = self.cargo.clone();
         Ok(self
-            .eval_in_tmp_repl(buffer, || Ok(cargo.cargo_check_output(toolchain)?))?
+            .eval_in_tmp_repl(buffer, |_| Ok(cargo.cargo_check_output(toolchain)?))?
             .into())
     }
 
+    pub fn eval_in_tmp_repl_without_io<T>(
+        &mut self,
+        input: String,
+        mut f: impl FnMut(&Self) -> Result<T>,
+    ) -> Result<T> {
+        let orig_body = self.body.clone();
+        let orig_cursor = self.cursor;
+
+        self.insert(input);
+        // self.write()?;
+        let result = f(self);
+
+        self.body = orig_body;
+        self.cursor = orig_cursor;
+
+        result
+    }
     pub fn eval_in_tmp_repl<T>(
         &mut self,
         input: String,
-        mut f: impl FnMut() -> Result<T>,
+        mut f: impl FnMut(&Self) -> Result<T>,
     ) -> Result<T> {
         let orig_body = self.body.clone();
         let orig_cursor = self.cursor;
 
         self.insert(input);
         self.write()?;
-        let result = f();
+        let result = f(self);
 
         self.body = orig_body;
         self.cursor = orig_cursor;
@@ -347,6 +364,10 @@ impl Repl {
         write!(main_file, "{}", self.body.join("\n"))?;
 
         Ok(())
+    }
+
+    pub fn body(&self) -> String {
+        self.body.join("\n")
     }
 
     // Used for external editors

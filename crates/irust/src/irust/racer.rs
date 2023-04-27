@@ -1,8 +1,10 @@
+use self::rust_analyzer::RustAnalyzer;
+
 use super::{
     highlight::{highlight, theme::Theme},
     Result,
 };
-use crate::utils::{read_until_bytes, StringTools};
+use crate::utils::{StringTools, _read_until_bytes};
 use crossterm::{style::Color, terminal::ClearType};
 use irust_repl::Repl;
 use printer::printer::{PrintQueue, Printer, PrinterItem};
@@ -11,6 +13,7 @@ use std::{
     path::Path,
     process::{Child, Command, Stdio},
 };
+mod rust_analyzer;
 
 pub enum Cycle {
     Up,
@@ -18,7 +21,8 @@ pub enum Cycle {
 }
 
 pub struct Racer {
-    process: Child,
+    pub rust_analyzer: RustAnalyzer,
+    _racer: Option<Child>,
     cursor: (usize, usize),
     // suggestions: (Name, definition)
     suggestions: Vec<(String, String)>,
@@ -29,14 +33,19 @@ pub struct Racer {
 }
 
 impl Racer {
-    pub fn start() -> Option<Racer> {
-        let process = Command::new("racer")
-            .arg("daemon")
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::null())
-            .spawn()
-            .ok()?;
+    pub fn start_ra(irust_dir: &Path, main_file: &Path, repl_body: String) -> Option<Racer> {
+        if false {
+            let _process = Command::new("racer")
+                .arg("daemon")
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()
+                .ok()?;
+        }
+
+        let rust_analyzer = RustAnalyzer::start(irust_dir, main_file, repl_body).ok()?;
+
         // Disable Racer if unable to start it
         //.map_err(|_| IRustError::RacerDisabled)?;
         let cursor = (2, 0);
@@ -74,17 +83,18 @@ impl Racer {
         ];
 
         Some(Racer {
-            process,
+            _racer: None,
             cursor,
             suggestions: vec![],
             suggestion_idx: 0,
             cmds,
             update_lock: false,
             active_suggestion: None,
+            rust_analyzer,
         })
     }
 
-    fn complete_code(&mut self, main_file: &Path) -> Result<()> {
+    fn complete_code_ra(&mut self, main_file: &Path, text: String, buffer: &str) -> Result<()> {
         // check for lock
         if self.update_lock {
             return Ok(());
@@ -93,16 +103,43 @@ impl Racer {
         self.suggestions.clear();
         self.goto_first_suggestion();
 
-        let stdin = self
-            .process
-            .stdin
-            .as_mut()
-            .ok_or("failed to acess racer stdin")?;
-        let stdout = self
-            .process
-            .stdout
-            .as_mut()
-            .ok_or("faied to acess racer stdout")?;
+        self.rust_analyzer.document_did_change(main_file, text)?;
+
+        let completions = self
+            .rust_analyzer
+            .document_completion(main_file, (self.cursor.0 - 1, self.cursor.1))?;
+
+        // 1. walk buffer in reverse till first non alpha character
+        let alpha_buffer = buffer
+            .chars()
+            .rev()
+            .take_while(|c| c.is_alphabetic() || *c == '_')
+            .collect::<String>()
+            .chars()
+            .rev()
+            .collect::<String>();
+
+        for completion in completions {
+            if completion.starts_with(&alpha_buffer) {
+                self.suggestions.push((completion, "".into()));
+            }
+        }
+
+        Ok(())
+    }
+
+    fn _complete_code_racer(&mut self, main_file: &Path) -> Result<()> {
+        // check for lock
+        if self.update_lock {
+            return Ok(());
+        }
+        // reset suggestions
+        self.suggestions.clear();
+        self.goto_first_suggestion();
+
+        let racer = self._racer.as_mut().ok_or("racer is not used")?;
+        let stdin = racer.stdin.as_mut().ok_or("failed to acess racer stdin")?;
+        let stdout = racer.stdout.as_mut().ok_or("faied to acess racer stdout")?;
 
         match writeln!(
             stdin,
@@ -125,7 +162,7 @@ impl Racer {
 
         // read till END
         let mut raw_output = vec![];
-        read_until_bytes(
+        _read_until_bytes(
             &mut std::io::BufReader::new(stdout),
             b"END\n",
             &mut raw_output,
@@ -236,10 +273,11 @@ impl Racer {
                 }
             }
 
-            let main_file = repl.cargo.paths.main_file.clone();
-            let main_file = main_file.as_path();
-            repl.eval_in_tmp_repl(buffer, move || -> Result<()> {
-                racer.complete_code(main_file).map_err(From::from)
+            let buf_ref = &buffer;
+            repl.eval_in_tmp_repl(buffer.clone(), move |repl| -> Result<()> {
+                racer
+                    .complete_code_ra(&repl.cargo.paths.main_file, repl.body(), buf_ref)
+                    .map_err(From::from)
             })?;
         }
 
@@ -379,6 +417,7 @@ impl Racer {
             .writer
             .raw
             .set_fg(options.racer_suggestions_table_color)?;
+
         let current_suggestion = self.current_suggestion();
 
         for (idx, suggestion) in self

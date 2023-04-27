@@ -86,7 +86,7 @@ You can use arrow keys to cycle through commands history
 
 **HOME/END** go to line start / line end
 
-**Tab/ShiftTab** cycle through auto-completion suggestions (requires [racer](https://github.com/racer-rust/racer))
+**Tab/ShiftTab** cycle through auto-completion suggestions
 
 **Alt-Enter | ctrl-s** add line break
 
@@ -141,7 +141,7 @@ IRust config file is located in:
   welcome_msg = ""
   welcome_color = "DarkBlue"
 
-  # racer
+  # Rust analyzer
   racer_inline_suggestion_color = "Cyan"
   racer_suggestions_table_color = "Green"
   racer_selected_suggestion_color = "DarkRed"
@@ -231,6 +231,9 @@ Currently there is a barebone kernel that is easily installable see https://gith
 
 ## FAQ
 
+Since version 1.70.0 irust uses rust-analyzer instead of racer, the next info is outdated
+
+```
 **1- Why is autocompletion not working**
 
     -> you need racer installed and configured correctly
@@ -244,6 +247,7 @@ Currently there is a barebone kernel that is easily installable see https://gith
 You can try `rustup update --force` https://github.com/racer-rust/racer/issues/1141
 
 Also some times the needed toolchain version changes. Usually there is an issue about it in racer repo (and the correct version to use)
+```
 
 **3- I want to hack on irust but `dbg!` overlaps with the output!!**
 

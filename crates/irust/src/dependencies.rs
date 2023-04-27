@@ -38,47 +38,8 @@ pub fn check_required_deps() -> bool {
 }
 
 pub fn warn_about_opt_deps(options: &mut Options) {
-    let opt_deps: [Dep; 4] = [
-        Dep::new("racer", "racer", "auto_completion", &|| {
-            let mut exit_status = vec![];
-            let mut run_cmd = |cmd: &[&str]| -> io::Result<()> {
-                println!("{}", format!("Running: {cmd:?}").magenta());
-                exit_status.push(process::Command::new(cmd[0]).args(&cmd[1..]).status()?);
-                Ok(())
-            };
-
-            if !dep_installed("rustup") {
-                println!(
-                    "{}",
-                    "rustup is not installed.\nrustup is required to install and configure racer"
-                        .red()
-                );
-                return Err(io::Error::new(
-                    io::ErrorKind::Other,
-                    "rustup is not installed",
-                ));
-            }
-
-            let cmd = ["rustup", "install", "nightly"];
-            run_cmd(&cmd)?;
-
-            let cmd = [
-                "rustup",
-                "component",
-                "add",
-                "rustc-dev",
-                "--toolchain=nightly",
-            ];
-            run_cmd(&cmd)?;
-
-            let cmd = ["cargo", "+nightly", "install", "racer"];
-            run_cmd(&cmd)?;
-
-            let cmd = ["rustup", "component", "add", "rust-src"];
-            run_cmd(&cmd)?;
-
-            Ok(exit_status)
-        }),
+    //TODO: add rust-analyzer
+    let opt_deps: [Dep; 3] = [
         Dep::new("rustfmt", "rustfmt", "beautifying repl code", &|| {
             if !dep_installed("rustup") {
                 println!(

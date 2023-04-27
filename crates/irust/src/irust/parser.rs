@@ -217,6 +217,10 @@ impl IRust {
             )?;
         }
 
+        if let Some(racer) = self.racer.as_mut() {
+            racer.rust_analyzer.reload_workspace()?;
+        }
+
         success!()
     }
 
@@ -371,7 +375,7 @@ impl IRust {
         let get_type = format!("let _:() = {variable};");
 
         let cargo = self.repl.cargo.clone();
-        self.repl.eval_in_tmp_repl(get_type, || -> Result<()> {
+        self.repl.eval_in_tmp_repl(get_type, |_| -> Result<()> {
             let (_status, out) = cargo.cargo_build_output(false, false, toolchain)?;
             raw_out = out;
             Ok(())
@@ -675,7 +679,7 @@ impl IRust {
         let mut status = None;
 
         let cargo = self.repl.cargo.clone();
-        self.repl.eval_in_tmp_repl(time, || -> Result<()> {
+        self.repl.eval_in_tmp_repl(time, |_| -> Result<()> {
             let (s, out) = cargo.cargo_run(true, release, toolchain, Some(ctrlc_cancel))?;
             raw_out = out;
             status = Some(s);
@@ -928,7 +932,7 @@ impl IRust {
         let expr_line_num = self.repl.lines_count();
 
         let cargo = self.repl.cargo.clone();
-        self.repl.eval_in_tmp_repl(expression, || -> Result<()> {
+        self.repl.eval_in_tmp_repl(expression, |_| -> Result<()> {
             let (status, _out) = cargo.cargo_build_output(true, false, self.options.toolchain)?;
             if !status.success() {
                 return Err("Failed to execute expression".into());

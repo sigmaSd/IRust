@@ -2,11 +2,10 @@ tasks:
   - name: Preload
     before: |
       rustup update stable
-      cargo +stable install irust
-      rustup toolchain add nightly-2022-04-06
-      rustup component add rustc-dev --toolchain=nightly-2022-04-06
-      cargo +nightly-2022-04-06 install racer
+      cargo install --path crates/irust
       cargo install cargo-edit cargo-show-asm cargo-expand
+      rustup component add rust-analyzer
+      echo 'export PATH="$PATH:$(rustc --print sysroot)/bin"' >> ~/.bashrc
   - name: IRust
     command: |
       echo "Welcome to IRust. Just type 'irust' to begin."
