@@ -13,7 +13,7 @@ from IPython.utils.tempdir import TemporaryDirectory
 kernel_json = {
   "argv": [sys.executable, "-m", "irust_kernel", "-f", "{connection_file}"],
   "display_name": "IRust",
-  "language":"bash",
+  "language":"rust",
 }
 
 def install_my_kernel_spec(user=True, prefix=None, local_build=False):
