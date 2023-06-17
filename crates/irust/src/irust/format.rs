@@ -75,6 +75,7 @@ pub fn format_eval_output(
     prompt: String,
     show_warnings: bool,
     repl_name: &str,
+    new_lines_after_output: usize,
 ) -> Option<PrintQueue> {
     if !status.success() {
         return Some(format_err_printqueue(&output, show_warnings, repl_name));
@@ -86,7 +87,7 @@ pub fn format_eval_output(
     let mut eval_output = PrintQueue::default();
     eval_output.push(PrinterItem::String(prompt, Color::Red));
     eval_output.push(PrinterItem::String(output, Color::White));
-    eval_output.add_new_line(1);
+    eval_output.add_new_line(new_lines_after_output);
     Some(eval_output)
 }
 

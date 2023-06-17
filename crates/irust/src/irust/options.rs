@@ -45,6 +45,7 @@ pub struct Options {
     pub local_server_adress: std::net::SocketAddrV4,
     pub theme: String,
     pub compile_mode: CompileMode,
+    pub new_lines_after_output: usize,
 }
 
 impl Default for Options {
@@ -104,6 +105,7 @@ impl Default for Options {
             local_server_adress: "127.0.0.1:9000".parse().expect("correct"),
             theme: "default".into(),
             compile_mode: CompileMode::Debug,
+            new_lines_after_output: 1,
         }
     }
 }

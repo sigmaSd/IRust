@@ -528,6 +528,7 @@ impl IRust {
                 output_prompt,
                 self.options.show_warnings,
                 &self.repl.cargo.name,
+                self.options.new_lines_after_output,
             ) {
                 outputs.append(&mut eval_output);
             }
@@ -694,6 +695,7 @@ impl IRust {
             output_prompt,
             self.options.show_warnings,
             &self.repl.cargo.name,
+            self.options.new_lines_after_output,
         )
         .ok_or("failed to bench function")?)
     }
