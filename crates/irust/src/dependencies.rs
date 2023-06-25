@@ -143,7 +143,7 @@ pub fn warn_about_opt_deps(options: &mut Options) {
             "You might need to reload the shell inorder to update $PATH".yellow()
         );
     }
-    println!("{}", "Everthing is set!".green());
+    println!("{}", "Everything is set!".green());
 }
 
 fn dep_installed(d: &str) -> bool {
