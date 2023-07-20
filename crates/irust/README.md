@@ -35,7 +35,7 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:color** *\<key\>* *\<value\>* => change token highlight color at runtime, for the token list and value representation check the Theme section, exp: `:color function red` `:color macro #ff12ab` `:color reset`
 
-**:toolchain** *\<value\>* => switch between toolchains, supported value are: `stable`, `beta`, `nighty`, `default`
+**:toolchain** *\<value\>* => switch between toolchains, supported value are: `stable`, `beta`, `nightly`, `default`
 
 **:theme** *\<value\>* => if used without arguments list currently installed themes, otherwise set irust to the given theme, see Themes section for more info
   
