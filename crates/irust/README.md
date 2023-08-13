@@ -123,7 +123,7 @@ IRust config file is located in:
 **Mac**: */Users/$USER/Library/Preferences/irust/config.toml*
 
 *default config:*
-```
+```toml
   # history
   add_irust_cmd_to_history = true
   add_shell_cmd_to_history = false
@@ -154,7 +154,7 @@ IRust config file is located in:
   check_statements = true
   auto_insert_semicolon = true
   
-  // use last output by replacing the specified marker
+  #use last output by replacing the specified marker
   replace_marker = "$out"
   replace_output_with_marker = false
   
@@ -188,7 +188,7 @@ Colors can be specified as names ("red") or as hex representation ("#ff12ab").
 
 Default theme file (default.toml):
 
-```
+```toml
   keyword = "magenta"
   keyword2 = "dark_red"
   function = "blue"
@@ -233,7 +233,6 @@ Currently there is a barebone kernel that is easily installable see https://gith
 
 Since version 1.70.0 irust uses rust-analyzer instead of racer, the next info is outdated
 
-```
 **1- Why is autocompletion not working**
 
     -> you need racer installed and configured correctly
@@ -247,7 +246,6 @@ Since version 1.70.0 irust uses rust-analyzer instead of racer, the next info is
 You can try `rustup update --force` https://github.com/racer-rust/racer/issues/1141
 
 Also some times the needed toolchain version changes. Usually there is an issue about it in racer repo (and the correct version to use)
-```
 
 **3- I want to hack on irust but `dbg!` overlaps with the output!!**
 
