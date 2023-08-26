@@ -31,9 +31,9 @@ jobs:
       with:
         fetch-depth: 1
     - name: Install Rust
-      uses: hecrj/setup-rust-action@master
+      uses: dtolnay/rust-toolchain@master
       with:
-        rust-version: ${{ matrix.rust }}
+        toolchain: ${{ matrix.rust }}
         components: rustfmt,clippy
     - name: Toolchain Information
       run: |
