@@ -260,7 +260,7 @@ impl Racer {
                 .collect();
         } else {
             // Auto complete rust code
-            let mut racer = self;
+            let racer = self;
 
             racer.cursor.0 = repl.lines_count() + StringTools::new_lines_count(&buffer);
 

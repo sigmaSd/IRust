@@ -14,7 +14,7 @@ pub fn split_args(s: String) -> Vec<String> {
         match c {
             ' ' => {
                 if !quote && !tmp.is_empty() {
-                    args.push(tmp.drain(..).collect());
+                    args.push(std::mem::take(&mut tmp));
                 } else {
                     tmp.push(' ');
                 }

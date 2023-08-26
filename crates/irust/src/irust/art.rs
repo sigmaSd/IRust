@@ -120,12 +120,12 @@ impl IRust {
     }
 
     pub fn ferris(&mut self) -> String {
-        r#"
+        r"
      _~^~^~_
  \) /  o o  \ (/
    '_   ¬   _'
    / '-----' \
-                     "#
+                     "
         .lines()
         .skip(1)
         .map(|l| l.to_string() + "\n")
