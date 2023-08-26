@@ -1,3 +1,8 @@
+**1.71.0**
+- Support `NO_COLOR` env variable to disable all colors
+- Add new option `new_lines_after_output` to specify the number
+of new lines after output (defaults to 1)
+
 **1.70.0**
 - Use rust-analyzer instead of racer for completions
 
