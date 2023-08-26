@@ -70,6 +70,8 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 You can use arrow keys to cycle through commands history
 
+You can disable all colors by setting `NO_COLOR` env variable
+
 ## Keybindings
 
 **ctrl-l** clear screen
