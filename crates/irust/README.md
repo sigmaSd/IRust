@@ -68,9 +68,11 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **::** => run a shell command, example `::ls`
 
-You can use arrow keys to cycle through commands history
+You can use arrow keys to cycle through commands history.
 
-You can disable all colors by setting `NO_COLOR` env variable
+You can disable all colors by setting `NO_COLOR` env variable.
+
+To enable completion with tab via rust-analyzer, set `enable_racer` to true in the config.
 
 ## Keybindings
 
@@ -148,7 +150,7 @@ IRust config file is located in:
   racer_suggestions_table_color = "Green"
   racer_selected_suggestion_color = "DarkRed"
   racer_max_suggestions = 5
-  enable_racer = true
+  enable_racer = false
 
   # other
   first_irust_run = false
