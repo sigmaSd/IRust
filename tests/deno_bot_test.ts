@@ -1,5 +1,5 @@
 #!/usr/bin/env -S deno run --unstable --allow-all
-import { Pty } from "https://deno.land/x/deno_pty_ffi@0.3.0/mod.ts";
+import { Pty } from "https://deno.land/x/deno_pty_ffi@0.5.0/mod.ts";
 import { stripColor } from "https://deno.land/std@0.200.0/fmt/colors.ts";
 import {
   assertEquals,
