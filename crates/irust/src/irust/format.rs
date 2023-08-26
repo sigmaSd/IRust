@@ -1,12 +1,22 @@
 use crossterm::style::Color;
-
 use printer::printer::{PrintQueue, PrinterItem};
+use std::sync::OnceLock;
+
+static NO_COLOR: OnceLock<bool> = OnceLock::new();
+/// Have the top precedence
+fn no_color() -> bool {
+    *NO_COLOR.get_or_init(|| std::env::var("NO_COLOR").is_ok())
+}
 
 pub fn format_err<'a>(original_output: &'a str, show_warnings: bool, repl_name: &str) -> String {
     const BEFORE_2021_END_TAG: &str = ": aborting due to ";
     // Relies on --color=always
     const ERROR_TAG: &str = "\u{1b}[0m\u{1b}[1m\u{1b}[38;5;9merror";
     const WARNING_TAG: &str = "\u{1b}[0m\u{1b}[1m\u{1b}[33mwarning";
+
+    // These are more fragile, should be only used when NO_COLOR is on
+    const ERROR_TAG_NO_COLOR: &str = "error[";
+    const WARNING_TAG_NO_COLOR: &str = "warning: ";
 
     let go_to_start = |output: &'a str| -> Vec<&'a str> {
         if show_warnings {
@@ -18,7 +28,13 @@ pub fn format_err<'a>(original_output: &'a str, show_warnings: bool, repl_name: 
         } else {
             output
                 .lines()
-                .skip_while(|line| !line.starts_with(ERROR_TAG))
+                .skip_while(|line| {
+                    if no_color() {
+                        !line.starts_with(ERROR_TAG_NO_COLOR)
+                    } else {
+                        !line.starts_with(ERROR_TAG)
+                    }
+                })
                 .collect()
         }
     };
@@ -26,7 +42,13 @@ pub fn format_err<'a>(original_output: &'a str, show_warnings: bool, repl_name: 
         if show_warnings {
             output
         } else {
-            Box::new(output.take_while(|line| !line.starts_with(WARNING_TAG)))
+            Box::new(output.take_while(|line| {
+                if no_color() {
+                    !line.starts_with(WARNING_TAG_NO_COLOR)
+                } else {
+                    !line.starts_with(WARNING_TAG)
+                }
+            }))
         }
         .collect::<Vec<_>>()
         .join("\n")

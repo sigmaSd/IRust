@@ -8,8 +8,15 @@ use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus};
+use std::sync::OnceLock;
 use std::{env::temp_dir, process::Stdio};
 use std::{fs, process};
+
+static NO_COLOR: OnceLock<bool> = OnceLock::new();
+/// Have the top precedence
+fn no_color() -> bool {
+    *NO_COLOR.get_or_init(|| std::env::var("NO_COLOR").is_ok())
+}
 
 const WRITE_LIB_LIMIT: &str = concat!(
     "\nAlso your code in this repl session needs to only consist of top level statements",
@@ -261,10 +268,11 @@ edition = \"2021\""
         &self,
         toolchain: ToolChain,
     ) -> std::result::Result<(ExitStatus, String), io::Error> {
+        let color = if no_color() { "never" } else { "always" };
         let mut cmd = Command::new("cargo");
         let output = self
             .cargo_common(&mut cmd, "check", toolchain)
-            .args(["--color", "always"])
+            .args(["--color", color])
             .output()?;
 
         let status = output.status;
@@ -288,7 +296,13 @@ edition = \"2021\""
         release: bool,
         toolchain: ToolChain,
     ) -> std::result::Result<(ExitStatus, String), io::Error> {
-        let color = if color { "always" } else { "never" };
+        let color = if no_color() {
+            "never"
+        } else if color {
+            "always"
+        } else {
+            "never"
+        };
         let mut cmd = Command::new("cargo");
 
         let output = if !release {
@@ -307,10 +321,11 @@ edition = \"2021\""
     }
 
     pub fn cargo_bench(&self, toolchain: ToolChain) -> std::result::Result<String, io::Error> {
+        let color = if no_color() { "never" } else { "always" };
         let mut cmd = Command::new("cargo");
         Ok(stdout_and_stderr(
             self.cargo_common(&mut cmd, "bench", toolchain)
-                .args(["--color", "always"])
+                .args(["--color", color])
                 .output()?,
         ))
     }
@@ -338,13 +353,15 @@ edition = \"2021\""
     }
 
     pub fn cargo_asm(&self, fnn: &str, toolchain: ToolChain) -> Result<String> {
+        // 0 doesn't activate FORCE_COLOR (tested)
+        let force_color = if no_color() { "0" } else { "1" };
         let mut cmd = Command::new("cargo");
         let output = self
             .cargo_common(&mut cmd, "asm", toolchain)
             .arg("--lib")
             .arg(format!("{}::{fnn}", &self.name))
             .arg("--rust")
-            .env("FORCE_COLOR", "1")
+            .env("FORCE_COLOR", force_color)
             .output()?;
         if !output.status.success() {
             return Err(
@@ -356,18 +373,19 @@ edition = \"2021\""
     }
 
     pub fn cargo_expand(&self, fnn: Option<&str>, toolchain: ToolChain) -> Result<String> {
+        let color = if no_color() { "never" } else { "always" };
         let mut cmd = Command::new("cargo");
         let output = if let Some(fnn) = fnn {
             self.cargo_common(&mut cmd, "expand", toolchain)
                 // For cargo expand, color needs to be specified here
-                .args(["--color", "always"])
+                .args(["--color", color])
                 .arg("--lib")
                 .arg(fnn)
                 .output()?
         } else {
             self.cargo_common(&mut cmd, "expand", toolchain)
                 // For cargo expand, color needs to be specified here
-                .args(["--color", "always"])
+                .args(["--color", color])
                 .args(["--bin", &self.name])
                 .output()?
         };
