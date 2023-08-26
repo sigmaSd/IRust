@@ -71,7 +71,7 @@ impl Default for Options {
             welcome_color: Color::DarkBlue,
 
             // [Racer]
-            enable_racer: true,
+            enable_racer: false,
             racer_inline_suggestion_color: Color::Cyan,
             racer_suggestions_table_color: Color::Green,
             racer_selected_suggestion_color: Color::DarkRed,
