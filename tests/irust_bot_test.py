@@ -1,6 +1,8 @@
 #!/bin/python
 # type: ignore
 
+#!!! This test is deprecated, the work continues on `deno_bot_test.ts`
+
 # This test works probably only on unix, and there are some race conditions so sometimes it needs to be rerun
 
 import pexpect

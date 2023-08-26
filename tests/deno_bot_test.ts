@@ -11,7 +11,7 @@ const ENCODER = new TextEncoder();
 if (import.meta.main) {
   const pty = await Pty.create({
     cmd: "cargo",
-    args: ["run"],
+    args: ["run", "--", "--default-config"],
     env: [["NO_COLOR", "1"]],
   });
 
@@ -32,7 +32,7 @@ if (import.meta.main) {
     // In: ...
     // The output is all the part between 2 `In:`
     //
-    // Should not be used with empty input that gives empty output
+    // Should not be used with input that gives empty output
     // like rust statements
     let out = "";
     let end_detect = 0;
