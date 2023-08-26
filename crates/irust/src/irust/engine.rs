@@ -26,6 +26,8 @@ pub struct Engine {
     macros: HashMap<char, Vec<Command>>,
     buffers: Vec<Buffer>,
     buffers_idx: usize,
+    // defaults to false
+    pub dont_save_options: bool,
 }
 
 impl IRust {
@@ -669,7 +671,9 @@ impl IRust {
                 // Give scripts a chance to clean-up
                 self.run_scripts_shutdown_cmds()?;
                 self.history.save()?;
-                self.options.save()?;
+                if !self.engine.dont_save_options {
+                    self.options.save()?;
+                }
                 self.printer.write_newline(&self.buffer);
                 self.printer.cursor.show();
                 Ok(())

@@ -182,6 +182,9 @@ impl IRust {
             || (shell_cmd && self.options.add_shell_cmd_to_history)
             || (!irust_cmd && !shell_cmd)
     }
+    pub fn dont_save_options(&mut self) {
+        self.engine.dont_save_options = true;
+    }
 }
 
 #[allow(clippy::upper_case_acronyms)]

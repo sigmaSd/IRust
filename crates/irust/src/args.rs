@@ -11,6 +11,7 @@ pub enum ArgsResult {
     Exit,
     Proceed,
     ProceedWithScriptPath(PathBuf),
+    ProceedWithDefaultConfig,
 }
 
 pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
@@ -22,7 +23,8 @@ pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
         config file is in {}\n
         irust {{path_to_rust_file}} will start IRust with the file loaded in the repl
         --help => shows this message
-        --reset-config => reset IRust configuration to default",
+        --reset-config => reset IRust configuration to default
+        --default-config => uses the default configuration for this run (it will not be saved)",
                 VERSION,
                 Options::config_path()
                     .map(|p| p.to_string_lossy().to_string())
@@ -40,6 +42,7 @@ pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
             options.reset();
             ArgsResult::Proceed
         }
+        "--default-config" => ArgsResult::ProceedWithDefaultConfig,
         maybe_path => {
             let path = Path::new(&maybe_path);
             if path.exists() {

@@ -78,7 +78,13 @@ fn main() {
     warn_about_opt_deps(&mut options);
 
     // Create main IRust interface
-    let mut irust = IRust::new(options);
+    let mut irust = if matches!(args_result, ArgsResult::ProceedWithDefaultConfig) {
+        let mut irust = IRust::new(Options::default());
+        irust.dont_save_options();
+        irust
+    } else {
+        IRust::new(options)
+    };
 
     // If a script path was provided try to load it
     if let ArgsResult::ProceedWithScriptPath(script) = args_result {
