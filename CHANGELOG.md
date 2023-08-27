@@ -1,6 +1,8 @@
 **1.71.1**
 - Update deps
-
+- Disable rust anlayzer by default, to enable set `enable_racer` to true in the config
+- Add new cli argument `--default-config`, that runs irust with default config in that run, but will not overwrite the saved config
+  
 **1.71.0**
 - Support `NO_COLOR` env variable to disable all colors
 - Add new option `new_lines_after_output` to specify the number
