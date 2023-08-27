@@ -46,14 +46,14 @@ fn split_cmds(buffer: String) -> Vec<String> {
             continue;
         }
         if COMMANDS.iter().any(|c| line.trim().starts_with(c)) {
-            new_buf.push(tmp_vec.drain(..).collect::<Vec<_>>().join(""));
+            new_buf.push(std::mem::take(&mut tmp_vec).join(""));
             new_buf.push(line.trim().to_owned());
         } else {
             tmp_vec.push(line);
         }
     }
     if !tmp_vec.is_empty() {
-        new_buf.push(tmp_vec.drain(..).collect::<Vec<_>>().join(""));
+        new_buf.push(std::mem::take(&mut tmp_vec).join(""));
     }
     new_buf
 }
