@@ -10,7 +10,7 @@ license = "MIT"
 [dependencies]
 crossterm = { version = "0.26.1", features = ["serde","use-dev-tty"] }
 rscript = "0.17.0"
-serde = { version = "1.0.152", features = ["derive"] }
+serde = { version = "1.0.188", features = ["derive"] }
 
 [package.metadata.workspaces]
 independent = true
