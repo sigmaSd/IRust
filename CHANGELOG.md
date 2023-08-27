@@ -1,3 +1,6 @@
+**1.71.1**
+- Update deps
+
 **1.71.0**
 - Support `NO_COLOR` env variable to disable all colors
 - Add new option `new_lines_after_output` to specify the number
