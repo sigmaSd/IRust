@@ -37,13 +37,11 @@ if (import.meta.main) {
     let out = "";
     let end_detect = 0;
     while (true) {
-      const o = await pty.read().then(stripColor).then((s) => s.trim());
-      if (!(o.startsWith("In:") || (o.startsWith("[?25hIn:")))) {
+      const o = await pty.read().then(stripColor);
+      if (!o.includes("In:")) {
         end_detect += 1;
         out += o;
-      } else if (
-        end_detect >= 1 && (o.startsWith("In:") || (o.startsWith("[?25hIn:")))
-      ) {
+      } else if (end_detect >= 1 && o.includes("In:")) {
         break;
       } else {
         end_detect = 0;
