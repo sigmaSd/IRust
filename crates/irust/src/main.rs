@@ -74,15 +74,14 @@ fn main() {
         exit(1);
     }
 
-    // Check optional dependencies and warn if they're not present
-    warn_about_opt_deps(&mut options);
-
     // Create main IRust interface
     let mut irust = if matches!(args_result, ArgsResult::ProceedWithDefaultConfig) {
         let mut irust = IRust::new(Options::default());
         irust.dont_save_options();
         irust
     } else {
+        // Check optional dependencies and warn if they're not present
+        warn_about_opt_deps(&mut options);
         IRust::new(options)
     };
 
