@@ -15,7 +15,7 @@ if (import.meta.main) {
     args: ["run", "--", "--default-config"],
     env: [["NO_COLOR", "1"]],
   });
-  log("pty created.  ");
+  log("pty created.   ");
 
   while (true) {
     log("before read");
