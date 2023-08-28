@@ -7,6 +7,7 @@ import {
 } from "https://deno.land/std@0.184.0/testing/asserts.ts";
 
 const ENCODER = new TextEncoder();
+const log = console.log;
 
 if (import.meta.main) {
   const pty = await Pty.create({
@@ -14,15 +15,20 @@ if (import.meta.main) {
     args: ["run", "--", "--default-config"],
     env: [["NO_COLOR", "1"]],
   });
+  log("pty created.");
 
   while (true) {
+    log("before read");
     const input = await pty.read().then(stripColor);
+    log("read:", input);
     if (input.includes("In:")) break;
     await sleep(100);
   }
+  log("done the fist part");
 
   const write = async (input: string) => await pty.write(input + "\n\r");
   const evalRs = async (input: string) => {
+    log("before write");
     await write(input);
     // detect output
     // the plan is:
@@ -38,6 +44,7 @@ if (import.meta.main) {
     let end_detect = 0;
     while (true) {
       const o = await pty.read().then(stripColor);
+      log("output:", o);
       if (!o.startsWith("In:")) {
         end_detect += 1;
         out += o;
@@ -76,6 +83,7 @@ if (import.meta.main) {
     console.log(" [OK]");
   };
 
+  log("writing let a = 'helllo';");
   await write('let a = "hello";');
   await test(":type a", "`&str`");
 
