@@ -17,7 +17,6 @@ if (import.meta.main) {
 
   while (true) {
     const input = await pty.read().then(stripColor);
-    console.log("input:", input);
     if (input.includes("In:")) break;
     await sleep(100);
   }
@@ -38,14 +37,11 @@ if (import.meta.main) {
     let out = "";
     let end_detect = 0;
     while (true) {
-      const a = await pty.read();
-      // console.warn("o before stripColor:", a);
-      const o = stripColor(a);
-      console.log("o after stripColor:", o);
-      if (!(o.includes("In:") || o.includes("..:"))) {
+      const o = await pty.read().then(stripColor);
+      if (!o.startsWith("In:")) {
         end_detect += 1;
         out += o;
-      } else if (end_detect >= 1 && (o.includes("In:") || o.includes("..:"))) {
+      } else if (end_detect >= 1 && o.startsWith("In:")) {
         break;
       } else {
         end_detect = 0;
@@ -83,12 +79,9 @@ if (import.meta.main) {
   await write('let a = "hello";');
   await test(":type a", "`&str`");
 
-  await write(`fn fact(n: usize) -> usize {
-      match n {
-        1 => 1,
-        n => n * fact(n-1)
-      }
-  }`);
+  await write(
+    `fn fact(n: usize) -> usize { match n { 1 => 1, n => n * fact(n-1) } }`,
+  );
   await test("fact(4)", "24");
 
   await test("5+4", "9");
