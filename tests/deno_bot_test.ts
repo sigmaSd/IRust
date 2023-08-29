@@ -17,6 +17,7 @@ if (import.meta.main) {
 
   while (true) {
     const input = await pty.read().then(stripColor);
+    console.log("input:", input);
     if (input.includes("In:")) break;
     await sleep(100);
   }
