@@ -38,13 +38,13 @@ if (import.meta.main) {
     let end_detect = 0;
     while (true) {
       const a = await pty.read();
-      console.log("o before stripColor:", a);
+      // console.warn("o before stripColor:", a);
       const o = stripColor(a);
-      console.log("o after stripColor:", o);
-      if (!o.includes("In:")) {
+      // console.log("o after stripColor:", o);
+      if (!(o.includes("In:") || o.includes("..:"))) {
         end_detect += 1;
         out += o;
-      } else if (end_detect >= 1 && o.includes("In:")) {
+      } else if (end_detect >= 1 && (o.includes("In:") || o.includes("..:"))) {
         break;
       } else {
         end_detect = 0;
