@@ -37,7 +37,10 @@ if (import.meta.main) {
     let out = "";
     let end_detect = 0;
     while (true) {
-      const o = await pty.read().then(stripColor);
+      const a = await pty.read();
+      console.log("o before stripColor:", a);
+      const o = stripColor(a);
+      console.log("o after stripColor:", o);
       if (!o.includes("In:")) {
         end_detect += 1;
         out += o;
