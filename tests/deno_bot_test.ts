@@ -79,9 +79,12 @@ if (import.meta.main) {
   await write('let a = "hello";');
   await test(":type a", "`&str`");
 
-  await write(
-    `fn fact(n: usize) -> usize { match n { 1 => 1, n => n * fact(n-1) } }`,
-  );
+  await write(`fn fact(n: usize) -> usize {
+      match n {
+        1 => 1,
+        n => n * fact(n-1)
+      }
+  }`);
   await test("fact(4)", "24");
 
   await test("5+4", "9");
