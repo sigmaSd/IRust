@@ -40,7 +40,7 @@ if (import.meta.main) {
       const a = await pty.read();
       // console.warn("o before stripColor:", a);
       const o = stripColor(a);
-      // console.log("o after stripColor:", o);
+      console.log("o after stripColor:", o);
       if (!(o.includes("In:") || o.includes("..:"))) {
         end_detect += 1;
         out += o;
