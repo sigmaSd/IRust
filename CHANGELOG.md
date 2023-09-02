@@ -1,3 +1,6 @@
+**1.71.2**
+- Disable optional deps lookup when using `--default-config`
+
 **1.71.1**
 - Update deps
 - Disable rust anlayzer by default, to enable set `enable_racer` to true in the config
