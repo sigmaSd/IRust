@@ -230,6 +230,11 @@ Currently there is a barebone kernel that is easily installable see https://gith
 ## Releases
    Automatic releases by github actions are uploaded here https://github.com/sigmaSd/irust/releases
 
+## Install
+
+- `cargo install irust`
+- `cargo binstall irust` (using [cargo-binsall](https://github.com/cargo-bins/cargo-binstall))
+
 ## Building
     cargo b --release
 
