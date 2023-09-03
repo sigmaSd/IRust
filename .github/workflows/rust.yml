@@ -1,158 +1,85 @@
-# Copied from ripgrep
+name:  Release Binary
 
-# The way this works is a little weird. But basically, the create-release job
-# runs purely to initialize the GitHub release itself. Once done, the upload
-# URL of the release is saved as an artifact.
-#
-# The build-release job runs only once create-release is finished. It gets
-# the release upload URL by downloading the corresponding artifact (which was
-# uploaded by create-release). It then builds the release executables for each
-# supported platform and attaches them as release assets to the previously
-# created release.
-#
-# The key here is that we create the release only once.
-
-name: release
 on:
   push:
-    # Enable when testing release infrastructure on a branch.
-   #branches:
-   #  - master
-  #pull_request:
-  #  branches:
-   #   - master
-   tags:
+   branches:
     - 'irust@[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+ 
 jobs:
-  create-release:
-    name: create-release
-    runs-on: ubuntu-latest
-    # env:
-      # Set to force version number, e.g., when no tag exists.
-      # RG_VERSION: TEST-0.0.0
-    steps:
-      - name: Create artifacts directory
-        run: mkdir artifacts
-
-      - name: Get the release version from the tag
-        if: env.IRUST_VERSION == ''
-        run: |
-          # Apparently, this is the right way to get a tag name. Really?
-          #
-          # See: https://github.community/t5/GitHub-Actions/How-to-get-just-the-tag-name/m-p/32167/highlight/true#M1027
-          echo "IRUST_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          echo "version is: ${{ env.IRUST_VERSION }}"
-
-      - name: Create GitHub release
-        id: release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.IRUST_VERSION }}
-          release_name: ${{ env.IRUST_VERSION }}
-
-      - name: Save release upload URL to artifact
-        run: echo "${{ steps.release.outputs.upload_url }}" > artifacts/release-upload-url
-
-      - name: Save version number to artifact
-        run: echo "${{ env.IRUST_VERSION }}" > artifacts/release-version
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: artifacts
-          path: artifacts
-
-  build-release:
-    name: build-release
-    needs: ['create-release']
+  build:
+    name: Release libs
     runs-on: ${{ matrix.os }}
-    env:
-      # For some builds, we use cross to test on 32-bit and big-endian
-      # systems.
-      CARGO: cargo
-      TARGET_DIR: ./target
     strategy:
       matrix:
-        build: [linux, macos, win-msvc, win-gnu]
-        include:
-        - build: linux
-          os: ubuntu-18.04
-          rust: stable
-          target: x86_64-unknown-linux-musl
-        - build: macos
-          os: macos-latest
-          rust: stable
-          target: x86_64-apple-darwin
-        - build: win-msvc
-          os: windows-2019
-          rust: stable
-          target: x86_64-pc-windows-msvc
-        - build: win-gnu
-          os: windows-2019
-          rust: stable-x86_64-gnu
-          target: x86_64-pc-windows-gnu
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 1
+    - uses: actions/checkout@v2
 
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
+    - uses: actions-rs/toolchain@v1
       with:
-        toolchain: ${{ matrix.rust }}
-        profile: minimal
-        override: true
-        target: ${{ matrix.target }}
+        toolchain: stable
 
-    - name: Get release download URL
-      uses: actions/download-artifact@v1
+    ###################
+    # cross-compile mac aarch64 from linux using zig
+    - if: runner.os == 'Linux'
+      uses: goto-bus-stop/setup-zig@v1
       with:
-        name: artifacts
-        path: artifacts
+        version: 0.10.1
 
-    - name: Set release upload URL and release version
-      shell: bash
+    - if: runner.os == 'Linux'
+      name: Install cargo-zigbuild
       run: |
-        release_upload_url="$(cat artifacts/release-upload-url)"
-        echo "RELEASE_UPLOAD_URL=$release_upload_url" >> $GITHUB_ENV
-        echo "release upload url: $RELEASE_UPLOAD_URL"
-        release_version="$(cat artifacts/release-version)"
-        echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
-        echo "release version: $RELEASE_VERSION"
-      
-    - name: Build release binary
+        cargo install cargo-zigbuild
+
+    - if: runner.os == 'Linux'
+      name: Build MacOS aarch64 binary
       run: |
-        cargo build --release
+        rustup target add aarch64-apple-darwin
+        cargo zigbuild --release --target aarch64-apple-darwin
+    ###################
 
-    - name: Build archive
-      shell: bash
-      run: |
-        staging="irust-${{ env.RELEASE_VERSION }}-${{ matrix.target }}"
-        mkdir -p "$staging"/doc
-
-        cp {README.md,LICENSE} "$staging/"
-        cp CHANGELOG.md "$staging/doc/"
-
-        if [ "${{ matrix.os }}" = "windows-2019" ]; then
-          cp "target/release/irust.exe" "$staging/"
-          7z a "$staging.zip" "$staging"
-          echo "ASSET=$staging.zip" >> $GITHUB_ENV
-        else
-          cp "target/release/irust" "$staging/"
-          tar czf "$staging.tar.gz" "$staging"
-          echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
-        fi
-
-    - name: Upload release archive
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build
+      uses: actions-rs/cargo@v1
       with:
-        upload_url: ${{ env.RELEASE_UPLOAD_URL }}
-        asset_path: ${{ env.ASSET }}
-        asset_name: ${{ env.ASSET }}
-        asset_content_type: application/octet-stream
+        command: build
+        args: --release
+
+    - if: runner.os == 'MacOS'
+      name: Upload MacOS x86_64 Binary
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: target/release/irust
+        asset_name: irust-x86_64-apple-darwin
+        tag: ${{ github.ref }}
+        overwrite: true
+
+    - if: runner.os == 'Linux'
+      name: Upload MacOS aarch64 binary
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: target/release/irust
+        asset_name: irust-aarch64-apple-darwin
+        tag: ${{ github.ref }}
+        overwrite: true
+
+    - if: runner.os == 'Linux'
+      name: Upload Linux binary
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: target/release/irust
+        asset_name: irust-x86_64-unknown-linux-gnu
+        tag: ${{ github.ref }}
+        overwrite: true
+
+    - if: runner.os == 'Windows'
+      name: Upload Windows binary
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: target/release/irust.exe
+        asset_name: irust-x86_64-pc-windows-msvc.exe
+        tag: ${{ github.ref }}
+        overwrite: true
