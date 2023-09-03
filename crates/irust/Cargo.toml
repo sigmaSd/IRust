@@ -8,6 +8,9 @@ description = "Cross Platform Rust Repl"
 repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/irust@{ version }/{ name }-{ target }"
+
 [dependencies]
 crossterm = { version = "0.27.0", features = ["serde","use-dev-tty"] }
 dirs = "5.0.1"
