@@ -1,3 +1,6 @@
+**1.71.3**
+- Add support for cargo binstall
+
 **1.71.2**
 - Disable optional deps lookup when using `--default-config`
 
