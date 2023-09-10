@@ -1,3 +1,7 @@
+**1.71.4**
+- Optimize binary artifacts
+- Switch from gnu to musl for linux binary artifact
+
 **1.71.3**
 - Add support for cargo binstall
 
