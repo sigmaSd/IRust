@@ -80,7 +80,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         file: target/x86_64-unknown-linux-musl/release/irust
-        asset_name: irust-x86_64-unknown-linux-gnu
+        asset_name: irust-x86_64-unknown-linux-musl
         tag: ${{ github.ref }}
         overwrite: true
 
