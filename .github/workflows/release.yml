@@ -44,7 +44,7 @@ jobs:
 
     # Build for Musl
     - if: runner.os == 'Linux'
-      name: Build MacOS aarch64 binary
+      name: Build Linux musl binary
       run: |
         rustup target add x86_64-unknown-linux-musl
         cargo build --release --target=x86_64-unknown-linux-musl
