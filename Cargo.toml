@@ -8,6 +8,10 @@ members = [
     "crates/irust_repl",
 ]
 
+[profile.release]
+strip = true
+lto = true
+
 
 # flamegraph
 # [profile.release]
