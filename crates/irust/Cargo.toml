@@ -9,7 +9,7 @@ repository = "https://github.com/sigmaSd/IRust"
 license = "MIT"
 
 [package.metadata.binstall]
-pkg-url = "{ repo }/releases/download/irust@{ version }/{ name }-{ target }"
+pkg-url = "{ repo }/releases/download/irust@{ version }/{ name }-{ target }{ binary-ext }"
 pkg-fmt = "bin"
 
 [dependencies]
