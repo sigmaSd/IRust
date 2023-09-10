@@ -42,7 +42,16 @@ jobs:
         cargo zigbuild --release --target aarch64-apple-darwin
     ###################
 
+    # Build for Musl
+    - if: runner.os == 'Linux'
+      name: Build MacOS aarch64 binary
+      run: |
+        rustup target add x86_64-unknown-linux-musl
+        cargo build --release --target=x86_64-unknown-linux-musl
+    ####################################
+
     - name: Build
+      if: runner.os != 'Linux'
       uses: actions-rs/cargo@v1
       with:
         command: build
