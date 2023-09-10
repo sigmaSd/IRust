@@ -4,6 +4,7 @@ use std::str::FromStr;
 use std::time::Instant;
 use std::{env, process};
 
+use anyhow::{anyhow, Context, bail};
 use crossterm::style::Color;
 
 use super::format::format_err_printqueue;
@@ -99,8 +100,8 @@ impl IRust {
 
     fn check_statements(&mut self, buffer: String) -> Result<PrintQueue> {
         const ERROR: &str = "Invalid argument, accepted values are `false` `true`";
-        let buffer = buffer.split_whitespace().nth(1).ok_or(ERROR)?;
-        self.options.check_statements = buffer.parse().map_err(|_| ERROR)?;
+        let buffer = buffer.split_whitespace().nth(1).context(ERROR)?;
+        self.options.check_statements = buffer.parse().context(ERROR)?;
         success!()
     }
 
@@ -138,7 +139,7 @@ impl IRust {
                 self.options.theme = name.to_string();
                 success!()
             } else {
-                Err("Failed to set theme".into())
+                Err(anyhow!("Failed to set theme"))
             }
         } else {
             let installed_themes: Vec<_> = super::highlight::theme::installed_themes()
@@ -202,7 +203,7 @@ impl IRust {
                     .global_variables
                     .get_cwd()
                     .to_str()
-                    .ok_or("Error parsing path to dependecy")?
+                    .context("Error parsing path to dependecy")?
                     .to_string();
             }
         }
@@ -234,16 +235,16 @@ impl IRust {
         }
 
         let mut parse = || -> Result<()> {
-            let key = buffer.next().ok_or("Key not specified")?;
-            let value = buffer.next().ok_or("Value not specified")?;
+            let key = buffer.next().context("Key not specified")?;
+            let value = buffer.next().context("Value not specified")?;
 
             let mut theme = toml::Value::try_from(&self.theme)?;
             // test key
-            *theme.get_mut(key).ok_or("key doesn't exist")? = value.into();
+            *theme.get_mut(key).context("key doesn't exist")? = value.into();
 
             // test Value
             if super::highlight::theme::theme_color_to_term_color(value).is_none() {
-                return Err("Value is incorrect".into());
+                bail!("Value is incorrect");
             }
 
             self.theme = theme.try_into()?;
@@ -259,7 +260,7 @@ impl IRust {
         let path = if let Some(path) = buffer.split_whitespace().nth(1) {
             std::path::Path::new(&path).to_path_buf()
         } else {
-            return Err("No path specified").map_err(|e| e.into());
+            bail!("No path specified");
         };
         self.load_inner(path)
     }
@@ -268,7 +269,7 @@ impl IRust {
         let path = if let Some(path) = self.global_variables.get_last_loaded_coded_path() {
             path
         } else {
-            return Err("No saved path").map_err(|e| e.into());
+            bail!("No saved path");
         };
         self.load_inner(path)
     }
@@ -287,13 +288,13 @@ impl IRust {
                     .current_dir(
                         std::path::Path::new(file_path)
                             .parent()
-                            .ok_or("file must have a parent directory")?,
+                            .context("file must have a parent directory")?,
                     )
                     .output()?
                     .stdout,
             )?;
             std::path::PathBuf::from(
-                find_workpace_root(metadata).ok_or("Could not find workspace root")?,
+                find_workpace_root(metadata).context("Could not find workspace root")?,
             )
         };
         // 3- Copy Cargo.toml
@@ -321,7 +322,7 @@ impl IRust {
     pub fn hard_load(&mut self, buffer: String) -> Result<PrintQueue> {
         let buffer = buffer.split_whitespace().collect::<Vec<_>>();
         if buffer.len() != 3 {
-            return Err("Incorrect unsage".into());
+            bail!("Incorrect unsage");
         }
         let code = std::fs::read_to_string(buffer[1])?;
         let cursor: usize = buffer[2].parse()?;
@@ -570,7 +571,7 @@ impl IRust {
                 if let Ok(ed) = env::var("EDITOR") {
                     ed
                 } else {
-                    return Err("No editor specified".into());
+                    bail!("No editor specified");
                 }
             }
         };
@@ -660,10 +661,10 @@ impl IRust {
         let fnn = buffer
             .split_once(pattern)
             .map(|buf| buf.1)
-            .ok_or("No function specified")?;
+            .context("No function specified")?;
 
         if fnn.is_empty() {
-            return Err("No function specified".into());
+            bail!("No function specified");
         }
 
         let time = format!(
@@ -697,7 +698,7 @@ impl IRust {
             &self.repl.cargo.name,
             self.options.new_lines_after_output,
         )
-        .ok_or("failed to bench function")?)
+        .context("failed to bench function")?)
     }
 
     fn bench(&mut self) -> Result<PrintQueue> {
@@ -716,7 +717,7 @@ impl IRust {
     fn asm(&mut self, buffer: String) -> Result<PrintQueue> {
         let fnn = buffer.strip_prefix(":asm").expect("already checked").trim();
         if fnn.is_empty() {
-            return Err("No function specified".into());
+            bail!("No function specified");
         }
 
         let asm = self
@@ -758,18 +759,17 @@ impl IRust {
         // Sanity checks
         // set
         if !evaluator.contains("$$") {
-            return Err(
-                "evaluator must contain `$$`, `$$` will be replaced by IRust by the code input"
-                    .into(),
+            bail!(
+                "evaluator must contain `$$`, `$$` will be replaced by IRust by the code input",
             );
         }
         if !evaluator.ends_with(';') {
-            return Err("evaluator must end with ;".into());
+            bail!("evaluator must end with ;");
         }
 
         let evaluator: Vec<String> = evaluator.split("$$").map(ToOwned::to_owned).collect();
         if evaluator.len() != 2 {
-            return Err("evaluator requires two parts".into());
+            bail!("evaluator requires two parts");
         }
 
         self.options.evaluator = evaluator;
@@ -780,7 +780,7 @@ impl IRust {
         let scripts_list = if let Some(scripts_list) = self.scripts_list() {
             scripts_list
         } else {
-            return Err("No scripts found".into());
+            bail!("No scripts found");
         };
 
         let buffer: Vec<&str> = buffer
@@ -834,7 +834,7 @@ impl IRust {
                         .to_string();
                     print_queue!(header + "\n" + script, Color::Blue)
                 } else {
-                    Err(format!("script: {} not found", &buffer[0]).into())
+                    Err(anyhow!("script: {} not found", &buffer[0]))
                 }
             }
             2 => {
@@ -848,26 +848,26 @@ impl IRust {
                 }) {
                     match buffer[1] {
                         "activate" => {
-                            if let Some(command) = self.activate_script(script)? {
+                            if let Some(command) = self.activate_script(script).map_err(|_|anyhow!("failed to activate script"))? {
                                 // script start up command
                                 self.execute(command)?;
                             }
                             success!()
                         }
                         "deactivate" => {
-                            if let Some(command) = self.deactivate_script(script)? {
+                            if let Some(command) = self.deactivate_script(script).map_err(|_|anyhow!("failed to deactivate script"))? {
                                 // script clean up command
                                 self.execute(command)?;
                             }
                             success!()
                         }
-                        _ => Err(format!("Unknown argument: {}", &buffer[1]).into()),
+                        _ => Err(anyhow!("Unknown argument: {}", &buffer[1])),
                     }
                 } else {
-                    Err(format!("script: {} not found", &buffer[0]).into())
+                    Err(anyhow!("script: {} not found", &buffer[0]))
                 }
             }
-            _ => Err("Incorrect number of arguments for `:scripts` command".into()),
+            _ => Err(anyhow!("Incorrect number of arguments for `:scripts` command"))
         }
     }
     fn compile_time(&mut self, buffer: String) -> Result<PrintQueue> {
@@ -889,9 +889,9 @@ impl IRust {
                     self.options.compile_time = false;
                     success!()
                 }
-                _ => Err("Invalid argument (only accepts on/off)".into()),
+                _ => Err(anyhow!("Invalid argument (only accepts on/off)")),
             },
-            _ => Err("Invalid number of arguments".into()),
+            _ => Err(anyhow!("Invalid number of arguments")),
         }
     }
 
@@ -937,7 +937,7 @@ impl IRust {
         self.repl.eval_in_tmp_repl(expression, |_| -> Result<()> {
             let (status, _out) = cargo.cargo_build_output(true, false, self.options.toolchain)?;
             if !status.success() {
-                return Err("Failed to execute expression".into());
+                bail!("Failed to execute expression");
             }
 
             let dbg_cmds_path = env::temp_dir().join("irust_dbg_cmds");
@@ -1035,7 +1035,7 @@ impl IRust {
             }
         })();
         if let Some(e) = maybe_error {
-            return Err(e.into());
+            bail!(e);
         }
 
         Ok(res)

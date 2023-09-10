@@ -3,7 +3,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::irust::Result;
+// use crate::irust::Result;
+use anyhow::{Result, bail};
 
 pub fn split_args(s: String) -> Vec<String> {
     let mut args = vec![];
@@ -280,7 +281,7 @@ pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {
                         ..
                     }) => {
                         process.kill()?;
-                        return Err("Cancelled!".into());
+                        bail!("Cancelled!");
                     }
                     Event::Key(KeyEvent {
                         code: KeyCode::Char(a),

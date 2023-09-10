@@ -1,6 +1,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
+use anyhow::anyhow;
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, Default)]
@@ -14,14 +15,14 @@ pub enum ToolChain {
 }
 
 impl FromStr for ToolChain {
-    type Err = Box<dyn std::error::Error>;
+    type Err = anyhow::Error;
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "stable" => Ok(ToolChain::Stable),
             "beta" => Ok(ToolChain::Beta),
             "nightly" => Ok(ToolChain::Nightly),
             "default" => Ok(ToolChain::Default),
-            _ => Err("Unknown toolchain".into()),
+            _ => Err(anyhow!("Unknown toolchain")),
         }
     }
 }

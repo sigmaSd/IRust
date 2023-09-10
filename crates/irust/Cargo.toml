@@ -24,6 +24,8 @@ rscript = "0.17.0"
 rustc_lexer = { version = "727.0.0", package = "rustc-ap-rustc_lexer" }
 serde_json = "1.0.105"
 
+anyhow = { workspace = true }
+
 [target.'cfg(unix)'.dependencies]
 libc = "0.2.147"
 

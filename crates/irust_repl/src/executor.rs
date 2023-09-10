@@ -1,6 +1,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use anyhow::anyhow;
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, Default)]
@@ -38,13 +39,13 @@ impl Executor {
     }
 }
 impl FromStr for Executor {
-    type Err = Box<dyn std::error::Error>;
+    type Err = anyhow::Error;
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s {
             "sync" => Ok(Executor::Sync),
             "tokio" => Ok(Executor::Tokio),
             "async_std" => Ok(Executor::AsyncStd),
-            _ => Err("Unknown executor".into()),
+            _ => Err(anyhow!("Unknown executor"))
         }
     }
 }

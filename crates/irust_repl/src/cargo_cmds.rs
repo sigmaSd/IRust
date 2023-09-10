@@ -1,3 +1,5 @@
+use anyhow::{anyhow, bail};
+
 use super::Edition;
 use crate::Result;
 use crate::{
@@ -218,7 +220,7 @@ edition = \"2021\""
         if process.success() {
             Ok(())
         } else {
-            Err(format!("Failed to add dependency: {:?}", &dep).into())
+            Err(anyhow!("Failed to add dependency: {:?}", &dep))
         }
     }
 
@@ -364,10 +366,10 @@ edition = \"2021\""
             .env("FORCE_COLOR", force_color)
             .output()?;
         if !output.status.success() {
-            return Err(
+            bail!
             (stdout_and_stderr(output)
             + "\nMaybe you should make the function `pub`, see https://github.com/pacak/cargo-show-asm#my-function-isnt-there" +
-                      WRITE_LIB_LIMIT).into());
+                      WRITE_LIB_LIMIT);
         }
         Ok(stdout_and_stderr(output))
     }
@@ -390,7 +392,7 @@ edition = \"2021\""
                 .output()?
         };
         if !output.status.success() {
-            return Err((stdout_and_stderr(output) + WRITE_LIB_LIMIT).into());
+            bail!(stdout_and_stderr(output) + WRITE_LIB_LIMIT);
         }
         Ok(stdout_and_stderr(output).trim().to_owned())
     }

@@ -5,6 +5,7 @@ use super::{
     Result,
 };
 use crate::utils::{StringTools, _read_until_bytes};
+use anyhow::{Context, bail, anyhow};
 use crossterm::{style::Color, terminal::ClearType};
 use irust_repl::Repl;
 use printer::printer::{PrintQueue, Printer, PrinterItem};
@@ -137,9 +138,9 @@ impl Racer {
         self.suggestions.clear();
         self.goto_first_suggestion();
 
-        let racer = self._racer.as_mut().ok_or("racer is not used")?;
-        let stdin = racer.stdin.as_mut().ok_or("failed to acess racer stdin")?;
-        let stdout = racer.stdout.as_mut().ok_or("faied to acess racer stdout")?;
+        let racer = self._racer.as_mut().context("racer is not used")?;
+        let stdin = racer.stdin.as_mut().context("failed to acess racer stdin")?;
+        let stdout = racer.stdout.as_mut().context("faied to acess racer stdout")?;
 
         match writeln!(
             stdin,
@@ -150,13 +151,12 @@ impl Racer {
         ) {
             Ok(_) => (),
             Err(e) => {
-                return Err(format!(
+                bail!(
                     "\n\rError writing to racer, make sure it's properly configured\
                      \n\rCheckout https://github.com/racer-rust/racer/#configuration\
                      \n\rOr disable it in the configuration file.\
                      \n\rError: {e}"
-                )
-                .into());
+                );
             }
         };
 
@@ -168,7 +168,7 @@ impl Racer {
             &mut raw_output,
         )?;
         let raw_output = String::from_utf8(raw_output.to_vec())
-            .map_err(|_| "racer output did not contain valid UTF-8")?;
+            .map_err(|_| anyhow!("racer output did not contain valid UTF-8"))?;
 
         for suggestion in raw_output.lines().skip(1) {
             if suggestion == "END" {

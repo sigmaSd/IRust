@@ -14,6 +14,7 @@ pub mod options;
 mod parser;
 mod racer;
 mod script;
+use anyhow::{bail, Result};
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
 use highlight::theme::Theme;
 use history::History;
@@ -25,7 +26,7 @@ use racer::Racer;
 use script::Script;
 
 pub use format::format_err;
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+// pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub struct IRust {
     options: Options,
@@ -157,7 +158,7 @@ impl IRust {
                             return Ok(());
                         }
                     }
-                    Err(e) => return Err(format!("failed to read input. error: {e}").into()),
+                    Err(e) => bail!("failed to read input. error: {e}"),
                 }
             }
         }

@@ -1,4 +1,5 @@
 use crate::irust::Result;
+use anyhow::{anyhow,Context};
 use serde_json::{json, Value};
 use std::io::Write;
 use std::io::{BufRead, Read};
@@ -159,7 +160,7 @@ impl RustAnalyzer {
             if let Some(items) = result.get("items") {
                 return Ok(items
                     .as_array()
-                    .ok_or("ra items is not an array")?
+                    .context("ra items is not an array")?
                     .iter()
                     .filter_map(|item| item.get("filterText"))
                     .map(|item| item.to_string())
@@ -205,8 +206,8 @@ fn get_content_length(reader: &mut BufReader<std::process::ChildStdout>) -> Resu
         Ok(split
             .next()
             .and_then(|value_string| value_string.parse().ok())
-            .ok_or("malformed rpc message")?)
+            .context("malformed rpc message")?)
     } else {
-        Err("malformed rpc message".into())
+        Err(anyhow!("malformed rpc message"))
     }
 }

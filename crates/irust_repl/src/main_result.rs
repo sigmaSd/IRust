@@ -1,4 +1,5 @@
 use std::{fmt::Display, str::FromStr};
+use anyhow::anyhow;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -30,12 +31,12 @@ impl MainResult {
 }
 
 impl FromStr for MainResult {
-    type Err = Box<dyn std::error::Error>;
+    type Err = anyhow::Error;
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "unit" => Ok(MainResult::Unit),
             "result" => Ok(MainResult::Result),
-            _ => Err("Unknown main result type".into()),
+            _ => Err(anyhow!("Unknown main result type")),
         }
     }
 }

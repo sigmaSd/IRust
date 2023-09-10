@@ -11,6 +11,7 @@ use crossterm::{style::Stylize, tty::IsTty};
 use dependencies::{check_required_deps, warn_about_opt_deps};
 use irust_repl::CompileMode;
 use std::process::exit;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn main() {
     let mut options = Options::new().unwrap_or_default();
@@ -38,7 +39,7 @@ fn main() {
             use std::io::Read;
 
             let mut repl = Repl::default();
-            match (|| -> irust::Result<EvalResult> {
+            match (|| -> anyhow::Result<EvalResult> {
                 let mut input = String::new();
                 stdin.read_to_string(&mut input)?;
                 let result = repl.eval_with_configuration(EvalConfig {
@@ -101,5 +102,26 @@ fn main() {
     // Now IRust has been dropped we can safely print to stderr
     if let Some(err) = err {
         eprintln!("{}", format!("\r\nIRust exited with error: {err}").red());
+        if show_backtrace() {
+            eprintln!("{}", err.backtrace());
+        }
     }
+}
+
+fn show_backtrace() -> bool {
+    static ENABLED: AtomicUsize = AtomicUsize::new(0);
+    match ENABLED.load(Ordering::Relaxed) {
+        0 => {}
+        1 => return false,
+        _ => return true,
+    }
+    let enabled = match std::env::var_os("RUST_LIB_BACKTRACE") {
+        Some(s) => s != "0",
+        None => match std::env::var_os("RUST_BACKTRACE") {
+            Some(s) => s != "0",
+            None => false,
+        },
+    };
+    ENABLED.store(enabled as usize + 1, Ordering::Relaxed);
+    enabled
 }

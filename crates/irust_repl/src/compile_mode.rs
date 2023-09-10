@@ -1,6 +1,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use anyhow::anyhow;
 
 #[derive(Debug, Clone, Copy)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -15,12 +16,12 @@ impl CompileMode {
 }
 
 impl FromStr for CompileMode {
-    type Err = Box<dyn std::error::Error>;
+    type Err = anyhow::Error;
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s.to_lowercase().as_ref() {
             "debug" => Ok(CompileMode::Debug),
             "release" => Ok(CompileMode::Release),
-            _ => Err("Unknown compile mode".into()),
+            _ => Err(anyhow!("Unknown compile mode"))
         }
     }
 }

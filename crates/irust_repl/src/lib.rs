@@ -20,7 +20,8 @@ use std::{
     process::{Child, ExitStatus},
 };
 
-type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+use anyhow::{Result, bail, anyhow};
+// type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub static DEFAULT_EVALUATOR: Lazy<[String; 2]> =
     Lazy::new(|| ["println!(\"{:?}\", {\n".into(), "\n});".into()]);
@@ -165,7 +166,7 @@ impl Repl {
         let main_file = std::fs::read_to_string(&self.cargo.paths.main_file_extern)?;
         let lines_num = main_file.lines().count();
         if lines_num < 2 {
-            return Err("main.rs file corrupted, resetting irust..".into());
+            bail!("main.rs file corrupted, resetting irust..");
         }
         let cursor_pos = lines_num - 2;
 
@@ -425,7 +426,7 @@ impl Repl {
             }
         }
 
-        Err("Incorrect line number".into())
+        Err(anyhow!("Incorrect line number"))
     }
 
     pub fn lines(&self) -> impl Iterator<Item = &String> {

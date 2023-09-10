@@ -1,12 +1,13 @@
 use std::fs::DirEntry;
 
 use crate::irust::Result;
+use anyhow::Context;
 use crossterm::style::Color;
 use serde::{Deserialize, Serialize};
 
 fn themes_path() -> Result<std::path::PathBuf> {
     Ok(dirs::config_dir()
-        .ok_or("Error accessing config_dir")?
+        .context("Error accessing config_dir")?
         .join("irust")
         .join("themes"))
 }
@@ -39,7 +40,7 @@ pub fn theme_or_create_default(name: String) -> Theme {
 pub fn installed_themes() -> Result<Vec<DirEntry>> {
     Ok(std::fs::read_dir(
         dirs::config_dir()
-            .ok_or("Error accessing config_dir")?
+            .context("Error accessing config_dir")?
             .join("irust")
             .join("themes"),
     )?

@@ -1,5 +1,6 @@
 use std::{collections::HashMap, io::Write};
 
+use anyhow::bail;
 use crossterm::{
     cursor::SetCursorStyle,
     event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers},
@@ -565,7 +566,7 @@ impl IRust {
                     const SIGTSTP: i32 = 20;
                     let res = unsafe { libc::kill(libc::getpid(), SIGTSTP) };
                     if res != 0 {
-                        return Err("Failed to sigstop irust.".into());
+                        bail!("Failed to sigstop irust.");
                     }
 
                     self.execute(Command::HandleCtrlL)?;

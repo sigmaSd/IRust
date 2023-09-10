@@ -8,6 +8,10 @@ members = [
     "crates/irust_repl",
 ]
 
+[workspace.dependencies]
+anyhow = { version = "1.0.75", features = ["backtrace"] }
+
+
 [profile.release]
 strip = true
 lto = true
