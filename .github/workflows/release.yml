@@ -61,7 +61,7 @@ jobs:
       name: Upload MacOS x86_64 Binary
       uses: svenstaro/upload-release-action@v2
       with:
-        file: target/x86_64-unknown-linux-musl/release/irust
+        file: target/release/irust
         asset_name: irust-x86_64-apple-darwin
         tag: ${{ github.ref }}
         overwrite: true
@@ -70,7 +70,7 @@ jobs:
       name: Upload MacOS aarch64 binary
       uses: svenstaro/upload-release-action@v2
       with:
-        file: target/release/irust
+        file: target/x86_64-unknown-linux-musl/release/irust
         asset_name: irust-aarch64-apple-darwin
         tag: ${{ github.ref }}
         overwrite: true
