@@ -46,9 +46,21 @@ def install_my_kernel_spec(user=True, prefix=None, local_build=False):
             print('Fetching `irust` repo and compiling `Re` executable')
             subprocess.run(["git", "clone","--depth","1", "https://github.com/sigmasd/irust"],cwd=td)
             irust_repl_dir = os.path.join(td,"irust", "crates", "irust_repl")
-            subprocess.run(["cargo", "b", "--release", "--example", "re", "--target-dir",cargo_target_dir], cwd=irust_repl_dir)
-
-            src = os.path.join(irust_repl_dir, cargo_target_dir, "release", "examples", "re")
+            subprocess.run(
+                [
+                    "cargo",
+                    "b",
+                    "--release",
+                    "--example",
+                    "re",
+                    "--target-dir",
+                    cargo_target_dir,
+                    "--manifest-path",
+                    os.path.join(irust_repl_dir, "Cargo.toml"),
+                ]
+            )
+          
+            src = os.path.join(cargo_target_dir, "release", "examples", "re")
             dst = os.path.join(td, "re")
             shutil.copy2(src, dst)
             shutil.rmtree(os.path.join(td,"irust"))
