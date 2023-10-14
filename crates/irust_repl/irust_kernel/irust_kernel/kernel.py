@@ -1,10 +1,12 @@
+"""IRust repl jupyter kernel """
+
+__version__ = '0.3.0'
+
 from ipykernel.kernelbase import Kernel
 from jupyter_client.kernelspec import KernelSpecManager
 import os
 import json
 import subprocess
-
-__version__ = '0.3.0'
 
 class IRustKernel(Kernel):
     implementation = 'IRust'
