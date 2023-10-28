@@ -1,22 +1,25 @@
 #!/usr/bin/env -S deno run --unstable --allow-all
-import { Pty } from "https://deno.land/x/deno_pty_ffi@0.9.0/mod.ts";
-import { stripColor } from "https://deno.land/std@0.200.0/fmt/colors.ts";
+import { Pty } from "https://deno.land/x/deno_pty_ffi@0.16.0/mod.ts";
+import { stripAnsiCode } from "https://deno.land/std@0.204.0/fmt/colors.ts";
 import {
   assertEquals,
   assertMatch,
-} from "https://deno.land/std@0.184.0/testing/asserts.ts";
+} from "https://deno.land/std@0.204.0/assert/mod.ts";
 
 const ENCODER = new TextEncoder();
 
 if (import.meta.main) {
-  const pty = await Pty.create({
+  const pty = new Pty({
     cmd: "cargo",
     args: ["run", "--", "--default-config"],
     env: [["NO_COLOR", "1"]],
   });
 
   while (true) {
-    const input = await pty.read().then(stripColor);
+    let input = await pty.read();
+    if (input === undefined) break;
+    input = stripAnsiCode(input);
+
     if (input.includes("In:")) break;
     await sleep(100);
   }
@@ -37,7 +40,9 @@ if (import.meta.main) {
     let out = "";
     let end_detect = 0;
     while (true) {
-      const o = await pty.read().then(stripColor);
+      let o = await pty.read();
+      if (o === undefined) break;
+      o = stripAnsiCode(o);
       if (!o.startsWith("In:")) {
         end_detect += 1;
         out += o;
