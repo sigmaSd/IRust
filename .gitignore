@@ -1,3 +1,5 @@
 .vscode
 target/
 crates/irust_repl/.ipynb_checkpoints
+crates/irust_repl/irust_kernel/dist/
+crates/irust_repl/irust_kernel/irust_kernel/__pycache__/
