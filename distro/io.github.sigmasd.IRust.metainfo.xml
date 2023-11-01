@@ -3,6 +3,7 @@
   <id>io.github.sigmasd.IRust</id>
   <name>IRust</name>
   <summary>Rust Repl</summary>
+  <developer_name>Bedis Nbiba</developer_name>
 
   <metadata_license>MIT</metadata_license>
   <project_license>MIT</project_license>
