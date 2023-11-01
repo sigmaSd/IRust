@@ -1,3 +1,6 @@
+**1.71.10**
+- package irust as a flatpak
+
 **1.71.4**
 - Optimize binary artifacts
 - Switch from gnu to musl for linux binary artifact
