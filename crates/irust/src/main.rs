@@ -81,7 +81,9 @@ fn main() {
         irust
     } else {
         // Check optional dependencies and warn if they're not present
-        warn_about_opt_deps(&mut options);
+        if !cfg!(feature = "no-welcome-screen") {
+            warn_about_opt_deps(&mut options);
+        }
         IRust::new(options)
     };
 

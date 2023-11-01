@@ -27,6 +27,10 @@ serde_json = "1.0.105"
 [target.'cfg(unix)'.dependencies]
 libc = "0.2.147"
 
+[features]
+default = []
+no-welcome-screen = []
+
 # flamegraph
 # [profile.release]
 # debug = true
