@@ -15,6 +15,9 @@ pub enum ArgsResult {
 }
 
 pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
+    if args.contains(&"--no-welcome-screen".into()) {
+        options.first_irust_run = false;
+    }
     match args[0].as_str() {
         "-h" | "--help" => {
             println!(
@@ -43,6 +46,10 @@ pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
             ArgsResult::Proceed
         }
         "--default-config" => ArgsResult::ProceedWithDefaultConfig,
+        "--no-welcome-screen" => {
+            /*handled above */
+            ArgsResult::Proceed
+        }
         maybe_path => {
             let path = Path::new(&maybe_path);
             if path.exists() {
