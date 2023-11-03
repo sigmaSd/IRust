@@ -240,23 +240,7 @@ Currently there is a barebone kernel that is easily installable see https://gith
 
 ## FAQ
 
-Since version 1.70.0 irust uses rust-analyzer instead of racer, the next info is outdated
-
-**1- Why is autocompletion not working**
-
-    -> you need racer installed and configured correctly
-        rustup toolchain install nightly
-        rustup component add rustc-dev --toolchain=nightly
-        cargo +nightly install racer
-        rustup component add rust-src
-        
-**2- Racer fails to build**
-
-You can try `rustup update --force` https://github.com/racer-rust/racer/issues/1141
-
-Also some times the needed toolchain version changes. Usually there is an issue about it in racer repo (and the correct version to use)
-
-**3- I want to hack on irust but `dbg!` overlaps with the output!!**
+**1- I want to hack on irust but `dbg!` overlaps with the output!!**
 
 Personaly I do this:
 - Run 2 terminals side by side
