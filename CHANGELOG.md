@@ -1,3 +1,6 @@
+**1.71.14**
+- Remove all mention of racer (rust-analyzer is whats being used)
+
 **1.71.10**
 - package irust as a flatpak
 
