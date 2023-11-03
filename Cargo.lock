@@ -132,7 +132,7 @@ dependencies = [
 
 [[package]]
 name = "irust"
-version = "1.71.9"
+version = "1.71.10"
 dependencies = [
  "crossterm",
  "dirs",
@@ -149,7 +149,7 @@ dependencies = [
 
 [[package]]
 name = "irust_api"
-version = "0.31.6"
+version = "0.31.7"
 dependencies = [
  "crossterm",
  "rscript",
