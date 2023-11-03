@@ -9,9 +9,11 @@ use crossterm::{
 use irust_api::Command;
 use printer::printer::{PrintQueue, PrinterItem};
 
-use crate::irust::{racer::Cycle, Result};
-use crate::irust::{racer::Racer, IRust};
+use crate::irust::IRust;
+use crate::irust::{ra::Cycle, Result};
 use crate::{irust::Buffer, utils::StringTools};
+
+use super::ra::Completer;
 
 #[derive(Default)]
 enum Record {
@@ -60,8 +62,10 @@ impl IRust {
 
         match command {
             Command::AcceptSuggestion => {
-                if let Some(suggestion) =
-                    self.racer.as_mut().and_then(|r| r.active_suggestion.take())
+                if let Some(suggestion) = self
+                    .completer
+                    .as_mut()
+                    .and_then(|r| r.active_suggestion.take())
                 {
                     for c in suggestion.chars() {
                         self.execute(Command::HandleCharacter(c))?;
@@ -174,8 +178,8 @@ impl IRust {
                 self.print_input()?;
                 self.printer.cursor.move_right_unbounded();
                 self.history.unlock();
-                // Ignore RacerDisabled error
-                let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
+                // Ignore CompleterDisabled error
+                let _ = self.completer.as_mut().map(Completer::unlock_ra_update);
 
                 Ok(())
             }
@@ -210,7 +214,7 @@ impl IRust {
                 Ok(())
             }
             Command::HandleAltEnter => {
-                self.execute(Command::RemoveRacerSugesstion)?;
+                self.execute(Command::RemoveRASugesstion)?;
                 self.buffer.insert('\n');
                 self.print_input()?;
                 self.printer.cursor.move_right();
@@ -228,10 +232,10 @@ impl IRust {
                     return Ok(());
                 }
 
-                if let Some(racer) = self.racer.as_mut() {
-                    racer.update_suggestions(&self.buffer, &mut self.repl)?;
-                    racer.lock_racer_update()?;
-                    racer.cycle_suggestions(
+                if let Some(ra) = self.completer.as_mut() {
+                    ra.update_suggestions(&self.buffer, &mut self.repl)?;
+                    ra.lock_ra_update()?;
+                    ra.cycle_suggestions(
                         &mut self.printer,
                         &self.buffer,
                         &self.theme,
@@ -242,10 +246,10 @@ impl IRust {
                 Ok(())
             }
             Command::HandleBackTab => {
-                if let Some(racer) = self.racer.as_mut() {
-                    racer.update_suggestions(&self.buffer, &mut self.repl)?;
-                    racer.lock_racer_update()?;
-                    racer.cycle_suggestions(
+                if let Some(ra) = self.completer.as_mut() {
+                    ra.update_suggestions(&self.buffer, &mut self.repl)?;
+                    ra.lock_ra_update()?;
+                    ra.cycle_suggestions(
                         &mut self.printer,
                         &self.buffer,
                         &self.theme,
@@ -261,7 +265,7 @@ impl IRust {
                     self.handle_history(Dir::Up, buffer)?;
                     self.history.lock();
                 } else {
-                    self.execute(Command::RemoveRacerSugesstion)?;
+                    self.execute(Command::RemoveRASugesstion)?;
                     self.print_input()?;
                     self.printer.cursor.move_up_bounded(1);
                     // set buffer cursor
@@ -279,7 +283,7 @@ impl IRust {
                     self.handle_history(Dir::Down, buffer)?;
                     self.history.lock();
                 } else {
-                    self.execute(Command::RemoveRacerSugesstion)?;
+                    self.execute(Command::RemoveRASugesstion)?;
                     self.print_input()?;
                     self.printer.cursor.move_down_bounded(1, &self.buffer);
                     // set buffer cursor
@@ -289,8 +293,10 @@ impl IRust {
                 Ok(())
             }
             Command::HandleRight => {
-                if let Some(suggestion) =
-                    self.racer.as_mut().and_then(|r| r.active_suggestion.take())
+                if let Some(suggestion) = self
+                    .completer
+                    .as_mut()
+                    .and_then(|r| r.active_suggestion.take())
                 {
                     for c in suggestion.chars() {
                         self.execute(Command::HandleCharacter(c))?;
@@ -302,7 +308,7 @@ impl IRust {
                 Ok(())
             }
             Command::HandleLeft => {
-                self.execute(Command::RemoveRacerSugesstion)?;
+                self.execute(Command::RemoveRASugesstion)?;
                 self.print_input()?;
 
                 if !self.buffer.is_at_start() && !self.buffer.is_empty() {
@@ -318,8 +324,8 @@ impl IRust {
                     self.buffer.remove_current_char();
                     self.print_input()?;
                     self.history.unlock();
-                    // Ignore RacerDisabled error
-                    let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
+                    // Ignore CompleterDisabled error
+                    let _ = self.completer.as_mut().map(Completer::unlock_ra_update);
                 }
                 Ok(())
             }
@@ -327,8 +333,8 @@ impl IRust {
                 if !self.buffer.is_empty() {
                     self.buffer.remove_current_char();
                     self.history.unlock();
-                    // Ignore RacerDisabled error
-                    let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
+                    // Ignore CompleterDisabled error
+                    let _ = self.completer.as_mut().map(Completer::unlock_ra_update);
                 }
                 Ok(())
             }
@@ -339,7 +345,7 @@ impl IRust {
             Command::HandleCtrlC => {
                 self.buffer.clear();
                 self.history.unlock();
-                let _ = self.racer.as_mut().map(Racer::unlock_racer_update);
+                let _ = self.completer.as_mut().map(Completer::unlock_ra_update);
                 self.printer.cursor.goto_start();
                 self.printer.print_prompt_if_set()?;
                 self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
@@ -553,7 +559,7 @@ impl IRust {
                     }
                 }
                 self.printer.clear_last_line()?;
-                self.execute(Command::RemoveRacerSugesstion)?;
+                self.execute(Command::RemoveRASugesstion)?;
                 self.print_input()?;
                 let buffer_pos = self.printer.cursor.cursor_pos_to_buffer_pos();
                 self.buffer.set_buffer_pos(buffer_pos);
@@ -657,13 +663,13 @@ impl IRust {
                     self.buffer.move_forward();
                     self.printer.cursor.move_right();
                 }
-                // check for racer suggestion at the end
+                // check for ra suggestion at the end
                 self.execute(Command::AcceptSuggestion)?;
                 Ok(())
             }
-            Command::RemoveRacerSugesstion => {
+            Command::RemoveRASugesstion => {
                 // remove any active suggestion
-                let _ = self.racer.as_mut().map(|r| r.active_suggestion.take());
+                let _ = self.completer.as_mut().map(|r| r.active_suggestion.take());
 
                 Ok(())
             }
@@ -823,7 +829,7 @@ impl IRust {
 
         // print output
         if !output.is_empty() {
-            // clear racer suggestions is present
+            // clear ra suggestions is present
             self.printer.writer.raw.clear(ClearType::FromCursorDown)?;
             self.printer.print_output(output)?;
             self.global_variables.operation_number += 1;

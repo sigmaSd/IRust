@@ -217,8 +217,8 @@ impl IRust {
             )?;
         }
 
-        if let Some(racer) = self.racer.as_mut() {
-            racer.rust_analyzer.reload_workspace()?;
+        if let Some(ra) = self.completer.as_mut() {
+            ra.rust_analyzer.reload_workspace()?;
         }
 
         success!()

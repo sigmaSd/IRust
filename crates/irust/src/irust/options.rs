@@ -19,12 +19,12 @@ pub struct Options {
     pub insert_color: Color,
     pub welcome_msg: String,
     pub welcome_color: Color,
-    pub racer_inline_suggestion_color: Color,
-    pub racer_suggestions_table_color: Color,
-    pub racer_selected_suggestion_color: Color,
-    pub racer_max_suggestions: usize,
+    pub ra_inline_suggestion_color: Color,
+    pub ra_suggestions_table_color: Color,
+    pub ra_selected_suggestion_color: Color,
+    pub ra_max_suggestions: usize,
     pub first_irust_run: bool,
-    pub enable_racer: bool,
+    pub enable_rust_analyzer: bool,
     pub toolchain: ToolChain,
     pub check_statements: bool,
     pub auto_insert_semicolon: bool,
@@ -70,12 +70,12 @@ impl Default for Options {
             welcome_msg: String::new(),
             welcome_color: Color::DarkBlue,
 
-            // [Racer]
-            enable_racer: false,
-            racer_inline_suggestion_color: Color::Cyan,
-            racer_suggestions_table_color: Color::Green,
-            racer_selected_suggestion_color: Color::DarkRed,
-            racer_max_suggestions: 5,
+            // [Rust Analyzer]
+            enable_rust_analyzer: false,
+            ra_inline_suggestion_color: Color::Cyan,
+            ra_suggestions_table_color: Color::Green,
+            ra_selected_suggestion_color: Color::DarkRed,
+            ra_max_suggestions: 5,
 
             //other
             first_irust_run: true,

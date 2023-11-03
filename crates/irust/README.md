@@ -72,7 +72,7 @@ You can use arrow keys to cycle through commands history.
 
 You can disable all colors by setting `NO_COLOR` env variable.
 
-To enable completion with tab via rust-analyzer, set `enable_racer` to true in the config.
+To enable completion with tab via rust-analyzer, set `enable_rust_analyzer` to true in the config.
 
 ## Keybindings
 
@@ -146,11 +146,11 @@ IRust config file is located in:
   welcome_color = "DarkBlue"
 
   # Rust analyzer
-  racer_inline_suggestion_color = "Cyan"
-  racer_suggestions_table_color = "Green"
-  racer_selected_suggestion_color = "DarkRed"
-  racer_max_suggestions = 5
-  enable_racer = false
+  ra_inline_suggestion_color = "Cyan"
+  ra_suggestions_table_color = "Green"
+  ra_selected_suggestion_color = "DarkRed"
+  ra_max_suggestions = 5
+  enable_rust_analyzer = false
 
   # other
   first_irust_run = false

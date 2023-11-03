@@ -116,7 +116,7 @@ pub enum Command {
     HandleHome,
     HandleEnd,
     Redo,
-    RemoveRacerSugesstion,
+    RemoveRASugesstion,
     ResetPrompt,
     Undo,
     Exit,
@@ -135,7 +135,7 @@ pub struct GlobalVariables {
     pub cursor_position: (usize, usize), // (row, col)
     pub prompt_len: usize,
     pub pid: u32,
-    pub is_racer_suggestion_active: bool,
+    pub is_ra_suggestion_active: bool,
 }
 
 impl Default for GlobalVariables {
@@ -158,7 +158,7 @@ impl GlobalVariables {
             cursor_position: (0, 0), // (row, col)
             prompt_len: 0,
             pid: std::process::id(),
-            is_racer_suggestion_active: false,
+            is_ra_suggestion_active: false,
         }
     }
 

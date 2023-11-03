@@ -12,7 +12,7 @@ pub mod highlight;
 mod history;
 pub mod options;
 mod parser;
-mod racer;
+mod ra;
 mod script;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
 use highlight::theme::Theme;
@@ -21,7 +21,7 @@ use irust_api::{Command, GlobalVariables};
 use irust_repl::Repl;
 use options::Options;
 use printer::{buffer::Buffer, printer::Printer};
-use racer::Racer;
+use ra::Completer;
 use script::Script;
 
 pub use format::format_err;
@@ -37,7 +37,7 @@ pub struct IRust {
     repl: Repl,
     global_variables: GlobalVariables,
     history: History,
-    racer: Option<Racer>,
+    completer: Option<Completer>,
     script_mg: Option<Box<dyn Script>>,
 }
 
@@ -72,8 +72,8 @@ impl IRust {
 
         let printer = Printer::new(std::io::stdout(), prompt);
 
-        let racer = if options.enable_racer {
-            Racer::start_ra(
+        let completer = if options.enable_rust_analyzer {
+            Completer::start_ra(
                 &repl.cargo.paths.irust_dir,
                 &repl.cargo.paths.main_file,
                 repl.body(),
@@ -98,7 +98,7 @@ impl IRust {
             repl,
             global_variables,
             history,
-            racer,
+            completer,
             script_mg,
         }
     }

@@ -1,28 +1,24 @@
+mod rust_analyzer;
 use self::rust_analyzer::RustAnalyzer;
 
 use super::{
     highlight::{highlight, theme::Theme},
     Result,
 };
-use crate::utils::{StringTools, _read_until_bytes};
+use crate::utils::StringTools;
 use crossterm::{style::Color, terminal::ClearType};
 use irust_repl::Repl;
 use printer::printer::{PrintQueue, Printer, PrinterItem};
 use std::io::Write;
-use std::{
-    path::Path,
-    process::{Child, Command, Stdio},
-};
-mod rust_analyzer;
+use std::path::Path;
 
 pub enum Cycle {
     Up,
     Down,
 }
 
-pub struct Racer {
+pub struct Completer {
     pub rust_analyzer: RustAnalyzer,
-    _racer: Option<Child>,
     cursor: (usize, usize),
     // suggestions: (Name, definition)
     suggestions: Vec<(String, String)>,
@@ -32,22 +28,10 @@ pub struct Racer {
     pub active_suggestion: Option<String>,
 }
 
-impl Racer {
-    pub fn start_ra(irust_dir: &Path, main_file: &Path, repl_body: String) -> Option<Racer> {
-        if false {
-            let _process = Command::new("racer")
-                .arg("daemon")
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::null())
-                .spawn()
-                .ok()?;
-        }
-
+impl Completer {
+    pub fn start_ra(irust_dir: &Path, main_file: &Path, repl_body: String) -> Option<Completer> {
         let rust_analyzer = RustAnalyzer::start(irust_dir, main_file, repl_body).ok()?;
 
-        // Disable Racer if unable to start it
-        //.map_err(|_| IRustError::RacerDisabled)?;
         let cursor = (2, 0);
         let cmds = [
             "help".to_string(),
@@ -82,8 +66,7 @@ impl Racer {
             "compile_mode".to_string(),
         ];
 
-        Some(Racer {
-            _racer: None,
+        Some(Completer {
             cursor,
             suggestions: vec![],
             suggestion_idx: 0,
@@ -128,71 +111,6 @@ impl Racer {
         Ok(())
     }
 
-    fn _complete_code_racer(&mut self, main_file: &Path) -> Result<()> {
-        // check for lock
-        if self.update_lock {
-            return Ok(());
-        }
-        // reset suggestions
-        self.suggestions.clear();
-        self.goto_first_suggestion();
-
-        let racer = self._racer.as_mut().ok_or("racer is not used")?;
-        let stdin = racer.stdin.as_mut().ok_or("failed to acess racer stdin")?;
-        let stdout = racer.stdout.as_mut().ok_or("faied to acess racer stdout")?;
-
-        match writeln!(
-            stdin,
-            "complete {} {} {}",
-            self.cursor.0,
-            self.cursor.1,
-            main_file.display()
-        ) {
-            Ok(_) => (),
-            Err(e) => {
-                return Err(format!(
-                    "\n\rError writing to racer, make sure it's properly configured\
-                     \n\rCheckout https://github.com/racer-rust/racer/#configuration\
-                     \n\rOr disable it in the configuration file.\
-                     \n\rError: {e}"
-                )
-                .into());
-            }
-        };
-
-        // read till END
-        let mut raw_output = vec![];
-        _read_until_bytes(
-            &mut std::io::BufReader::new(stdout),
-            b"END\n",
-            &mut raw_output,
-        )?;
-        let raw_output = String::from_utf8(raw_output.to_vec())
-            .map_err(|_| "racer output did not contain valid UTF-8")?;
-
-        for suggestion in raw_output.lines().skip(1) {
-            if suggestion == "END" {
-                break;
-            }
-            let mut try_parse = || -> Option<()> {
-                let start_idx = suggestion.find("MATCH ")? + 6;
-                let mut indices = suggestion.match_indices(',');
-                let name = suggestion[start_idx..indices.next()?.0].to_owned();
-                let definition = suggestion[indices.nth(3)?.0..].to_owned();
-                self.suggestions.push((name, definition[1..].to_owned()));
-                Some(())
-            };
-
-            try_parse();
-        }
-
-        // remove duplicates
-        self.suggestions.sort();
-        self.suggestions.dedup();
-
-        Ok(())
-    }
-
     fn goto_next_suggestion(&mut self) {
         if self.suggestion_idx >= self.suggestions.len() {
             self.suggestion_idx = 0
@@ -233,7 +151,7 @@ impl Racer {
     }
 }
 
-impl Racer {
+impl Completer {
     pub fn update_suggestions(&mut self, buffer: &super::Buffer, repl: &mut Repl) -> Result<()> {
         // get the buffer as string
         let buffer: String = buffer.iter().take(buffer.buffer_pos).collect();
@@ -260,23 +178,22 @@ impl Racer {
                 .collect();
         } else {
             // Auto complete rust code
-            let racer = self;
+            let ra = self;
 
-            racer.cursor.0 = repl.lines_count() + StringTools::new_lines_count(&buffer);
+            ra.cursor.0 = repl.lines_count() + StringTools::new_lines_count(&buffer);
 
-            racer.cursor.1 = 0;
+            ra.cursor.1 = 0;
             for c in buffer.chars() {
                 if c == '\n' {
-                    racer.cursor.1 = 0;
+                    ra.cursor.1 = 0;
                 } else {
-                    racer.cursor.1 += 1;
+                    ra.cursor.1 += 1;
                 }
             }
 
             let buf_ref = &buffer;
             repl.eval_in_tmp_repl(buffer.clone(), move |repl| -> Result<()> {
-                racer
-                    .complete_code_ra(&repl.cargo.paths.main_file, repl.body(), buf_ref)
+                ra.complete_code_ra(&repl.cargo.paths.main_file, repl.body(), buf_ref)
                     .map_err(From::from)
             })?;
         }
@@ -362,7 +279,7 @@ impl Racer {
         options: &super::options::Options,
     ) -> Result<()> {
         // Max suggestions number to show
-        let suggestions_num = std::cmp::min(self.suggestions.len(), options.racer_max_suggestions);
+        let suggestions_num = std::cmp::min(self.suggestions.len(), options.ra_max_suggestions);
 
         // if The total input + suggestion >  screen height don't draw the suggestions
         if printer.cursor.buffer_pos_to_cursor_pos(buffer).1 + suggestions_num
@@ -378,14 +295,14 @@ impl Racer {
                     printer,
                     buffer,
                     theme,
-                    options.racer_inline_suggestion_color,
+                    options.ra_inline_suggestion_color,
                 )?;
             }
             Cycle::Up => self.write_previous_suggestion(
                 printer,
                 buffer,
                 theme,
-                options.racer_inline_suggestion_color,
+                options.ra_inline_suggestion_color,
             )?,
         }
 
@@ -416,7 +333,7 @@ impl Racer {
         printer
             .writer
             .raw
-            .set_fg(options.racer_suggestions_table_color)?;
+            .set_fg(options.ra_suggestions_table_color)?;
 
         let current_suggestion = self.current_suggestion();
 
@@ -429,7 +346,7 @@ impl Racer {
         {
             let suggestion_c = suggestion.clone();
             // trancuate long suggestions
-            let mut suggestion = Racer::full_suggestion(suggestion);
+            let mut suggestion = Completer::full_suggestion(suggestion);
             if suggestion.len() > max_width {
                 suggestion.truncate(max_width - 3);
                 suggestion.push_str("...");
@@ -444,7 +361,7 @@ impl Racer {
                 printer
                     .writer
                     .raw
-                    .set_bg(options.racer_selected_suggestion_color)?;
+                    .set_bg(options.ra_selected_suggestion_color)?;
             }
 
             printer.writer.raw.write(&suggestion)?;
@@ -462,12 +379,12 @@ impl Racer {
         Ok(())
     }
 
-    pub fn lock_racer_update(&mut self) -> Result<()> {
+    pub fn lock_ra_update(&mut self) -> Result<()> {
         self.update_lock = true;
         Ok(())
     }
 
-    pub fn unlock_racer_update(&mut self) -> Result<()> {
+    pub fn unlock_ra_update(&mut self) -> Result<()> {
         self.update_lock = false;
         Ok(())
     }
