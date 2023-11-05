@@ -132,7 +132,7 @@ dependencies = [
 
 [[package]]
 name = "irust"
-version = "1.71.14"
+version = "1.71.15"
 dependencies = [
  "crossterm",
  "dirs",

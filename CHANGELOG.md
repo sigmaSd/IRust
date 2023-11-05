@@ -1,3 +1,6 @@
+**1.71.15**
+- fix edit command (don't drop repl)
+
 **1.71.14**
 - Remove all mention of racer (rust-analyzer is whats being used)
 
