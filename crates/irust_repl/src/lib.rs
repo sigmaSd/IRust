@@ -169,16 +169,8 @@ impl Repl {
         }
         let cursor_pos = lines_num - 2;
 
-        *self = Self {
-            body: main_file.lines().map(ToOwned::to_owned).collect(),
-            cursor: cursor_pos,
-            toolchain: self.toolchain,
-            executor: self.executor,
-            main_result: self.main_result,
-            edition: self.edition,
-            prelude: self.prelude.clone(),
-            cargo: self.cargo.clone(),
-        };
+        self.body = main_file.lines().map(ToOwned::to_owned).collect();
+        self.cursor = cursor_pos;
         Ok(())
     }
 
