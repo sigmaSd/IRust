@@ -29,6 +29,13 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="1.71.16" date="2023-11-6">
+      <description>
+        <ul>
+          <li>Fix `:edit` command</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.71.14" date="2023-11-3">
     </release>
     <release version="1.71.10" date="2023-11-1">
