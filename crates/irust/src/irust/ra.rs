@@ -134,7 +134,7 @@ impl Completer {
                 .get(self.suggestion_idx - 1)
                 .map(ToOwned::to_owned)
         } else {
-            self.suggestions.get(0).map(ToOwned::to_owned)
+            self.suggestions.first().map(ToOwned::to_owned)
         }
     }
 
