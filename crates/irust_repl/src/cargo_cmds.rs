@@ -176,14 +176,32 @@ edition = \"2021\""
         }
     }
 
+    fn is_local_dep(dep: &[String]) -> bool {
+        match dep {
+            &[ref path] => path.starts_with("/"),
+            _ => false,
+        }
+    }
+
     pub fn cargo_add(&self, dep: &[String]) -> io::Result<std::process::Child> {
-        Command::new("cargo")
-            .current_dir(&self.paths.irust_dir)
-            .arg("add")
-            .args(dep)
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::piped())
-            .spawn()
+        if Self::is_local_dep(dep) {
+            Command::new("cargo")
+                .current_dir(&self.paths.irust_dir)
+                .arg("add")
+                .arg("--path")
+                .arg(&dep[0])
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::piped())
+                .spawn()
+        } else {
+            Command::new("cargo")
+                .current_dir(&self.paths.irust_dir)
+                .arg("add")
+                .args(dep)
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::piped())
+                .spawn()
+        }
     }
 
     pub fn cargo_add_prelude(&self, path: PathBuf, name: &'static str) -> io::Result<()> {
@@ -207,14 +225,26 @@ edition = \"2021\""
     }
 
     pub fn cargo_add_sync(&self, dep: &[String]) -> Result<()> {
-        let process = Command::new("cargo")
-            .current_dir(&self.paths.irust_dir)
-            .arg("add")
-            .args(dep)
-            .stdout(std::process::Stdio::null())
-            .stderr(std::process::Stdio::piped())
-            .spawn()?
-            .wait()?;
+        let process = if Self::is_local_dep(dep) {
+            Command::new("cargo")
+                .current_dir(&self.paths.irust_dir)
+                .arg("add")
+                .arg("--path")
+                .arg(&dep[0])
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::piped())
+                .spawn()?
+                .wait()?
+        } else {
+            Command::new("cargo")
+                .current_dir(&self.paths.irust_dir)
+                .arg("add")
+                .args(dep)
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::piped())
+                .spawn()?
+                .wait()?
+        };
         if process.success() {
             Ok(())
         } else {
