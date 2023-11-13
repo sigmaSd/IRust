@@ -11,7 +11,7 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:show** => show repl current code (optionally depends on [rustfmt](https://github.com/rust-lang/rustfmt) to format output)
 
-**:add** *<dep_list>* => add dependencies (requires [cargo-edit](https://github.com/killercup/cargo-edit)) also it accepts most `cargo-edit` arguments
+**:add** *<dep_list>* => add dependencies (requires [cargo-edit](https://github.com/killercup/cargo-edit)) also it accepts most `cargo-edit` arguments, for example you can import local dependencies with `:add --path path_to_crate`
 
 **:type** *\<expression\>* => shows the expression type, example `:type vec!(5)`
   
