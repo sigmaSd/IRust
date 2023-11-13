@@ -11,14 +11,16 @@ impl IRust {
             Ok(()) => {
                 self.clean_art()?;
 
-                // use std::io::Read;
-                // if let Some(stderr) = add_cmd.stderr.as_mut() {
-                //     let mut error = String::new();
-                //     stderr.read_to_string(&mut error)?;
-                //     if !error.is_empty() {
-                //          return Err(error.into());
-                //     }
-                // }
+                use std::io::Read;
+                if let Some(stderr) = add_cmd.stderr.as_mut() {
+                    let mut error = String::new();
+                    stderr.read_to_string(&mut error)?;
+                    if !error.is_empty() {
+                        // show cargo-add stderr
+                        // it have useful info
+                        return Err(error.into());
+                    }
+                }
                 Ok(())
             }
             Err(e) => {
