@@ -11,7 +11,7 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:show** => show repl current code (optionally depends on [rustfmt](https://github.com/rust-lang/rustfmt) to format output)
 
-**:add** *<dep_list>* => add dependencies (requires [cargo-edit](https://github.com/killercup/cargo-edit)) also it accepts most `cargo-edit` arguments, for example you can import local dependencies with `:add --path path_to_crate`
+**:add** *<dep_list>* => add dependencies also it accepts most `cargo add` arguments, for example you can import local dependencies with `:add --path path_to_crate`
 
 **:type** *\<expression\>* => shows the expression type, example `:type vec!(5)`
   
@@ -45,7 +45,7 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:asm** *\<function\>* => shows assembly of the specified function, note that the function needs to be public, and there has to be no free standing statements/expressions (requires [cargo-show-asm](https://github.com/pacak/cargo-show-asm))
 
-**:executor** *\<executor\>* => set the executor to be used by IRust, available options are: `sync` `tokio` `async_std`, by  using an async executor, `await` becomes usable with no other modifications (requires [cargo-edit](https://github.com/killercup/cargo-edit) for async executors)
+**:executor** *\<executor\>* => set the executor to be used by IRust, available options are: `sync` `tokio` `async_std`, by  using an async executor, `await` becomes usable with no other modifications for async executors)
 
 **:evaluator** *\<evaluator>\>* => set the evaluator statement, exmaple: `:evaluator println!("{}",{$$})` the `$$`
  will be replaced by IRust by the input code (the default evaluator uses debug formatting). To reset the evaluator to default you can use `:evaluator reset`
