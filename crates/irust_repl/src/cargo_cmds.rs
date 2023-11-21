@@ -180,7 +180,7 @@ edition = \"2021\""
         Command::new("cargo")
             .arg("add")
             .args(dep)
-            .args(&[
+            .args([
                 "--manifest-path",
                 &self.paths.cargo_toml_file.display().to_string(),
             ])
