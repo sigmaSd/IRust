@@ -183,29 +183,29 @@ impl IRust {
         // Note this might be a bit too aggressive (an argument might be canonicalized, that the user didn't not intend for it to be considered as a path)
         // But the usefulness of this trick, outways this possible edge case
         // canonicalize is problamatic on windows -> need to handle extended path
-        #[cfg(unix)]
-        for p in dep.iter_mut() {
-            let path = std::path::Path::new(p);
-            if path.exists() {
-                if let Ok(full_path) = path.canonicalize() {
-                    if let Some(full_path) = full_path.to_str() {
-                        *p = full_path.to_string();
-                    }
-                }
-            }
-        }
+        // #[cfg(unix)]
+        // for p in dep.iter_mut() {
+        //     let path = std::path::Path::new(p);
+        //     if path.exists() {
+        //         if let Ok(full_path) = path.canonicalize() {
+        //             if let Some(full_path) = full_path.to_str() {
+        //                 *p = full_path.to_string();
+        //             }
+        //         }
+        //     }
+        // }
         // But still the most common case is `:add .` so we can special case that
-        #[cfg(windows)]
-        for p in dep.iter_mut() {
-            if p == "." {
-                *p = self
-                    .global_variables
-                    .get_cwd()
-                    .to_str()
-                    .ok_or("Error parsing path to dependecy")?
-                    .to_string();
-            }
-        }
+        // #[cfg(windows)]
+        // for p in dep.iter_mut() {
+        //     if p == "." {
+        //         *p = self
+        //             .global_variables
+        //             .get_cwd()
+        //             .to_str()
+        //             .ok_or("Error parsing path to dependecy")?
+        //             .to_string();
+        //     }
+        // }
 
         self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
         self.wait_add(self.repl.build()?, "Build")?;

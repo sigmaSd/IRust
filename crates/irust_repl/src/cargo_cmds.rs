@@ -178,9 +178,12 @@ edition = \"2021\""
 
     pub fn cargo_add(&self, dep: &[String]) -> io::Result<std::process::Child> {
         Command::new("cargo")
-            .current_dir(&self.paths.irust_dir)
             .arg("add")
             .args(dep)
+            .args(&[
+                "--manifest-path",
+                &self.paths.cargo_toml_file.display().to_string(),
+            ])
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::piped())
             .spawn()
