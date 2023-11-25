@@ -241,6 +241,10 @@ Currently there is a barebone kernel that is easily installable see https://gith
 ## Building
     cargo b --release
 
+## How It Works (random drawing ahead)
+![irust](https://github.com/sigmaSd/IRust/assets/22427111/867b4a7c-2f47-4756-bc45-5967448358b1)
+
+
 ## FAQ
 
 **1- I want to hack on irust but `dbg!` overlaps with the output!!**
