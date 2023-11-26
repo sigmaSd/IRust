@@ -1,3 +1,6 @@
+**1.71.18**
+- Make :add command more robust
+
 **1.71.15**
 - fix edit command (don't drop repl)
 

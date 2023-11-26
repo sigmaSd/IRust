@@ -29,6 +29,13 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="1.71.18" date="2023-11-26">
+      <description>
+        <ul>
+          <li>Make :add command more robust</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.71.17" date="2023-11-6">
       <description>
         <ul>
