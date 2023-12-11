@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component type="console-application">
+<component type="desktop-application">
   <id>io.github.sigmasd.IRust</id>
   <name>IRust</name>
   <summary>Rust Repl</summary>
