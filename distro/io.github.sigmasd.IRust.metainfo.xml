@@ -29,6 +29,13 @@
   <content_rating type="oars-1.1" />
 
   <releases>
+    <release version="1.71.19" date="2023-12-11">
+      <description>
+        <ul>
+          <li>Switch metadata to desktop-application to make it appear in stores</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.71.18" date="2023-11-26">
       <description>
         <ul>
