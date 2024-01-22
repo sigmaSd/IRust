@@ -1,4 +1,5 @@
 # IRust
+
 Cross Platform Rust Repl
 
 You can try out IRust with no installation or setup (via Gitpod.io) by visiting https://gitpod.io/#https://github.com/sigmaSd/IRust
@@ -11,13 +12,13 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:show** => show repl current code (optionally depends on [rustfmt](https://github.com/rust-lang/rustfmt) to format output)
 
-**:add** *<dep_list>* => add dependencies also it accepts most `cargo add` arguments, for example you can import local dependencies with `:add --path path_to_crate`
+**:add** _<dep_list>_ => add dependencies also it accepts most `cargo add` arguments, for example you can import local dependencies with `:add --path path_to_crate`
 
-**:type** *\<expression\>* => shows the expression type, example `:type vec!(5)`
-  
-**:time** *\<expression\>* => return the amount of time the expression took to execute. example: `:time 5+4` `:time my_fun(arg1,arg2)`
+**:type** _\<expression\>_ => shows the expression type, example `:type vec!(5)`
 
-**:time_release** *\<expression\>* => same as `time` command but with release mode
+**:time** _\<expression\>_ => return the amount of time the expression took to execute. example: `:time 5+4` `:time my_fun(arg1,arg2)`
+
+**:time_release** _\<expression\>_ => same as `time` command but with release mode
 
 **:load** => load a rust file into the repl
 
@@ -25,42 +26,42 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:pop** => remove last repl code line
 
-**:del** *<line_num>* => remove a specific line from repl code (line count starts at 1 from the first expression statement)
+**:del** _<line_num>_ => remove a specific line from repl code (line count starts at 1 from the first expression statement)
 
-**:edit** *[editor]* => edit internal buffer using an external editor, example: `:edit micro`. If no editor is specified then the one from the EDITOR environment variable is used (if set). Note some gui terminal requires using `:sync` command after the edit (vscode)
+**:edit** _[editor]_ => edit internal buffer using an external editor, example: `:edit micro`. If no editor is specified then the one from the EDITOR environment variable is used (if set). Note some gui terminal requires using `:sync` command after the edit (vscode)
 
 **:sync** sync the changes written after using :edit with a gui editor (vscode) to the repl
 
 **:cd** => change current working directory
 
-**:color** *\<key\>* *\<value\>* => change token highlight color at runtime, for the token list and value representation check the Theme section, exp: `:color function red` `:color macro #ff12ab` `:color reset`
+**:color** _\<key\>_ _\<value\>_ => change token highlight color at runtime, for the token list and value representation check the Theme section, exp: `:color function red` `:color macro #ff12ab` `:color reset`
 
-**:toolchain** *\<value\>* => switch between toolchains, supported value are: `stable`, `beta`, `nightly`, `default`
+**:toolchain** _\<value\>_ => switch between toolchains, supported value are: `stable`, `beta`, `nightly`, `default`
 
-**:theme** *\<value\>* => if used without arguments list currently installed themes, otherwise set irust to the given theme, see Themes section for more info
-  
-**:check_statements** *true*/*false* => If its set to true, irust will check each statemnt (input that ends with ;) with cargo_check before inserting it to the repl
+**:theme** _\<value\>_ => if used without arguments list currently installed themes, otherwise set irust to the given theme, see Themes section for more info
+
+**:check_statements** _true_/_false_ => If its set to true, irust will check each statemnt (input that ends with ;) with cargo_check before inserting it to the repl
 
 **:bench** => run `cargo bench`
 
-**:asm** *\<function\>* => shows assembly of the specified function, note that the function needs to be public, and there has to be no free standing statements/expressions (requires [cargo-show-asm](https://github.com/pacak/cargo-show-asm))
+**:asm** _\<function\>_ => shows assembly of the specified function, note that the function needs to be public, and there has to be no free standing statements/expressions (requires [cargo-show-asm](https://github.com/pacak/cargo-show-asm))
 
-**:executor** *\<executor\>* => set the executor to be used by IRust, available options are: `sync` `tokio` `async_std`, by  using an async executor, `await` becomes usable with no other modifications for async executors)
+**:executor** _\<executor\>_ => set the executor to be used by IRust, available options are: `sync` `tokio` `async_std`, by using an async executor, `await` becomes usable with no other modifications for async executors)
 
-**:evaluator** *\<evaluator>\>* => set the evaluator statement, exmaple: `:evaluator println!("{}",{$$})` the `$$`
- will be replaced by IRust by the input code (the default evaluator uses debug formatting). To reset the evaluator to default you can use `:evaluator reset`
- 
+**:evaluator** _\<evaluator>\>_ => set the evaluator statement, example: `:evaluator println!("{}",{$$})` the `$$`
+will be replaced by IRust by the input code (the default evaluator uses debug formatting). To reset the evaluator to default you can use `:evaluator reset`
+
 **:scripts:** => if invoked with no arguments it prints a list of detected scripts, if invoked with on argument it print that script info if it exits, if invoked with 2 arguments, it tries to activate/deactivate a script, example: `:scripts Vim deactivate`
 
-**:compile_time** *\<on/off\>* => if set to on, IRust will print compiling time on each input, compile time includes rustc compiling + some IRust code (should be marginal)
+**:compile_time** _\<on/off\>_ => if set to on, IRust will print compiling time on each input, compile time includes rustc compiling + some IRust code (should be marginal)
 
-**:compile_mode** *\<debug/release\>* => Sets how cargo will compile the code in release or debug mode
+**:compile_mode** _\<debug/release\>_ => Sets how cargo will compile the code in release or debug mode
 
-**:main_result** *\<value\>* => Change main result type, available options are `Unit` and `Result` (which is Result\<(), Box<dyn std::error::Error\>\>), Using `Result` as type allows to use `?` in the repl without any boilerplate
+**:main_result** _\<value\>_ => Change main result type, available options are `Unit` and `Result` (which is Result\<(), Box<dyn std::error::Error\>\>), Using `Result` as type allows to use `?` in the repl without any boilerplate
 
-**:dbg** *\<expression\>* => Spawn rust-lldb/rust-gdb with (an optional expression), example: `:dbg` or `:dbg fact(12)`, The debugger can be specified in the config file
+**:dbg** _\<expression\>_ => Spawn rust-lldb/rust-gdb with (an optional expression), example: `:dbg` or `:dbg fact(12)`, The debugger can be specified in the config file
 
-**:expand** *\[function\]* => Shows the result of macro expansion, requires https://github.com/dtolnay/cargo-expand, function is optional, example `fn b() { println!("42"); }` then `:expand b`
+**:expand** _\[function\]_ => Shows the result of macro expansion, requires https://github.com/dtolnay/cargo-expand, function is optional, example `fn b() { println!("42"); }` then `:expand b`
 
 **:exit** | **:quit** => Exit IRust immediately
 
@@ -82,7 +83,7 @@ To enable completion with tab via rust-analyzer, set `enable_rust_analyzer` to t
 
 **ctrl-d** exit if buffer is empty
 
-**ctrl-z** [unix only]  send IRust to the background
+**ctrl-z** [unix only] send IRust to the background
 
 **ctrl-r** search history, hitting **ctrl-r** again continues searching the history backward, hitting **ctrl-s** searches the history forward
 
@@ -120,13 +121,14 @@ If input is piped to IRust then it will evaluate it and exit, example: `echo '"h
 
 IRust config file is located in:
 
-**Linux**: */home/$USER/.config/irust/config.toml*
+**Linux**: _/home/$USER/.config/irust/config.toml_
 
-**Win**: *C:\Users\\$USER\AppData\Roaming/irust/config.toml*
+**Win**: _C:\Users\\$USER\AppData\Roaming/irust/config.toml_
 
-**Mac**: */Users/$USER/Library/Preferences/irust/config.toml*
+**Mac**: _/Users/$USER/Library/Preferences/irust/config.toml_
 
-*default config:*
+_default config:_
+
 ```toml
   # history
   add_irust_cmd_to_history = true
@@ -157,18 +159,18 @@ IRust config file is located in:
   toolchain = "stable"
   check_statements = true
   auto_insert_semicolon = true
-  
+
   #use last output by replacing the specified marker
   replace_marker = "$out"
   replace_output_with_marker = false
-  
+
   # modify input prmopt
   input_prompt = "In: "
   output_prompt = "Out: "
-  
+
   # activate scripting feature
   activate_scripting = false
-  
+
   # select executor (Sync, Tokio, Asyncstd)
   executor = "Sync"
   evaluator = ["println!(\"{:?}\", {\n", "\n});"]
@@ -184,6 +186,7 @@ IRust config file is located in:
 ```
 
 ## Theme
+
 Since release `1.66.0` `IRust` can now parse any theme file located under `$config_dir/irust/themes` and use it for the highlighting colors.
 
 To select a theme, set its name in the irust config. for example to set `themes/mytheme.toml` set `theme = "mytheme"`
@@ -207,13 +210,16 @@ Default theme file (default.toml):
 ```
 
 ## Prelude
+
 IRust automatically creates `irust_prelude` crate at `xdg_data_dir/irust/irust_prelude`, this crate is imported at startup, any changes to it (that are marked with `pub`) will be immediately reflected on the repl after saving.
 
 ## Scripts
+
 IRust supports scripting, all over the code base there are hooks that scripts can react to and usually answer back to IRust with a command.\
 Check out [SCRIPTS.md](https://github.com/sigmaSd/IRust/blob/master/SCRIPTS.md) for more info.
 
 ## Vim Plugin
+
 For nvim you can use https://github.com/hkupty/iron.nvim (needs irust 1.67.4)
 
 **Old method:**
@@ -222,34 +228,39 @@ Since version `1.60.0` IRust supports spawning a local server, by changing `loca
 This allows it to be controlled programmatically, which in turns allows writing vim plugins that uses this, see https://github.com/sigmaSd/irust-vim-plugin
 
 ## Jupyter Notebook
+
 Currently there is a barebone kernel that is easily installable see https://github.com/sigmaSd/IRust/blob/master/crates/irust_repl/README.md#jupyter-kernel for instructions
 
 ## Book
+
 `The IRust Book` is intended to document a couple of tips and tricks https://sigmasd.github.io/irust_book
 
 ## Releases
-   Automatic releases by github actions are uploaded here https://github.com/sigmaSd/irust/releases
+
+Automatic releases by github actions are uploaded here https://github.com/sigmaSd/irust/releases
 
 ## Install
 
 - `cargo install irust`
 - `cargo binstall irust` (using [cargo-binstall](https://github.com/cargo-bins/cargo-binstall))
-- There is also  a flaptak package, its self contained , but have some limitations
-  
+- There is also a flaptak package, its self contained , but have some limitations
+
 [![Get it from FlatHub](https://raw.githubusercontent.com/hmlendea/readme-assets/master/badges/stores/flathub.png)](https://flathub.org/apps/io.github.sigmasd.IRust)
 
 ## Building
+
     cargo b --release
 
 ## How It Works (random drawing ahead)
-![irust](https://github.com/sigmaSd/IRust/assets/22427111/867b4a7c-2f47-4756-bc45-5967448358b1)
 
+![irust](https://github.com/sigmaSd/IRust/assets/22427111/867b4a7c-2f47-4756-bc45-5967448358b1)
 
 ## FAQ
 
 **1- I want to hack on irust but `dbg!` overlaps with the output!!**
 
 Personaly I do this:
+
 - Run 2 terminals side by side
 - run `tty` in the first which should output something like `/dev/pts/4`
 - run `cargo r 2>/dev/pts4` in the second
