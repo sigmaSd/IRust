@@ -90,7 +90,7 @@ To enable completion with tab via rust-analyzer, set `enable_rust_analyzer` to t
 
 **HOME/END** go to line start / line end
 
-**Tab/ShiftTab** cycle through auto-completion suggestions
+**Tab/ShiftTab** cycle through completion suggestions
 
 **Alt-Enter | ctrl-s** add line break
 
