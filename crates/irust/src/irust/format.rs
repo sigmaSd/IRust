@@ -114,7 +114,7 @@ pub fn format_eval_output(
 }
 
 fn check_is_err(s: &str) -> bool {
-    !s.contains("dev [unoptimized + debuginfo]")
+    !s.contains("[unoptimized + debuginfo]")
 }
 
 pub fn format_check_output(
