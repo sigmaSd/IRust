@@ -38,6 +38,7 @@ fn main() {
             use std::io::Read;
 
             let mut repl = Repl::default();
+            #[allow(clippy::blocks_in_conditions)]
             match (|| -> irust::Result<EvalResult> {
                 let mut input = String::new();
                 stdin.read_to_string(&mut input)?;
