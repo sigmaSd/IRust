@@ -29,17 +29,29 @@ if (import.meta.main) {
     // TODO
     let lastResult = "";
     let idx = 0;
+    let start = 0;
     while (true) {
       let { data: output, done } = await pty.read();
       if (done) break;
       output = stripAnsiCode(output).trim();
       if (output && output !== "In:") lastResult = output;
 
-      if (!output && lastResult) {
+      if (output && start === 0) {
+        start = 1;
+      }
+      if (!output && start === 1) {
+        start = 2;
+      }
+      if (output && start === 2) {
+        start = 3;
+      }
+
+      if (start === 3 && !output && lastResult) {
         idx++;
       } else {
         idx = 0;
       }
+
       if (idx === 5) {
         const result = lastResult.replace(/^Out:/, "").trim();
         return result;
