@@ -163,7 +163,8 @@ impl GlobalVariables {
     }
 
     pub fn update_cwd(&mut self, cwd: PathBuf) {
-        self.previous_working_dir.clone_from(&self.current_working_dir);
+        self.previous_working_dir
+            .clone_from(&self.current_working_dir);
         self.current_working_dir = cwd;
     }
 
