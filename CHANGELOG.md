@@ -1,3 +1,6 @@
+**1.71.19**
+- Fix formating of output on newer version of rust
+
 **1.71.18**
 - Make :add command more robust
 
