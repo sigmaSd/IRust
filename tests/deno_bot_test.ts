@@ -1,10 +1,7 @@
-#!/usr/bin/env -S deno run --unstable --allow-all
-import { Pty } from "https://deno.land/x/deno_pty_ffi@0.16.0/mod.ts";
-import { stripAnsiCode } from "https://deno.land/std@0.204.0/fmt/colors.ts";
-import {
-  assertEquals,
-  assertMatch,
-} from "https://deno.land/std@0.204.0/assert/mod.ts";
+#!/usr/bin/env -S deno run --unstable-ffi --allow-all
+import { Pty } from "jsr:@sigma/pty-ffi@0.21.0";
+import { stripAnsiCode } from "jsr:@std/fmt@0.220.1/colors";
+import { assertEquals, assertMatch } from "jsr:@std/assert@0.220.1";
 
 const ENCODER = new TextEncoder();
 
@@ -16,56 +13,52 @@ if (import.meta.main) {
   });
 
   while (true) {
-    let input = await pty.read();
-    if (input === undefined) break;
+    let { data: input, done } = await pty.read();
+    if (done) break;
     input = stripAnsiCode(input);
 
     if (input.includes("In:")) break;
     await sleep(100);
   }
 
-  const write = async (input: string) => await pty.write(input + "\n\r");
+  const write = async (input: string) => await pty.write(`${input}\n\r`);
   const evalRs = async (input: string) => {
     await write(input);
     // detect output
     // the plan is:
-    // In: ...
-    // ... // we want his line
-    // ... // and this line
-    // In: ...
-    // The output is all the part between 2 `In:`
-    //
-    // Should not be used with input that gives empty output
-    // like rust statements
-    let out = "";
-    let end_detect = 0;
+    // TODO
+    let lastResult = "";
+    let idx = 0;
     while (true) {
-      let o = await pty.read();
-      if (o === undefined) break;
-      o = stripAnsiCode(o);
-      if (!o.startsWith("In:")) {
-        end_detect += 1;
-        out += o;
-      } else if (end_detect >= 1 && o.startsWith("In:")) {
-        break;
+      let { data: output, done } = await pty.read();
+      if (done) break;
+      output = stripAnsiCode(output).trim();
+      if (output && output !== "In:") lastResult = output;
+
+      if (!output && lastResult) {
+        idx++;
       } else {
-        end_detect = 0;
+        idx = 0;
+      }
+      if (idx === 5) {
+        const result = lastResult.replace(/^Out:/, "").trim();
+        return result;
       }
       await sleep(100);
     }
-    const result = out!.replace(/^Out:/, "").trim();
-    return result;
+    // not really needed
+    return "";
   };
 
   const test = async (
     input: string,
     expected: string | RegExp,
   ) => {
-    Deno.stdout.write(ENCODER.encode("eval: " + input));
+    Deno.stdout.write(ENCODER.encode(`eval: ${input}`));
     const output = await evalRs(input);
     // try catch just to add a new line before the error
     try {
-      if (typeof expected == "string") {
+      if (typeof expected === "string") {
         assertEquals(
           output,
           expected,
