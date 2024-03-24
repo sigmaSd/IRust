@@ -89,8 +89,8 @@ if (import.meta.main) {
   await test("z", /cannot find value `z`/);
   await test("let a = 2; a + a", "4");
   // NOTE: this requires network, is it a good idea to enable it ?
-  // await evalRs(":add regex");
-  // await test('regex::Regex::new("a.*a")', 'Ok(Regex("a.*a"))');
+  await evalRs(":add regex");
+  await test('regex::Regex::new("a.*a")', 'Ok(Regex("a.*a"))');
 }
 
 async function sleep(ms: number) {
