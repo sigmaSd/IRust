@@ -43,16 +43,16 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 fn main() -> Result<()> {
     let stdin = io::stdin();
     let reader = stdin.lock();
-    let mut deserializer = Deserializer::from_reader(reader).into_iter::<Message>();
+    let deserializer = Deserializer::from_reader(reader).into_iter::<Message>();
 
     let mut repl = Repl::default();
 
     // NOTE: errors should not exit this loop
     // In case of an error we log it and continue
-    while let Some(json) = deserializer.next() {
+    for json in deserializer {
         let result = (|| -> Result<()> {
             let message = json?;
-            if message.code.ends_with(";") {
+            if message.code.ends_with(';') {
                 repl.insert(&message.code);
                 let output = serde_json::to_string(&Action::Insert)?;
                 println!("{output}");

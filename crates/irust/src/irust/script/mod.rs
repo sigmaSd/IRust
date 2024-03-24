@@ -107,7 +107,6 @@ impl super::IRust {
 
     // internal
     ///////////
-    ///
     pub fn choose_script_mg(options: &Options) -> Option<Box<dyn Script>> {
         if options.activate_scripting {
             ScriptManager::new().map(|script_mg| Box::new(script_mg) as Box<dyn Script>)

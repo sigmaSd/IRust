@@ -1,4 +1,4 @@
-use std::iter::FromIterator;
+use std::fmt::Write;
 
 #[derive(Clone, Default)]
 pub struct Buffer {
@@ -123,9 +123,12 @@ impl Buffer {
     }
 }
 
-impl ToString for Buffer {
-    fn to_string(&self) -> String {
-        self.buffer.iter().collect()
+impl std::fmt::Display for Buffer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for c in self.buffer.iter() {
+            f.write_char(*c)?;
+        }
+        Ok(())
     }
 }
 

@@ -335,11 +335,10 @@ edition = \"2021\""
 
     pub fn cargo_fmt(&self, c: &str) -> std::io::Result<String> {
         let fmt_path = self.paths.irust_dir.join("fmt_file");
-        // Ignore file doesn't exist error
-        let _ = fs::remove_file(&fmt_path);
 
         let mut fmt_file = fs::OpenOptions::new()
             .create(true)
+            .truncate(true)
             .read(true)
             .write(true)
             .open(&fmt_path)?;

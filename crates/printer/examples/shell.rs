@@ -15,8 +15,8 @@ fn main() -> Result<()> {
 
     loop {
         let inp = crossterm::event::read()?;
-        match inp {
-            crossterm::event::Event::Key(key) => match key {
+        if let crossterm::event::Event::Key(key) = inp {
+            match key {
                 KeyEvent {
                     kind: KeyEventKind::Release,
                     ..
@@ -59,8 +59,7 @@ fn main() -> Result<()> {
                     ..
                 } => break,
                 _ => (),
-            },
-            _ => (),
+            }
         }
         std::io::Write::flush(&mut printer.writer.raw)?;
     }
@@ -72,6 +71,7 @@ fn eval(buffer: String) -> Option<PrintQueue> {
     let cmd = buffer.next()?;
     let args: Vec<&str> = buffer.collect();
 
+    #[allow(clippy::blocks_in_conditions)]
     match (|| -> Result<PrinterItem> {
         let output = std::process::Command::new(cmd).args(args).output()?;
         if output.status.success() {

@@ -54,7 +54,7 @@ impl History {
     }
     pub fn down(&mut self, buffer: &[char]) -> Option<String> {
         if !self.lock {
-            self.last_buffer = buffer.to_owned();
+            buffer.clone_into(&mut self.last_buffer);
             self.cursor = 1;
         }
 
@@ -70,7 +70,7 @@ impl History {
 
     pub fn up(&mut self, buffer: &[char]) -> Option<String> {
         if !self.lock {
-            self.last_buffer = buffer.to_owned();
+            buffer.clone_into(&mut self.last_buffer);
             self.cursor = 0;
         }
         self.cursor += 1;
