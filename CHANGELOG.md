@@ -1,4 +1,7 @@
-**1.71.19**
+**1.71.21**
+- General cleanup and deps update
+
+**1.71.20**
 - Fix formating of output on newer version of rust
 
 **1.71.18**
