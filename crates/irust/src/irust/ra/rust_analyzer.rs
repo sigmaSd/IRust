@@ -43,9 +43,9 @@ impl RustAnalyzer {
                     "enable": false
                   },
                   "completion": {
-                      "privateEditable": {
-                          "enable": true
-                      }
+                    "privateEditable": {
+                      "enable": true
+                    }
                   }
                 },
                 "processId": std::process::id(),
