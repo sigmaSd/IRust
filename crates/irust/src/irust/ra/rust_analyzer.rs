@@ -36,10 +36,16 @@ impl RustAnalyzer {
             "id":  ID.fetch_add(1, Ordering::SeqCst),
             "method": "initialize",
             "params": {
+              // TODO: make this configurable in irust config
               "initializationOptions": {
                   "checkOnSave": false,
                   "diagnostics": {
                     "enable": false
+                  },
+                  "completion": {
+                      "privateEditable": {
+                          "enable": true
+                      }
                   }
                 },
                 "processId": std::process::id(),
