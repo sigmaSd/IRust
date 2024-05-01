@@ -620,7 +620,7 @@ impl IRust {
             .to_string();
         match buffer.as_str() {
             "" => {
-                if let Some(dir) = dirs::home_dir() {
+                if let Some(dir) = crate::utils::irust_dirs::home_dir() {
                     set_current_dir(dir)?;
                 }
             }
@@ -940,7 +940,7 @@ impl IRust {
                 return Err("Failed to execute expression".into());
             }
 
-            let dbg_cmds_path = env::temp_dir().join("irust_dbg_cmds");
+            let dbg_cmds_path = crate::utils::irust_dirs::temp_dir().join("irust_dbg_cmds");
             {
                 let mut dbg_cmds = std::fs::File::create(&dbg_cmds_path)?;
                 writeln!(&mut dbg_cmds, "b {expr_line_num}")?;

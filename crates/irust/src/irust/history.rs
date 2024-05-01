@@ -17,7 +17,7 @@ pub struct History {
 
 impl History {
     pub fn new(irust_dir: PathBuf) -> Result<Self> {
-        let history_file_path = if let Some(cache_dir) = dirs::cache_dir() {
+        let history_file_path = if let Some(cache_dir) = crate::utils::irust_dirs::cache_dir() {
             let irust_cache = cache_dir.join("irust");
             let _ = std::fs::create_dir_all(&irust_cache);
             irust_cache.join("history")

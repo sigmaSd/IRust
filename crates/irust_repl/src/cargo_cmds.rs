@@ -7,9 +7,9 @@ use crate::{
 use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+use std::process::Stdio;
 use std::process::{Command, ExitStatus};
 use std::sync::OnceLock;
-use std::{env::temp_dir, process::Stdio};
 use std::{fs, process};
 
 static NO_COLOR: OnceLock<bool> = OnceLock::new();
@@ -54,7 +54,11 @@ pub struct CargoPaths {
 
 impl CargoPaths {
     fn new(name: &str) -> Self {
-        let tmp_dir = temp_dir();
+        let tmp_dir = if let Ok(dir) = std::env::var("IRUST_TEMP_DIR") {
+            dir.into()
+        } else {
+            std::env::temp_dir()
+        };
         let common_root = tmp_dir.join("irust_repls");
         let irust_dir = common_root.join(name);
         let irust_target_dir = (|| {
