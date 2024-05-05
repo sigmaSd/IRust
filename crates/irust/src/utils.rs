@@ -358,3 +358,36 @@ fn visit_dirs(
     }
     Ok(())
 }
+
+pub mod irust_dirs {
+    pub fn config_dir() -> Option<std::path::PathBuf> {
+        if let Ok(dir) = std::env::var("IRUST_CONFIG_DIR") {
+            return Some(dir.into());
+        }
+        dirs::config_dir()
+    }
+    pub fn data_dir() -> Option<std::path::PathBuf> {
+        if let Ok(dir) = std::env::var("IRUST_DATA_DIR") {
+            return Some(dir.into());
+        }
+        dirs::data_dir()
+    }
+    pub fn home_dir() -> Option<std::path::PathBuf> {
+        if let Ok(dir) = std::env::var("IRUST_HOME_DIR") {
+            return Some(dir.into());
+        }
+        dirs::home_dir()
+    }
+    pub fn cache_dir() -> Option<std::path::PathBuf> {
+        if let Ok(dir) = std::env::var("IRUST_CACHE_DIR") {
+            return Some(dir.into());
+        }
+        dirs::cache_dir()
+    }
+    pub fn temp_dir() -> std::path::PathBuf {
+        if let Ok(dir) = std::env::var("IRUST_TEMP_DIR") {
+            return dir.into();
+        }
+        std::env::temp_dir()
+    }
+}

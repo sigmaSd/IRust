@@ -142,7 +142,7 @@ impl Options {
     }
 
     pub fn config_path() -> Option<std::path::PathBuf> {
-        let config_dir = match dirs::config_dir() {
+        let config_dir = match crate::utils::irust_dirs::config_dir() {
             Some(dir) => dir.join("irust"),
             None => return None,
         };

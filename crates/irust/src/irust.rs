@@ -50,7 +50,7 @@ impl IRust {
             options.main_result,
             options.edition,
             // prelude dir
-            (|| Some(dirs::data_dir()?.join("irust")))(),
+            (|| Some(crate::utils::irust_dirs::data_dir()?.join("irust")))(),
         )
         .expect("Could not create repl");
 
