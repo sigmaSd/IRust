@@ -1,3 +1,7 @@
+**1.71.22**
+- Make rust analyzer comple private members of structs
+- Allow configuring irust directories via env variables
+
 **1.71.21**
 - General cleanup and deps update
 
