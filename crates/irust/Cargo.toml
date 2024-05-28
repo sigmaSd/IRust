@@ -1,6 +1,6 @@
 [package]
 name = "irust"
-version = "1.71.22"
+version = "1.71.23"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
 edition = "2021"
 readme = "README.md"
