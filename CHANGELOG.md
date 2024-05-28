@@ -1,3 +1,6 @@
+**1.71.23**
+- update libc inorder to support the loongarch64 architecture
+
 **1.71.22**
 - Make rust analyzer comple private members of structs
 - Allow configuring irust directories via env variables
