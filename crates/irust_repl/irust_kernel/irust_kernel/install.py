@@ -1,14 +1,16 @@
+import argparse
 import json
 import os
-import sys
-import argparse
+import pathlib
 import subprocess
 import shutil
-
-
+import sys
 
 from jupyter_client.kernelspec import KernelSpecManager
 from IPython.utils.tempdir import TemporaryDirectory
+
+from .resources import LOGO_PATH
+
 
 kernel_json = {
   "argv": [sys.executable, "-m", "irust_kernel", "-f", "{connection_file}"],
@@ -29,6 +31,7 @@ def install_my_kernel_spec(user=True, prefix=None, local_build=False):
         os.chmod(td, 0o755) # Starts off as 700, not user readable
         with open(os.path.join(td, 'kernel.json'), 'w') as f:
             json.dump(kernel_json, f, sort_keys=True)
+        shutil.copyfile(LOGO_PATH, pathlib.Path(td) / LOGO_PATH.name)
 
         if local_build:
             print('Building `Re` executable')
