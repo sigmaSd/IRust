@@ -259,7 +259,7 @@ fn remove_comments(s: &str) -> String {
 }
 
 fn _balanced_quotes(s: &str) -> bool {
-    s.match_indices(|p| p == '"' || p == '\'').count() % 2 == 0
+    s.match_indices(['"', '\'']).count() % 2 == 0
 }
 
 pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {

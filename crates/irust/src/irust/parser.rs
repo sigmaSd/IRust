@@ -413,11 +413,11 @@ impl IRust {
             std::process::Command::new("cmd")
                 .arg("/C")
                 .arg(cmd.next().unwrap_or_default())
-                .args(&cmd.collect::<Vec<&str>>())
+                .args(cmd.collect::<Vec<&str>>())
                 .output()?
         } else {
             std::process::Command::new(cmd.next().unwrap_or_default())
-                .args(&cmd.collect::<Vec<&str>>())
+                .args(cmd.collect::<Vec<&str>>())
                 .output()?
         })
         .trim()

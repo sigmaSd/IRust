@@ -878,7 +878,7 @@ fn incomplete_input(buffer: &str) -> bool {
     StringTools::unmatched_brackets(buffer)
         || buffer
             .trim_end()
-            .ends_with(|c| c == ':' || c == '.' || c == '=')
+            .ends_with([':', '.', '='])
 }
 
 fn input_is_cmd_or_shell(buffer: &str) -> bool {
