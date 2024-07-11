@@ -875,10 +875,7 @@ enum Dir {
 // helper functions
 
 fn incomplete_input(buffer: &str) -> bool {
-    StringTools::unmatched_brackets(buffer)
-        || buffer
-            .trim_end()
-            .ends_with([':', '.', '='])
+    StringTools::unmatched_brackets(buffer) || buffer.trim_end().ends_with([':', '.', '='])
 }
 
 fn input_is_cmd_or_shell(buffer: &str) -> bool {
