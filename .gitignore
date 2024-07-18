@@ -3,3 +3,4 @@ target/
 crates/irust_repl/.ipynb_checkpoints
 crates/irust_repl/irust_kernel/dist/
 crates/irust_repl/irust_kernel/irust_kernel/__pycache__/
+crates/irust_repl/irust_kernel/irust_kernel/resources/__pycache__/

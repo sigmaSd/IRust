@@ -451,31 +451,7 @@ impl IRust {
         let mut print_queue = if buffer_trimmed.is_empty() {
             PrintQueue::default()
         } else if buffer_trimmed.ends_with(';')
-            || self.options.auto_insert_semicolon
-                // These patterns are used to detect statements that don't require to be terminated with ';'
-                // Note: `loop` can return a value so we don't add it here, exp: `loop {break 4}`
-                && match buffer_trimmed
-                    .split_whitespace()
-                    .collect::<Vec<_>>()
-                    .as_slice()
-                {
-                    // async fn|const fn|unsafe fn
-                    [_, "fn", ..]
-                    | ["fn", ..]
-                    | ["enum", ..]
-                    | ["struct", ..]
-                    | ["trait", ..]
-                    | ["impl", ..]
-                    | ["pub", ..]
-                    | ["extern", ..]
-                    | ["macro", ..] => true,
-                    | ["macro_rules!", ..] => true,
-                    // attribute exp:
-                    // #[derive(Debug)]
-                    // struct B{}
-                    [tag, ..] if tag.starts_with('#') => true,
-                    _ => false,
-                }
+            || (self.options.auto_insert_semicolon && is_a_statement(buffer_trimmed))
         {
             let mut print_queue = PrintQueue::default();
 
@@ -1064,5 +1040,32 @@ impl IRust {
     fn exit(&mut self) -> Result<PrintQueue> {
         self.exit_flag = true;
         Ok(PrintQueue::default())
+    }
+}
+
+// These patterns are used to detect statements that don't require to be terminated with ';'
+// Note: `loop` can return a value so we don't add it here, exp: `loop {break 4}`
+pub fn is_a_statement(buffer_trimmed: &str) -> bool {
+    match buffer_trimmed
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .as_slice()
+    {
+        // async fn|const fn|unsafe fn
+        [_, "fn", ..]
+        | ["fn", ..]
+        | ["enum", ..]
+        | ["struct", ..]
+        | ["trait", ..]
+        | ["impl", ..]
+        | ["pub", ..]
+        | ["extern", ..]
+        | ["macro", ..] => true,
+        ["macro_rules!", ..] => true,
+        // attribute exp:
+        // #[derive(Debug)]
+        // struct B{}
+        [tag, ..] if tag.starts_with('#') => true,
+        _ => false,
     }
 }

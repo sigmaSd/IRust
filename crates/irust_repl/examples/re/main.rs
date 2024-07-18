@@ -52,7 +52,7 @@ fn main() -> Result<()> {
     for json in deserializer {
         let result = (|| -> Result<()> {
             let message = json?;
-            if message.code.ends_with(';') {
+            if message.code.ends_with(';') || is_a_statement(&message.code) {
                 repl.insert(&message.code);
                 let output = serde_json::to_string(&Action::Insert)?;
                 println!("{output}");
@@ -107,4 +107,29 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+pub fn is_a_statement(buffer_trimmed: &str) -> bool {
+    match buffer_trimmed
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .as_slice()
+    {
+        // async fn|const fn|unsafe fn
+        [_, "fn", ..]
+        | ["fn", ..]
+        | ["enum", ..]
+        | ["struct", ..]
+        | ["trait", ..]
+        | ["impl", ..]
+        | ["pub", ..]
+        | ["extern", ..]
+        | ["macro", ..] => true,
+        ["macro_rules!", ..] => true,
+        // attribute exp:
+        // #[derive(Debug)]
+        // struct B{}
+        [tag, ..] if tag.starts_with('#') => true,
+        _ => false,
+    }
 }
