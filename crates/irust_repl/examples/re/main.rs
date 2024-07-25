@@ -52,8 +52,9 @@ fn main() -> Result<()> {
     for json in deserializer {
         let result = (|| -> Result<()> {
             let message = json?;
-            if message.code.ends_with(';') || is_a_statement(&message.code) {
-                let EvalResult { output, status } = repl.eval_check(message.code.clone())?;
+            let code = message.code.trim();
+            if code.ends_with(';') || is_a_statement(&code) {
+                let EvalResult { output, status } = repl.eval_check(code.to_owned())?;
                 if !status.success() {
                     let output = serde_json::to_string(&Action::Eval {
                         // NOTE: make show warnings configurable
@@ -64,12 +65,13 @@ fn main() -> Result<()> {
                     return Ok(());
                 }
                 // No error, insert the code
-                repl.insert(&message.code);
+                repl.insert(&code);
                 let output = serde_json::to_string(&Action::Insert)?;
                 println!("{output}");
-            } else if message.code.starts_with(":add") {
+            } else if code.starts_with(":add") {
                 let cargo_add_arg = message
                     .code
+                    .trim()
                     .strip_prefix(":add")
                     .expect("checked")
                     .split_whitespace()
@@ -84,7 +86,7 @@ fn main() -> Result<()> {
                     output: value,
                     status,
                 } = repl.eval_with_configuration(EvalConfig {
-                    input: message.code,
+                    input: code,
                     interactive_function: None,
                     color: true,
                     evaluator: &*DEFAULT_EVALUATOR,
