@@ -52,7 +52,11 @@ fn main() -> Result<()> {
     for json in deserializer {
         let result = (|| -> Result<()> {
             let message = json?;
-            let code = message.code.trim();
+            let mut code = message.code.trim();
+            // detect `!irust` special comment
+            if code.starts_with("//") && code.contains("!irust") {
+                code = code.splitn(2, "!irust").nth(1).expect("checked").trim();
+            }
             if code.ends_with(';') || is_a_statement(&code) {
                 let EvalResult { output, status } = repl.eval_check(code.to_owned())?;
                 if !status.success() {
@@ -69,9 +73,7 @@ fn main() -> Result<()> {
                 let output = serde_json::to_string(&Action::Insert)?;
                 println!("{output}");
             } else if code.starts_with(":add") {
-                let cargo_add_arg = message
-                    .code
-                    .trim()
+                let cargo_add_arg = code
                     .strip_prefix(":add")
                     .expect("checked")
                     .split_whitespace()
