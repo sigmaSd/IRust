@@ -55,9 +55,13 @@ fn main() -> Result<()> {
             let mut code = message.code.trim();
             // detect `!irust` special comment
             if code.starts_with("//") && code.contains("!irust") {
-                code = code.splitn(2, "!irust").nth(1).expect("checked").trim();
+                code = code
+                    .split_once("!irust")
+                    .map(|x| x.1)
+                    .expect("checked")
+                    .trim();
             }
-            if code.ends_with(';') || is_a_statement(&code) {
+            if code.ends_with(';') || is_a_statement(code) {
                 let EvalResult { output, status } = repl.eval_check(code.to_owned())?;
                 if !status.success() {
                     let output = serde_json::to_string(&Action::Eval {
@@ -69,7 +73,7 @@ fn main() -> Result<()> {
                     return Ok(());
                 }
                 // No error, insert the code
-                repl.insert(&code);
+                repl.insert(code);
                 let output = serde_json::to_string(&Action::Insert)?;
                 println!("{output}");
             } else if code.starts_with(":add") {

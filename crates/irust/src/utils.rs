@@ -296,7 +296,7 @@ pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {
                     }) => {
                         use std::io::Write;
                         // Ignore write errors (process might have ended)
-                        let _ = process.stdin.as_mut().unwrap().write_all(&[b'\n']);
+                        let _ = process.stdin.as_mut().unwrap().write_all(b"\n");
                     }
                     _ => (),
                 }
