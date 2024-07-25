@@ -53,6 +53,17 @@ fn main() -> Result<()> {
         let result = (|| -> Result<()> {
             let message = json?;
             if message.code.ends_with(';') || is_a_statement(&message.code) {
+                let EvalResult { output, status } = repl.eval_check(message.code.clone())?;
+                if !status.success() {
+                    let output = serde_json::to_string(&Action::Eval {
+                        // NOTE: make show warnings configurable
+                        value: format_err(&output, false, &repl.cargo.name),
+                        mime_type: MimeType::PlainText,
+                    })?;
+                    println!("{output}");
+                    return Ok(());
+                }
+                // No error, insert the code
                 repl.insert(&message.code);
                 let output = serde_json::to_string(&Action::Insert)?;
                 println!("{output}");
