@@ -234,9 +234,6 @@ Currently there is a barebone kernel that is easily installable see https://gith
 
 - `cargo install irust`
 - `cargo binstall irust` (using [cargo-binstall](https://github.com/cargo-bins/cargo-binstall))
-- There is also  a flaptak package, its self contained , but have some limitations
-  
-[![Get it from FlatHub](https://raw.githubusercontent.com/hmlendea/readme-assets/master/badges/stores/flathub.png)](https://flathub.org/apps/io.github.sigmasd.IRust)
 
 ## Building
     cargo b --release
