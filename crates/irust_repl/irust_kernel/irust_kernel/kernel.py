@@ -29,7 +29,7 @@ class IRustKernel(Kernel):
 
     def do_execute(self, code, silent, store_history=True, user_expressions=None, allow_stdin=False):
         # Send the first JSON object to the process's standard input
-        code_object = {"code": code}
+        code_object = {"Execute": {"code": code}}
         json_code = json.dumps(code_object)
         self.re.stdin.write(json_code.encode("utf-8"))
         self.re.stdin.write(b"\n")

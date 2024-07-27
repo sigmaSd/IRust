@@ -3,9 +3,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::Deserializer;
 use std::{io, sync::OnceLock};
 
-#[derive(Serialize, Deserialize)]
-struct Message {
-    code: String,
+mod log;
+use log::init_log;
+
+#[derive(Serialize, Deserialize, Debug)]
+enum Message {
+    Execute { code: String },
+    Complete { code: String, cursor_pos: usize },
 }
 
 #[derive(Serialize, Deserialize)]
@@ -41,6 +45,10 @@ impl MimeType {
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 fn main() -> Result<()> {
+    init_log(
+        std::env::temp_dir().to_path_buf().join("irust-kernel.log"),
+        "IRUST_KERNEL_DEBUG",
+    );
     let stdin = io::stdin();
     let reader = stdin.lock();
     let deserializer = Deserializer::from_reader(reader).into_iter::<Message>();
@@ -49,95 +57,15 @@ fn main() -> Result<()> {
 
     // NOTE: errors should not exit this loop
     // In case of an error we log it and continue
+    log!("Starting REPL");
     for json in deserializer {
         let result = (|| -> Result<()> {
+            log!("Received message: {:?}", json);
             let message = json?;
-            let mut code = message.code.trim();
-            // detect `!irust` special comment
-            if code.starts_with("//") && code.contains("!irust") {
-                code = code
-                    .split_once("!irust")
-                    .map(|x| x.1)
-                    .expect("checked")
-                    .trim();
+            match message {
+                Message::Execute { code } => execute(&mut repl, code),
+                Message::Complete { code, cursor_pos } => complete(&mut repl, code, cursor_pos),
             }
-            if code.ends_with(';') || is_a_statement(code) {
-                let EvalResult { output, status } = repl.eval_check(code.to_owned())?;
-                if !status.success() {
-                    let output = serde_json::to_string(&Action::Eval {
-                        // NOTE: make show warnings configurable
-                        value: format_err(&output, false, &repl.cargo.name),
-                        mime_type: MimeType::PlainText,
-                    })?;
-                    println!("{output}");
-                    return Ok(());
-                }
-                // No error, insert the code
-                repl.insert(code);
-                let output = serde_json::to_string(&Action::Insert)?;
-                println!("{output}");
-            } else if code.starts_with(":add") {
-                let cargo_add_arg = code
-                    .strip_prefix(":add")
-                    .expect("checked")
-                    .split_whitespace()
-                    .map(ToOwned::to_owned)
-                    .collect::<Vec<_>>();
-                repl.cargo.cargo_add_sync(&cargo_add_arg)?;
-                let output = serde_json::to_string(&Action::AddDependency)?;
-                println!("{output}");
-            } else {
-                // eval here
-                let EvalResult {
-                    output: value,
-                    status,
-                } = repl.eval_with_configuration(EvalConfig {
-                    input: code,
-                    interactive_function: None,
-                    color: true,
-                    evaluator: &*DEFAULT_EVALUATOR,
-                    compile_mode: irust_repl::CompileMode::Debug,
-                })?;
-
-                // It errored, format the error and send it
-                if !status.success() {
-                    let output = serde_json::to_string(&Action::Eval {
-                        // NOTE: make show warnings configurable
-                        value: format_err(&value, false, &repl.cargo.name),
-                        mime_type: MimeType::PlainText,
-                    })?;
-                    println!("{output}");
-                    return Ok(());
-                }
-
-                // EVCXR
-                if value.starts_with("EVCXR_BEGIN_CONTENT") {
-                    let data = value.strip_prefix("EVCXR_BEGIN_CONTENT").expect("checked");
-                    let data =
-                        &data[..data.find("EVCXR_END_CONTENT").ok_or("malformed content")?];
-                    let mut data = data.chars();
-                    // mime_type = Regex::new("EVCXR_BEGIN_CONTENT ([^ ]+)")
-                    let mime_type = data
-                        .by_ref()
-                        .skip_while(|c| c.is_whitespace())
-                        .take_while(|c| !c.is_whitespace())
-                        .collect::<String>();
-
-                    let output = serde_json::to_string(&Action::Eval {
-                        value: data.collect(),
-                        mime_type: MimeType::from_str(&mime_type),
-                    })?;
-                    println!("{output}");
-                    return Ok(());
-                }
-
-                let output = serde_json::to_string(&Action::Eval {
-                    value,
-                    mime_type: MimeType::PlainText,
-                })?;
-                println!("{output}");
-            }
-            Ok(())
         })();
         if result.is_err() {
             eprintln!("An error occurred: {result:?}");
@@ -145,6 +73,99 @@ fn main() -> Result<()> {
         }
     }
 
+    Ok(())
+}
+
+fn complete(repl: &mut Repl, code: String, cursor_pos: usize) -> Result<()> {
+    //TODO
+    Ok(())
+}
+
+fn execute(repl: &mut Repl, code: String) -> Result<()> {
+    let mut code = code.trim();
+    // detect `!irust` special comment
+    if code.starts_with("//") && code.contains("!irust") {
+        code = code
+            .split_once("!irust")
+            .map(|x| x.1)
+            .expect("checked")
+            .trim();
+    }
+    if code.ends_with(';') || is_a_statement(code) {
+        let EvalResult { output, status } = repl.eval_check(code.to_owned())?;
+        if !status.success() {
+            let output = serde_json::to_string(&Action::Eval {
+                // NOTE: make show warnings configurable
+                value: format_err(&output, false, &repl.cargo.name),
+                mime_type: MimeType::PlainText,
+            })?;
+            println!("{output}");
+            return Ok(());
+        }
+        // No error, insert the code
+        repl.insert(code);
+        let output = serde_json::to_string(&Action::Insert)?;
+        println!("{output}");
+    } else if code.starts_with(":add") {
+        let cargo_add_arg = code
+            .strip_prefix(":add")
+            .expect("checked")
+            .split_whitespace()
+            .map(ToOwned::to_owned)
+            .collect::<Vec<_>>();
+        repl.cargo.cargo_add_sync(&cargo_add_arg)?;
+        let output = serde_json::to_string(&Action::AddDependency)?;
+        println!("{output}");
+    } else {
+        // eval here
+        let EvalResult {
+            output: value,
+            status,
+        } = repl.eval_with_configuration(EvalConfig {
+            input: code,
+            interactive_function: None,
+            color: true,
+            evaluator: &*DEFAULT_EVALUATOR,
+            compile_mode: irust_repl::CompileMode::Debug,
+        })?;
+
+        // It errored, format the error and send it
+        if !status.success() {
+            let output = serde_json::to_string(&Action::Eval {
+                // NOTE: make show warnings configurable
+                value: format_err(&value, false, &repl.cargo.name),
+                mime_type: MimeType::PlainText,
+            })?;
+            println!("{output}");
+            return Ok(());
+        }
+
+        // EVCXR
+        if value.starts_with("EVCXR_BEGIN_CONTENT") {
+            let data = value.strip_prefix("EVCXR_BEGIN_CONTENT").expect("checked");
+            let data = &data[..data.find("EVCXR_END_CONTENT").ok_or("malformed content")?];
+            let mut data = data.chars();
+            // mime_type = Regex::new("EVCXR_BEGIN_CONTENT ([^ ]+)")
+            let mime_type = data
+                .by_ref()
+                .skip_while(|c| c.is_whitespace())
+                .take_while(|c| !c.is_whitespace())
+                .collect::<String>();
+
+            let output = serde_json::to_string(&Action::Eval {
+                value: data.collect(),
+                mime_type: MimeType::from_str(&mime_type),
+            })?;
+            println!("{output}");
+            return Ok(());
+        }
+
+        let output = serde_json::to_string(&Action::Eval {
+            value,
+            mime_type: MimeType::PlainText,
+        })?;
+        println!("{output}");
+    }
     Ok(())
 }
 
