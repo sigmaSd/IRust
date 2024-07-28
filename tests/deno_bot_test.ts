@@ -1,5 +1,5 @@
 #!/usr/bin/env -S deno run --unstable-ffi --allow-all
-import { Pty } from "jsr:@sigma/pty-ffi@0.22.0";
+import { Pty } from "jsr:@sigma/pty-ffi@0.26.2";
 import { stripAnsiCode } from "jsr:@std/fmt@0.220.1/colors";
 import { assertEquals, assertMatch } from "jsr:@std/assert@0.220.1";
 
