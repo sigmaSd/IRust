@@ -17,7 +17,7 @@ Checkout the examples and tests folders for more info.
 
 
 ## Jupyter Kernel
-A basic jupyer kernel is provided for demo https://github.com/sigmaSd/IRust/tree/master/crates/irust_repl/irust_kernel, to use it:
+A Jupyter Kernel is provided https://github.com/sigmaSd/IRust/tree/master/crates/irust_repl/irust_kernel, to use it:
 
 Installation
 ------------
@@ -29,6 +29,8 @@ This requires IPython 3.
 
 To use it, run one of:
 
+    code # vscode have the best implementation
+    zed # zed implementation is nice as well
     jupyter notebook
     # In the notebook interface, select IRust from the 'New' menu
     jupyter qtconsole --kernel irust
