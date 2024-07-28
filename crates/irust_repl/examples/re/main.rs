@@ -1,7 +1,10 @@
 use irust_repl::{EvalConfig, EvalResult, Repl, DEFAULT_EVALUATOR};
 use serde::{Deserialize, Serialize};
 use serde_json::Deserializer;
-use std::{io, sync::OnceLock};
+use std::{
+    io::{self, Read},
+    sync::OnceLock,
+};
 
 mod log;
 use log::init_log;
@@ -16,7 +19,8 @@ enum Message {
 enum Action {
     Eval { value: String, mime_type: MimeType },
     Insert,
-    AddDependency,
+    AddDependencyStream { output_chunk: String },
+    AddDependencyEnd,
 }
 #[derive(Debug, Serialize, Deserialize)]
 enum MimeType {
@@ -113,9 +117,30 @@ fn execute(repl: &mut Repl, code: String) -> Result<()> {
             .split_whitespace()
             .map(ToOwned::to_owned)
             .collect::<Vec<_>>();
-        repl.cargo.cargo_add_sync(&cargo_add_arg)?;
-        let output = serde_json::to_string(&Action::AddDependency)?;
+        {
+            let mut process = repl.cargo.cargo_add(&cargo_add_arg)?;
+            let mut stderr = process.stderr.take().expect("piped");
+            let mut buf = [0; 512];
+            log!("Adding dependencies");
+            loop {
+                let n = stderr.read(&mut buf)?;
+                log!("Read {n} bytes");
+                if n == 0 {
+                    break;
+                }
+                let output = serde_json::to_string(&Action::AddDependencyStream {
+                    output_chunk: String::from_utf8_lossy(&buf[..n]).to_string(),
+                })?;
+                println!("{output}");
+            }
+        }
+        log!("Dependencies added");
+        // start building the dependencies as soon as possible
+        repl.cargo.cargo_build(repl.toolchain())?;
+
+        let output = serde_json::to_string(&Action::AddDependencyEnd)?;
         println!("{output}");
+        return Ok(());
     } else {
         // eval here
         let EvalResult {

@@ -8,6 +8,11 @@ import os
 import json
 import subprocess
 
+def log(msg):
+    # with open("/tmp/irust-kernel-py.log", 'a') as f:
+    #     f.write(msg)
+    pass
+
 class IRustKernel(Kernel):
     implementation = 'IRust'
     implementation_version = '1.0'
@@ -39,6 +44,23 @@ class IRustKernel(Kernel):
         json_result = self.re.stdout.readline().decode("utf-8")
         action_type = json.loads(json_result)
 
+        # Handle Stream response
+        if "AddDependencyStream" in action_type:
+            log("AddDependencyStream")
+            while True:
+                action = action_type["AddDependencyStream"]
+                self.send_response(self.iopub_socket, 'stream', {
+                    'name': 'stderr',
+                    'text': action["output_chunk"]
+                })
+                log(action["output_chunk"])
+                json_result = self.re.stdout.readline().decode("utf-8")
+                action_type = json.loads(json_result)
+                if "AddDependencyEnd" in action_type:
+                    log("AddDependencyEnd")
+                    break
+
+        # Handle Eval
         if "Eval" in action_type:
             action = action_type["Eval"]
             self.send_response(self.iopub_socket, 'display_data', {
