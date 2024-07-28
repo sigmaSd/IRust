@@ -1,6 +1,6 @@
 """IRust repl jupyter kernel """
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 
 from ipykernel.kernelbase import Kernel
 from jupyter_client.kernelspec import KernelSpecManager
