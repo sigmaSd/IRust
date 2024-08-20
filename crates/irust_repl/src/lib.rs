@@ -1,3 +1,4 @@
+use std::sync::LazyLock;
 pub mod cargo_cmds;
 use cargo_cmds::*;
 mod executor;
@@ -11,7 +12,6 @@ pub use edition::Edition;
 mod compile_mode;
 pub use compile_mode::CompileMode;
 
-use once_cell::sync::Lazy;
 mod utils;
 
 use std::{
@@ -22,8 +22,8 @@ use std::{
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-pub static DEFAULT_EVALUATOR: Lazy<[String; 2]> =
-    Lazy::new(|| ["println!(\"{:?}\", {\n".into(), "\n});".into()]);
+pub static DEFAULT_EVALUATOR: LazyLock<[String; 2]> =
+    LazyLock::new(|| ["println!(\"{:?}\", {\n".into(), "\n});".into()]);
 
 pub struct EvalConfig<'a, S: ToString> {
     pub input: S,
