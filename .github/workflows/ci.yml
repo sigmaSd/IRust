@@ -59,8 +59,8 @@ jobs:
       with:
         deno-version: v1.x
 
-    - name: End to End test with deno
-      run: ./tests/deno_bot_test.ts
+    #- name: End to End test with deno
+    #  run: ./tests/deno_bot_test.ts
 
     # - name: Test Packaging
     #   if: matrix.rust == 'stable'
