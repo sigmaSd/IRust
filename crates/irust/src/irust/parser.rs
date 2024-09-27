@@ -52,6 +52,7 @@ impl IRust {
             ":irust" => self.irust(),
             ":sync" => self.sync(),
             ":exit" | ":quit" => self.exit(),
+            ":save_options" => self.save_options(),
             cmd if cmd.starts_with(":help") => self.help(buffer),
             cmd if cmd.starts_with("::") => self.run_cmd(buffer),
             cmd if cmd.starts_with(":edit") => self.extern_edit(buffer),
@@ -1040,6 +1041,11 @@ impl IRust {
     fn exit(&mut self) -> Result<PrintQueue> {
         self.exit_flag = true;
         Ok(PrintQueue::default())
+    }
+
+    fn save_options(&mut self) -> Result<PrintQueue> {
+        self.options.save()?;
+        success!()
     }
 }
 

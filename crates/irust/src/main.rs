@@ -77,9 +77,7 @@ fn main() {
 
     // Create main IRust interface
     let mut irust = if matches!(args_result, ArgsResult::ProceedWithDefaultConfig) {
-        let mut irust = IRust::new(Options::default());
-        irust.dont_save_options();
-        irust
+        IRust::new(Options::default())
     } else {
         // Check optional dependencies and warn if they're not present
         if !cfg!(feature = "no-welcome-screen") {
