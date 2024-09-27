@@ -204,6 +204,9 @@ impl IRust {
                 // Some commands that uses raw writer depends on this (exp: add, edit)
                 // This is also important to move the cursor after the all the input
                 self.printer.write_newline(&self.buffer);
+                // Flush output so we give the user a little ui feedback, that something happened
+                // This is relevent for slow commands (easy example: sleep(5))
+                std::io::Write::flush(&mut self.printer.writer.raw)?;
 
                 let buffer = self.buffer.to_string();
                 if let Some(cmd) = self.output_event_hook(&buffer) {
