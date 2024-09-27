@@ -1,3 +1,8 @@
+**1.71.24**
+- don't save options automaticly, add new command `save_options` to save options explicitly
+- give a little ui feedback for slow commands
+- remove once cell
+
 **1.71.23**
 - update libc inorder to support the loongarch64 architecture
 
