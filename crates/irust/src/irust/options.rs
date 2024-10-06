@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
+#[serde(default)]
 pub struct Options {
     add_irust_cmd_to_history: bool,
     add_shell_cmd_to_history: bool,
