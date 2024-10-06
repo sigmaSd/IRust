@@ -1,3 +1,9 @@
+**1.71.26**
+- Allow loading partial config
+
+**1.71.25**
+- revert for now "don't save options automaticly, add new command `save_options` to save options explicitly"
+
 **1.71.24**
 - don't save options automaticly, add new command `save_options` to save options explicitly
 - give a little ui feedback for slow commands
