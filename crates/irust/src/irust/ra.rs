@@ -23,7 +23,7 @@ pub struct Completer {
     // suggestions: (Name, definition)
     suggestions: Vec<(String, String)>,
     suggestion_idx: usize,
-    cmds: [String; 31],
+    cmds: [String; 30],
     update_lock: bool,
     pub active_suggestion: Option<String>,
 }
@@ -53,7 +53,6 @@ impl Completer {
             "toolchain".to_string(),
             "theme".to_string(),
             "main_result".to_string(),
-            "save_options".to_string(),
             "check_statements".to_string(),
             "time_release".to_string(),
             "time".to_string(),

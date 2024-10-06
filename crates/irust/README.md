@@ -64,8 +64,6 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:exit** | **:quit** => Exit IRust immediately
 
-**:save_options** => save the options to disk (useful when options where changed at runtime)
-
 **$$** => Shell commands can be interpolated with rust code with '$$', for example: `let a = $$ls -l$$;`, this feature can be [en/dis]abled via the config file
 
 **::** => run a shell command, example `::ls`
