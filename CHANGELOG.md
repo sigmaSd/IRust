@@ -1,3 +1,6 @@
+**1.71.27**
+- Reset color at exit
+
 **1.71.26**
 - Allow loading partial config
 
@@ -48,7 +51,7 @@
 - Update deps
 - Disable rust anlayzer by default, to enable set `enable_racer` to true in the config
 - Add new cli argument `--default-config`, that runs irust with default config in that run, but will not overwrite the saved config
-  
+
 **1.71.0**
 - Support `NO_COLOR` env variable to disable all colors
 - Add new option `new_lines_after_output` to specify the number
@@ -58,7 +61,7 @@ of new lines after output (defaults to 1)
 - Use rust-analyzer instead of racer for completions
 
 **1.69.0**
-- feat: make each repl unique : 
+- feat: make each repl unique :
     - Give each repl struct in irust_repl a unique cargo project
     - This allows repls to coexist, each in its own project
     - Also update irust to make use of this, so now multiple irust instances can't corrupt each other
@@ -281,7 +284,7 @@ of usage
 - repl:
     - remove `new` and change `new_with_executor` to `new`
     - implement Default for Repl
-    - Add a new type MainResult, available options are Unit or Result 
+    - Add a new type MainResult, available options are Unit or Result
 - irust:
     - Add new command `main_result` to switch between main result types, using MainResult::Result allows using `?` with no boilerplate
 
@@ -360,7 +363,7 @@ of usage
 **1.7.2**
 - Add `:set_executor` command to set the executor used by IRust, available options are: `sync` `tokio` `async_std`, by  using an async executor, `await` becomes usable with no other modifications
 - Hide warnings from evaluation output
-- Added a book with tips and tricks https://sigmasd.github.io/irust_book/ 
+- Added a book with tips and tricks https://sigmasd.github.io/irust_book/
 
 **1.7.1**
 -Internal refactor: split the repl engine in its own crate
@@ -438,7 +441,7 @@ of usage
 - Fix regression: Handle multiline string
 
 **1.2.1**
-- Use `CARGO_TARGET_DIR` path if set instead of overwriting it 
+- Use `CARGO_TARGET_DIR` path if set instead of overwriting it
 
 **1.2.0**
 - Remove notify
@@ -458,9 +461,9 @@ of usage
 - Bug fixes
 
 **1.0.0**
-- Under-the-hood: 
+- Under-the-hood:
   - Refactor most of the code base
-  - Extract Printer as a an independent unit 
+  - Extract Printer as a an independent unit
   - Add some tests now that its finally possible to do so
 - Multiple Bug fixes
 - Maybe new bugs?
