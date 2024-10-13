@@ -32,6 +32,7 @@ impl<W: std::io::Write> Printer<W> {
 
 impl<W: std::io::Write> Drop for Printer<W> {
     fn drop(&mut self) {
+        let _ = self.writer.raw.reset_color();
         let _ = crossterm::terminal::disable_raw_mode();
     }
 }
