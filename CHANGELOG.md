@@ -1,3 +1,6 @@
+**1.71.29**
+- Hot fix for mac build
+
 **1.71.28**
 - Workaround macos permissions issue, by using the cache dir as default location for repls
 

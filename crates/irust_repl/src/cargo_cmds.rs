@@ -61,7 +61,7 @@ impl CargoPaths {
             // so we use the cache directory instead
             #[cfg(target_os = "macos")]
             {
-                dirs::cache_dir().unwrap_or_else(std::env::temp_dir);
+                dirs::cache_dir().unwrap_or_else(std::env::temp_dir)
             }
             #[cfg(not(target_os = "macos"))]
             {
