@@ -24,9 +24,11 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
-    - uses: actions-rs/toolchain@v1
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@master
       with:
         toolchain: stable
 
@@ -40,10 +42,7 @@ jobs:
 
     - name: Build
       if: runner.os != 'Linux'
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --release
+      run: cargo build --release
 
     - if: matrix.os == 'macos-13'
       name: Upload MacOS x86_64 Binary
@@ -51,7 +50,7 @@ jobs:
       with:
         file: target/release/irust
         asset_name: irust-x86_64-apple-darwin
-        tag: ${{ github.ref }}
+        tag: ${{ github.event.inputs.tag || github.ref }}
         overwrite: true
 
     - if: matrix.os == 'macos-latest'
@@ -60,7 +59,7 @@ jobs:
       with:
         file: target/release/irust
         asset_name: irust-aarch64-apple-darwin
-        tag: ${{ github.ref }}
+        tag: ${{ github.event.inputs.tag || github.ref }}
         overwrite: true
 
     - if: runner.os == 'Linux'
@@ -69,7 +68,7 @@ jobs:
       with:
         file: target/x86_64-unknown-linux-musl/release/irust
         asset_name: irust-x86_64-unknown-linux-musl
-        tag: ${{ github.ref }}
+        tag: ${{ github.event.inputs.tag || github.ref }}
         overwrite: true
 
     - if: runner.os == 'Windows'
@@ -78,5 +77,5 @@ jobs:
       with:
         file: target/release/irust.exe
         asset_name: irust-x86_64-pc-windows-msvc.exe
-        tag: ${{ github.ref }}
+        tag: ${{ github.event.inputs.tag || github.ref }}
         overwrite: true
