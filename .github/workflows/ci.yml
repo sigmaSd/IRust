@@ -18,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-2019, macOS-latest]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
         rust: [stable, nightly]
         # Allow failures on nightly, it's just informative
         include:
@@ -28,7 +28,7 @@ jobs:
             can-fail: true
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v1
+      uses: actions/checkout@v4
       with:
         fetch-depth: 1
     - name: Install Rust
@@ -54,10 +54,10 @@ jobs:
       continue-on-error: ${{ matrix.can-fail }}
 
     # TODO: figure out how to unflake this
-    - name: Install deno
-      uses: denoland/setup-deno@v1
-      with:
-        deno-version: v1.x
+    # - name: Install deno
+    #   uses: denoland/setup-deno@v1
+    #   with:
+    #     deno-version: v1.x
 
     #- name: End to End test with deno
     #  run: ./tests/deno_bot_test.ts
