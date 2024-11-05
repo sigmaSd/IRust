@@ -4,17 +4,24 @@ on:
   push:
    tags:
     - 'irust@[0-9]+.[0-9]+.[0-9]+'
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag for release (e.g., irust@0.1.0)'
+        required: true
+        default: 'test-release'
 
 permissions:
   contents: write
- 
+
 jobs:
   build:
     name: Release libs
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-13, macos-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -22,25 +29,6 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-
-    ###################
-    # cross-compile mac aarch64 from linux using zig
-    - if: runner.os == 'Linux'
-      uses: goto-bus-stop/setup-zig@v1
-      with:
-        version: 0.10.1
-
-    - if: runner.os == 'Linux'
-      name: Install cargo-zigbuild
-      run: |
-        cargo install cargo-zigbuild
-
-    - if: runner.os == 'Linux'
-      name: Build MacOS aarch64 binary
-      run: |
-        rustup target add aarch64-apple-darwin
-        cargo zigbuild --release --target aarch64-apple-darwin
-    ###################
 
     # Build for Musl
     - if: runner.os == 'Linux'
@@ -57,7 +45,7 @@ jobs:
         command: build
         args: --release
 
-    - if: runner.os == 'MacOS'
+    - if: matrix.os == 'macos-13'
       name: Upload MacOS x86_64 Binary
       uses: svenstaro/upload-release-action@v2
       with:
@@ -66,11 +54,11 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
 
-    - if: runner.os == 'Linux'
-      name: Upload MacOS aarch64 binary
+    - if: matrix.os == 'macos-latest'
+      name: Upload MacOS aarch64 Binary
       uses: svenstaro/upload-release-action@v2
       with:
-        file: target/aarch64-apple-darwin/release/irust
+        file: target/release/irust
         asset_name: irust-aarch64-apple-darwin
         tag: ${{ github.ref }}
         overwrite: true
