@@ -1,3 +1,6 @@
+**1.71.28**
+- Workaround macos permissions issue, by using the cache dir as default location for repls
+
 **1.71.27**
 - Reset color at exit
 
