@@ -388,6 +388,11 @@ pub mod irust_dirs {
         if let Ok(dir) = std::env::var("IRUST_TEMP_DIR") {
             return dir.into();
         }
+        // On macOS, binaries inside the default temp directory can't acess the outside filesystem
+        // so we use the cache directory instead
+        if cfg!(target_os = "macos") {
+            return dirs::cache_dir().unwrap_or_else(std::env::temp_dir);
+        }
         std::env::temp_dir()
     }
 }

@@ -57,7 +57,16 @@ impl CargoPaths {
         let tmp_dir = if let Ok(dir) = std::env::var("IRUST_TEMP_DIR") {
             dir.into()
         } else {
-            std::env::temp_dir()
+            // On macOS, binaries inside the default temp directory can't acess the outside filesystem
+            // so we use the cache directory instead
+            #[cfg(target_os = "macos")]
+            {
+                dirs::cache_dir().unwrap_or_else(std::env::temp_dir);
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                std::env::temp_dir()
+            }
         };
         let common_root = tmp_dir.join("irust_repls");
         let irust_dir = common_root.join(name);
