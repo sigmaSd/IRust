@@ -80,7 +80,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn complete(repl: &mut Repl, code: String, cursor_pos: usize) -> Result<()> {
+fn complete(_repl: &mut Repl, _code: String, _cursor_poss: usize) -> Result<()> {
     //TODO
     Ok(())
 }
