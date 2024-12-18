@@ -124,7 +124,7 @@ IRust config file is located in:
 
 **Win**: *C:\Users\\$USER\AppData\Roaming/irust/config.toml*
 
-**Mac**: */Users/$USER/Library/Preferences/irust/config.toml*
+**Mac**: */Users/$USER/Library/Application Support/irust/config.toml*
 
 *default config:*
 ```toml
