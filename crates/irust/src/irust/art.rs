@@ -98,7 +98,7 @@ impl IRust {
     }
 
     pub fn welcome(&mut self) -> Result<()> {
-        let default_msg = "Welcome to IRust".to_string();
+        let default_msg = "Welcome to IRust (type ':help' for more information)".to_string();
         let msg = (|| {
             if let Some(msg) = self.trigger_set_msg_hook() {
                 return self.fit_msg(&msg);
