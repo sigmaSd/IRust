@@ -1,3 +1,6 @@
+**1.71.30**
+- Mention `:help` in default welcome message
+
 **1.71.29**
 - Hot fix for mac build
 
