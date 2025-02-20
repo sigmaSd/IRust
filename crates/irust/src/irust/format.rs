@@ -80,11 +80,12 @@ pub fn format_err<'a>(original_output: &'a str, show_warnings: bool, repl_name: 
     //
     // So we do a sanity check here, if the formatted_error is empty (which means we failed to
     // format the output), ask the user to open a bug report with the original_output
+    let irust_version = env!("CARGO_PKG_VERSION");
     if !formatted_error.is_empty() {
         formatted_error
     } else {
         format!(
-            "IRust: failed to format the error output.\nThis is a bug in IRust.\nFeel free to open a bug-report at https://github.com/sigmaSd/IRust/issues/new with the next text:\n\noriginal_output:\n{original_output}"
+            "IRust {irust_version}: failed to format the error output.\nThis is a bug in IRust.\nFeel free to open a bug-report at https://github.com/sigmaSd/IRust/issues/new with the next text:\n\noriginal_output:\n{original_output}"
         )
     }
 }
