@@ -83,7 +83,9 @@ pub fn format_err<'a>(original_output: &'a str, show_warnings: bool, repl_name: 
     if !formatted_error.is_empty() {
         formatted_error
     } else {
-        format!("IRust: failed to format the error output.\nThis is a bug in IRust.\nFeel free to open a bug-report at https://github.com/sigmaSd/IRust/issues/new with the next text:\n\noriginal_output:\n{original_output}")
+        format!(
+            "IRust: failed to format the error output.\nThis is a bug in IRust.\nFeel free to open a bug-report at https://github.com/sigmaSd/IRust/issues/new with the next text:\n\noriginal_output:\n{original_output}"
+        )
     }
 }
 

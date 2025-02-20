@@ -1,9 +1,9 @@
 use std::fs::OpenOptions;
-use std::io::prelude::*;
 use std::io::Result;
+use std::io::prelude::*;
 use std::path::PathBuf;
-use std::sync::atomic::AtomicBool;
 use std::sync::Mutex;
+use std::sync::atomic::AtomicBool;
 
 pub static ACTIVE_LOGGER: AtomicBool = AtomicBool::new(false);
 static LOG_FILE_PATH: Mutex<Option<PathBuf>> = Mutex::new(None);

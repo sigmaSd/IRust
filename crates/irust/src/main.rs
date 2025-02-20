@@ -4,7 +4,7 @@ mod irust;
 mod utils;
 use crate::irust::IRust;
 use crate::{
-    args::{handle_args, ArgsResult},
+    args::{ArgsResult, handle_args},
     irust::options::Options,
 };
 use crossterm::{style::Stylize, tty::IsTty};
@@ -34,7 +34,7 @@ fn main() {
         if !stdin.is_tty() {
             // Something was piped to stdin
             // The users wants a oneshot evaluation
-            use irust_repl::{EvalConfig, EvalResult, Repl, DEFAULT_EVALUATOR};
+            use irust_repl::{DEFAULT_EVALUATOR, EvalConfig, EvalResult, Repl};
             use std::io::Read;
 
             let mut repl = Repl::default();
@@ -95,11 +95,7 @@ fn main() {
     }
 
     // Start IRust
-    let err = if let Err(e) = irust.run() {
-        Some(e)
-    } else {
-        None
-    };
+    let err = irust.run().err();
 
     // Now IRust has been dropped we can safely print to stderr
     if let Some(err) = err {

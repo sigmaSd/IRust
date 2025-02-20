@@ -2,13 +2,13 @@
 name = "irust_api"
 version = "0.31.8"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
-edition = "2021"
+edition = "2024"
 description = "IRust API"
 repository = "https://github.com/sigmaSd/IRust/tree/master/crates/irust_api"
 license = "MIT"
 
 [dependencies]
-crossterm = { version = "0.27.0", features = ["serde","use-dev-tty"] }
+crossterm = { version = "0.27.0", features = ["serde", "use-dev-tty"] }
 rscript = "0.17.0"
 serde = { version = "1.0.188", features = ["derive"] }
 

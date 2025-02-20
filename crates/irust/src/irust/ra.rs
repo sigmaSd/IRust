@@ -2,8 +2,8 @@ mod rust_analyzer;
 use self::rust_analyzer::RustAnalyzer;
 
 use super::{
-    highlight::{highlight, theme::Theme},
     Result,
+    highlight::{highlight, theme::Theme},
 };
 use crate::utils::StringTools;
 use crossterm::{style::Color, terminal::ClearType};
@@ -194,7 +194,6 @@ impl Completer {
             let buf_ref = &buffer;
             repl.eval_in_tmp_repl(buffer.clone(), move |repl| -> Result<()> {
                 ra.complete_code_ra(&repl.cargo.paths.main_file, repl.body(), buf_ref)
-                    .map_err(From::from)
             })?;
         }
 

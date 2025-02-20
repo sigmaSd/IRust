@@ -2,7 +2,7 @@ use crossterm::{style::Color, terminal::ClearType};
 use std::ops::Range;
 use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
-use crate::{buffer::Buffer, Result};
+use crate::{Result, buffer::Buffer};
 
 mod cursor;
 mod writer;

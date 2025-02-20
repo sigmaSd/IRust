@@ -5,7 +5,7 @@ use std::{
 };
 
 use irust_api::color;
-use rscript::{scripting::Scripter, Hook, ScriptType, VersionReq};
+use rscript::{Hook, ScriptType, VersionReq, scripting::Scripter};
 
 #[derive(Default)]
 struct IPython {
@@ -122,6 +122,7 @@ impl IPython {
     }
 
     fn start() -> IPython {
+        #[expect(clippy::zombie_processes)]
         let mut p = Command::new("ipython")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())

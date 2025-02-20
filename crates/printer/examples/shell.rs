@@ -1,9 +1,9 @@
 use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::style::Color;
 use printer::{
-    buffer::Buffer,
-    printer::{default_process_fn, PrintQueue, Printer, PrinterItem},
     Result,
+    buffer::Buffer,
+    printer::{PrintQueue, Printer, PrinterItem, default_process_fn},
 };
 
 fn main() -> Result<()> {

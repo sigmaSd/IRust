@@ -10,7 +10,7 @@ use irust_api::Command;
 use printer::printer::{PrintQueue, PrinterItem};
 
 use crate::irust::IRust;
-use crate::irust::{ra::Cycle, Result};
+use crate::irust::{Result, ra::Cycle};
 use crate::{irust::Buffer, utils::StringTools};
 
 use super::ra::Completer;

@@ -1,5 +1,5 @@
-use irust_api::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use irust_api::Command;
+use irust_api::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use rscript::Hook;
 
 use super::{Mode, State, Vim};
@@ -58,7 +58,7 @@ impl Vim {
                                     Command::HandleDelete,
                                     Command::HandleCharacter(c),
                                     Command::HandleLeft,
-                                ]))
+                                ]));
                             }
                             State::ci => {
                                 self.mode = Mode::Insert;
@@ -74,7 +74,7 @@ impl Vim {
                                     Command::MoveBackwardTillChar(c),
                                     Command::HandleRight,
                                     Command::DeleteUntilChar(c, false),
-                                ]))
+                                ]));
                             }
                             _ => (),
                         }

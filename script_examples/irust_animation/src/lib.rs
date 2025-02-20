@@ -6,17 +6,17 @@ use crossterm::{
     style::Print,
 };
 use rscript::{
-    scripting::{DynamicScript, FFiData, FFiStr},
     Hook, ScriptInfo, ScriptType, VersionReq,
+    scripting::{DynamicScript, FFiData, FFiStr},
 };
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static SCRIPT: DynamicScript = DynamicScript {
     script,
     script_info,
 };
 
-static mut ANIMATION_FLAG: AtomicBool = AtomicBool::new(false);
+static ANIMATION_FLAG: AtomicBool = AtomicBool::new(false);
 
 extern "C" fn script_info() -> FFiData {
     let info = ScriptInfo::new(
@@ -49,16 +49,14 @@ extern "C" fn script(name: FFiStr, hook: FFiData) -> FFiData {
 
 fn start(hook: irust_api::BeforeCompiling) {
     thread::spawn(move || {
-        unsafe {
-            ANIMATION_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
-        }
+        ANIMATION_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
         use crossterm::execute;
         use std::io::stdout;
         let globals = hook.0;
         let mut tick = 0;
         const STATUS: &[&str] = &["-", "/", "-", "\\"];
 
-        while unsafe { ANIMATION_FLAG.load(std::sync::atomic::Ordering::Relaxed) } {
+        while ANIMATION_FLAG.load(std::sync::atomic::Ordering::Relaxed) {
             let msg = format!("In [{}]: ", STATUS[tick % STATUS.len()]);
             execute!(
                 stdout(),
@@ -83,7 +81,5 @@ fn start(hook: irust_api::BeforeCompiling) {
 }
 
 fn end(_hook: irust_api::AfterCompiling) {
-    unsafe {
-        ANIMATION_FLAG.store(false, std::sync::atomic::Ordering::Relaxed);
-    }
+    ANIMATION_FLAG.store(false, std::sync::atomic::Ordering::Relaxed);
 }

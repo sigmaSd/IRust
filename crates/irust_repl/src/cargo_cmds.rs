@@ -1,8 +1,8 @@
 use super::Edition;
 use crate::Result;
 use crate::{
-    utils::{stdout_and_stderr, ProcessUtils},
     ToolChain,
+    utils::{ProcessUtils, stdout_and_stderr},
 };
 use std::io;
 use std::io::prelude::*;

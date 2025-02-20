@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use irust_api::{color, Command, OutputEvent, Shutdown};
+use irust_api::{Command, OutputEvent, Shutdown, color};
 use rscript::scripting::Scripter;
 use rscript::{Hook, VersionReq};
 

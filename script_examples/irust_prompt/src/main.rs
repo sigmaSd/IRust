@@ -1,5 +1,5 @@
 use irust_api::GlobalVariables;
-use rscript::{scripting::Scripter, Hook, ScriptType, VersionReq};
+use rscript::{Hook, ScriptType, VersionReq, scripting::Scripter};
 
 struct Prompt;
 

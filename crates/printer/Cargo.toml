@@ -2,14 +2,14 @@
 name = "printer"
 version = "0.7.3"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
-edition = "2021"
+edition = "2024"
 readme = "README.md"
 description = "Abstraction over terminal manipulation"
 repository = "https://github.com/sigmaSd/IRust/tree/master/crates/printer"
 license = "MIT"
 
 [dependencies]
-crossterm = {version="0.27.0", features=["use-dev-tty"]}
+crossterm = { version = "0.27.0", features = ["use-dev-tty"] }
 unicode-width = "0.1.10"
 
 [package.metadata.workspaces]

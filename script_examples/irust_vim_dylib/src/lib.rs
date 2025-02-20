@@ -2,15 +2,19 @@ use rscript::{
     scripting::{DynamicScript, FFiData, FFiStr},
     Hook, ScriptInfo, ScriptType, VersionReq,
 };
+use std::sync::{LazyLock, Mutex};
 mod script;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static SCRIPT: DynamicScript = DynamicScript {
     script,
     script_info,
 };
 
-static mut VIM: Vim = Vim::new();
+static VIM: LazyLock<Mutex<Vim>> = LazyLock::new(|| Mutex::new(Vim::new()));
+fn vim() -> std::sync::MutexGuard<'static, Vim> {
+    VIM.lock().unwrap()
+}
 
 extern "C" fn script_info() -> FFiData {
     let info = ScriptInfo::new(
@@ -30,17 +34,17 @@ extern "C" fn script(name: FFiStr, hook: FFiData) -> FFiData {
     match name.as_str() {
         irust_api::InputEvent::NAME => {
             let hook: irust_api::InputEvent = DynamicScript::read(hook);
-            let output = unsafe { VIM.handle_input_event(hook) };
+            let output = vim().handle_input_event(hook);
             DynamicScript::write::<irust_api::InputEvent>(&output)
         }
         irust_api::Shutdown::NAME => {
             let hook: irust_api::Shutdown = DynamicScript::read(hook);
-            let output = unsafe { VIM.clean_up(hook) };
+            let output = vim().clean_up(hook);
             DynamicScript::write::<irust_api::Shutdown>(&output)
         }
         irust_api::Startup::NAME => {
             let hook: irust_api::Startup = DynamicScript::read(hook);
-            let output = unsafe { VIM.start_up(hook) };
+            let output = vim().start_up(hook);
             DynamicScript::write::<irust_api::Startup>(&output)
         }
         _ => unreachable!(),

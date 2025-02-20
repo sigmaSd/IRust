@@ -894,7 +894,9 @@ impl IRust {
         let expression = if expression.is_empty() {
             "println!(); // Compiler black box".into()
         } else {
-            format!("print!(\"{{:?}}\", {expression}); // Print to make sure that the compiler doesn't remove the expression (blackbox requires nightly)")
+            format!(
+                "print!(\"{{:?}}\", {expression}); // Print to make sure that the compiler doesn't remove the expression (blackbox requires nightly)"
+            )
         };
 
         let (debugger, debugger_arg) = match self.options.debugger {

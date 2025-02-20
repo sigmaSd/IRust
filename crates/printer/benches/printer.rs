@@ -2,7 +2,7 @@
 extern crate test;
 use test::Bencher;
 
-use printer::printer::{default_process_fn, Printer};
+use printer::printer::{Printer, default_process_fn};
 
 // last run 45ns/iter
 #[bench]

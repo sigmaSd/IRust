@@ -1,4 +1,4 @@
-use crate::{buffer::Buffer, Result};
+use crate::{Result, buffer::Buffer};
 use crossterm::{style::Color, terminal::ClearType};
 mod raw;
 use raw::Raw;
@@ -76,11 +76,7 @@ impl<W: std::io::Write> Writer<W> {
         // HACK: only accept chars with witdh == 1
         // if c_w == witdh=0 or if c_w > witdh=1 replace c with '�'
         let width = unicode_width::UnicodeWidthChar::width(c).unwrap_or(1);
-        if width == 0 || width > 1 {
-            '�'
-        } else {
-            c
-        }
+        if width == 0 || width > 1 { '�' } else { c }
     }
 
     fn handle_tab(&mut self, cursor: &mut super::cursor::Cursor<W>) -> Result<()> {

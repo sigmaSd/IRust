@@ -2,7 +2,7 @@
 name = "irust"
 version = "1.71.30"
 authors = ["Nbiba Bedis <bedisnbiba@gmail.com>"]
-edition = "2021"
+edition = "2024"
 readme = "README.md"
 description = "Cross Platform Rust Repl"
 repository = "https://github.com/sigmaSd/IRust"

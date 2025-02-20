@@ -1,5 +1,5 @@
-use super::default_process_fn;
 use super::Printer;
+use super::default_process_fn;
 use crossterm::style::Color;
 use std::io::Write;
 
