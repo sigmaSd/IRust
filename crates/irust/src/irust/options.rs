@@ -47,6 +47,9 @@ pub struct Options {
     pub theme: String,
     pub compile_mode: CompileMode,
     pub new_lines_after_output: usize,
+
+    #[serde(skip)]
+    config_load_time: Option<std::time::SystemTime>,
 }
 
 impl Default for Options {
@@ -107,6 +110,7 @@ impl Default for Options {
             theme: "default".into(),
             compile_mode: CompileMode::Debug,
             new_lines_after_output: 1,
+            config_load_time: None,
         }
     }
 }
@@ -114,6 +118,18 @@ impl Default for Options {
 impl Options {
     pub fn save(&mut self) -> Result<()> {
         if let Some(path) = Self::config_path() {
+            // Check if the file has been modified since we loaded it
+            if let Ok(metadata) = std::fs::metadata(&path) {
+                if let Ok(modified_time) = metadata.modified() {
+                    // If the config file has been modified since startup, don't overwrite it
+                    if let Some(load_time) = self.config_load_time {
+                        if modified_time > load_time {
+                            // File was modified after we loaded it, don't overwrite
+                            return Ok(());
+                        }
+                    }
+                }
+            }
             Self::write_config_file(path, self)?;
         }
         Ok(())
@@ -121,11 +137,20 @@ impl Options {
 
     pub fn new() -> Result<Self> {
         if let Some(config_path) = Options::config_path() {
-            let mut config_file = std::fs::File::open(config_path)?;
+            let mut config_file = std::fs::File::open(&config_path)?;
             let mut config_data = String::new();
             config_file.read_to_string(&mut config_data)?;
 
-            toml::from_str(&config_data).map_err(|e| e.into())
+            // Get the file's last modified time
+            let modified_time = std::fs::metadata(&config_path)
+                .ok()
+                .and_then(|m| m.modified().ok());
+
+            // Parse the config and store the load time
+            let mut options: Options = toml::from_str(&config_data)?;
+            options.config_load_time = modified_time;
+
+            Ok(options)
         } else {
             Ok(Options::default())
         }
