@@ -1,3 +1,8 @@
+**1.71.31**
+- Update codebase to edition 2024
+- Add edition 2024 and default to it for the repl
+- Do not override irust config if it has external changes
+
 **1.71.30**
 - Mention `:help` in default welcome message
 
