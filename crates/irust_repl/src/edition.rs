@@ -7,8 +7,9 @@ use std::str::FromStr;
 pub enum Edition {
     E2015,
     E2018,
-    #[default]
     E2021,
+    #[default]
+    E2024,
 }
 
 impl FromStr for Edition {
@@ -18,6 +19,7 @@ impl FromStr for Edition {
             "2015" => Ok(Edition::E2015),
             "2018" => Ok(Edition::E2018),
             "2021" => Ok(Edition::E2021),
+            "2024" => Ok(Edition::E2024),
             _ => Err("Unknown edition".into()),
         }
     }
@@ -28,6 +30,7 @@ impl std::fmt::Display for Edition {
             Edition::E2015 => write!(f, "2015"),
             Edition::E2018 => write!(f, "2018"),
             Edition::E2021 => write!(f, "2021"),
+            Edition::E2024 => write!(f, "2024"),
         }
     }
 }
