@@ -1,3 +1,6 @@
+**1.73.0**
+- fix format_eval_output to respect eval_color setting
+
 **1.72.0**
 - Update codebase to edition 2024
 - Add edition 2024 and default to it for the repl
