@@ -499,6 +499,7 @@ impl IRust {
 
             let output_prompt = self.get_output_prompt();
             if let Some(mut eval_output) = format_eval_output(
+                &self.options,
                 status,
                 output,
                 output_prompt,
@@ -666,6 +667,7 @@ impl IRust {
         let output_prompt = self.get_output_prompt();
         // safe unwrap
         Ok(format_eval_output(
+            &self.options,
             status.unwrap(),
             raw_out,
             output_prompt,

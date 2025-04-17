@@ -1,3 +1,4 @@
+use crate::Options;
 use crossterm::style::Color;
 use printer::printer::{PrintQueue, PrinterItem};
 use std::sync::OnceLock;
@@ -95,6 +96,7 @@ pub fn format_err_printqueue(output: &str, show_warnings: bool, repl_name: &str)
 }
 
 pub fn format_eval_output(
+    options: &Options,
     status: std::process::ExitStatus,
     output: String,
     prompt: String,
@@ -110,8 +112,8 @@ pub fn format_eval_output(
     }
 
     let mut eval_output = PrintQueue::default();
-    eval_output.push(PrinterItem::String(prompt, Color::Red));
-    eval_output.push(PrinterItem::String(output, Color::White));
+    eval_output.push(PrinterItem::String(prompt, options.out_color));
+    eval_output.push(PrinterItem::String(output, options.eval_color));
     eval_output.add_new_line(new_lines_after_output);
     Some(eval_output)
 }
