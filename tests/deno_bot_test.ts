@@ -1,5 +1,5 @@
 #!/usr/bin/env -S deno run --unstable-ffi --allow-all
-import { Pty } from "jsr:@sigma/pty-ffi@0.28.0";
+import { Pty } from "jsr:@sigma/pty-ffi@0.32.0";
 import { stripAnsiCode } from "jsr:@std/fmt@1.0.6/colors";
 import { assertEquals, assertMatch } from "jsr:@std/assert@1.0.11";
 
@@ -13,7 +13,7 @@ if (import.meta.main) {
   });
 
   while (true) {
-    let { data: input, done } = await pty.read();
+    let { data: input, done } = pty.read();
     if (done) break;
     input = stripAnsiCode(input);
 
@@ -21,9 +21,9 @@ if (import.meta.main) {
     await sleep(100);
   }
 
-  const write = async (input: string) => await pty.write(`${input}\n\r`);
+  const write = (input: string) => pty.write(`${input}\n\r`);
   const evalRs = async (input: string) => {
-    await write(input);
+    write(input);
     // detect output
     // the plan is:
     // TODO
@@ -31,7 +31,7 @@ if (import.meta.main) {
     let idx = 0;
     let start = 0;
     while (true) {
-      let { data: output, done } = await pty.read();
+      let { data: output, done } = pty.read();
       if (done) break;
       output = stripAnsiCode(output).trim();
       if (output && output !== "In:") lastResult = output;
@@ -86,10 +86,10 @@ if (import.meta.main) {
     console.log(" [OK]");
   };
 
-  await write('let a = "hello";');
+  write('let a = "hello";');
   await test(":type a", "`&str`");
 
-  await write(`fn fact(n: usize) -> usize {
+  write(`fn fact(n: usize) -> usize {
       match n {
         1 => 1,
         n => n * fact(n-1)
