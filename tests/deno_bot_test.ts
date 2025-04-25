@@ -1,20 +1,17 @@
 #!/usr/bin/env -S deno run --unstable-ffi --allow-all
-import { Pty } from "jsr:@sigma/pty-ffi@0.32.0";
-import { stripAnsiCode } from "jsr:@std/fmt@1.0.6/colors";
-import { assertEquals, assertMatch } from "jsr:@std/assert@1.0.11";
+import { Pty } from "jsr:@sigma/pty-ffi@0.35.1";
+import { stripAnsiCode } from "jsr:@std/fmt@1.0.7/colors";
+import { assertEquals, assertMatch } from "jsr:@std/assert@1.0.13";
 
 const ENCODER = new TextEncoder();
 
 if (import.meta.main) {
-  const pty = new Pty({
-    cmd: "cargo",
+  const pty = new Pty("cargo", {
     args: ["run", "--", "--default-config"],
-    env: [["NO_COLOR", "1"]],
+    env: { NO_COLOR: "1" },
   });
 
-  while (true) {
-    let { data: input, done } = pty.read();
-    if (done) break;
+  for await (let input of pty.readable) {
     input = stripAnsiCode(input);
 
     if (input.includes("In:")) break;
