@@ -182,9 +182,9 @@ impl RustAnalyzer {
 fn send_request(stdin: &mut std::process::ChildStdin, request: &Value) -> Result<()> {
     let request_str = serde_json::to_string(request)?;
     let content_length = request_str.len();
-    writeln!(stdin, "Content-Length: {}\r", content_length)?;
+    writeln!(stdin, "Content-Length: {content_length}\r")?;
     writeln!(stdin, "\r")?;
-    write!(stdin, "{}", request_str)?;
+    write!(stdin, "{request_str}")?;
     stdin.flush()?;
     Ok(())
 }
