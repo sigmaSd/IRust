@@ -27,9 +27,7 @@ if (import.meta.main) {
     let lastResult = "";
     let idx = 0;
     let start = 0;
-    while (true) {
-      let { data: output, done } = pty.read();
-      if (done) break;
+    for await (let output of pty.readable) {
       output = stripAnsiCode(output).trim();
       if (output && output !== "In:") lastResult = output;
 
