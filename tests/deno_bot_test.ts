@@ -1,5 +1,5 @@
 #!/usr/bin/env -S deno run --unstable-ffi --allow-all
-import { Pty } from "jsr:@sigma/pty-ffi@0.35.1";
+import { Pty } from "jsr:@sigma/pty-ffi@0.36.0";
 import { stripAnsiCode } from "jsr:@std/fmt@1.0.7/colors";
 import { assertEquals, assertMatch } from "jsr:@std/assert@1.0.13";
 
@@ -11,7 +11,9 @@ if (import.meta.main) {
     env: { NO_COLOR: "1" },
   });
 
-  for await (let input of pty.readable) {
+  while (true) {
+    let { data: input, done } = pty.read();
+    if (done) break;
     input = stripAnsiCode(input);
 
     if (input.includes("In:")) break;
@@ -27,7 +29,9 @@ if (import.meta.main) {
     let lastResult = "";
     let idx = 0;
     let start = 0;
-    for await (let output of pty.readable) {
+    while (true) {
+      let { data: output, done } = pty.read();
+      if (done) break;
       output = stripAnsiCode(output).trim();
       if (output && output !== "In:") lastResult = output;
 

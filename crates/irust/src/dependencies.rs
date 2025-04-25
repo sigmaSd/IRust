@@ -46,8 +46,7 @@ pub fn warn_about_opt_deps(options: &mut Options) {
                     "{}",
                     "rustup is not installed.\nrustup is required to install rustfmt".red()
                 );
-                return Err(io::Error::new(
-                    io::ErrorKind::Other,
+                return Err(io::Error::other(
                     "rustup is not installed",
                 ));
             }
