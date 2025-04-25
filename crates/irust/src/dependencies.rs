@@ -46,9 +46,7 @@ pub fn warn_about_opt_deps(options: &mut Options) {
                     "{}",
                     "rustup is not installed.\nrustup is required to install rustfmt".red()
                 );
-                return Err(io::Error::other(
-                    "rustup is not installed",
-                ));
+                return Err(io::Error::other("rustup is not installed"));
             }
             let cmd = ["rustup", "component", "add", "rustfmt"];
             println!("{}", format!("Running: {cmd:?}").magenta());
