@@ -1,4 +1,17 @@
-// Actual_TODO
+------------------------------------------------
+                    TODO
+------------------------------------------------
+- switch to glibc from musl (https://nickb.dev/blog/default-musl-allocator-considered-harmful-to-performance/)
+- use rust 2024 for prelude
+- add debug: false in the repl, to optimze compile speed
+
+
+
+------------------------------------------------
+// Old stuff ahead, I don't remember what these are
+------------------------------------------------
+
+// TODO
 Off screen rendering
 Actual unicde support
 
