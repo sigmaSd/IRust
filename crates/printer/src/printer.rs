@@ -19,7 +19,6 @@ pub struct Printer<W: std::io::Write> {
 
 impl<W: std::io::Write> Printer<W> {
     pub fn new(raw: W, prompt: String) -> Printer<W> {
-        crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
         let raw = Rc::new(RefCell::new(raw));
         let prompt_len = prompt.chars().count();
         Self {
@@ -27,6 +26,10 @@ impl<W: std::io::Write> Printer<W> {
             cursor: cursor::Cursor::new(raw, prompt_len),
             prompt,
         }
+    }
+
+    pub fn enable_raw_mode(&self) {
+        crossterm::terminal::enable_raw_mode().expect("failed to enable raw_mode");
     }
 }
 

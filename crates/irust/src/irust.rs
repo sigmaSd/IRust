@@ -28,7 +28,7 @@ pub use format::format_err;
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub struct IRust {
-    options: Options,
+    pub options: Options,
     buffer: Buffer,
     printer: Printer<std::io::Stdout>,
     engine: Engine,
@@ -129,6 +129,7 @@ impl IRust {
     }
 
     pub fn run(&mut self) -> Result<()> {
+        self.printer.enable_raw_mode();
         self.prepare()?;
 
         let mut server = if self.options.local_server {

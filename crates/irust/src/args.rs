@@ -7,11 +7,13 @@ use std::{
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+#[derive(Debug, Clone)]
 pub enum ArgsResult {
     Exit,
     Proceed,
     ProceedWithScriptPath(PathBuf),
     ProceedWithDefaultConfig,
+    ProceedWithBareRepl,
 }
 
 pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
@@ -43,6 +45,7 @@ pub fn handle_args(args: &[String], options: &mut Options) -> ArgsResult {
             ArgsResult::Proceed
         }
         "--default-config" => ArgsResult::ProceedWithDefaultConfig,
+        "--bare-repl" => ArgsResult::ProceedWithBareRepl,
         maybe_path => {
             let path = Path::new(&maybe_path);
             if path.exists() {

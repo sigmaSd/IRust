@@ -14,7 +14,7 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 **:add** *<dep_list>* => add dependencies also it accepts most `cargo add` arguments, for example you can import local dependencies with `:add --path path_to_crate`
 
 **:type** *\<expression\>* => shows the expression type, example `:type vec!(5)`
-  
+
 **:time** *\<expression\>* => return the amount of time the expression took to execute. example: `:time 5+4` `:time my_fun(arg1,arg2)`
 
 **:time_release** *\<expression\>* => same as `time` command but with release mode
@@ -38,7 +38,7 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 **:toolchain** *\<value\>* => switch between toolchains, supported value are: `stable`, `beta`, `nightly`, `default`
 
 **:theme** *\<value\>* => if used without arguments list currently installed themes, otherwise set irust to the given theme, see Themes section for more info
-  
+
 **:check_statements** *true*/*false* => If its set to true, irust will check each statemnt (input that ends with ;) with cargo_check before inserting it to the repl
 
 **:bench** => run `cargo bench`
@@ -49,7 +49,7 @@ You can try out IRust with no installation or setup (via Gitpod.io) by visiting 
 
 **:evaluator** *\<evaluator>\>* => set the evaluator statement, exmaple: `:evaluator println!("{}",{$$})` the `$$`
  will be replaced by IRust by the input code (the default evaluator uses debug formatting). To reset the evaluator to default you can use `:evaluator reset`
- 
+
 **:scripts:** => if invoked with no arguments it prints a list of detected scripts, if invoked with on argument it print that script info if it exits, if invoked with 2 arguments, it tries to activate/deactivate a script, example: `:scripts Vim deactivate`
 
 **:compile_time** *\<on/off\>* => if set to on, IRust will print compiling time on each input, compile time includes rustc compiling + some IRust code (should be marginal)
@@ -157,18 +157,18 @@ IRust config file is located in:
   toolchain = "stable"
   check_statements = true
   auto_insert_semicolon = true
-  
+
   #use last output by replacing the specified marker
   replace_marker = "$out"
   replace_output_with_marker = false
-  
+
   # modify input prmopt
   input_prompt = "In: "
   output_prompt = "Out: "
-  
+
   # activate scripting feature
   activate_scripting = false
-  
+
   # select executor (Sync, Tokio, Asyncstd)
   executor = "Sync"
   evaluator = ["println!(\"{:?}\", {\n", "\n});"]
@@ -178,8 +178,6 @@ IRust config file is located in:
   edition = "E2021"
   debugger = "LLDB"
   shell_interpolate = true
-  local_server = false
-  local_server_adress = "127.0.0.1:9000"
   theme = "default"
 ```
 
@@ -216,10 +214,12 @@ Check out [SCRIPTS.md](https://github.com/sigmaSd/IRust/blob/master/SCRIPTS.md) 
 ## Vim Plugin
 For nvim you can use https://github.com/hkupty/iron.nvim (needs irust 1.67.4)
 
-**Old method:**
+You can use `bare repl` (see next section) to develop a plugin
 
-Since version `1.60.0` IRust supports spawning a local server, by changing `local_server` to `true` in the configuration file.\
-This allows it to be controlled programmatically, which in turns allows writing vim plugins that uses this, see https://github.com/sigmaSd/irust-vim-plugin
+## Bare Repl
+If you want to use irust programmaticly , it won't be easy because it skips stdin and reads from tty directly, this is where `--bare-repl` flag comes in, if you use it irust will listen to stdin, you can send commands in the form of  `IRUST_INPUT_START$codeIRUST_INPUT_END` and you'll receive output as `IRUST_OUTPUT_START$outputIRUST_OUTPUT_END`, example: `IRUST_INPUT_START5+4IRUST_INPUT_END` -> `IRUST_OUTPUT_START9IRUST_OUTPUT_END`.
+
+Check out [bare repl test](https://github.com/sigmaSd/IRust/blob/master/tests/bare_repl.test.ts) for an example on how to use this.
 
 ## Jupyter Notebook
 A Jupyter Kernel is available, see https://github.com/sigmaSd/IRust/blob/master/crates/irust_repl/README.md#jupyter-kernel for instructions

@@ -1,4 +1,5 @@
 mod args;
+mod bare_repl;
 mod dependencies;
 mod irust;
 mod utils;
@@ -85,13 +86,27 @@ fn main() {
         if !cfg!(feature = "no-welcome-screen") {
             warn_about_opt_deps(&mut options);
         }
+        // main entry point
         IRust::new(options)
     };
 
     // If a script path was provided try to load it
-    if let ArgsResult::ProceedWithScriptPath(script) = args_result {
+    if let ArgsResult::ProceedWithScriptPath(script) = args_result.clone() {
         // Ignore if it fails
         let _ = irust.load_inner(script);
+    }
+
+    if matches!(args_result, ArgsResult::ProceedWithBareRepl) {
+        // I think its better to not save, since this is expected to be used programmatically
+        // Also remove the output prompt, its probably less surprising
+        irust.dont_save_options();
+        irust.options.output_prompt = String::new();
+
+        if let Err(err) = bare_repl::run(irust) {
+            eprintln!("{}", format!("\r\nIRust exited with error: {err}").red());
+            exit(1);
+        }
+        exit(0);
     }
 
     // Start IRust
@@ -100,5 +115,6 @@ fn main() {
     // Now IRust has been dropped we can safely print to stderr
     if let Some(err) = err {
         eprintln!("{}", format!("\r\nIRust exited with error: {err}").red());
+        exit(1);
     }
 }

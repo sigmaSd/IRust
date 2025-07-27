@@ -1,5 +1,8 @@
+**1.74.0**
+- Add --bare-repl flag that allows irust to be more easily controlable programatically, see `Bare Repl` section on the readme
+
 **1.73.0**
-- fix format_eval_output to respect eval_color setting
+- Fix format_eval_output to respect eval_color setting
 
 **1.72.0**
 - Update codebase to edition 2024
