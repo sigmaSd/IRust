@@ -221,6 +221,8 @@ If you want to use irust programmaticly , it won't be easy because it skips stdi
 
 Check out [bare repl test](https://github.com/sigmaSd/IRust/blob/master/tests/bare_repl.test.ts) for an example on how to use this.
 
+Note that for complete controle, you should use [irust_repl](https://github.com/sigmaSd/IRust/blob/master/crates/irust_repl) ,its the underlying engine of irust, for example its also used in this repo to power the jupyter kernel.
+
 ## Jupyter Notebook
 A Jupyter Kernel is available, see https://github.com/sigmaSd/IRust/blob/master/crates/irust_repl/README.md#jupyter-kernel for instructions
 
