@@ -1,3 +1,7 @@
+**1.75.0**
+- Fixed argument parsing
+- Add Tips section in the README
+
 **1.74.0**
 - Add --bare-repl flag that allows irust to be more easily controlable programatically, see `Bare Repl` section on the readme
 
