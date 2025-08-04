@@ -4,10 +4,7 @@ mod dependencies;
 mod irust;
 mod utils;
 use crate::irust::IRust;
-use crate::{
-    args::{ArgsResult, handle_args},
-    irust::options::Options,
-};
+use crate::{args::parse_args, irust::options::Options};
 use crossterm::{style::Stylize, tty::IsTty};
 use dependencies::{check_required_deps, warn_about_opt_deps};
 use irust_repl::CompileMode;
@@ -18,15 +15,38 @@ fn main() {
 
     // Handle args
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let args_result = if args.is_empty() {
-        ArgsResult::Proceed
-    } else {
-        handle_args(&args, &mut options)
-    };
+    let parsed = parse_args(&args);
 
-    // Exit if there is nothing more todo
-    if matches!(args_result, ArgsResult::Exit) {
-        exit(0)
+    // Handle help/version and exit early
+    if parsed.show_help {
+        println!(
+            "IRust: Cross Platform Rust REPL
+version: {}
+config file is in {}
+
+USAGE:
+    irust [FLAGS] [path_to_rust_file]
+
+FLAGS:
+    -h, --help            Show this help message and exit
+    -v, --version         Show IRust version and exit
+    --reset-config        Reset IRust configuration to default
+    --default-config      Use the default configuration for this run (it will not be saved)
+    --bare-repl           Start IRust in bare REPL mode
+
+POSITIONAL ARGUMENTS:
+    path_to_rust_file     Start IRust with the file loaded in the REPL
+",
+            crate::args::VERSION,
+            Options::config_path()
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_else(|| "??".into())
+        );
+        exit(0);
+    }
+    if parsed.show_version {
+        println!("{}", crate::args::VERSION);
+        exit(0);
     }
 
     // If no argument are provided, check stdin for some oneshot usage
@@ -76,8 +96,13 @@ fn main() {
         exit(1);
     }
 
+    // Handle config flags
+    if parsed.reset_config {
+        options.reset();
+    }
+
     // Create main IRust interface
-    let mut irust = if matches!(args_result, ArgsResult::ProceedWithDefaultConfig) {
+    let mut irust = if parsed.default_config {
         let mut irust = IRust::new(Options::default());
         irust.dont_save_options();
         irust
@@ -91,12 +116,12 @@ fn main() {
     };
 
     // If a script path was provided try to load it
-    if let ArgsResult::ProceedWithScriptPath(script) = args_result.clone() {
+    if let Some(script) = parsed.script_path.clone() {
         // Ignore if it fails
         let _ = irust.load_inner(script);
     }
 
-    if matches!(args_result, ArgsResult::ProceedWithBareRepl) {
+    if parsed.bare_repl {
         // I think its better to not save, since this is expected to be used programmatically
         // Also remove the output prompt, its probably less surprising
         irust.dont_save_options();
@@ -107,6 +132,11 @@ fn main() {
             exit(1);
         }
         exit(0);
+    }
+
+    // Warn about unknown arguments
+    if !parsed.unknown_args.is_empty() {
+        eprintln!("Unknown arguments: {:?}", parsed.unknown_args);
     }
 
     // Start IRust
