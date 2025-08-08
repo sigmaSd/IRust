@@ -149,10 +149,9 @@ fn dep_installed(d: &str) -> bool {
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
         .spawn()
+        && e.kind() == std::io::ErrorKind::NotFound
     {
-        if e.kind() == std::io::ErrorKind::NotFound {
-            return false;
-        }
+        return false;
     }
     true
 }

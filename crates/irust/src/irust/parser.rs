@@ -437,10 +437,10 @@ impl IRust {
         let buffer = {
             let mut buffer = buffer;
             // check for replace marker option
-            if self.options.replace_output_with_marker {
-                if let Some(output) = self.global_variables.get_last_output() {
-                    buffer = buffer.replace(&self.options.replace_marker, output);
-                }
+            if self.options.replace_output_with_marker
+                && let Some(output) = self.global_variables.get_last_output()
+            {
+                buffer = buffer.replace(&self.options.replace_marker, output);
             }
             buffer
         };

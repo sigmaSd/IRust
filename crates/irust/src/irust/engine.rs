@@ -48,16 +48,15 @@ impl IRust {
         Ok(())
     }
     fn _execute(&mut self, command: Command) -> Result<()> {
-        if let Record::True(key) = self.engine.macro_record {
-            if !(matches!(command, Command::MacroRecordToggle)
+        if let Record::True(key) = self.engine.macro_record
+            && !(matches!(command, Command::MacroRecordToggle)
                 || matches!(command, Command::MacroPlay))
-            {
-                self.engine
-                    .macros
-                    .get_mut(&key)
-                    .expect("The key exists")
-                    .push(command.clone());
-            }
+        {
+            self.engine
+                .macros
+                .get_mut(&key)
+                .expect("The key exists")
+                .push(command.clone());
         }
 
         match command {

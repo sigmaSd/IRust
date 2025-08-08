@@ -329,10 +329,9 @@ impl IRust {
                     if keyevent
                         .modifiers
                         .contains(KeyModifiers::CONTROL | KeyModifiers::ALT)
+                        && let KeyCode::Char(c) = keyevent.code
                     {
-                        if let KeyCode::Char(c) = keyevent.code {
-                            self.execute(Command::HandleCharacter(c))?;
-                        }
+                        self.execute(Command::HandleCharacter(c))?;
                     }
                 }
             },

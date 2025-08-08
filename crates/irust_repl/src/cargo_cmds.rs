@@ -71,10 +71,10 @@ impl CargoPaths {
         let common_root = tmp_dir.join("irust_repls");
         let irust_dir = common_root.join(name);
         let irust_target_dir = (|| {
-            if let Ok(p) = std::env::var("CARGO_TARGET_DIR") {
-                if !p.is_empty() {
-                    return Path::new(&p).to_path_buf();
-                }
+            if let Ok(p) = std::env::var("CARGO_TARGET_DIR")
+                && !p.is_empty()
+            {
+                return Path::new(&p).to_path_buf();
             }
             // CARGO_TARGET_DIR is not set, default to one common target location for all repls
             common_root.join("target")

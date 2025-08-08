@@ -34,17 +34,17 @@ pub trait Script {
 // Scripts
 impl super::IRust {
     pub fn update_input_prompt(&mut self) {
-        if let Some(ref mut script_mg) = self.script_mg {
-            if let Some(prompt) = script_mg.input_prompt(&self.global_variables) {
-                self.printer.set_prompt(prompt);
-            }
+        if let Some(ref mut script_mg) = self.script_mg
+            && let Some(prompt) = script_mg.input_prompt(&self.global_variables)
+        {
+            self.printer.set_prompt(prompt);
         }
     }
     pub fn get_output_prompt(&mut self) -> String {
-        if let Some(ref mut script_mg) = self.script_mg {
-            if let Some(prompt) = script_mg.get_output_prompt(&self.global_variables) {
-                return prompt;
-            }
+        if let Some(ref mut script_mg) = self.script_mg
+            && let Some(prompt) = script_mg.get_output_prompt(&self.global_variables)
+        {
+            return prompt;
         }
         //Default
         self.options.output_prompt.clone()

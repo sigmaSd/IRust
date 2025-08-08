@@ -161,18 +161,18 @@ impl RustAnalyzer {
             // NOTE: we block until we get a completion
             std::thread::sleep(Duration::from_millis(100));
         };
-        if let Some(result) = completion_response.get("result") {
-            if let Some(items) = result.get("items") {
-                return Ok(items
-                    .as_array()
-                    .ok_or("ra items is not an array")?
-                    .iter()
-                    .filter_map(|item| item.get("filterText"))
-                    .map(|item| item.to_string())
-                    // remove quotes
-                    .map(|item| item[1..item.len() - 1].to_owned())
-                    .collect());
-            }
+        if let Some(result) = completion_response.get("result")
+            && let Some(items) = result.get("items")
+        {
+            return Ok(items
+                .as_array()
+                .ok_or("ra items is not an array")?
+                .iter()
+                .filter_map(|item| item.get("filterText"))
+                .map(|item| item.to_string())
+                // remove quotes
+                .map(|item| item[1..item.len() - 1].to_owned())
+                .collect());
         }
 
         Ok(vec![])

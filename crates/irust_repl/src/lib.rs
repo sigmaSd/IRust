@@ -409,12 +409,13 @@ impl Repl {
     }
 
     pub fn del(&mut self, line_num: &str) -> Result<()> {
-        if let Ok(line_num) = line_num.parse::<usize>() {
-            if line_num != 0 && line_num + 1 < self.body.len() {
-                self.body.remove(line_num);
-                self.cursor -= 1;
-                return Ok(());
-            }
+        if let Ok(line_num) = line_num.parse::<usize>()
+            && line_num != 0
+            && line_num + 1 < self.body.len()
+        {
+            self.body.remove(line_num);
+            self.cursor -= 1;
+            return Ok(());
         }
 
         Err("Incorrect line number".into())

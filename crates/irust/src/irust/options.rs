@@ -119,15 +119,15 @@ impl Options {
     pub fn save(&mut self) -> Result<()> {
         if let Some(path) = Self::config_path() {
             // Check if the file has been modified since we loaded it
-            if let Ok(metadata) = std::fs::metadata(&path) {
-                if let Ok(modified_time) = metadata.modified() {
-                    // If the config file has been modified since startup, don't overwrite it
-                    if let Some(load_time) = self.config_load_time {
-                        if modified_time > load_time {
-                            // File was modified after we loaded it, don't overwrite
-                            return Ok(());
-                        }
-                    }
+            if let Ok(metadata) = std::fs::metadata(&path)
+                && let Ok(modified_time) = metadata.modified()
+            {
+                // If the config file has been modified since startup, don't overwrite it
+                if let Some(load_time) = self.config_load_time
+                    && modified_time > load_time
+                {
+                    // File was modified after we loaded it, don't overwrite
+                    return Ok(());
                 }
             }
             Self::write_config_file(path, self)?;

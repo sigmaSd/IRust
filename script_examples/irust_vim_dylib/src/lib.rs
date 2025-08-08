@@ -1,6 +1,6 @@
 use rscript::{
-    scripting::{DynamicScript, FFiData, FFiStr},
     Hook, ScriptInfo, ScriptType, VersionReq,
+    scripting::{DynamicScript, FFiData, FFiStr},
 };
 use std::sync::{LazyLock, Mutex};
 mod script;

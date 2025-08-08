@@ -133,10 +133,10 @@ impl StringTools {
                 break;
             }
             if idx == 0 {
-                if let Some(last_char) = s1.chars().last() {
-                    if last_char.is_alphanumeric() {
-                        s2.clear();
-                    }
+                if let Some(last_char) = s1.chars().last()
+                    && last_char.is_alphanumeric()
+                {
+                    s2.clear();
                 }
                 break;
             }
@@ -259,48 +259,47 @@ fn remove_comments(s: &str) -> String {
 }
 
 fn _balanced_quotes(s: &str) -> bool {
-    s.match_indices(['"', '\'']).count() % 2 == 0
+    s.match_indices(['"', '\'']).count().is_multiple_of(2)
 }
 
 pub fn ctrlc_cancel(process: &mut std::process::Child) -> Result<()> {
     use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind};
     // Running a command as Command::new().output takes at minimum 1ms
     // So Polling should take a similar order of magnitude
-    if let Ok(event) = crossterm::event::poll(std::time::Duration::from_millis(1)) {
-        if event {
-            if let Ok(event) = crossterm::event::read() {
-                match event {
-                    Event::Key(KeyEvent {
-                        kind: KeyEventKind::Release,
-                        ..
-                    }) => (),
-                    Event::Key(KeyEvent {
-                        code: KeyCode::Char('c'),
-                        modifiers: crossterm::event::KeyModifiers::CONTROL,
-                        ..
-                    }) => {
-                        process.kill()?;
-                        return Err("Cancelled!".into());
-                    }
-                    Event::Key(KeyEvent {
-                        code: KeyCode::Char(a),
-                        ..
-                    }) => {
-                        use std::io::Write;
-                        // Ignore write errors (process might have ended)
-                        let _ = process.stdin.as_mut().unwrap().write_all(&[a as u8]);
-                    }
-                    Event::Key(KeyEvent {
-                        code: KeyCode::Enter,
-                        ..
-                    }) => {
-                        use std::io::Write;
-                        // Ignore write errors (process might have ended)
-                        let _ = process.stdin.as_mut().unwrap().write_all(b"\n");
-                    }
-                    _ => (),
-                }
+    if let Ok(event) = crossterm::event::poll(std::time::Duration::from_millis(1))
+        && event
+        && let Ok(event) = crossterm::event::read()
+    {
+        match event {
+            Event::Key(KeyEvent {
+                kind: KeyEventKind::Release,
+                ..
+            }) => (),
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('c'),
+                modifiers: crossterm::event::KeyModifiers::CONTROL,
+                ..
+            }) => {
+                process.kill()?;
+                return Err("Cancelled!".into());
             }
+            Event::Key(KeyEvent {
+                code: KeyCode::Char(a),
+                ..
+            }) => {
+                use std::io::Write;
+                // Ignore write errors (process might have ended)
+                let _ = process.stdin.as_mut().unwrap().write_all(&[a as u8]);
+            }
+            Event::Key(KeyEvent {
+                code: KeyCode::Enter,
+                ..
+            }) => {
+                use std::io::Write;
+                // Ignore write errors (process might have ended)
+                let _ = process.stdin.as_mut().unwrap().write_all(b"\n");
+            }
+            _ => (),
         }
     }
     Ok(())
