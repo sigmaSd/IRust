@@ -21,25 +21,32 @@ pub fn run(mut irust: IRust) -> crate::irust::Result<()> {
         let Some((_, to_eval)) = before.rsplit_once("IRUST_INPUT_START") else {
             return Err("Invalid input format: missing start marker".into());
         };
-        let output = irust.parse(to_eval.to_string())?;
+        let output = irust.parse(to_eval.to_string());
         print!("IRUST_OUTPUT_START");
-        for part in output {
-            match part {
-                printer::printer::PrinterItem::RcString(s, range, _color) => {
-                    print!("{}", &s[range.start..range.end]);
+        match output {
+            Ok(output) => {
+                for part in output {
+                    match part {
+                        printer::printer::PrinterItem::RcString(s, range, _color) => {
+                            print!("{}", &s[range.start..range.end]);
+                        }
+                        printer::printer::PrinterItem::Char(c, _color) => {
+                            print!("{c}");
+                        }
+                        printer::printer::PrinterItem::String(s, _color) => {
+                            print!("{s}");
+                        }
+                        printer::printer::PrinterItem::Str(s, _color) => {
+                            print!("{s}");
+                        }
+                        printer::printer::PrinterItem::NewLine => {
+                            println!();
+                        }
+                    }
                 }
-                printer::printer::PrinterItem::Char(c, _color) => {
-                    print!("{c}");
-                }
-                printer::printer::PrinterItem::String(s, _color) => {
-                    print!("{s}");
-                }
-                printer::printer::PrinterItem::Str(s, _color) => {
-                    print!("{s}");
-                }
-                printer::printer::PrinterItem::NewLine => {
-                    println!();
-                }
+            }
+            Err(err) => {
+                print!("{}", err);
             }
         }
         print!("IRUST_OUTPUT_END");

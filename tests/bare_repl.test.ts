@@ -68,5 +68,12 @@ Deno.test("bare repl", async (t) => {
   await t.step("add deps", async () => {
     assert(await testRepl(reader, ":add scolor", "Ok!"));
     assert(await testRepl(reader, "scolor::ColorType::Fg", "Fg"));
+    // assert(
+    //   await testRepl(
+    //     reader,
+    //     ":add scolordosntexist",
+    //     "Failed to add dependency",
+    //   ),
+    // );
   });
 });
