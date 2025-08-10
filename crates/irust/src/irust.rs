@@ -35,7 +35,7 @@ pub struct IRust {
     exit_flag: bool,
     theme: Theme,
     repl: Repl,
-    global_variables: GlobalVariables,
+    pub global_variables: GlobalVariables,
     history: History,
     completer: Option<Completer>,
     script_mg: Option<Box<dyn Script>>,

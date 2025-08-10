@@ -24,28 +24,49 @@ if (import.meta.main) {
   irust.stdout.pipeTo(Deno.stdout.writable);
 }
 
-Deno.test("bare repl", async () => {
-  const reader = irust.stdout.getReader();
-  const testRepl = async (input: string, expectedOutput: string) => {
-    await writer.write(
-      new TextEncoder().encode("IRUST_INPUT_START" + input + "IRUST_INPUT_END"),
-    );
+async function inputRepl(
+  reader: ReadableStreamDefaultReader,
+  input: string,
+): Promise<string> {
+  await writer.write(
+    new TextEncoder().encode("IRUST_INPUT_START" + input + "IRUST_INPUT_END"),
+  );
 
-    let readData = "";
-    while (true) {
-      readData += await reader.read().then((result) =>
-        new TextDecoder().decode(result.value)
-      );
+  let readData = "";
+  while (true) {
+    readData += await reader.read().then((result) => {
+      // if (!result.done) {
+      //   console.log("result:", new TextDecoder().decode(result.value));
+      // }
+      return new TextDecoder().decode(result.value);
+    });
 
-      if (readData.includes("IRUST_OUTPUT_END")) {
-        const output =
-          readData.split("IRUST_OUTPUT_END")[0].split("IRUST_OUTPUT_START")[1];
-        return output.trim() === expectedOutput.trim();
-      }
+    if (readData.includes("IRUST_OUTPUT_END")) {
+      const output =
+        readData.split("IRUST_OUTPUT_END")[0].split("IRUST_OUTPUT_START")[1];
+      return output.trim();
     }
-  };
+  }
+}
 
-  assert(await testRepl("1 + 1", "2"));
-  assert(await testRepl("let a = 4;", ""));
-  assert(await testRepl("a * 2", "8"));
+export async function testRepl(
+  reader: ReadableStreamDefaultReader,
+  input: string,
+  expectedOutput: string,
+): Promise<boolean> {
+  return await inputRepl(reader, input) === expectedOutput.trim();
+}
+
+Deno.test("bare repl", async (t) => {
+  const reader = irust.stdout.getReader();
+  await t.step("simple", async () => {
+    assert(await testRepl(reader, "1 + 1", "2"));
+    assert(await testRepl(reader, "let a = 4;", ""));
+    assert(await testRepl(reader, "a * 2", "8"));
+  });
+
+  await t.step("add deps", async () => {
+    assert(await testRepl(reader, ":add scolor", "Ok!"));
+    assert(await testRepl(reader, "scolor::ColorType::Fg", "Fg"));
+  });
 });

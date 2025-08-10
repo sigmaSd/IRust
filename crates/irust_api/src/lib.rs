@@ -136,6 +136,8 @@ pub struct GlobalVariables {
     pub prompt_len: usize,
     pub pid: u32,
     pub is_ra_suggestion_active: bool,
+
+    pub bare_repl: bool,
 }
 
 impl Default for GlobalVariables {
@@ -159,6 +161,7 @@ impl GlobalVariables {
             prompt_len: 0,
             pid: std::process::id(),
             is_ra_suggestion_active: false,
+            bare_repl: false,
         }
     }
 

@@ -3,6 +3,12 @@ use crossterm::style::Color;
 
 impl IRust {
     pub fn wait_add(&mut self, mut add_cmd: std::process::Child, msg: &str) -> Result<()> {
+        // no art for bare repl
+        if self.global_variables.bare_repl {
+            add_cmd.wait()?;
+            return Ok(());
+        }
+
         self.printer.cursor.save_position();
         self.printer.cursor.hide();
         self.printer.writer.raw.set_fg(Color::Cyan)?;
