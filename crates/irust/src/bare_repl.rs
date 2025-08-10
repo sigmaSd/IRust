@@ -2,7 +2,7 @@ use crate::irust::IRust;
 use std::io::{Read, Write};
 
 pub fn run(mut irust: IRust) -> crate::irust::Result<()> {
-    irust.global_variables.bare_repl = true;
+    irust.bare_repl = true;
     let mut stdin = std::io::stdin();
 
     let mut input = String::new();

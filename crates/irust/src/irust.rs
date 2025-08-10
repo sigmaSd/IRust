@@ -39,6 +39,8 @@ pub struct IRust {
     history: History,
     completer: Option<Completer>,
     script_mg: Option<Box<dyn Script>>,
+
+    pub bare_repl: bool,
 }
 
 impl IRust {
@@ -100,6 +102,7 @@ impl IRust {
             history,
             completer,
             script_mg,
+            bare_repl: false,
         }
     }
 
