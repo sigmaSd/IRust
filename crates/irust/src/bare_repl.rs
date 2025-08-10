@@ -10,6 +10,9 @@ pub fn run(mut irust: IRust) -> crate::irust::Result<()> {
 
     loop {
         let n = stdin.read(&mut input_buf)?;
+        if n == 0 {
+            break Ok(());
+        }
         input.push_str(&String::from_utf8_lossy(&input_buf[..n]));
 
         let input_c = input.clone();
