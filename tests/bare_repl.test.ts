@@ -22,6 +22,7 @@ async function inputRepl(
     if (readData.includes("IRUST_OUTPUT_END")) {
       const output =
         readData.split("IRUST_OUTPUT_END")[0].split("IRUST_OUTPUT_START")[1];
+      // console.log("output:", output);
       return output.trim();
     }
   }
@@ -83,5 +84,21 @@ Deno.test("bare repl", async (t) => {
     //     "Failed to add dependency",
     //   ),
     // );
+  });
+
+  await t.step("test print", async () => {
+    assert(
+      await testRepl(reader, 'print!("Hello, world!")', "Hello, world!"),
+    );
+  });
+
+  await t.step("test stderr", async () => {
+    assert(
+      await testRepl(
+        reader,
+        'eprint!("stderr"); print!("stdout")',
+        "stdout\nErr: stderr",
+      ),
+    );
   });
 });

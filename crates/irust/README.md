@@ -231,7 +231,7 @@ A Jupyter Kernel is available, see https://github.com/sigmaSd/IRust/blob/master/
 
 ## Tips
 - Prefer to not use print*! to evaluate an expression just write it directly like "5+4", or if you need formatting, you can just use format! macro,
-because print wont work as an expression, and as a stamtent it will pollute the internal repl state, the above alternatives should be enough.
+ because if you accidently use print as a stamtent (the input ends with;) it will pollute the internal repl state, the above alternatives should be enough. But note that print!/eprint!.. do work as expresssions
 
 ## Releases
    Automatic releases by github actions are uploaded here https://github.com/sigmaSd/irust/releases
