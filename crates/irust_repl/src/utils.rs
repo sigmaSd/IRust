@@ -6,13 +6,21 @@ use std::{
 };
 
 pub fn stdout_and_stderr(out: Output) -> String {
-    let out = if !out.stdout.is_empty() {
-        out.stdout
+    let mut combined = Vec::new();
+    // dont include the trailing new line, it comes from the repl println! wrapper
+    let stdout = &out.stdout[..out.stdout.len().saturating_sub(1)];
+    // the () sufix comes from the repl println! wrapper in the case where the output is void
+    if let Some(stdout) = stdout.strip_suffix(b"()") {
+        combined.extend_from_slice(stdout);
     } else {
-        out.stderr
-    };
+        combined.extend_from_slice(stdout);
+    }
+    if !out.stderr.is_empty() {
+        combined.extend_from_slice(b"IRUST_INTERNAL_STDERR_START");
+        combined.extend_from_slice(&out.stderr);
+    }
 
-    String::from_utf8(out).unwrap_or_default()
+    String::from_utf8_lossy(&combined).to_string()
 }
 
 pub trait ProcessUtils {
