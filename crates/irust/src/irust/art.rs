@@ -7,7 +7,11 @@ impl IRust {
         if self.bare_repl {
             let res = add_cmd.wait_with_output()?;
             if !res.status.success() {
-                return Err("Failed to add dependency".into());
+                return Err(format!(
+                    "Failed to add dependency: {}",
+                    String::from_utf8_lossy(&res.stderr)
+                )
+                .into());
             }
 
             return Ok(());
