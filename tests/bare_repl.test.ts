@@ -2,28 +2,6 @@ import readline from "node:readline";
 import process from "node:process";
 import assert from "node:assert";
 
-const irust = new Deno.Command("cargo", {
-  args: ["run", "--bin", "irust", "--", "--bare-repl"],
-  stdin: "piped",
-  stdout: "piped",
-  stderr: "null",
-}).spawn();
-const writer = irust.stdin.getWriter();
-
-if (import.meta.main) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  rl.on("line", async (line: string) => {
-    await writer.write(
-      new TextEncoder().encode("IRUST_INPUT_START" + line + "IRUST_INPUT_END"),
-    );
-  });
-  irust.stdout.pipeTo(Deno.stdout.writable);
-}
-
 async function inputRepl(
   reader: ReadableStreamDefaultReader,
   input: string,
@@ -44,9 +22,41 @@ async function inputRepl(
     if (readData.includes("IRUST_OUTPUT_END")) {
       const output =
         readData.split("IRUST_OUTPUT_END")[0].split("IRUST_OUTPUT_START")[1];
+      // console.log("output:", output);
       return output.trim();
     }
   }
+}
+
+const irust = new Deno.Command("cargo", {
+  args: ["run", "--bin", "irust", "--", "--bare-repl"],
+  stdin: "piped",
+  stdout: "piped",
+  stderr: "null",
+}).spawn();
+const writer = irust.stdin.getWriter();
+const reader = irust.stdout.getReader();
+
+if (import.meta.main) {
+  const termPermStatus = await Deno.permissions.query({
+    name: "env",
+    variable: "TERM",
+  });
+  if (termPermStatus.state !== "granted") {
+    console.log("This script requires env permission to TERM");
+    Deno.exit(1);
+  }
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  rl.prompt();
+
+  rl.on("line", async (line: string) => {
+    console.log(await inputRepl(reader, line));
+    rl.prompt();
+  });
 }
 
 export async function testRepl(
@@ -58,7 +68,6 @@ export async function testRepl(
 }
 
 Deno.test("bare repl", async (t) => {
-  const reader = irust.stdout.getReader();
   await t.step("simple", async () => {
     assert(await testRepl(reader, "1 + 1", "2"));
     assert(await testRepl(reader, "let a = 4;", ""));
@@ -75,5 +84,21 @@ Deno.test("bare repl", async (t) => {
     //     "Failed to add dependency",
     //   ),
     // );
+  });
+
+  await t.step("test print", async () => {
+    assert(
+      await testRepl(reader, 'print!("Hello, world!")', "Hello, world!"),
+    );
+  });
+
+  await t.step("test stderr", async () => {
+    assert(
+      await testRepl(
+        reader,
+        'eprint!("stderr"); print!("stdout")',
+        "stdout\nErr: stderr",
+      ),
+    );
   });
 });

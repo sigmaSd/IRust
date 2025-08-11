@@ -107,8 +107,15 @@ pub fn format_eval_output(
     if !status.success() {
         return Some(format_err_printqueue(&output, show_warnings, repl_name));
     }
-    if output.trim() == "()" {
-        return None;
+    if output.contains("IRUST_INTERNAL_STDERR_START") {
+        let (stdout, stderr) = output.split_once("IRUST_INTERNAL_STDERR_START").unwrap();
+        let mut eval_output = PrintQueue::default();
+        eval_output.push(PrinterItem::String(prompt, options.out_color));
+        eval_output.push(PrinterItem::String(stdout.into(), options.eval_color));
+        eval_output.add_new_line(1);
+        eval_output.push(PrinterItem::String(format!("Err: {stderr}"), Color::Red));
+        eval_output.add_new_line(new_lines_after_output);
+        return Some(eval_output);
     }
 
     let mut eval_output = PrintQueue::default();

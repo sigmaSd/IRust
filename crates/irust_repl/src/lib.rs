@@ -258,7 +258,7 @@ impl Repl {
         let toolchain = self.toolchain;
 
         let cargo = self.cargo.clone();
-        let (status, mut eval_result) = self.eval_in_tmp_repl(eval_statement, |_| {
+        let (status, eval_result) = self.eval_in_tmp_repl(eval_statement, |_| {
             cargo.cargo_run(
                 color,
                 compile_mode.is_release(),
@@ -267,8 +267,6 @@ impl Repl {
             )
         })?;
 
-        // remove trailing new line
-        eval_result.pop();
         Ok((status, eval_result).into())
     }
 
