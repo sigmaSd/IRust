@@ -7,7 +7,8 @@ members = [
     "./ipython",
     "./fun",
     "./irust_animation",
-    "./mixed_cmds"
+    "./mixed_cmds",
+    "./super_add",
 ]
 
 [workspace.dependencies]

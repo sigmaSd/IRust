@@ -35,6 +35,7 @@ impl ScriptManager {
             )
             .ok()?;
         }
+        dbg!("a");
 
         // read conf if available
         let script_conf_path = crate::utils::irust_dirs::config_dir()?
@@ -68,6 +69,7 @@ impl ScriptManager {
             })
         }
 
+        dbg!("azz");
         Some(ScriptManager { sm, startup_cmds })
     }
 }

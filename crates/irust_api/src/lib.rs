@@ -80,6 +80,7 @@ Output => ()
 pub enum Command {
     AcceptSuggestion,
     Continue,
+    CargoAddCommand(String),
     DeleteNextWord,
     DeleteTillEnd,
     DeleteUntilChar(char, bool),
