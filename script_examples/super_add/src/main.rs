@@ -5,14 +5,7 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
-use syn::{visit_mut::VisitMut, File, Item, Visibility};
-
-// Cargo.toml dependencies needed:
-// [dependencies]
-// irust_api = "*"
-// rscript = "*"
-// syn = { version = "2.0", features = ["full", "visit-mut"] }
-// prettyplease = "0.2"
+use syn::{File, Item, Visibility, visit_mut::VisitMut};
 
 #[derive(Debug)]
 struct TempCrateModifier {
@@ -23,7 +16,6 @@ impl TempCrateModifier {
     /// Create a new temporary copy of the crate with all items made public
     fn new(source_path: &Path) -> Result<Self, Box<dyn std::error::Error>> {
         let temp_path = create_temp_copy(source_path)?;
-        dbg!("created", &temp_path);
         make_all_items_public(&temp_path)?;
 
         Ok(TempCrateModifier { temp_path })
@@ -36,7 +28,9 @@ impl TempCrateModifier {
 }
 
 impl Drop for TempCrateModifier {
-    fn drop(&mut self) {}
+    fn drop(&mut self) {
+        let _ = fs::remove_dir_all(&self.temp_path);
+    }
 }
 
 fn create_temp_copy(source: &Path) -> Result<PathBuf, Box<dyn std::error::Error>> {
@@ -95,7 +89,7 @@ where
 
         if path.is_dir() {
             visit_rust_files(&path, callback)?;
-        } else if path.extension().map_or(false, |ext| ext == "rs") {
+        } else if path.extension().is_some_and(|ext| ext == "rs") {
             callback(&path)?;
         }
     }
@@ -219,7 +213,8 @@ impl Scripter for SuperAdd {
 }
 
 fn main() {
-    let _ = SuperAdd::execute(&mut |hook_name| SuperAdd::run(&mut SuperAdd::default(), hook_name));
+    let mut super_add = SuperAdd::default();
+    let _ = SuperAdd::execute(&mut |hook_name| SuperAdd::run(&mut super_add, hook_name));
 }
 
 impl SuperAdd {
@@ -232,7 +227,7 @@ impl SuperAdd {
                 if input.starts_with(":add") && input.contains("--path") {
                     // Parse the path from the command
                     let path_str = if let Some(path_part) = input.split("--path").nth(1) {
-                        path_part.trim().split_whitespace().next().unwrap_or("")
+                        path_part.split_whitespace().next().unwrap_or("")
                     } else {
                         ""
                     };
@@ -243,7 +238,7 @@ impl SuperAdd {
                         if source_path.exists() {
                             match TempCrateModifier::new(&source_path) {
                                 Ok(temp_crate) => {
-                                    let temp_path = temp_crate.path().to_string_lossy();
+                                    let temp_path = temp_crate.path().to_string_lossy().to_string();
 
                                     // Create the modified command with the temp path
                                     let modified_command = input.replace(path_str, &temp_path);
@@ -252,7 +247,7 @@ impl SuperAdd {
                                     self.temp_crates.push(temp_crate);
 
                                     // Send the modified command
-                                    let cmd = Command::CargoAddCommand(modified_command);
+                                    let cmd = Command::Parse(modified_command);
                                     Self::write::<OutputEvent>(&Some(cmd));
                                     return;
                                 }

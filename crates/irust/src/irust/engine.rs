@@ -209,8 +209,7 @@ impl IRust {
 
                 let buffer = self.buffer.to_string();
                 if let Some(cmd) = self.output_event_hook(&buffer) {
-                    dbg!("a");
-                    return dbg!(self.execute(cmd));
+                    return self.execute(cmd);
                 }
                 self.execute(Command::Parse(buffer))?;
 
@@ -822,13 +821,6 @@ impl IRust {
             Command::PrintOutput(output, color) => {
                 let output = PrinterItem::String(output, color).into();
                 self.print_output(output)
-            }
-            Command::CargoAddCommand(args) => {
-                let mut dep: Vec<String> = crate::utils::split_args(args);
-                dep.remove(0); //drop :add
-                self.wait_add(self.repl.add_dep(&dep)?, "Add")?;
-                self.wait_add(self.repl.build()?, "Build")?;
-                Ok(())
             }
         }
     }

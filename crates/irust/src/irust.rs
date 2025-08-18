@@ -118,9 +118,7 @@ impl IRust {
         self.printer.print_prompt_if_set()?;
 
         // Scripts might want run some startup commands, give them a chance here
-        dbg!("Startup commands");
-        // self.run_scripts_startup_cmds()?;
-        dbg!("after Startup commands");
+        self.run_scripts_startup_cmds()?;
 
         Ok(())
     }
@@ -135,7 +133,6 @@ impl IRust {
 
     pub fn run(&mut self) -> Result<()> {
         self.printer.enable_raw_mode();
-        dbg!("aazeae");
         self.prepare()?;
 
         let mut server = if self.options.local_server {
