@@ -1,3 +1,10 @@
+**1.76.2**
+- switch back github linux builds to gnu (to allow scripting to work)
+- add a new script exmaple SuperAdd
+
+**1.76.0**
+- improvement to bare repl
+
 **1.75.0**
 - Fixed argument parsing
 - Add Tips section in the README
