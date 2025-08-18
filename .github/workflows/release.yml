@@ -1,16 +1,16 @@
-name:  Release Binary
+name: Release Binary
 
 on:
   push:
-   tags:
-    - 'irust@[0-9]+.[0-9]+.[0-9]+'
+    tags:
+      - "irust@[0-9]+.[0-9]+.[0-9]+"
   # Manual trigger
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag for release (e.g., irust@0.1.0)'
+        description: "Tag for release (e.g., irust@0.1.0)"
         required: true
-        default: 'test-release'
+        default: "test-release"
 
 permissions:
   contents: write
@@ -32,12 +32,10 @@ jobs:
       with:
         toolchain: stable
 
-    # Build for Musl
+    # Build for GNU (default Linux target)
     - if: runner.os == 'Linux'
-      name: Build Linux musl binary
-      run: |
-        rustup target add x86_64-unknown-linux-musl
-        cargo build --release --target=x86_64-unknown-linux-musl
+      name: Build Linux GNU binary
+      run: cargo build --release
     ####################################
 
     - name: Build
@@ -66,8 +64,8 @@ jobs:
       name: Upload Linux binary
       uses: svenstaro/upload-release-action@v2
       with:
-        file: target/x86_64-unknown-linux-musl/release/irust
-        asset_name: irust-x86_64-unknown-linux-musl
+        file: target/release/irust
+        asset_name: irust-x86_64-unknown-linux-gnu
         tag: ${{ github.event.inputs.tag || github.ref }}
         overwrite: true
 
