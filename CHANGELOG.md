@@ -1,4 +1,4 @@
-**1.76.2**
+**1.76.1**
 - switch back github linux builds to gnu (to allow scripting to work)
 - add a new script exmaple SuperAdd
 
