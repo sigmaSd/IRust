@@ -52,6 +52,10 @@ impl IRust {
             ":irust" => self.irust(),
             ":sync" => self.sync(),
             ":exit" | ":quit" => self.exit(),
+            ":clear" => {
+                self.execute(irust_api::Command::HandleCtrlL)?;
+                Ok(PrintQueue::default())
+            }
             cmd if cmd.starts_with(":help") => self.help(buffer),
             cmd if cmd.starts_with("::") => self.run_cmd(buffer),
             cmd if cmd.starts_with(":edit") => self.extern_edit(buffer),
