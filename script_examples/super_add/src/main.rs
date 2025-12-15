@@ -1,14 +1,14 @@
 use irust_api::{Command, OutputEvent, Shutdown};
 use rscript::scripting::Scripter;
 use rscript::{Hook, VersionReq};
-use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
+use std::collections::hash_map::DefaultHasher;
 use std::env;
 use std::fs;
 use std::hash::{Hash, Hasher};
-use std::path::{absolute, Path, PathBuf};
+use std::path::{Path, PathBuf, absolute};
 use std::process;
-use syn::{visit_mut::VisitMut, File, Item, Visibility};
+use syn::{File, Item, Visibility, visit_mut::VisitMut};
 
 fn hash(s: &str) -> u64 {
     let mut hasher = DefaultHasher::new();
@@ -47,11 +47,13 @@ impl TempCrateModifier {
                 let copied_root = create_temp_copy(&root)?;
                 (
                     copied_root.clone(),
-                    copied_root.join(source_path.strip_prefix(&root).expect(&format!(
-                        "Cargo returned a non parent actual path: {}, {}",
-                        source_path.display(),
-                        root.display(),
-                    ))),
+                    copied_root.join(source_path.strip_prefix(&root).unwrap_or_else(|_| {
+                        panic!(
+                            "Cargo returned a non parent actual path: {}, {}",
+                            source_path.display(),
+                            root.display()
+                        )
+                    })),
                 )
             }
             None => {
@@ -106,18 +108,15 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<(), Box<dyn std::error::
             }
             copy_dir_recursive(&src_path, &dst_path)?;
         } else {
-            if src_metadata.is_symlink() {
-                if fs::metadata(&src_path).is_err() {
-                    continue;
-                }
+            if src_metadata.is_symlink() && fs::metadata(&src_path).is_err() {
+                continue;
             }
-            if dst_path.exists() {
-                if let Ok(time_src) = src_metadata.modified()
-                    && let Ok(time_dst) = fs::symlink_metadata(&dst_path)?.modified()
-                    && time_dst == time_src
-                {
-                    continue;
-                }
+            if dst_path.exists()
+                && let Ok(time_src) = src_metadata.modified()
+                && let Ok(time_dst) = fs::symlink_metadata(&dst_path)?.modified()
+                && time_dst == time_src
+            {
+                continue;
             }
             fs::copy(&src_path, &dst_path)?;
         }
