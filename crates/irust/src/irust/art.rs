@@ -149,7 +149,7 @@ impl IRust {
     }
 
     fn fit_msg(&mut self, msg: &str) -> String {
-        let slash_num = self.printer.cursor.width() - msg.len();
+        let slash_num = self.printer.cursor.width().saturating_sub(msg.len());
         let slash = "-".repeat(slash_num / 2);
 
         format!("{slash}{msg}{slash}")
