@@ -816,7 +816,7 @@ impl IRust {
                         .to_string();
                     print_queue!(header + "\n" + script, Color::Blue)
                 } else {
-                    Err(format!("script: {} not found", &buffer[0]).into())
+                    Err(format!("script: {} not found", buffer[0]).into())
                 }
             }
             2 => {
@@ -846,7 +846,7 @@ impl IRust {
                         _ => Err(format!("Unknown argument: {}", &buffer[1]).into()),
                     }
                 } else {
-                    Err(format!("script: {} not found", &buffer[0]).into())
+                    Err(format!("script: {} not found", buffer[0]).into())
                 }
             }
             _ => Err("Incorrect number of arguments for `:scripts` command".into()),

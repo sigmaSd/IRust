@@ -159,8 +159,8 @@ impl Script for ScriptManager {
                 format!(
                     "{}\t{:?}\t{:?}\t{}",
                     &meta.name,
-                    &meta.script_type,
-                    &meta.hooks,
+                    meta.script_type,
+                    meta.hooks,
                     script.is_active()
                 )
             })
