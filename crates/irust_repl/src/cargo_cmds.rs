@@ -85,14 +85,14 @@ impl CargoPaths {
         let main_file_extern = irust_src_dir.join("main_extern.rs");
         let lib_file = irust_src_dir.join("lib.rs");
         let exe_path = if cfg!(windows) {
-            irust_target_dir.join(format!("debug/{}.exe", &name))
+            irust_target_dir.join(format!("debug/{}.exe", name))
         } else {
-            irust_target_dir.join(format!("debug/{}", &name))
+            irust_target_dir.join(format!("debug/{}", name))
         };
         let release_exe_path = if cfg!(windows) {
-            irust_target_dir.join(format!("release/{}.exe", &name))
+            irust_target_dir.join(format!("release/{}.exe", name))
         } else {
-            irust_target_dir.join(format!("release/{}", &name))
+            irust_target_dir.join(format!("release/{}", name))
         };
 
         Self {
@@ -234,7 +234,7 @@ edition = \"2021\""
         if process.success() {
             Ok(())
         } else {
-            Err(format!("Failed to add dependency: {:?}", &dep).into())
+            Err(format!("Failed to add dependency: {:?}", dep).into())
         }
     }
 
@@ -374,7 +374,7 @@ edition = \"2021\""
         let output = self
             .cargo_common(&mut cmd, "asm", toolchain)
             .arg("--lib")
-            .arg(format!("{}::{fnn}", &self.name))
+            .arg(format!("{}::{fnn}", self.name))
             .arg("--rust")
             .env("FORCE_COLOR", force_color)
             .output()?;
