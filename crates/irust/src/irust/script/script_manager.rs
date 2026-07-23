@@ -158,7 +158,7 @@ impl Script for ScriptManager {
                 let meta = script.metadata();
                 format!(
                     "{}\t{:?}\t{:?}\t{}",
-                    &meta.name,
+                    meta.name,
                     meta.script_type,
                     meta.hooks,
                     script.is_active()

@@ -843,7 +843,7 @@ impl IRust {
                             }
                             success!()
                         }
-                        _ => Err(format!("Unknown argument: {}", &buffer[1]).into()),
+                        _ => Err(format!("Unknown argument: {}", buffer[1]).into()),
                     }
                 } else {
                     Err(format!("script: {} not found", buffer[0]).into())
