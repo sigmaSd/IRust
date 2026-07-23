@@ -10,7 +10,7 @@ license = "MIT"
 
 [dependencies]
 crossterm = { version = "0.29.0", features = ["use-dev-tty"] }
-unicode-width = "0.2.1"
+unicode-width = "0.2.2"
 
 [package.metadata.workspaces]
 independent = true
