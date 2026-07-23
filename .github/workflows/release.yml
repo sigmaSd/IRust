@@ -32,31 +32,36 @@ jobs:
       with:
         toolchain: stable
 
-    # Build for GNU (default Linux target)
     - if: runner.os == 'Linux'
       name: Build Linux GNU binary
       run: cargo build --release
-    ####################################
 
-    - name: Build
-      if: runner.os != 'Linux'
+    - if: runner.os == 'macOS'
+      name: Build MacOS binaries (native + x86_64 cross)
+      run: |
+        rustup target add x86_64-apple-darwin
+        cargo build --release
+        cargo build --release --target x86_64-apple-darwin
+
+    - if: runner.os == 'Windows'
+      name: Build Windows binary
       run: cargo build --release
 
-    - if: matrix.os == 'macos-13'
-      name: Upload MacOS x86_64 Binary
-      uses: svenstaro/upload-release-action@v2
-      with:
-        file: target/release/irust
-        asset_name: irust-x86_64-apple-darwin
-        tag: ${{ github.event.inputs.tag || github.ref }}
-        overwrite: true
-
-    - if: matrix.os == 'macos-latest'
+    - if: runner.os == 'macOS'
       name: Upload MacOS aarch64 Binary
       uses: svenstaro/upload-release-action@v2
       with:
         file: target/release/irust
         asset_name: irust-aarch64-apple-darwin
+        tag: ${{ github.event.inputs.tag || github.ref }}
+        overwrite: true
+
+    - if: runner.os == 'macOS'
+      name: Upload MacOS x86_64 Binary
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: target/x86_64-apple-darwin/release/irust
+        asset_name: irust-x86_64-apple-darwin
         tag: ${{ github.event.inputs.tag || github.ref }}
         overwrite: true
 
