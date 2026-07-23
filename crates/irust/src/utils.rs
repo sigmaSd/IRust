@@ -193,10 +193,8 @@ impl StringTools {
                         double_quote = !double_quote;
                     }
                 }
-                '\'' => {
-                    if previous_char != '\\' {
-                        quote = !quote;
-                    }
+                '\'' if previous_char != '\\' => {
+                    quote = !quote;
                 }
                 _ => (),
             }

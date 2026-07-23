@@ -551,10 +551,8 @@ impl IRust {
                                 code: KeyCode::Char('d'),
                                 modifiers: KeyModifiers::CONTROL,
                                 ..
-                            }) => {
-                                if needle.is_empty() {
-                                    break;
-                                }
+                            }) if needle.is_empty() => {
+                                break;
                             }
                             _ => (),
                         }
